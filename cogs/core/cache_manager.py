@@ -698,7 +698,11 @@ class PersistentCacheBackend(CacheBackend):
         """將資料庫行轉換為緩存條目"""
         key, value_blob, timestamp, access_count, last_access, ttl, size, metadata_json, hit_count, load_time = row
         
-        value = pickle.loads(value_blob)
+        try:
+            value = pickle.loads(value_blob)
+        except (pickle.PickleError, EOFError, ValueError) as e:
+            logger.error(f"Failed to deserialize cache value: {e}")
+            raise
         metadata = json.loads(metadata_json) if metadata_json else {}
         
         entry = CacheEntry(
@@ -998,7 +1002,7 @@ def cache_key(*args, **kwargs) -> str:
     
     # 生成哈希
     key_string = ":".join(key_parts)
-    return hashlib.md5(key_string.encode()).hexdigest()
+    return hashlib.sha256(key_string.encode()).hexdigest()
 
 def cached(ttl: Optional[float] = None, key_func: Optional[Callable] = None):
     """緩存裝飾器"""

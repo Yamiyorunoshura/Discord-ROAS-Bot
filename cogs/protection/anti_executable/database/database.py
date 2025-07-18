@@ -510,7 +510,7 @@ class AntiExecutableDatabase:
                     info = {}
                     
                     for table in ["config", "stats", "action_logs", "file_detections"]:
-                        async with db.execute(f"SELECT COUNT(*) FROM {table}") as cursor:
+                        async with db.execute("SELECT COUNT(*) FROM " + table) as cursor:
                             count = (await cursor.fetchone())[0]
                             info[f"{table}_count"] = count
                     

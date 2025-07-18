@@ -300,8 +300,8 @@ class AntiSpamDatabase:
                 return
             
             await database.execute(
-                "DELETE FROM anti_spam_action_log WHERE guild_id=? AND timestamp < datetime('now', '-{} days')".format(days),
-                (guild_id,)
+                "DELETE FROM anti_spam_action_log WHERE guild_id=? AND timestamp < datetime('now', '-' || ? || ' days')",
+                (guild_id, days)
             )
             
         except Exception as exc:

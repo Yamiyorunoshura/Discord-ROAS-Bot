@@ -377,7 +377,7 @@ class PooledConnection:
         self.connection = connection
         self.db_path = db_path
         self.pool_ref = pool_ref
-        self.connection_id = hashlib.md5(f"{db_path}_{time.time()}_{id(self)}".encode()).hexdigest()[:8]
+        self.connection_id = hashlib.sha256(f"{db_path}_{time.time()}_{id(self)}".encode()).hexdigest()[:8]
         self.metrics = ConnectionMetrics(self.connection_id)
         self.is_healthy = True
         self.in_use = False

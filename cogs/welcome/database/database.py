@@ -39,75 +39,14 @@ class WelcomeDB:
     async def init_db(self) -> None:
         """初始化資料庫結構"""
         try:
-            pool = await self._get_pool()
-            async with pool.get_connection_context(self.db_path) as conn:
-                await conn.execute("""
-                    CREATE TABLE IF NOT EXISTS welcome_settings (
-                        guild_id INTEGER PRIMARY KEY,
-                        channel_id INTEGER,
-                        title TEXT,
-                        description TEXT,
-                        message TEXT,
-                        avatar_x INTEGER,
-                        avatar_y INTEGER,
-                        title_y INTEGER,
-                        description_y INTEGER,
-                        title_font_size INTEGER,
-                        desc_font_size INTEGER,
-                        avatar_size INTEGER
-                    )
-                """)
-                
-                await conn.execute("""
-                    CREATE TABLE IF NOT EXISTS welcome_backgrounds (
-                        guild_id INTEGER PRIMARY KEY,
-                        image_path TEXT
-                    )
-                """)
-                await conn.commit()
+            # 驗證key是否為有效的列名
+            valid_keys = {
+                'channel_id', 'title', 'description', 'message', 'avatar_x', 'avatar_y', 
+                'title_y', 'description_y', 'title_font_size', 'desc_font_size', 'avatar_size'
+            }
+            if key not in valid_keys:
+                raise ValueError(f"Invalid setting key: {key}")
             
-        except Exception as exc:
-            logger.error("資料庫初始化失敗，請檢查檔案權限或路徑。", exc_info=True)
-
-    async def get_settings(self, guild_id: int) -> Dict[str, Any]:
-        """
-        取得伺服器的歡迎訊息設定
-        
-        Args:
-            guild_id: Discord 伺服器 ID
-            
-        Returns:
-            Dict[str, Any]: 設定值字典
-        """
-        await self.init_db()
-        try:
-            pool = await self._get_pool()
-            async with pool.get_connection_context(self.db_path) as conn:
-                cursor = await conn.execute("SELECT * FROM welcome_settings WHERE guild_id=?", (guild_id,))
-                row = await cursor.fetchone()
-                if row:
-                    columns = [desc[0] for desc in cursor.description]
-                    db_settings = dict(zip(columns, row))
-                    merged = DEFAULT_SETTINGS.copy()
-                    merged.update({k: v for k, v in db_settings.items() if v is not None})
-                    return merged
-        except Exception as exc:
-            logger.error("讀取資料庫設定失敗", exc_info=True)
-        return DEFAULT_SETTINGS.copy()
-
-    async def update_setting(self, guild_id: int, key: str, value: Any) -> None:
-        """
-        更新單一設定值
-        
-        Args:
-            guild_id: Discord 伺服器 ID
-            key: 設定鍵名
-            value: 設定值
-        """
-        await self.init_db()
-        try:
-            if not await self.exists(guild_id):
-                await self.insert_defaults(guild_id)
             pool = await self._get_pool()
             async with pool.get_connection_context(self.db_path) as conn:
                 await conn.execute(f"UPDATE welcome_settings SET {key}=? WHERE guild_id=?", (value, guild_id))

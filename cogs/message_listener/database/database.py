@@ -219,13 +219,13 @@ class MessageListenerDB:
                 conditions.append("channel_id = ?")
                 params.append(channel_id)
             
-            query = f"""
+            query = """
                 SELECT message_id, channel_id, guild_id, author_id, content, timestamp, attachments, deleted
                 FROM messages 
-                WHERE {' AND '.join(conditions)}
+                WHERE {}
                 ORDER BY timestamp DESC 
                 LIMIT ?
-            """
+            """.format(' AND '.join(conditions))
             params.append(min(limit, MAX_SEARCH_RESULTS))
             
             return await self.select(query, tuple(params))
