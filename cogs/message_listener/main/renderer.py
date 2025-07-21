@@ -534,3 +534,7 @@ class EnhancedMessageRenderer:
         except Exception as exc:
             logger.error(f"【訊息監聽】渲染訊息失敗：{exc}")
             return None 
+
+
+# 為了向後相容性，提供MessageRenderer別名
+MessageRenderer = EnhancedMessageRenderer 

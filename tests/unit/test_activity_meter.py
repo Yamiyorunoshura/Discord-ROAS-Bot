@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Tuple
 
 import discord
 import aiosqlite
+from contextlib import asynccontextmanager
 
 # 測試配置
 logging.basicConfig(level=logging.DEBUG)
@@ -82,34 +83,44 @@ class TestActivityDatabase:
     """🗄️ 活躍度資料庫測試類"""
     
     @pytest_asyncio.fixture
-    async def activity_db(self, test_db):
+    async def activity_db(self, activity_test_db):
         """建立測試用活躍度資料庫"""
         from cogs.activity_meter.database.database import ActivityDatabase
         db = ActivityDatabase()
-        # 覆蓋 _get_connection 方法使用測試資料庫
-        async def mock_get_connection():
-            return test_db
-        db._get_connection = mock_get_connection
+        # 使用mock pool模式
+        mock_pool = MagicMock()
+        
+        @asynccontextmanager
+        async def mock_get_connection_context(db_path):
+            yield activity_test_db
+        
+        mock_pool.get_connection_context = mock_get_connection_context
+        db._pool = mock_pool
         await db.init_db()
         return db
     
     @pytest.mark.asyncio
-    async def test_database_initialization(self, test_db):
+    async def test_database_initialization(self, activity_test_db):
         """測試資料庫初始化"""
         from cogs.activity_meter.database.database import ActivityDatabase
+        
         db = ActivityDatabase()
-        # 覆蓋 _get_connection 方法使用測試資料庫
-        async def mock_get_connection():
-            return test_db
-        db._get_connection = mock_get_connection
+        # 使用mock pool模式
+        mock_pool = MagicMock()
+        
+        @asynccontextmanager
+        async def mock_get_connection_context(db_path):
+            yield activity_test_db
+        
+        mock_pool.get_connection_context = mock_get_connection_context
+        db._pool = mock_pool
         
         await db.init_db()
         
         # 驗證表格創建
-        conn = await db._get_connection()
         tables = ["meter", "daily"]
         for table in tables:
-            cursor = await conn.execute(
+            cursor = await activity_test_db.execute(
                 f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'"
             )
             result = await cursor.fetchone()

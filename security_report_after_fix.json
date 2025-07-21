@@ -1,17 +1,17 @@
 {
   "errors": [],
-  "generated_at": "2025-07-18T06:53:58Z",
+  "generated_at": "2025-07-18T06:57:42Z",
   "metrics": {
     "_totals": {
-      "CONFIDENCE.HIGH": 24,
-      "CONFIDENCE.LOW": 1,
-      "CONFIDENCE.MEDIUM": 2,
+      "CONFIDENCE.HIGH": 21,
+      "CONFIDENCE.LOW": 2,
+      "CONFIDENCE.MEDIUM": 1,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 23,
-      "SEVERITY.MEDIUM": 4,
+      "SEVERITY.LOW": 21,
+      "SEVERITY.MEDIUM": 3,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 24051,
+      "loc": 24105,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -315,25 +315,25 @@
       "skipped_tests": 0
     },
     "cogs/core/cache_manager.py": {
-      "CONFIDENCE.HIGH": 2,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 1,
-      "SEVERITY.MEDIUM": 1,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 796,
+      "loc": 846,
       "nosec": 0,
       "skipped_tests": 0
     },
     "cogs/core/database_pool.py": {
-      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
-      "SEVERITY.LOW": 1,
+      "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 696,
@@ -531,7 +531,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 1,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 297,
+      "loc": 298,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -797,14 +797,14 @@
     },
     "cogs/protection/anti_executable/database/database.py": {
       "CONFIDENCE.HIGH": 0,
-      "CONFIDENCE.LOW": 0,
-      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.LOW": 1,
+      "CONFIDENCE.MEDIUM": 0,
       "CONFIDENCE.UNDEFINED": 0,
       "SEVERITY.HIGH": 0,
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 1,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 430,
+      "loc": 433,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -1747,66 +1747,6 @@
   },
   "results": [
     {
-      "code": "23 import threading\n24 import pickle\n25 import hashlib\n",
-      "col_offset": 0,
-      "end_col_offset": 13,
-      "filename": "cogs/core/cache_manager.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 502,
-        "link": "https://cwe.mitre.org/data/definitions/502.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Consider possible security implications associated with pickle module.",
-      "line_number": 24,
-      "line_range": [
-        24
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_imports.html#b403-import-pickle",
-      "test_id": "B403",
-      "test_name": "blacklist"
-    },
-    {
-      "code": "701         try:\n702             value = pickle.loads(value_blob)\n703         except (pickle.PickleError, EOFError, ValueError) as e:\n",
-      "col_offset": 20,
-      "end_col_offset": 44,
-      "filename": "cogs/core/cache_manager.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 502,
-        "link": "https://cwe.mitre.org/data/definitions/502.html"
-      },
-      "issue_severity": "MEDIUM",
-      "issue_text": "Pickle and modules that wrap it can be unsafe when used to deserialize untrusted data, possible security issue.",
-      "line_number": 702,
-      "line_range": [
-        702
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b301-pickle",
-      "test_id": "B301",
-      "test_name": "blacklist"
-    },
-    {
-      "code": "238         import random\n239         return random.choice(connections)\n240     \n",
-      "col_offset": 15,
-      "end_col_offset": 41,
-      "filename": "cogs/core/database_pool.py",
-      "issue_confidence": "HIGH",
-      "issue_cwe": {
-        "id": 330,
-        "link": "https://cwe.mitre.org/data/definitions/330.html"
-      },
-      "issue_severity": "LOW",
-      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
-      "line_number": 239,
-      "line_range": [
-        239
-      ],
-      "more_info": "https://bandit.readthedocs.io/en/1.8.6/blacklists/blacklist_calls.html#b311-random",
-      "test_id": "B311",
-      "test_name": "blacklist"
-    },
-    {
       "code": "70             \n71         except Exception as e:\n72             # \u6027\u80fd\u76e3\u63a7\u4e0d\u61c9\u8a72\u5f71\u97ff\u4e3b\u8981\u529f\u80fd\n73             pass\n74     \n",
       "col_offset": 8,
       "end_col_offset": 16,
@@ -1891,7 +1831,7 @@
       "test_name": "blacklist"
     },
     {
-      "code": "221             \n222             query = \"\"\"\n223                 SELECT message_id, channel_id, guild_id, author_id, content, timestamp, attachments, deleted\n224                 FROM messages \n225                 WHERE {}\n226                 ORDER BY timestamp DESC \n227                 LIMIT ?\n228             \"\"\".format(' AND '.join(conditions))\n229             params.append(min(limit, MAX_SEARCH_RESULTS))\n",
+      "code": "223             where_clause = \" AND \".join(base_conditions)\n224             query = f\"\"\"\n225                 SELECT message_id, channel_id, guild_id, author_id, content, timestamp, attachments, deleted\n226                 FROM messages \n227                 WHERE {where_clause}\n228                 ORDER BY timestamp DESC \n229                 LIMIT ?\n230             \"\"\"\n231             params.append(min(limit, MAX_SEARCH_RESULTS))\n",
       "col_offset": 20,
       "end_col_offset": 15,
       "filename": "cogs/message_listener/database/database.py",
@@ -1902,15 +1842,15 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 222,
+      "line_number": 224,
       "line_range": [
-        222,
-        223,
         224,
         225,
         226,
         227,
-        228
+        228,
+        229,
+        230
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",
@@ -2043,20 +1983,20 @@
       "test_name": "try_except_pass"
     },
     {
-      "code": "512                     for table in [\"config\", \"stats\", \"action_logs\", \"file_detections\"]:\n513                         async with db.execute(\"SELECT COUNT(*) FROM \" + table) as cursor:\n514                             count = (await cursor.fetchone())[0]\n",
-      "col_offset": 46,
-      "end_col_offset": 69,
+      "code": "516                         if table in allowed_tables:\n517                             query = f\"SELECT COUNT(*) FROM {table}\"\n518                             async with db.execute(query) as cursor:\n",
+      "col_offset": 36,
+      "end_col_offset": 67,
       "filename": "cogs/protection/anti_executable/database/database.py",
-      "issue_confidence": "MEDIUM",
+      "issue_confidence": "LOW",
       "issue_cwe": {
         "id": 89,
         "link": "https://cwe.mitre.org/data/definitions/89.html"
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible SQL injection vector through string-based query construction.",
-      "line_number": 513,
+      "line_number": 517,
       "line_range": [
-        513
+        517
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.8.6/plugins/b608_hardcoded_sql_expressions.html",
       "test_id": "B608",

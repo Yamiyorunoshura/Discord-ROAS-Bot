@@ -74,7 +74,7 @@ class ActivityMeter(commands.Cog):
     
     # -------- 指令 --------
     @app_commands.command(name="活躍度", description="查看活躍度（進度條）")
-    async def activity(self, inter: discord.Interaction, 成員: discord.Member | None = None):
+    async def activity(self, inter: discord.Interaction, 成員: Optional[discord.Member] = None):
         """
         查看活躍度指令
         

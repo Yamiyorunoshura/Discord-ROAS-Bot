@@ -39,20 +39,29 @@ class WelcomeDB:
     async def init_db(self) -> None:
         """初始化資料庫結構"""
         try:
-            # 驗證key是否為有效的列名
-            valid_keys = {
-                'channel_id', 'title', 'description', 'message', 'avatar_x', 'avatar_y', 
-                'title_y', 'description_y', 'title_font_size', 'desc_font_size', 'avatar_size'
-            }
-            if key not in valid_keys:
-                raise ValueError(f"Invalid setting key: {key}")
-            
             pool = await self._get_pool()
             async with pool.get_connection_context(self.db_path) as conn:
-                await conn.execute(f"UPDATE welcome_settings SET {key}=? WHERE guild_id=?", (value, guild_id))
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS welcome_settings (
+                        guild_id INTEGER PRIMARY KEY,
+                        channel_id INTEGER,
+                        title TEXT,
+                        description TEXT,
+                        message TEXT,
+                        avatar_x INTEGER,
+                        avatar_y INTEGER,
+                        title_y INTEGER,
+                        description_y INTEGER,
+                        title_font_size INTEGER,
+                        desc_font_size INTEGER,
+                        avatar_size INTEGER
+                    )
+                """)
                 await conn.commit()
+                logger.info("【歡迎系統】資料庫表結構初始化完成")
         except Exception as exc:
-            logger.error(f"更新設定失敗（欄位: {key}）", exc_info=True)
+            logger.error(f"【歡迎系統】資料庫初始化失敗: {exc}", exc_info=True)
+            raise
 
     async def exists(self, guild_id: int) -> bool:
         """
@@ -107,6 +116,79 @@ class WelcomeDB:
                 await conn.commit()
         except Exception as exc:
             logger.error("寫入預設設定失敗", exc_info=True)
+
+    async def get_settings(self, guild_id: int) -> Dict[str, Any]:
+        """
+        獲取伺服器設定
+        
+        Args:
+            guild_id: Discord 伺服器 ID
+            
+        Returns:
+            Dict[str, Any]: 設定字典
+        """
+        await self.init_db()
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(self.db_path) as conn:
+                cursor = await conn.execute("""
+                    SELECT channel_id, title, description, message, avatar_x, avatar_y,
+                           title_y, description_y, title_font_size, desc_font_size, avatar_size
+                    FROM welcome_settings WHERE guild_id=?
+                """, (guild_id,))
+                row = await cursor.fetchone()
+                
+                if row:
+                    return {
+                        "channel_id": row[0],
+                        "title": row[1],
+                        "description": row[2],
+                        "message": row[3],
+                        "avatar_x": row[4],
+                        "avatar_y": row[5],
+                        "title_y": row[6],
+                        "description_y": row[7],
+                        "title_font_size": row[8],
+                        "desc_font_size": row[9],
+                        "avatar_size": row[10]
+                    }
+                else:
+                    # 如果沒有設定，插入預設值並返回
+                    await self.insert_defaults(guild_id)
+                    return DEFAULT_SETTINGS.copy()
+        except Exception as exc:
+            logger.error("獲取設定失敗", exc_info=True)
+            return DEFAULT_SETTINGS.copy()
+
+    async def update_setting(self, guild_id: int, key: str, value: Any) -> None:
+        """
+        更新特定設定
+        
+        Args:
+            guild_id: Discord 伺服器 ID
+            key: 設定鍵名
+            value: 設定值
+        """
+        await self.init_db()
+        # 確保記錄存在
+        if not await self.exists(guild_id):
+            await self.insert_defaults(guild_id)
+        
+        # 驗證key是否為有效的列名
+        valid_keys = {
+            'channel_id', 'title', 'description', 'message', 'avatar_x', 'avatar_y', 
+            'title_y', 'description_y', 'title_font_size', 'desc_font_size', 'avatar_size'
+        }
+        if key not in valid_keys:
+            raise ValueError(f"Invalid setting key: {key}")
+        
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(self.db_path) as conn:
+                await conn.execute(f"UPDATE welcome_settings SET {key}=? WHERE guild_id=?", (value, guild_id))
+                await conn.commit()
+        except Exception as exc:
+            logger.error(f"更新設定失敗（欄位: {key}）", exc_info=True)
 
     async def update_welcome_background(self, guild_id: int, image_path: str) -> None:
         """
