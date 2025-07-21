@@ -1,0 +1,139 @@
+# Discord ADR Bot v1.5 - Cursor 忽略檔案
+
+# Python 快取檔案
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 資料庫檔案
+dbs/
+*.db
+*.sqlite
+*.sqlite3
+
+# 環境變數檔案
+.env.*
+!.env.example
+
+# 圖片和媒體檔案
+data/
+backgrounds/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.webp
+*.ico
+*.svg
+
+# 備份檔案
+*.bak
+*.backup
+*.old
+*.tmp
+*.temp
+
+# 系統檔案
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE 和編輯器檔案
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# Git 相關
+.git/
+.gitignore
+.gitattributes
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# 本地配置檔案
+config.local.py
+settings.local.py
+
+# 敏感資訊
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# 大型檔案
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# 編譯檔案
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dll
+*.dylib
+
+# 文檔生成
+docs/_build/
+site/
+
+# 部署檔案
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 監控和統計檔案
+*.stats
+*.metrics
+*.analytics
+
+# 快取目錄
+.cache/
+cache/
+tmp/
+temp/
+
+# 其他不需要索引的檔案
+*.rst
+*.yml
+*.yaml
+*.xml
+*.csv
+*.tsv 
