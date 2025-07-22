@@ -1,6 +1,7 @@
 """
 活躍度系統統計面板嵌入生成器
 - 生成統計資訊的嵌入
+- 支援PRD v1.71的新統計功能
 """
 
 import discord
@@ -23,7 +24,7 @@ async def create_stats_embed(bot: discord.Client, guild: Optional[discord.Guild]
         discord.Embed: 統計面板嵌入
     """
     embed = discord.Embed(
-        title="📈 活躍度系統統計",
+        title="📊 活躍度系統統計",
         description="伺服器活躍度統計資訊",
         color=discord.Color.gold()
     )
@@ -129,6 +130,17 @@ async def create_stats_embed(bot: discord.Client, guild: Optional[discord.Guild]
         inline=True
     )
     
-    embed.set_footer(text=f"活躍度系統 • 統計面板 • {now.strftime('%Y-%m-%d')}")
+    # 新增：顯示統計功能說明
+    embed.add_field(
+        name="📊 統計功能",
+        value=(
+            "• 點擊「查看月度排行榜」查看過去一個月平均活躍度最高的成員\n"
+            "• 點擊「查看訊息量變化」比較本月與上個月的訊息總量變化\n"
+            "• 所有統計數據均基於實際訊息活動計算"
+        ),
+        inline=False
+    )
+    
+    embed.set_footer(text=f"活躍度系統 • 統計面板 v1.71 • {now.strftime('%Y-%m-%d')}")
     
     return embed 

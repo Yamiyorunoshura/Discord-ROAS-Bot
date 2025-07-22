@@ -14,7 +14,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from ..config import config
-from ..database.database import ActivityDatabase
+from ..database.database import ActivityDatabase, ActivityMeterError
 from .calculator import ActivityCalculator
 from .renderer import ActivityRenderer
 from .tasks import ActivityTasks
@@ -86,10 +86,10 @@ class ActivityMeter(commands.Cog):
         member = 成員 or inter.user
         
         if not isinstance(member, discord.Member):
-            await inter.followup.send("❌ 只能查詢伺服器成員的活躍度。")
+            await inter.followup.send("❌ 只能查詢伺服器成員的活躍度。", ephemeral=True)
             return
         
-        with error_handler.handle_error(inter, "查詢活躍度失敗", ErrorCodes.MODULE_ERROR[0]):
+        try:
             # 獲取活躍度資料
             score, last_msg = await self.db.get_user_activity(
                 getattr(inter.guild, 'id', 0), 
@@ -104,7 +104,11 @@ class ActivityMeter(commands.Cog):
                 getattr(member, 'display_name', '未知用戶'), 
                 current_score
             )
-            await inter.followup.send(file=activity_bar)
+            await inter.followup.send(file=activity_bar, ephemeral=True)
+        except ActivityMeterError as e:
+            await inter.followup.send(f"❌ [{e.error_code}] {e.message}", ephemeral=True)
+        except Exception as e:
+            await inter.followup.send("❌ 未知錯誤，請稍後再試。", ephemeral=True)
     
     @app_commands.command(name="今日排行榜", description="查看今日訊息數排行榜")
     async def daily_ranking(self, inter: discord.Interaction, 名次: int = 10):
@@ -117,7 +121,7 @@ class ActivityMeter(commands.Cog):
         """
         await inter.response.defer()
         
-        with error_handler.handle_error(inter, "查詢排行榜失敗", ErrorCodes.MODULE_ERROR[0]):
+        try:
             # 獲取今日日期
             ymd = datetime.now(timezone.utc).astimezone(config.TW_TZ).strftime(config.DAY_FMT)
             
@@ -129,7 +133,7 @@ class ActivityMeter(commands.Cog):
             )
             
             if not rankings:
-                await inter.followup.send("今天還沒有人說話！")
+                await inter.followup.send("今天還沒有人說話！", ephemeral=True)
                 return
             
             # 獲取月度統計
@@ -160,7 +164,11 @@ class ActivityMeter(commands.Cog):
                 colour=discord.Colour.green()
             )
             
-            await inter.followup.send(embed=embed)
+            await inter.followup.send(embed=embed, ephemeral=True)
+        except ActivityMeterError as e:
+            await inter.followup.send(f"❌ [{e.error_code}] {e.message}", ephemeral=True)
+        except Exception as e:
+            await inter.followup.send("❌ 未知錯誤，請稍後再試。", ephemeral=True)
     
     @app_commands.command(name="設定排行榜頻道", description="設定每日自動播報排行榜的頻道")
     @app_commands.describe(頻道="要播報到哪個文字頻道")
@@ -173,15 +181,19 @@ class ActivityMeter(commands.Cog):
             頻道: 要設定的頻道
         """
         if not config.is_allowed(inter, "設定排行榜頻道"):
-            await inter.response.send_message("❌ 你沒有權限執行本指令。")
+            await inter.response.send_message("❌ 你沒有權限執行本指令。", ephemeral=True)
             return
         
-        with error_handler.handle_error(inter, "設定排行榜頻道失敗", ErrorCodes.MODULE_ERROR[0]):
+        try:
             await self.db.set_report_channel(
                 getattr(inter.guild, 'id', 0), 
                 頻道.id
             )
-            await inter.response.send_message(f"✅ 已設定為 {頻道.mention}")
+            await inter.response.send_message(f"✅ 已設定為 {頻道.mention}", ephemeral=True)
+        except ActivityMeterError as e:
+            await inter.response.send_message(f"❌ [{e.error_code}] {e.message}", ephemeral=True)
+        except Exception as e:
+            await inter.response.send_message("❌ 未知錯誤，請稍後再試。", ephemeral=True)
     
     @app_commands.command(name="活躍度面板", description="開啟活躍度系統設定面板")
     async def activity_panel(self, interaction: discord.Interaction):
@@ -216,6 +228,8 @@ class ActivityMeter(commands.Cog):
             # 啟動面板
             await view.start(interaction)
             
+        except ActivityMeterError as e:
+            await interaction.response.send_message(f"❌ [{e.error_code}] {e.message}", ephemeral=True)
         except Exception as exc:
             # 如果面板載入失敗，使用簡單的 Embed
             embed = discord.Embed(
@@ -307,5 +321,8 @@ class ActivityMeter(commands.Cog):
                     getattr(msg.author, 'id', 0)
                 )
             
+            except ActivityMeterError as e:
+                logger.error(f"【活躍度】處理訊息時發生錯誤: {e}")
+                await msg.channel.send(f"❌ [{e.error_code}] {e.message}", ephemeral=True)
             except Exception as e:
                 logger.error(f"【活躍度】處理訊息時發生錯誤: {e}") 

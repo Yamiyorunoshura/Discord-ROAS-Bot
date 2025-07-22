@@ -584,9 +584,6 @@ class BasePanelView(discord.ui.View, ABC):
         
         button = discord.ui.Button(**button_kwargs)
         
-        if callback:
-            button.callback = callback
-            
         return button
     
     def create_standard_select(

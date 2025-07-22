@@ -9,13 +9,21 @@ import aiosqlite
 import asyncio
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Tuple, Optional, Any, Union
 
 from ..config import config
 from ...core.database_pool import get_global_pool
 
 logger = logging.getLogger("activity_meter")
+
+# Phase 3: 錯誤處理體系
+class ActivityMeterError(Exception):
+    """活躍度系統錯誤基類（底層專用）"""
+    def __init__(self, error_code: str, message: str):
+        self.error_code = error_code
+        self.message = message
+        super().__init__(f"[{error_code}] {message}")
 
 class ActivityDatabase:
     """
@@ -66,7 +74,7 @@ class ActivityDatabase:
             logger.info("【活躍度】資料庫表結構初始化完成")
         except Exception as e:
             logger.error(f"【活躍度】初始化資料庫表結構失敗: {e}")
-            raise
+            raise ActivityMeterError("E101", f"資料庫初始化失敗: {e}")
     
     async def close(self) -> None:
         """
@@ -99,7 +107,7 @@ class ActivityDatabase:
                 return 0.0, 0
         except Exception as e:
             logger.error(f"【活躍度】獲取用戶活躍度失敗: {e}")
-            return 0.0, 0
+            raise ActivityMeterError("E102", f"查詢用戶活躍度失敗: {e}")
     
     async def update_user_activity(self, guild_id: int, user_id: int, score: float, timestamp: int) -> None:
         """
@@ -121,6 +129,7 @@ class ActivityDatabase:
                 await conn.commit()
         except Exception as e:
             logger.error(f"【活躍度】更新用戶活躍度失敗: {e}")
+            raise ActivityMeterError("E102", f"更新用戶活躍度失敗: {e}")
     
     async def increment_daily_message_count(self, ymd: str, guild_id: int, user_id: int) -> None:
         """
@@ -141,6 +150,7 @@ class ActivityDatabase:
                 await conn.commit()
         except Exception as e:
             logger.error(f"【活躍度】增加每日訊息計數失敗: {e}")
+            raise ActivityMeterError("E102", f"每日訊息計數失敗: {e}")
     
     async def get_daily_rankings(self, ymd: str, guild_id: int, limit: int = 10) -> List[Dict[str, Any]]:
         """
@@ -165,7 +175,7 @@ class ActivityDatabase:
                 return [{"user_id": row[0], "msg_cnt": row[1]} for row in rows]
         except Exception as e:
             logger.error(f"【活躍度】獲取每日排行榜失敗: {e}")
-            return []
+            raise ActivityMeterError("E102", f"查詢每日排行榜失敗: {e}")
     
     async def get_monthly_stats(self, ym: str, guild_id: int) -> Dict[int, int]:
         """
@@ -190,7 +200,7 @@ class ActivityDatabase:
                 return {row[0]: row[1] for row in rows}  # user_id: total
         except Exception as e:
             logger.error(f"【活躍度】獲取月度統計失敗: {e}")
-            return {}
+            raise ActivityMeterError("E102", f"查詢月度統計失敗: {e}")
     
     async def set_report_channel(self, guild_id: int, channel_id: int) -> None:
         """
@@ -210,6 +220,7 @@ class ActivityDatabase:
                 await conn.commit()
         except Exception as e:
             logger.error(f"【活躍度】設定報告頻道失敗: {e}")
+            raise ActivityMeterError("E102", f"設定報告頻道失敗: {e}")
     
     async def get_report_channels(self) -> List[Tuple[int, int]]:
         """
@@ -226,4 +237,203 @@ class ActivityDatabase:
                 return [(row[0], row[1]) for row in rows]  # guild_id, channel_id
         except Exception as e:
             logger.error(f"【活躍度】獲取報告頻道失敗: {e}")
-            return [] 
+            raise ActivityMeterError("E102", f"查詢報告頻道失敗: {e}")
+    
+    # PRD v1.71 新增方法
+    async def get_monthly_top_users(self, limit: int = 3) -> List[Tuple[int, float, int]]:
+        """獲取過去一個月平均活躍度最高的用戶"""
+        try:
+            # 計算過去一個月的時間範圍
+            now = datetime.now()
+            month_ago = now - timedelta(days=30)
+            
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                cursor = await conn.execute("""
+                SELECT user_id, AVG(score) as avg_score, COUNT(*) as message_count
+                FROM meter
+                WHERE last_msg >= ?
+                GROUP BY user_id
+                HAVING COUNT(*) >= 1
+                ORDER BY avg_score DESC
+                LIMIT ?
+                """, (int(month_ago.timestamp()), limit))
+                results = await cursor.fetchall()
+                
+            return [(user_id, avg_score, message_count) for user_id, avg_score, message_count in results]
+            
+        except Exception as e:
+            logger.error(f"【活躍度】獲取月度排行榜失敗: {e}")
+            raise ActivityMeterError("E102", f"查詢月度排行榜失敗: {e}")
+    
+    async def get_monthly_message_count(self) -> int:
+        """獲取本月訊息總量"""
+        try:
+            now = datetime.now()
+            start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                cursor = await conn.execute("""
+                SELECT COUNT(*) as message_count
+                FROM meter
+                WHERE last_msg >= ?
+                """, (int(start_of_month.timestamp()),))
+                result = await cursor.fetchone()
+                
+            return result[0] if result else 0
+            
+        except Exception as e:
+            logger.error(f"【活躍度】獲取本月訊息總量失敗: {e}")
+            raise ActivityMeterError("E102", f"查詢本月訊息總量失敗: {e}")
+    
+    async def get_last_month_message_count(self) -> int:
+        """獲取上個月訊息總量"""
+        try:
+            now = datetime.now()
+            start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            start_of_last_month = (start_of_month - timedelta(days=1)).replace(day=1)
+            
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                cursor = await conn.execute("""
+                SELECT COUNT(*) as message_count
+                FROM meter
+                WHERE last_msg >= ? AND last_msg < ?
+                """, (int(start_of_last_month.timestamp()), int(start_of_month.timestamp())))
+                result = await cursor.fetchone()
+                
+            return result[0] if result else 0
+            
+        except Exception as e:
+            logger.error(f"【活躍度】獲取上個月訊息總量失敗: {e}")
+            raise ActivityMeterError("E102", f"查詢上個月訊息總量失敗: {e}")
+    
+    async def save_progress_style(self, guild_id: int, style: str) -> None:
+        """保存進度條風格設定"""
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                await conn.execute("""
+                INSERT INTO activity_meter_settings (guild_id, progress_style)
+                VALUES (?, ?)
+                ON CONFLICT(guild_id) DO UPDATE SET progress_style = ?
+                """, (guild_id, style, style))
+                await conn.commit()
+                
+        except Exception as e:
+            logger.error(f"【活躍度】保存進度條風格失敗: {e}")
+            raise ActivityMeterError("E402", f"保存進度條風格失敗: {e}")
+    
+    async def save_announcement_time(self, guild_id: int, hour: int) -> None:
+        """保存公告時間設定"""
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                await conn.execute("""
+                INSERT INTO activity_meter_settings (guild_id, announcement_time)
+                VALUES (?, ?)
+                ON CONFLICT(guild_id) DO UPDATE SET announcement_time = ?
+                """, (guild_id, hour, hour))
+                await conn.commit()
+                
+        except Exception as e:
+            logger.error(f"【活躍度】保存公告時間失敗: {e}")
+            raise ActivityMeterError("E402", f"保存公告時間失敗: {e}")
+    
+    async def load_settings(self, guild_id: int) -> dict:
+        """從數據庫載入設定"""
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                cursor = await conn.execute("""
+                SELECT progress_style, announcement_channel, announcement_time
+                FROM activity_meter_settings
+                WHERE guild_id = ?
+                """, (guild_id,))
+                result = await cursor.fetchone()
+                
+            if result:
+                return {
+                    'progress_style': result[0],
+                    'announcement_channel': result[1],
+                    'announcement_time': result[2]
+                }
+            else:
+                return {
+                    'progress_style': 'classic',
+                    'announcement_channel': None,
+                    'announcement_time': 21
+                }
+                
+        except Exception as e:
+            logger.error(f"【活躍度】載入設定失敗: {e}")
+            raise ActivityMeterError("E401", f"載入設定失敗: {e}")
+    
+    async def get_progress_style(self, guild_id: int) -> str:
+        """獲取進度條風格設定"""
+        try:
+            settings = await self.load_settings(guild_id)
+            return settings.get('progress_style', 'classic')
+        except Exception as e:
+            logger.error(f"【活躍度】獲取進度條風格失敗: {e}")
+            raise ActivityMeterError("E401", f"獲取進度條風格失敗: {e}")
+    
+    async def save_all_settings(self, guild_id: int, progress_style: str, announcement_channel: int = None, announcement_time: int = 21) -> None:
+        """一次性保存所有設定"""
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                await conn.execute("""
+                INSERT INTO activity_meter_settings (guild_id, progress_style, announcement_channel, announcement_time)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(guild_id) DO UPDATE SET
+                progress_style = excluded.progress_style,
+                announcement_channel = excluded.announcement_channel,
+                announcement_time = excluded.announcement_time
+                """, (guild_id, progress_style, announcement_channel, announcement_time))
+                await conn.commit()
+                
+        except Exception as e:
+            logger.error(f"【活躍度】保存所有設定失敗: {e}")
+            raise ActivityMeterError("E402", f"保存所有設定失敗: {e}") 
