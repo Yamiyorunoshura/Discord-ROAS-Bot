@@ -83,17 +83,33 @@ alwaysApply: false
 **管理策略**: 自動檢查現有歸檔文件，存在則更新，不存在則創建
 **創建目的**: 專門記錄測試成果和開發進展
 **存儲位置**: 僅限於專案根目錄的 memory_bank/ 目錄
+**主要參考來源**: 優先參考 `result.md` 和 `development_progress_[項目名稱].md` 文件
 
-#### 2.2 歸檔文件檢查和更新機制
+#### 2.2 測試歸檔文檔更新策略
+**優先級順序**:
+1. **result.md**: 作為測試結果的主要數據源
+2. **development_progress_[項目名稱].md**: 作為開發進度和項目狀態的主要數據源
+3. **其他記憶文檔**: 作為補充信息來源
+
+**數據提取策略**:
+- **測試結果數據**: 主要從 `result.md` 中提取
+- **開發進度數據**: 主要從 `development_progress_[項目名稱].md` 中提取
+- **項目狀態數據**: 從兩個文件綜合提取
+- **問題和解決方案**: 從兩個文件綜合分析
+
+#### 2.3 歸檔文件檢查和更新機制
 
 **檢查流程**:
 1. **專案根目錄檢測**: 使用 `mcp_Desktop_Commander_list_directory` 檢測專案根目錄
 2. **專案根目錄結構確認**: 使用 `mcp_Desktop_Commander_list_directory` 確認專案根目錄結構，確保在正確的項目環境中
 3. **memory_bank目錄掃描**: 使用 `mcp_Desktop_Commander_list_directory` 掃描專案根目錄下的 memory_bank/ 目錄
-4. **文件搜索**: 使用 `mcp_Desktop_Commander_search_files` 在專案根目錄的 memory_bank/ 目錄中搜索 `test_archive_*.md` 文件
-5. **內容讀取**: 如果文件存在，使用 `mcp_Desktop_Commander_read_file` 讀取現有內容
-6. **智能決策**: 
-   - 文件存在 → 使用 `mcp_Desktop_Commander_edit_block` 更新內容
+4. **主要參考文件讀取**: 
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/result.md`
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/development_progress_[項目名稱].md`
+5. **測試歸檔文件搜索**: 使用 `mcp_Desktop_Commander_search_files` 在專案根目錄的 memory_bank/ 目錄中搜索 `test_archive_*.md` 文件
+6. **內容讀取**: 如果測試歸檔文件存在，使用 `mcp_Desktop_Commander_read_file` 讀取現有內容
+7. **智能決策**: 
+   - 文件存在 → 使用 `mcp_Desktop_Commander_edit_block` 基於 result.md 和 development_progress 文件更新內容
    - 文件不存在 → 使用 `mcp_Desktop_Commander_write_file` 在專案根目錄的 memory_bank/ 目錄中創建新文件
 
 **重要原則**:
@@ -103,6 +119,8 @@ alwaysApply: false
 - **環境隔離**: 避免在專案根目錄外的任何位置進行操作
 
 **更新策略**:
+- **主要數據源**: 優先使用 `result.md` 和 `development_progress_[項目名稱].md` 中的數據
+- **數據整合**: 將兩個文件的數據整合到測試歸檔文件中
 - **追加模式**: 在現有歸檔文件末尾追加新的測試記錄
 - **時間戳記錄**: 每次更新都添加時間戳
 - **版本追蹤**: 記錄測試版本和歸檔版本
@@ -203,54 +221,140 @@ alwaysApply: false
 
 ## 📝 文檔更新機制
 
-### 1. README.md 更新
+### 1. 多文檔優先參考機制
 
-#### 1.1 測試狀態更新
-- **測試覆蓋率**: 更新當前測試覆蓋率
-- **測試狀態**: 更新測試通過/失敗狀態
-- **性能指標**: 更新關鍵性能指標
-- **版本信息**: 更新最新測試版本
+#### 1.1 主要參考文檔
+**優先級順序**:
+1. **result.md**: 作為測試結果和PRD需求驗證的主要數據源
+2. **development_progress_[項目名稱].md**: 作為開發進度和項目狀態的主要數據源
+3. **test_archive_[項目名稱].md**: 作為測試歸檔記錄的數據源
 
-#### 1.2 使用說明更新
-- **測試運行**: 更新測試運行說明
-- **測試環境**: 更新測試環境要求
-- **測試結果**: 更新測試結果查看方式
-- **問題報告**: 更新問題報告流程
+**數據提取策略**:
+- **測試結果數據**: 主要從 `result.md` 中提取
+- **開發進度數據**: 主要從 `development_progress_[項目名稱].md` 中提取
+- **項目狀態數據**: 從兩個文件綜合提取
+- **PRD需求驗證**: 從 `result.md` 中提取
+- **測試歸檔記錄**: 從 `test_archive_[項目名稱].md` 中提取
 
-#### 1.3 項目狀態更新
-- **項目健康度**: 基於測試結果更新項目狀態
-- **功能完整性**: 更新功能測試狀態
-- **性能表現**: 更新性能測試結果
-- **安全狀態**: 更新安全測試結果
+#### 1.2 多文檔讀取流程
+1. **專案根目錄確認**: 使用 `mcp_Desktop_Commander_list_directory` 確認專案根目錄結構
+2. **主要參考文件讀取**: 
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/result.md`
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/development_progress_[項目名稱].md`
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/test_archive_[項目名稱].md`
+3. **關鍵信息提取**: 從各文檔中提取以下信息：
+   - **從result.md提取**: PRD需求驗證結果、測試結果摘要、性能指標、發現的問題、改進建議
+   - **從development_progress.md提取**: 當前版本號、開發階段、核心功能完成度、測試覆蓋率、里程碑記錄
+   - **從test_archive.md提取**: 測試歸檔記錄、測試歷史、測試環境信息
+4. **數據整合**: 將三個文件的數據進行整合和驗證
+5. **數據驗證**: 確保提取的數據準確且最新
 
-### 2. CHANGELOG.md 更新
+### 2. README.md 更新
 
-#### 2.1 測試相關變更記錄
+#### 2.1 基於多文檔的狀態更新
+**更新策略**: 主要參考 `result.md` 和 `development_progress_[項目名稱].md` 中的信息
+**更新內容**:
+- **項目概覽**: 從開發進度文檔的項目概覽部分提取
+- **當前版本**: 從開發進度文檔的當前版本信息提取
+- **開發階段**: 從當前開發階段部分提取
+- **PRD需求驗證**: 從result.md的PRD需求驗證結果提取
+- **核心功能狀態**: 從核心功能完成度表格提取
+- **測試覆蓋率**: 從測試覆蓋率部分提取
+- **項目健康度**: 基於result.md和開發進度文檔中的質量指標更新
+
+#### 2.2 使用說明更新
+- **安裝說明**: 基於開發進度文檔中的技術要求更新
+- **配置說明**: 基於開發進度文檔中的配置信息更新
+- **使用指南**: 基於result.md中的PRD需求驗證結果和開發進度文檔中的功能描述更新
+- **故障排除**: 基於result.md中發現的問題和開發進度文檔中的已知問題更新
+
+#### 2.3 項目狀態更新
+- **功能完整性**: 基於result.md中的PRD需求驗證結果和開發進度文檔中的核心功能完成度更新
+- **測試狀態**: 基於result.md中的測試結果摘要和開發進度文檔中的測試覆蓋率更新
+- **性能表現**: 基於result.md中的性能指標和開發進度文檔中的性能指標更新
+- **開發進度**: 基於開發進度文檔中的里程碑記錄更新
+
+### 3. CHANGELOG.md 更新
+
+#### 3.1 基於多文檔的變更記錄
+**更新策略**: 主要參考 `result.md` 和 `development_progress_[項目名稱].md` 中的已完成任務和里程碑
+**更新內容**:
 ```markdown
 ## [版本號] - YYYY-MM-DD
 
+### PRD需求驗證
+- 完成 [具體PRD需求] 需求驗證
+- 實現 [具體功能] 功能
+- 通過 [具體測試] 測試驗證
+- 達到 [具體指標] 性能指標
+
+### 開發階段完成
+- 完成 [具體階段] 開發階段
+- 實現 [具體功能] 功能
+- 修復 [具體問題] 問題
+- 優化 [具體模組] 性能
+
 ### 測試改進
-- 新增 [具體測試] 測試案例
-- 修復 [具體問題] 測試失敗
 - 提升測試覆蓋率至 XX%
-- 優化 [具體功能] 測試性能
-
-### 測試修復
-- 修復 [具體測試] 不穩定問題
-- 解決 [具體錯誤] 測試錯誤
-- 改進 [具體模組] 測試邏輯
-
-### 測試工具
-- 更新測試框架版本
-- 新增測試工具配置
+- 修復 [具體測試] 測試失敗
+- 新增 [具體測試] 測試案例
 - 優化測試執行流程
+
+### 技術成就
+- 完成 [具體模組] 模組開發
+- 實現 [具體功能] 功能
+- 優化 [具體性能] 性能指標
+- 改進 [具體用戶體驗] 用戶體驗
+
+### 已知問題修復
+- 修復 [具體問題] 問題
+- 解決 [具體錯誤] 錯誤
+- 改進 [具體功能] 穩定性
+- 優化 [具體模組] 錯誤處理
 ```
 
-#### 2.2 測試里程碑記錄
-- **測試完成里程碑**: 記錄重要測試階段完成
-- **測試質量里程碑**: 記錄測試質量提升里程碑
-- **測試自動化里程碑**: 記錄測試自動化進展
-- **測試覆蓋率里程碑**: 記錄測試覆蓋率達標
+#### 3.2 里程碑記錄更新
+**更新策略**: 基於 `result.md` 和開發進度文檔中的里程碑記錄
+**更新內容**:
+- **PRD需求驗證里程碑**: 記錄PRD需求驗證完成里程碑
+- **階段完成里程碑**: 記錄開發階段完成里程碑
+- **功能完成里程碑**: 記錄重要功能完成里程碑
+- **測試里程碑**: 記錄測試質量提升里程碑
+- **性能里程碑**: 記錄性能優化里程碑
+
+#### 3.3 版本信息更新
+**更新策略**: 基於 `result.md` 和開發進度文檔中的版本信息
+**更新內容**:
+- **版本號**: 從開發進度文檔的當前版本提取
+- **發布日期**: 從開發進度文檔的最後更新日期提取
+- **PRD需求驗證**: 從result.md的PRD需求驗證結果提取
+- **主要變更**: 從已完成任務列表提取
+- **技術改進**: 從技術成就部分提取
+
+### 4. 文檔同步機制
+
+#### 4.1 多文檔優先原則
+- **主要數據源**: `result.md` 和 `development_progress_[項目名稱].md` 是更新其他文檔的主要數據源
+- **數據一致性**: 確保 README.md 和 CHANGELOG.md 與主要參考文檔保持一致
+- **時效性保證**: 優先使用主要參考文檔中的最新信息
+- **完整性保證**: 確保所有重要信息都從主要參考文檔中提取
+
+#### 4.2 文檔更新流程
+1. **讀取主要參考文檔**: 
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/result.md`
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/development_progress_[項目名稱].md`
+2. **提取關鍵信息**: 從各文檔中提取PRD需求驗證、版本、階段、成就、問題等信息
+3. **更新README.md**: 基於提取的信息更新 README.md
+4. **更新CHANGELOG.md**: 基於提取的信息更新 CHANGELOG.md
+5. **驗證一致性**: 確保所有文檔信息一致且準確
+
+#### 4.3 文檔更新工具使用
+- **主要參考文檔讀取**: 
+  - `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/result.md`
+  - `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/development_progress_[項目名稱].md`
+- **README.md更新**: `mcp_Desktop_Commander_edit_block` 進行精確更新
+- **CHANGELOG.md更新**: `mcp_Desktop_Commander_edit_block` 進行精確更新
+- **文檔驗證**: `mcp_Desktop_Commander_search_code` 檢查文檔一致性
 
 ## 🔧 歸檔工具使用規範
 
@@ -272,8 +376,11 @@ alwaysApply: false
 - **環境驗證**: 確保所有操作都在專案根目錄內進行
 
 #### 1.2 文檔更新操作
-- **讀取文檔**: `mcp_Desktop_Commander_read_file` 讀取 README.md 和 CHANGELOG.md
-- **更新文檔**: `mcp_Desktop_Commander_edit_block` 進行精確更新
+- **讀取主要參考文檔**: 
+  - `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/result.md`
+  - `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/development_progress_[項目名稱].md`
+- **讀取現有文檔**: `mcp_Desktop_Commander_read_file` 讀取 README.md 和 CHANGELOG.md
+- **更新文檔**: `mcp_Desktop_Commander_edit_block` 基於主要參考文檔進行精確更新
 - **覆蓋文檔**: `mcp_Desktop_Commander_write_file` 直接覆蓋舊版本
 
 #### 1.3 測試結果分析
@@ -408,10 +515,14 @@ alwaysApply: false
    - 不存在則使用 `mcp_Desktop_Commander_write_file` 在專案根目錄下創建新文件
 
 #### 2.3 文檔同步階段
-1. **更新README.md**: 更新專案根目錄下的項目狀態和測試信息
-2. **更新CHANGELOG.md**: 記錄專案根目錄下的測試相關變更
-3. **檢查文檔一致性**: 確保專案根目錄下所有文檔信息一致
-4. **驗證更新完整性**: 確認專案根目錄下所有必要信息已更新
+1. **讀取主要參考文檔**: 
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/result.md`
+   - 使用 `mcp_Desktop_Commander_read_file` 讀取 `memory_bank/development_progress_[項目名稱].md`
+2. **提取關鍵信息**: 從各文檔中提取PRD需求驗證、版本、階段、成就、問題等信息
+3. **更新README.md**: 基於主要參考文檔中的信息更新專案根目錄下的項目狀態
+4. **更新CHANGELOG.md**: 基於主要參考文檔中的已完成任務和里程碑記錄專案根目錄下的變更
+5. **檢查文檔一致性**: 確保專案根目錄下所有文檔與主要參考文檔信息一致
+6. **驗證更新完整性**: 確認專案根目錄下所有必要信息已從主要參考文檔中正確提取並更新
 
 #### 2.4 驗證階段
 1. **檢查記憶完整性**: 確認記憶文檔更新完整
@@ -542,11 +653,12 @@ alwaysApply: false
 - [ ] 記憶文檔內容準確無誤
 
 #### 2. 文檔同步檢查
-- [ ] README.md 已更新測試狀態
-- [ ] CHANGELOG.md 已記錄測試變更
-- [ ] 文檔格式一致
-- [ ] 文檔內容準確
-- [ ] 文檔時效性良好
+- [ ] 主要參考文檔 (`result.md` 和 `development_progress_[項目名稱].md`) 已讀取並分析
+- [ ] README.md 已基於主要參考文檔更新項目狀態
+- [ ] CHANGELOG.md 已基於主要參考文檔記錄變更
+- [ ] 文檔與主要參考文檔信息一致
+- [ ] 文檔內容準確且時效性良好
+- [ ] 所有關鍵信息已從主要參考文檔中正確提取
 
 #### 3. 測試結果分析檢查
 - [ ] 測試覆蓋率已記錄
