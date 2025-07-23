@@ -81,6 +81,62 @@ class PermissionManager:
             bool: 是否有設定修改權限
         """
         return user.guild_permissions.manage_guild
+    
+    @staticmethod
+    def can_manage_settings(user: discord.Member) -> bool:
+        """
+        檢查管理設定權限
+        
+        Args:
+            user: Discord 成員
+            
+        Returns:
+            bool: 是否有管理設定權限
+        """
+        try:
+            # 檢查用戶是否存在
+            if not user:
+                return False
+                
+            # 檢查是否為伺服器擁有者
+            if user.guild_permissions.administrator:
+                return True
+                
+            # 檢查是否有管理伺服器權限
+            if user.guild_permissions.manage_guild:
+                return True
+                
+            return False
+            
+        except Exception as e:
+            logger.error(f"權限檢查失敗: {str(e)}")
+            return False
+    
+    @staticmethod
+    def can_view_stats(user: discord.Member) -> bool:
+        """
+        檢查查看統計權限
+        
+        Args:
+            user: Discord 成員
+            
+        Returns:
+            bool: 是否有查看統計權限
+        """
+        try:
+            # 所有用戶都可以查看統計
+            if not user:
+                return False
+                
+            # 檢查是否有讀取訊息權限
+            if user.guild_permissions.read_messages:
+                return True
+                
+            return False
+            
+        except Exception as e:
+            logger.error(f"權限檢查失敗: {str(e)}")
+            return False
         
     def check_permission(self, user: discord.Member, permission_type: str) -> bool:
         """
@@ -101,6 +157,10 @@ class PermissionManager:
             return self.can_export(user)
         elif permission_type == "modify_settings":
             return self.can_modify_settings(user)
+        elif permission_type == "manage_settings":
+            return self.can_manage_settings(user)
+        elif permission_type == "view_stats":
+            return self.can_view_stats(user)
         else:
             logger.warning(f"未知的權限類型: {permission_type}")
             return False
@@ -119,7 +179,9 @@ class PermissionManager:
             "view": self.can_view(user),
             "manage": self.can_manage(user),
             "export": self.can_export(user),
-            "modify_settings": self.can_modify_settings(user)
+            "modify_settings": self.can_modify_settings(user),
+            "manage_settings": self.can_manage_settings(user),
+            "view_stats": self.can_view_stats(user)
         }
         
     def get_required_permission_message(self, permission_type: str) -> str:
@@ -136,7 +198,9 @@ class PermissionManager:
             "view": "您沒有查看權限",
             "manage": "您需要「管理伺服器」權限",
             "export": "您需要「管理員」權限",
-            "modify_settings": "您需要「管理伺服器」權限才能修改設定"
+            "modify_settings": "您需要「管理伺服器」權限才能修改設定",
+            "manage_settings": "您需要「管理伺服器」或「管理員」權限才能管理設定",
+            "view_stats": "您需要「讀取訊息」權限才能查看統計"
         }
         
         return messages.get(permission_type, "您沒有足夠的權限")

@@ -1,0 +1,644 @@
+---
+description: 測試核心需求是否完成；測試PRD是否完成 - 自動調用場景：PRD需求測試、核心功能測試、PRD功能驗收測試、PRD性能基準測試、PRD用戶體驗測試、PRD權限安全測試、PRD對比測試報告、PRD測試結果錄入、PRD實現進度記錄、PRD需求解析、PRD測試案例生成、PRD功能測試執行、PRD性能測試執行、PRD用戶體驗測試執行、PRD權限測試執行、PRD整合測試、PRD測試分類、PRD測試標準、PRD測試評估、PRD測試覆蓋率、PRD測試通過率、PRD測試質量評分、PRD測試結果錄入機制、PRD測試結果錄入規範、PRD測試結果錄入流程、result.md文件錄入、PRD測試進度追蹤、PRD測試更新歷史、PRD測試執行摘要、PRD詳細測試結果、PRD需求驗證狀態、PRD測試發現與建議、PRD測試進度追蹤、PRD測試更新歷史、PRD自動化測試觸發、PRD測試變更監控、PRD測試變更檢測、PRD文件變更監控、PRD定期測試安排、PRD測試配置、PRD測試驗收標準、PRD功能驗收、PRD性能驗收、PRD用戶體驗驗收、PRD安全驗收、PRD覆蓋率驗收、PRD驅動原則、PRD需求對比、PRD實現驗證、PRD進度追蹤、PRD測試質量標準、PRD測試準確性、PRD測試完整性、PRD測試可靠性、PRD測試及時性、PRD持續監控、PRD定期評估、PRD動態調整、PRD反饋循環、PRD測試改進機制、PRD測試執行器、PRD測試監控器、PRD測試觸發器、PRD測試評估器、PRD測試記錄器、PRD測試分析器、PRD測試報告生成器、PRD測試結果分析、PRD測試問題診斷、PRD測試改進建議、PRD測試實施計劃、PRD測試風險評估、PRD測試成功指標、PRD測試質量檢查、PRD測試完整性評估、PRD測試可靠性分析、PRD測試準確性驗證、PRD測試一致性檢查、PRD測試重複性分析、PRD測試效率評估、PRD測試效果分析、PRD測試價值評估、PRD測試成本分析、PRD測試收益評估、PRD測試ROI分析、PRD測試投資回報評估、PRD測試效益分析、PRD測試影響評估、PRD測試結果解釋、PRD測試數據可視化、PRD測試趨勢分析、PRD測試模式識別、PRD測試異常檢測、PRD測試異常處理、PRD測試異常預防、PRD測試異常監控、PRD測試異常報告、PRD測試異常追蹤、PRD測試異常解決、PRD測試異常優化、PRD測試異常改進、PRD測試異常管理、PRD測試異常控制、PRD測試異常防範、PRD測試異常預警、PRD測試異常響應、PRD測試異常恢復、PRD測試異常修復、PRD測試異常升級、PRD測試異常降級、PRD測試異常切換、PRD測試異常隔離、PRD測試異常並行、PRD測試異常串行、PRD測試異常異步、PRD測試異常同步、PRD測試異常並發、PRD測試異常分佈、PRD測試異常集中、PRD測試異常分散、PRD測試異常聚合、PRD測試異常分解、PRD測試異常組合、PRD測試異常拆分、PRD測試異常合併、PRD測試異常分離、PRD測試異常連接、PRD測試異常斷開、PRD測試異常啟動、PRD測試異常停止、PRD測試異常暫停、PRD測試異常恢復、PRD測試異常重啟、PRD測試異常重置、PRD測試異常清除、PRD測試異常清理、PRD測試異常整理、PRD測試異常歸檔
+globs: 
+alwaysApply: false
+---
+globs: 
+alwaysApply: false
+---
+## 📋 標準化測試流程 - result.md 覆蓋更新
+
+### 1.1 PRD 驅動測試流程 - 重點：result.md 覆蓋
+```python
+# PRD 驅動測試流程定義 - 專注於 result.md 覆蓋更新
+PRD_DRIVEN_TEST_WORKFLOW = {
+    "step_1": "讀取現有的 result.md 文件",
+    "step_2": "解析PRD需求文檔，提取功能規格", 
+    "step_3": "基於PRD生成對應測試案例",
+    "step_4": "執行PRD功能驗收測試",
+    "step_5": "執行PRD性能基準測試", 
+    "step_6": "執行PRD用戶體驗測試",
+    "step_7": "執行PRD權限安全測試",
+    "step_8": "更新 result.md 文件內容（覆蓋更新）",
+    "step_9": "保存更新後的 result.md"
+}
+```
+
+### 1.2 result.md 覆蓋更新機制
+```python
+# utils/result_md_updater.py
+class ResultMdUpdater:
+    """result.md 覆蓋更新器 - 專注於更新現有文件"""
+    
+    def __init__(self, memory_bank_path: str = "memory_bank"):
+        self.memory_bank_path = memory_bank_path
+        self.result_file_path = f"{memory_bank_path}/result.md"
+    
+    def update_result_md_with_test_results(self, test_report: PRDTestReport) -> bool:
+        """更新 result.md 文件內容（覆蓋更新）"""
+        try:
+            # 讀取現有的result.md文檔
+            existing_content = self._read_existing_result_md()
+            
+            # 解析現有result.md結構
+            parsed_sections = self._parse_existing_result_sections(existing_content)
+            
+            # 更新result.md內容（覆蓋更新）
+            updated_content = self._update_result_md_content(parsed_sections, test_report)
+            
+            # 保存更新後的result.md文檔
+            self._save_updated_result_md(updated_content)
+            
+            print(f"✅ result.md 已更新: {self.result_file_path}")
+            return True
+        except Exception as e:
+            print(f"❌ result.md 更新失敗: {e}")
+            return False
+    
+    def _read_existing_result_md(self) -> str:
+        """讀取現有的result.md文檔"""
+        if os.path.exists(self.result_file_path):
+            with open(self.result_file_path, "r", encoding="utf-8") as f:
+                return f.read()
+        else:
+            return self._create_default_result_template()
+    
+    def _create_default_result_template(self) -> str:
+        """創建默認result.md模板"""
+        return """# 📊 測試結果記錄
+
+## 🎯 項目概述
+- **項目名稱**: Discord ADR Bot
+- **版本**: 1.0.0
+- **最後更新**: {timestamp}
+
+## 🧪 PRD 測試結果記錄
+
+### 測試執行摘要
+| 測試類型 | 執行時間 | 測試狀態 | 覆蓋率 | 通過率 |
+|----------|----------|----------|--------|--------|
+
+### 詳細測試結果
+{detailed_test_results}
+
+### PRD 需求驗證狀態
+{prd_verification_status}
+
+### 測試發現與建議
+{test_findings_and_recommendations}
+
+## 📈 測試進度追蹤
+### 已完成測試
+{completed_tests}
+
+### 進行中測試
+{in_progress_tests}
+
+### 待執行測試
+{pending_tests}
+
+## 🔄 更新歷史
+{update_history}
+"""
+    
+    def _parse_result_sections(self, result_content: str) -> dict:
+        """解析result.md文檔的各個章節"""
+        sections = {
+            "overview": "",
+            "test_summary": "",
+            "detailed_results": "",
+            "prd_verification": "",
+            "findings": "",
+            "progress_tracking": "",
+            "update_history": ""
+        }
+        
+        # 實現result.md章節解析邏輯
+        lines = result_content.split('\n')
+        current_section = None
+        
+        for line in lines:
+            if line.startswith('## 🎯 項目概述'):
+                current_section = 'overview'
+            elif line.startswith('## 🧪 PRD 測試結果記錄'):
+                current_section = 'test_results'
+            elif line.startswith('### 測試執行摘要'):
+                current_section = 'test_summary'
+            elif line.startswith('### 詳細測試結果'):
+                current_section = 'detailed_results'
+            elif line.startswith('### PRD 需求驗證狀態'):
+                current_section = 'prd_verification'
+            elif line.startswith('### 測試發現與建議'):
+                current_section = 'findings'
+            elif line.startswith('## 📈 測試進度追蹤'):
+                current_section = 'progress_tracking'
+            elif line.startswith('## 🔄 更新歷史'):
+                current_section = 'update_history'
+            else:
+                if current_section:
+                    if current_section == 'overview':
+                        sections['overview'] += line + '\n'
+                    elif current_section == 'test_summary':
+                        sections['test_summary'] += line + '\n'
+                    elif current_section == 'detailed_results':
+                        sections['detailed_results'] += line + '\n'
+                    elif current_section == 'prd_verification':
+                        sections['prd_verification'] += line + '\n'
+                    elif current_section == 'findings':
+                        sections['findings'] += line + '\n'
+                    elif current_section == 'progress_tracking':
+                        sections['progress_tracking'] += line + '\n'
+                    elif current_section == 'update_history':
+                        sections['update_history'] += line + '\n'
+        
+        return sections
+    
+    def _add_prd_test_results(self, result_sections: dict, test_report: PRDTestReport) -> str:
+        """添加PRD測試結果到result.md"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # 生成測試執行摘要
+        test_summary = self._generate_test_summary_table(test_report)
+        
+        # 生成詳細測試結果
+        detailed_results = self._generate_detailed_test_results(test_report)
+        
+        # 生成PRD需求驗證狀態
+        prd_verification = self._generate_prd_verification_status(test_report)
+        
+        # 生成測試發現與建議
+        findings = self._generate_test_findings_and_recommendations(test_report)
+        
+        # 生成測試進度追蹤
+        progress_tracking = self._generate_test_progress_tracking(test_report)
+        
+        # 生成更新歷史
+        update_history = self._generate_test_update_history(test_report)
+        
+        # 生成更新後的result.md內容
+        updated_content = f"""# 📊 測試結果記錄
+
+## 🎯 項目概述
+- **項目名稱**: Discord ADR Bot
+- **版本**: 1.0.0
+- **最後更新**: {timestamp}
+
+## 🧪 PRD 測試結果記錄
+
+### 測試執行摘要
+{test_summary}
+
+### 詳細測試結果
+{detailed_results}
+
+### PRD 需求驗證狀態
+{prd_verification}
+
+### 測試發現與建議
+{findings}
+
+## 📈 測試進度追蹤
+{progress_tracking}
+
+## 🔄 更新歷史
+{update_history}
+"""
+        
+        return updated_content
+    
+    def _generate_test_summary_table(self, test_report: PRDTestReport) -> str:
+        """生成測試執行摘要表格"""
+        table_content = """| 測試類型 | 執行時間 | 測試狀態 | 覆蓋率 | 通過率 |
+|----------|----------|----------|--------|--------|"""
+        
+        for test_type, result in test_report.summary.items():
+            if test_type in ['functional', 'performance', 'ux', 'permission']:
+                status_emoji = "✅" if result['status'] == 'passed' else "❌" if result['status'] == 'failed' else "🟡"
+                table_content += f"\n| {test_type.title()} | {test_report.generated_at.strftime('%Y-%m-%d %H:%M:%S')} | {status_emoji} | {result.get('coverage', 0):.1f}% | {result.get('pass_rate', 0):.1f}% |"
+        
+        return table_content
+    
+    def _generate_detailed_test_results(self, test_report: PRDTestReport) -> str:
+        """生成詳細測試結果"""
+        results = []
+        
+        for category, results_data in test_report.detailed_results.items():
+            results.append(f"#### {category}")
+            for test_name, test_result in results_data.items():
+                status_emoji = "✅" if test_result['status'] == 'passed' else "❌"
+                results.append(f"- {status_emoji} {test_name}: {test_result['message']}")
+            results.append("")
+        
+        return "\n".join(results)
+    
+    def _generate_prd_verification_status(self, test_report: PRDTestReport) -> str:
+        """生成PRD需求驗證狀態"""
+        verification_status = []
+        
+        for req_id, result in test_report.all_requirements.items():
+            status_emoji = "✅" if result['status'] == 'passed' else "❌" if result['status'] == 'failed' else "🟡"
+            verification_status.append(f"- {status_emoji} **{req_id}**: {result['description']} - {result['status']}")
+        
+        return "\n".join(verification_status) if verification_status else "- 暫無PRD需求驗證記錄"
+    
+    def _generate_test_findings_and_recommendations(self, test_report: PRDTestReport) -> str:
+        """生成測試發現與建議"""
+        findings = []
+        
+        # 分析測試結果並生成發現
+        if test_report.summary.get('overall_status') == 'needs_improvement':
+            findings.append("- 🔍 **發現**: 整體測試通過率較低，需要改進")
+            findings.append("- 💡 **建議**: 優先修復失敗的測試案例")
+        
+        if test_report.summary.get('coverage_percentage', 0) < 80:
+            findings.append("- 🔍 **發現**: 測試覆蓋率不足")
+            findings.append("- 💡 **建議**: 增加測試案例以提高覆蓋率")
+        
+        # 添加具體的測試發現
+        for category, results in test_report.detailed_results.items():
+            failed_tests = [name for name, result in results.items() if result['status'] == 'failed']
+            if failed_tests:
+                findings.append(f"- 🔍 **{category}發現**: {len(failed_tests)}個測試失敗")
+                findings.append(f"- 💡 **建議**: 修復 {', '.join(failed_tests[:3])} 等關鍵測試")
+        
+        return "\n".join(findings) if findings else "- 暫無特殊發現"
+    
+    def _generate_test_progress_tracking(self, test_report: PRDTestReport) -> str:
+        """生成測試進度追蹤"""
+        completed = []
+        in_progress = []
+        pending = []
+        
+        for req_id, result in test_report.all_requirements.items():
+            if result['status'] == 'completed':
+                completed.append(f"- {req_id}: {result['description']}")
+            elif result['status'] == 'in_progress':
+                in_progress.append(f"- {req_id}: {result['description']}")
+            else:
+                pending.append(f"- {req_id}: {result['description']}")
+        
+        content = "### 已完成測試\n"
+        content += "\n".join(completed) if completed else "- 暫無已完成測試\n"
+        
+        content += "\n### 進行中測試\n"
+        content += "\n".join(in_progress) if in_progress else "- 暫無進行中測試\n"
+        
+        content += "\n### 待執行測試\n"
+        content += "\n".join(pending) if pending else "- 暫無待執行測試\n"
+        
+        return content
+    
+    def _generate_test_update_history(self, test_report: PRDTestReport) -> str:
+        """生成測試更新歷史"""
+        timestamp = test_report.generated_at.strftime("%Y-%m-%d %H:%M:%S")
+        
+        return f"""### {timestamp}
+- 執行PRD驅動測試
+- 測試覆蓋率: {test_report.summary.get('coverage_percentage', 0):.1f}%
+- 測試通過率: {test_report.summary.get('pass_rate', 0):.1f}%
+- 整體狀態: {test_report.summary.get('overall_status', 'unknown')}
+
+"""
+    
+    def _save_updated_result_md(self, updated_content: str):
+        """保存更新後的result.md文檔"""
+        os.makedirs(self.memory_bank_path, exist_ok=True)
+        with open(self.result_file_path, "w", encoding="utf-8") as f:
+            f.write(updated_content)
+```
+
+### 1.3 result.md 覆蓋更新規範
+```python
+# result.md 覆蓋更新規範
+RESULT_MD_UPDATE_SPECIFICATION = {
+    "target_file": "result.md",                   # 目標文件
+    "file_path": "memory_bank/result.md",        # 文件路徑
+    "update_strategy": "overwrite_update",        # 覆蓋更新策略
+    "preserve_structure": True,                   # 保持文檔結構
+    "update_test_summary": True,                  # 更新測試摘要
+    "update_verification_status": True,           # 更新驗證狀態
+    "update_progress_tracking": True,             # 更新進度追蹤
+    "append_update_history": True                 # 追加更新歷史
+}
+
+# result.md 覆蓋更新流程
+RESULT_MD_UPDATE_PROCESS = {
+    "step_1": "讀取現有的 result.md 文件",
+    "step_2": "解析現有result.md文檔結構",
+    "step_3": "執行測試並收集結果",
+    "step_4": "更新PRD需求驗證狀態",
+    "step_5": "更新測試結果摘要",
+    "step_6": "更新測試進度追蹤",
+    "step_7": "追加更新歷史記錄",
+    "step_8": "保存更新後的 result.md"
+}
+```
+
+---
+
+## 🤖 AI result.md 更新執行器
+
+### 2.1 result.md 覆蓋更新執行器
+```python
+# utils/ai_result_md_updater.py
+class AIResultMdUpdater:
+    """AI result.md 覆蓋更新執行器"""
+    
+    def __init__(self, prd_file_path: str = "memory_bank/prd.md"):
+        self.prd_file_path = prd_file_path
+        self.test_results = {}
+        self.result_updater = ResultMdUpdater()
+    
+    def update_result_md_with_prd_tests(self) -> bool:
+        """執行PRD測試並更新 result.md"""
+        print("🧪 開始執行 PRD 測試並更新 result.md...")
+        
+        # 1. 讀取現有 result.md
+        existing_result_content = self._read_existing_result_md()
+        
+        # 2. PRD 需求解析
+        prd_requirements = self._parse_prd_requirements()
+        
+        # 3. 基於PRD生成測試案例
+        prd_test_cases = self._generate_prd_test_cases(prd_requirements)
+        
+        # 4. 執行各種PRD測試
+        prd_functional_results = self._run_prd_functional_tests(prd_test_cases)
+        prd_performance_results = self._run_prd_performance_tests(prd_test_cases)
+        prd_ux_results = self._run_prd_user_experience_tests(prd_test_cases)
+        prd_permission_results = self._run_prd_permission_tests(prd_test_cases)
+        
+        # 5. 生成PRD測試報告
+        prd_test_report = PRDTestReport(
+            prd_requirements=prd_requirements,
+            prd_test_cases=prd_test_cases,
+            prd_functional_results=prd_functional_results,
+            prd_performance_results=prd_performance_results,
+            prd_ux_results=prd_ux_results,
+            prd_permission_results=prd_permission_results
+        )
+        
+        # 6. 更新 result.md 文件
+        success = self.result_updater.update_result_md_with_test_results(prd_test_report)
+        
+        if success:
+            print("✅ result.md 更新成功")
+        else:
+            print("❌ result.md 更新失敗")
+        
+        return success
+    
+    def _read_existing_result_md(self) -> str:
+        """讀取現有的result.md文件"""
+        result_file_path = "memory_bank/result.md"
+        if os.path.exists(result_file_path):
+            with open(result_file_path, "r", encoding="utf-8") as f:
+                return f.read()
+        return ""
+    
+    def _parse_prd_requirements(self) -> List[PRDRequirement]:
+        """解析PRD需求"""
+        print("📋 解析PRD需求文檔...")
+        # 實現PRD解析邏輯
+        return []
+    
+    def _generate_prd_test_cases(self, prd_requirements: List[PRDRequirement]) -> List[PRDTestCase]:
+        """基於PRD生成測試案例"""
+        print("📋 基於PRD生成測試案例...")
+        # 實現PRD測試案例生成邏輯
+        return []
+    
+    def _run_prd_functional_tests(self, prd_test_cases: List[PRDTestCase]) -> Dict[str, PRDTestResult]:
+        """執行PRD功能測試"""
+        print("🔧 執行PRD功能測試...")
+        results = {}
+        # 實現PRD功能測試邏輯
+        return results
+    
+    def _run_prd_performance_tests(self, prd_test_cases: List[PRDTestCase]) -> Dict[str, PRDTestResult]:
+        """執行PRD性能測試"""
+        print("⚡ 執行PRD性能測試...")
+        results = {}
+        # 實現PRD性能測試邏輯
+        return results
+    
+    def _run_prd_user_experience_tests(self, prd_test_cases: List[PRDTestCase]) -> Dict[str, PRDTestResult]:
+        """執行PRD用戶體驗測試"""
+        print("👥 執行PRD用戶體驗測試...")
+        results = {}
+        # 實現PRD用戶體驗測試邏輯
+        return results
+    
+    def _run_prd_permission_tests(self, prd_test_cases: List[PRDTestCase]) -> Dict[str, PRDTestResult]:
+        """執行PRD權限測試"""
+        print("🔐 執行PRD權限測試...")
+        results = {}
+        # 實現PRD權限測試邏輯
+        return results
+```
+
+---
+
+## 📊 result.md 更新分類與標準
+
+### 3.1 result.md 更新分類標準
+```python
+# result.md 更新分類
+RESULT_MD_UPDATE_CATEGORIES = {
+    "test_summary_update": {
+        "name": "測試摘要更新",
+        "description": "更新result.md中的測試執行摘要表格",
+        "priority": "high",
+        "update_frequency": "every_test_run"
+    },
+    "detailed_results_update": {
+        "name": "詳細結果更新", 
+        "description": "更新result.md中的詳細測試結果",
+        "priority": "high",
+        "update_frequency": "every_test_run"
+    },
+    "prd_verification_update": {
+        "name": "PRD驗證狀態更新",
+        "description": "更新result.md中的PRD需求驗證狀態",
+        "priority": "high", 
+        "update_frequency": "every_test_run"
+    },
+    "findings_update": {
+        "name": "發現建議更新",
+        "description": "更新result.md中的測試發現與建議",
+        "priority": "medium",
+        "update_frequency": "every_test_run"
+    },
+    "progress_tracking_update": {
+        "name": "進度追蹤更新",
+        "description": "更新result.md中的測試進度追蹤",
+        "priority": "medium",
+        "update_frequency": "every_test_run"
+    },
+    "history_update": {
+        "name": "更新歷史追加",
+        "description": "在result.md中追加新的更新歷史記錄",
+        "priority": "low",
+        "update_frequency": "every_test_run"
+    }
+}
+```
+
+### 3.2 result.md 更新質量標準
+```python
+# result.md 更新質量標準
+RESULT_MD_UPDATE_QUALITY_STANDARDS = {
+    "excellent": {
+        "update_completeness": ">= 95%",
+        "update_accuracy": ">= 98%",
+        "update_timeliness": "real_time",
+        "status": "result.md 更新優秀"
+    },
+    "good": {
+        "update_completeness": ">= 85%",
+        "update_accuracy": ">= 90%", 
+        "update_timeliness": "within_1_hour",
+        "status": "result.md 更新良好"
+    },
+    "acceptable": {
+        "update_completeness": ">= 70%",
+        "update_accuracy": ">= 80%", 
+        "update_timeliness": "within_24_hours",
+        "status": "result.md 更新可接受"
+    },
+    "needs_improvement": {
+        "update_completeness": "< 70%",
+        "update_accuracy": "< 80%", 
+        "update_timeliness": "delayed",
+        "status": "result.md 更新需要改進"
+    }
+}
+```
+
+---
+
+## 🔄 result.md 持續更新監控
+
+### 4.1 result.md 自動更新觸發器
+```python
+# utils/result_md_auto_updater.py
+class ResultMdAutoUpdater:
+    """result.md 自動更新觸發器"""
+    
+    def __init__(self):
+        self.result_updater = AIResultMdUpdater()
+        self.change_monitor = ResultMdChangeMonitor()
+    
+    def check_and_update_result_md(self):
+        """檢查並更新result.md"""
+        if self.change_monitor.detect_test_changes():
+            print("🔄 檢測到測試變更，更新 result.md...")
+            self.result_updater.update_result_md_with_prd_tests()
+        else:
+            print("✅ 無測試變更，跳過 result.md 更新")
+    
+    def schedule_periodic_result_md_updates(self, interval_hours: int = 24):
+        """安排定期result.md更新"""
+        print(f"⏰ 安排每 {interval_hours} 小時更新一次 result.md")
+        # 實現定期result.md更新邏輯
+```
+
+### 4.2 result.md 變更監控器
+```python
+# utils/result_md_change_monitor.py
+class ResultMdChangeMonitor:
+    """result.md 變更監控器"""
+    
+    def __init__(self):
+        self.last_check = datetime.now()
+        self.test_change_detected = False
+    
+    def detect_test_changes(self) -> bool:
+        """檢測測試是否有變更"""
+        # 實現測試變更檢測邏輯
+        return self.test_change_detected
+    
+    def monitor_test_file_changes(self, test_file_paths: List[str]):
+        """監控測試文件變更"""
+        for test_file_path in test_file_paths:
+            if self._has_test_file_changed(test_file_path):
+                self.test_change_detected = True
+                break
+    
+    def _has_test_file_changed(self, test_file_path: str) -> bool:
+        """檢查測試文件是否變更"""
+        # 實現測試文件變更檢測邏輯
+        return False
+```
+
+---
+
+## 📝 result.md 更新使用指南
+
+### 5.1 快速開始
+```bash
+# 1. 執行PRD測試並更新 result.md
+python -m utils.ai_result_md_updater
+
+# 2. 查看更新後的 result.md
+cat memory_bank/result.md
+
+# 3. 檢查 result.md 更新狀態
+python -m utils.result_md_status_checker
+```
+
+### 5.2 result.md 更新配置
+```python
+# config/result_md_update_config.py
+RESULT_MD_UPDATE_CONFIG = {
+    "prd_file": "memory_bank/prd.md",
+    "result_file": "memory_bank/result.md",
+    "update_strategy": "overwrite_update",
+    "backup_strategy": "version_control",
+    "update_completeness_threshold": 85,
+    "update_accuracy_threshold": 90,
+    "update_timeliness_threshold": "within_1_hour"
+}
+```
+
+### 5.3 result.md 更新驗收標準
+- **更新完整性**: result.md 所有章節都得到更新
+- **更新準確性**: 更新內容準確反映測試結果
+- **更新及時性**: 測試完成後立即更新 result.md
+- **更新一致性**: 更新內容與測試結果保持一致
+- **更新可讀性**: 更新後的 result.md 結構清晰易讀
+
+---
+
+## 🎯 result.md 更新核心原則
+
+### 6.1 result.md 覆蓋更新原則
+- **覆蓋優先**: 重點是更新現有的 result.md 文件
+- **結構保持**: 保持 result.md 的現有結構和格式
+- **內容更新**: 更新 result.md 中的測試結果內容
+- **歷史追加**: 在 result.md 中追加新的更新歷史
+
+### 6.2 result.md 更新質量標準
+- **完整性**: 更新覆蓋 result.md 的所有相關章節
+- **準確性**: 更新內容準確反映實際測試結果
+- **及時性**: 測試完成後及時更新 result.md
+- **一致性**: 更新內容與測試結果保持一致
+
+### 6.3 result.md 更新改進機制
+- **持續監控**: 持續監控 result.md 更新質量
+- **定期評估**: 定期評估 result.md 更新效果
+- **動態調整**: 根據測試變更動態調整更新策略
+- **反饋循環**: 建立 result.md 更新反饋改進循環
+
+### 6.4 AI 執行指導
+```python
+# AI 執行 result.md 更新的關鍵指導
+AI_RESULT_MD_UPDATE_GUIDANCE = {
+    "primary_goal": "更新現有的 result.md 文件，而不是生成新的測試報告",
+    "update_strategy": "覆蓋更新現有內容，保持文檔結構",
+    "file_operation": "讀取 -> 解析 -> 更新 -> 保存 result.md",
+    "content_preservation": "保留現有結構，更新測試結果內容",
+    "history_management": "追加新的更新歷史記錄",
+    "quality_assurance": "確保更新內容準確、完整、及時"
+}
+```

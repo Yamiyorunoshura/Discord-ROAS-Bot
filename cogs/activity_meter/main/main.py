@@ -26,6 +26,20 @@ from ...core import create_error_handler, setup_module_logger, ErrorCodes
 logger = setup_module_logger("activity_meter")
 error_handler = create_error_handler("activity_meter", logger)
 
+# 擴展錯誤代碼體系
+ERROR_CODES = {
+    'PANEL_SWITCH_FAILED': 'E202',      # 面板切換失敗
+    'PERMISSION_DENIED': 'E001',        # 權限不足
+    'DATABASE_CONNECTION_ERROR': 'E101', # 數據庫連接錯誤
+    'INVALID_CONFIG': 'E401',           # 配置錯誤
+    'RENDER_FAILED': 'E301',            # 渲染失敗
+    'SETTINGS_LOAD_FAILED': 'E401',     # 設定載入失敗
+    'SETTINGS_SAVE_FAILED': 'E402',     # 設定保存失敗
+    'CACHE_REFRESH_FAILED': 'E801',     # 緩存刷新失敗
+    'AUTO_SAVE_FAILED': 'E402',         # 自動保存失敗
+    'COMPONENT_SETUP_FAILED': 'E601'    # 組件設置失敗
+}
+
 class ActivityMeter(commands.Cog):
     """
     活躍度系統 Cog
@@ -53,6 +67,62 @@ class ActivityMeter(commands.Cog):
         
         # 啟動初始化和背景任務
         bot.loop.create_task(self._init_module())
+    
+    async def handle_error(self, interaction: discord.Interaction, error: Exception):
+        """統一錯誤處理方法"""
+        error_code = self._get_error_code(error)
+        error_message = self._get_error_message(error)
+        
+        # 記錄錯誤日誌
+        logger.error(f"Error {error_code}: {error_message}", exc_info=True)
+        
+        # 創建錯誤嵌入
+        embed = self.create_error_embed(error_code, error_message)
+        
+        # 發送錯誤響應
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(embed=embed, ephemeral=True)
+            else:
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+        except Exception as e:
+            logger.error(f"發送錯誤響應失敗: {e}")
+
+    def _get_error_code(self, error: Exception) -> str:
+        """獲取錯誤代碼"""
+        if isinstance(error, ActivityMeterError):
+            return error.error_code
+        elif "permission" in str(error).lower():
+            return ERROR_CODES['PERMISSION_DENIED']
+        elif "database" in str(error).lower():
+            return ERROR_CODES['DATABASE_CONNECTION_ERROR']
+        elif "render" in str(error).lower():
+            return ERROR_CODES['RENDER_FAILED']
+        elif "config" in str(error).lower():
+            return ERROR_CODES['INVALID_CONFIG']
+        else:
+            return ERROR_CODES['PANEL_SWITCH_FAILED']
+
+    def _get_error_message(self, error: Exception) -> str:
+        """獲取錯誤信息"""
+        if isinstance(error, ActivityMeterError):
+            return error.message
+        else:
+            return str(error)
+
+    def create_error_embed(self, error_code: str, error_message: str) -> discord.Embed:
+        """創建錯誤嵌入"""
+        embed = discord.Embed(
+            title=f"❌ 錯誤 {error_code}",
+            description=error_message,
+            color=discord.Color.red()
+        )
+        embed.add_field(
+            name="💡 建議操作",
+            value="請檢查權限設定或聯繫管理員",
+            inline=False
+        )
+        return embed
     
     async def _init_module(self):
         """模組初始化"""

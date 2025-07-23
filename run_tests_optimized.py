@@ -99,7 +99,7 @@ def main():
     # 快速依賴檢查
     print("\n🔍 快速依賴檢查...")
     deps_ok, _ = run_command_with_timeout(
-        "python -c \"import pytest, pytest_asyncio, aiosqlite, discord; print('依賴OK')\"",
+        "python3 -c \"import pytest, pytest_asyncio, aiosqlite, discord; print('依賴OK')\"",
         "檢查測試依賴",
         timeout=10
     )
@@ -114,7 +114,7 @@ def main():
     # 1. 基本測試（快速）
     print("\n🧪 基本測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/test_basic.py -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_basic.py -x --tb=no -q",
         "基本功能測試",
         timeout=30
     )
@@ -123,7 +123,7 @@ def main():
     # 2. 活躍度系統測試
     print("\n📊 活躍度系統測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/test_activity_meter.py -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_activity_meter.py -x --tb=no -q",
         "活躍度系統測試",
         timeout=30
     )
@@ -132,7 +132,7 @@ def main():
     # 3. 訊息監聽系統測試
     print("\n💬 訊息監聽系統測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/test_message_listener.py -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_message_listener.py -x --tb=no -q",
         "訊息監聽系統測試",
         timeout=30
     )
@@ -141,7 +141,7 @@ def main():
     # 4. 群組保護系統測試
     print("\n🛡️ 群組保護系統測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/test_protection.py -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_protection.py -x --tb=no -q",
         "群組保護系統測試",
         timeout=30
     )
@@ -150,7 +150,7 @@ def main():
     # 5. 資料同步系統測試
     print("\n🔄 資料同步系統測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/test_sync_data.py -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_sync_data.py -x --tb=no -q",
         "資料同步系統測試",
         timeout=30
     )
@@ -161,28 +161,28 @@ def main():
     
     # 6a. 歡迎系統快取測試
     success1, _ = run_command_with_timeout(
-        "python -m pytest tests/unit/test_welcome.py::TestWelcomeCache -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_welcome.py::TestWelcomeCache -x --tb=no -q",
         "歡迎系統快取",
         timeout=15
     )
     
     # 6b. 歡迎系統資料庫測試
     success2, _ = run_command_with_timeout(
-        "python -m pytest tests/unit/test_welcome.py::TestWelcomeDB -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_welcome.py::TestWelcomeDB -x --tb=no -q",
         "歡迎系統資料庫",
         timeout=15
     )
     
     # 6c. 歡迎系統Cog測試（跳過有問題的測試）
     success3, _ = run_command_with_timeout(
-        "python -m pytest tests/unit/test_welcome.py::TestWelcomeCog -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_welcome.py::TestWelcomeCog -x --tb=no -q",
         "歡迎系統Cog",
         timeout=15
     )
     
     # 6d. 歡迎系統渲染測試（跳過有問題的異步測試）
     success4, _ = run_command_with_timeout(
-        "python -m pytest tests/unit/test_welcome.py::TestWelcomeRenderer -k 'not fetch_avatar_bytes' -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_welcome.py::TestWelcomeRenderer -k 'not fetch_avatar_bytes' -x --tb=no -q",
         "歡迎系統渲染",
         timeout=15
     )
@@ -193,7 +193,7 @@ def main():
     # 7. 快速整合測試
     print("\n🔗 快速整合測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/ -k 'Integration' -x --tb=no -q",
+        "python3 -m pytest tests/unit/ -k 'Integration' -x --tb=no -q",
         "整合測試",
         timeout=30
     )
@@ -202,7 +202,7 @@ def main():
     # 8. 效能測試（跳過可能有問題的測試）
     print("\n⚡ 效能測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/ -k 'Performance and not image_rendering' -x --tb=no -q",
+        "python3 -m pytest tests/unit/ -k 'Performance and not image_rendering' -x --tb=no -q",
         "效能測試",
         timeout=20
     )
@@ -211,7 +211,7 @@ def main():
     # 9. 性能監控儀表板測試
     print("\n📊 性能監控儀表板測試...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/test_performance_dashboard.py -x --tb=no -q",
+        "python3 -m pytest tests/unit/test_performance_dashboard.py -x --tb=no -q",
         "性能監控儀表板測試",
         timeout=30
     )
@@ -220,7 +220,7 @@ def main():
     # 10. 快速覆蓋率檢查（簡化版）
     print("\n📈 快速覆蓋率檢查...")
     success, result = run_command_with_timeout(
-        "python -m pytest tests/unit/test_basic.py tests/unit/test_activity_meter.py tests/unit/test_sync_data.py --cov=cogs --cov-report=term --cov-report=html --cov-fail-under=0",
+        "python3 -m pytest tests/unit/test_basic.py tests/unit/test_activity_meter.py tests/unit/test_sync_data.py --cov=cogs --cov-report=term --cov-report=html --cov-fail-under=0",
         "覆蓋率分析",
         timeout=45
     )

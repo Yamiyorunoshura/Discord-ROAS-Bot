@@ -1,0 +1,146 @@
+{
+  "report_id": "PRD_TEST_1753252721",
+  "timestamp": "2025-07-23T14:38:41.827858",
+  "total_requirements": 10,
+  "implemented_requirements": 7,
+  "tested_requirements": 0,
+  "verified_requirements": 0,
+  "requirements": [
+    {
+      "requirement_id": "REQ-001",
+      "requirement_name": "活躍度測試模塊需求",
+      "description": "建立直接調用實際程式邏輯的測試框架",
+      "category": "core",
+      "priority": "high",
+      "status": "not_implemented",
+      "implementation_details": null,
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.789991"
+    },
+    {
+      "requirement_id": "REQ-002",
+      "requirement_name": "活躍度模塊統一API需求",
+      "description": "設計統一的活躍度API接口",
+      "category": "core",
+      "priority": "high",
+      "status": "not_implemented",
+      "implementation_details": null,
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.789996"
+    },
+    {
+      "requirement_id": "REQ-003",
+      "requirement_name": "程式邏輯個別API需求",
+      "description": "為每個程式邏輯功能設計獨立的API",
+      "category": "core",
+      "priority": "medium",
+      "status": "not_implemented",
+      "implementation_details": null,
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.789997"
+    },
+    {
+      "requirement_id": "REQ-004",
+      "requirement_name": "ActivityTestModule實現",
+      "description": "活躍度測試模塊的完整實現",
+      "category": "functional",
+      "priority": "high",
+      "status": "implemented",
+      "implementation_details": {
+        "test_module_exists": true
+      },
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.790002"
+    },
+    {
+      "requirement_id": "REQ-005",
+      "requirement_name": "ActivityModule實現",
+      "description": "活躍度模塊統一API整合層實現",
+      "category": "functional",
+      "priority": "high",
+      "status": "implemented",
+      "implementation_details": {
+        "activity_module_exists": true
+      },
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.790005"
+    },
+    {
+      "requirement_id": "REQ-006",
+      "requirement_name": "程式邏輯層API實現",
+      "description": "各個程式邏輯的個別API實現",
+      "category": "functional",
+      "priority": "medium",
+      "status": "implemented",
+      "implementation_details": {
+        "logic_apis_exist": true
+      },
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.790013"
+    },
+    {
+      "requirement_id": "REQ-007",
+      "requirement_name": "權限分層架構",
+      "description": "系統管理員、開發者、測試者、普通用戶權限設計",
+      "category": "permission",
+      "priority": "high",
+      "status": "implemented",
+      "implementation_details": {
+        "permission_hierarchy_exists": true
+      },
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.792452"
+    },
+    {
+      "requirement_id": "REQ-008",
+      "requirement_name": "權限檢查邏輯",
+      "description": "不同操作類型的權限檢查機制",
+      "category": "permission",
+      "priority": "high",
+      "status": "implemented",
+      "implementation_details": {
+        "permission_logic_exists": true
+      },
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.798402"
+    },
+    {
+      "requirement_id": "REQ-009",
+      "requirement_name": "三層架構實現",
+      "description": "測試層、業務邏輯層、實現層的分離架構",
+      "category": "technical",
+      "priority": "high",
+      "status": "implemented",
+      "implementation_details": {
+        "three_layer_architecture_exists": true
+      },
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.798421"
+    },
+    {
+      "requirement_id": "REQ-010",
+      "requirement_name": "真實邏輯測試架構",
+      "description": "直接調用實際程式邏輯的測試架構",
+      "category": "technical",
+      "priority": "high",
+      "status": "implemented",
+      "implementation_details": {
+        "real_logic_testing_exists": true
+      },
+      "test_results": null,
+      "last_updated": "2025-07-23T14:38:41.821384"
+    }
+  ],
+  "test_summary": {
+    "total_requirements": 10,
+    "implemented_requirements": 7,
+    "tested_requirements": 0,
+    "verified_requirements": 0,
+    "coverage_percentage": 70.0,
+    "pass_rate": 0.0,
+    "overall_status": "需要改進"
+  },
+  "coverage_percentage": 70.0,
+  "pass_rate": 0.0,
+  "overall_status": "需要改進"
+}

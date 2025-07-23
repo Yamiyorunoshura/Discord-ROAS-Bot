@@ -39,7 +39,7 @@ class UIManager:
         
     async def render_current_page(self, page_name: str, guild_id: int, user: discord.Member) -> discord.Embed:
         """
-        渲染當前頁面
+        渲染當前頁面 - 修復版本
         
         Args:
             page_name: 頁面名稱
@@ -69,6 +69,57 @@ class UIManager:
         except Exception as e:
             logger.error(f"渲染頁面失敗: {e}")
             return self._create_error_embed(f"頁面載入失敗: {str(e)}")
+    
+    async def handle_error(self, interaction: discord.Interaction, error_type: str, context: str):
+        """
+        統一錯誤處理機制 - 修復版本
+        
+        Args:
+            interaction: Discord 互動
+            error_type: 錯誤類型
+            context: 錯誤上下文
+        """
+        try:
+            error_message = self._get_error_message(error_type, context)
+            
+            # 發送錯誤訊息
+            await interaction.response.send_message(
+                error_message,
+                ephemeral=True
+            )
+            
+            # 記錄錯誤日誌
+            logger.error(f"Panel error: {error_type} - {context}")
+            
+        except Exception as e:
+            logger.error(f"錯誤處理失敗: {e}")
+            # 發送通用錯誤訊息
+            await interaction.response.send_message(
+                "❌ 發生未預期的錯誤，請稍後再試",
+                ephemeral=True
+            )
+    
+    def _get_error_message(self, error_type: str, context: str) -> str:
+        """
+        獲取錯誤訊息
+        
+        Args:
+            error_type: 錯誤類型
+            context: 錯誤上下文
+            
+        Returns:
+            str: 用戶友好的錯誤訊息
+        """
+        error_messages = {
+            "page_switch_failed": f"❌ 頁面切換失敗：{context}",
+            "time_format_error": "❌ 時間格式錯誤，請使用 HH:MM 格式",
+            "permission_denied": "❌ 權限不足，需要管理伺服器權限",
+            "database_error": f"❌ 數據庫操作失敗：{context}",
+            "render_error": f"❌ 頁面渲染失敗：{context}",
+            "unknown_error": f"❌ 未知錯誤：{context}"
+        }
+        
+        return error_messages.get(error_type, f"❌ 錯誤：{context}")
             
     async def _render_settings_page(self, guild_id: int, user: discord.Member) -> discord.Embed:
         """渲染設定頁面"""

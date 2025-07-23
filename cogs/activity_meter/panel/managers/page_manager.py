@@ -11,6 +11,13 @@ import logging
 
 logger = logging.getLogger("activity_meter")
 
+class ActivityMeterError(Exception):
+    """活躍度系統錯誤基類"""
+    def __init__(self, error_code: str, message: str):
+        self.error_code = error_code
+        self.message = message
+        super().__init__(f"[{error_code}] {message}")
+
 class PageManager:
     """
     頁面管理器
@@ -28,29 +35,55 @@ class PageManager:
         self.page_data = {}
         self.pages = {}
         
+    async def switch_page(self, page_name: str, interaction: discord.Interaction) -> bool:
+        """
+        切換到指定頁面 - 修復版本
+        
+        Args:
+            page_name: 頁面名稱
+            interaction: Discord 互動
+            
+        Returns:
+            bool: 切換是否成功
+        """
+        try:
+            # 驗證頁面存在性
+            available_pages = ["settings", "preview", "stats", "history"]
+            if page_name not in available_pages:
+                raise ActivityMeterError("E202", f"頁面不存在: {page_name}")
+            
+            # 檢查用戶權限
+            from .permission_manager import PermissionManager
+            permission_manager = PermissionManager()
+            if not permission_manager.can_access_page(interaction.user, page_name):
+                raise ActivityMeterError("E001", f"權限不足，無法訪問 {page_name} 頁面")
+            
+            # 更新頁面歷史
+            if self.current_page != page_name:
+                self.page_history.append(self.current_page)
+                
+            # 更新當前頁面
+            self.current_page = page_name
+            
+            # 載入頁面數據
+            await self.load_page_data(page_name, interaction)
+            
+            logger.info(f"頁面已成功切換到: {page_name}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"頁面切換失敗: {e}")
+            raise ActivityMeterError("E202", f"頁面切換失敗: {str(e)}")
+    
     async def load_page(self, page_name: str, interaction: discord.Interaction):
         """
-        載入指定頁面
+        載入指定頁面 - 向後兼容方法
         
         Args:
             page_name: 頁面名稱
             interaction: Discord 互動
         """
-        # 驗證頁面存在性
-        if page_name not in ["settings", "preview", "stats", "history"]:
-            raise ValueError(f"未知頁面: {page_name}")
-            
-        # 更新頁面歷史
-        if self.current_page != page_name:
-            self.page_history.append(self.current_page)
-            
-        # 更新當前頁面
-        self.current_page = page_name
-        
-        # 載入頁面數據
-        await self.load_page_data(page_name, interaction)
-        
-        logger.info(f"頁面已切換到: {page_name}")
+        await self.switch_page(page_name, interaction)
         
     async def load_page_data(self, page_name: str, interaction: discord.Interaction):
         """

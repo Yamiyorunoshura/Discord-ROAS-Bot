@@ -39,6 +39,8 @@ class ActivityDatabase:
     def __init__(self):
         """初始化資料庫操作類別"""
         self._pool = None  # 將使用全局連接池
+        self._settings_cache = {}
+        self._cache_time = {}
     
     async def _get_pool(self):
         """獲取全局連接池實例"""
@@ -436,4 +438,207 @@ class ActivityDatabase:
                 
         except Exception as e:
             logger.error(f"【活躍度】保存所有設定失敗: {e}")
-            raise ActivityMeterError("E402", f"保存所有設定失敗: {e}") 
+            raise ActivityMeterError("E402", f"保存所有設定失敗: {e}")
+    
+    async def refresh_settings_cache(self):
+        """刷新設定緩存"""
+        self._settings_cache = {}
+        self._cache_time = {}
+        logger.info("【活躍度】設定緩存已刷新")
+    
+    async def get_latest_settings(self, guild_id: int) -> dict:
+        """獲取最新設定（強制刷新）"""
+        cache_key = f"settings_{guild_id}"
+        current_time = time.time()
+        
+        # 檢查緩存是否過期
+        if (cache_key not in self._cache_time or 
+            current_time - self._cache_time[cache_key] > 30):  # 30秒過期
+            # 強制從數據庫重新載入
+            settings = await self._load_settings_from_db(guild_id)
+            self._settings_cache[cache_key] = settings
+            self._cache_time[cache_key] = current_time
+            logger.info(f"【活躍度】已重新載入 guild {guild_id} 的設定")
+        
+        return self._settings_cache[cache_key]
+    
+    async def _load_settings_from_db(self, guild_id: int) -> dict:
+        """從數據庫載入設定"""
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                cursor = await conn.execute("""
+                SELECT progress_style, announcement_channel, announcement_time
+                FROM activity_meter_settings
+                WHERE guild_id = ?
+                """, (guild_id,))
+                result = await cursor.fetchone()
+                
+            if result:
+                return {
+                    'progress_style': result[0],
+                    'announcement_channel': result[1],
+                    'announcement_time': result[2]
+                }
+            else:
+                return {
+                    'progress_style': 'classic',
+                    'announcement_channel': None,
+                    'announcement_time': 21
+                }
+                
+        except Exception as e:
+            logger.error(f"【活躍度】從數據庫載入設定失敗: {e}")
+            raise ActivityMeterError("E401", f"從數據庫載入設定失敗: {e}")
+    
+    async def save_announcement_channel(self, guild_id: int, channel_id: int) -> None:
+        """保存公告頻道設定"""
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                await conn.execute("""
+                INSERT INTO activity_meter_settings (guild_id, announcement_channel)
+                VALUES (?, ?)
+                ON CONFLICT(guild_id) DO UPDATE SET announcement_channel = ?
+                """, (guild_id, channel_id, channel_id))
+                await conn.commit()
+                
+                # 刷新緩存
+                await self.refresh_settings_cache()
+                
+        except Exception as e:
+            logger.error(f"【活躍度】保存公告頻道失敗: {e}")
+            raise ActivityMeterError("E402", f"保存公告頻道失敗: {e}")
+    
+    async def get_announcement_time(self, guild_id: int) -> str:
+        """
+        獲取公告時間設定
+        
+        Args:
+            guild_id: 伺服器ID
+            
+        Returns:
+            str: 時間字符串 (HH:MM格式)
+            
+        Raises:
+            ActivityMeterError: 數據庫查詢失敗時拋出
+        """
+        try:
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                cursor = await conn.execute("""
+                SELECT announcement_time 
+                FROM activity_meter_settings 
+                WHERE guild_id = ?
+                """, (guild_id,))
+                result = await cursor.fetchone()
+                
+                if result:
+                    # 將小時轉換為HH:MM格式
+                    hour = result[0]
+                    return f"{hour:02d}:00"
+                else:
+                    # 返回預設時間
+                    return "09:00"
+                    
+        except Exception as e:
+            logger.error(f"【活躍度】獲取公告時間失敗: {e}")
+            raise ActivityMeterError("E102", f"獲取公告時間失敗: {e}")
+    
+    async def update_announcement_time(self, guild_id: int, time_str: str) -> None:
+        """
+        更新公告時間設定
+        
+        Args:
+            guild_id: 伺服器ID
+            time_str: 時間字符串 (HH:MM格式)
+            
+        Raises:
+            ActivityMeterError: 數據庫更新失敗時拋出
+        """
+        try:
+            # 驗證時間格式
+            if not self._validate_time_format(time_str):
+                raise ValueError("時間格式錯誤，請使用 HH:MM 格式")
+            
+            # 解析時間
+            hour = int(time_str.split(':')[0])
+            
+            pool = await self._get_pool()
+            async with pool.get_connection_context(config.ACTIVITY_DB_PATH) as conn:
+                # 確保設定表存在
+                await conn.execute("""
+                CREATE TABLE IF NOT EXISTS activity_meter_settings (
+                    guild_id INTEGER PRIMARY KEY,
+                    progress_style TEXT DEFAULT 'classic',
+                    announcement_channel INTEGER,
+                    announcement_time INTEGER DEFAULT 21
+                )
+                """)
+                
+                await conn.execute("""
+                INSERT INTO activity_meter_settings (guild_id, announcement_time)
+                VALUES (?, ?)
+                ON CONFLICT(guild_id) DO UPDATE SET announcement_time = ?
+                """, (guild_id, hour, hour))
+                await conn.commit()
+                
+                # 刷新緩存
+                await self.refresh_settings_cache()
+                
+        except Exception as e:
+            logger.error(f"【活躍度】更新公告時間失敗: {e}")
+            raise ActivityMeterError("E102", f"更新公告時間失敗: {e}")
+    
+    def _validate_time_format(self, time_str: str) -> bool:
+        """
+        驗證時間格式
+        
+        Args:
+            time_str: 時間字符串
+            
+        Returns:
+            bool: 格式是否正確
+        """
+        import re
+        # 檢查格式
+        pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+        if not re.match(pattern, time_str):
+            return False
+        
+        # 解析時間
+        try:
+            hour, minute = map(int, time_str.split(':'))
+            return 0 <= hour <= 23 and 0 <= minute <= 59
+        except:
+            return False 

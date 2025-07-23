@@ -112,4 +112,32 @@ class StatsButton(discord.ui.Button):
             return
         
         # 切換到統計頁面
-        await self.view.change_page(interaction, "stats") 
+        await self.view.change_page(interaction, "stats")
+
+class TimeSettingButton(discord.ui.Button):
+    """時間設定按鈕"""
+    
+    def __init__(self):
+        super().__init__(
+            style=discord.ButtonStyle.primary,
+            label="設定時間",
+            emoji="⏰",
+            row=3
+        )
+    
+    async def callback(self, interaction: discord.Interaction):
+        """按鈕點擊回調"""
+        # 檢查權限
+        if interaction.user.id != getattr(self.view, "author_id", 0):
+            await interaction.response.send_message("❌ 只有原作者可以操作此面板", ephemeral=True)
+            return
+        
+        # 檢查管理權限
+        if not interaction.user.guild_permissions.manage_guild:
+            await interaction.response.send_message("❌ 您需要管理伺服器權限才能設定時間", ephemeral=True)
+            return
+        
+        # 創建並顯示時間設定Modal
+        from .modals import AnnouncementTimeModal
+        modal = AnnouncementTimeModal(self.view)
+        await interaction.response.send_modal(modal) 

@@ -46,14 +46,15 @@ class TestSyncDataDatabase:
     async def test_init_db(self, db):
         """測試資料庫初始化"""
         # 檢查表格是否創建
-        conn = await db._get_connection()
-        cursor = await conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
-        tables = await cursor.fetchall()
-        table_names = [table[0] for table in tables]
-        
-        assert 'roles' in table_names
-        assert 'channels' in table_names
-        assert 'sync_data_log' in table_names
+        pool = await db._get_pool()
+        async with pool.get_connection_context(db.db_path) as conn:
+            cursor = await conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = await cursor.fetchall()
+            table_names = [table[0] for table in tables]
+            
+            assert 'roles' in table_names
+            assert 'channels' in table_names
+            assert 'sync_data_log' in table_names
     
     @pytest.mark.asyncio
     async def test_insert_or_replace_role(self, db):
