@@ -1,0 +1,1098 @@
+---
+description: "AI開發指導規則 - 智能開發助手核心指導文檔"
+globs: "**/*"
+alwaysApply: true
+priority: 0
+debugMode: true
+version: "4.0.0"
+---
+# 🚀 AI 開發指導規則 (優化版 v4.0.0)
+
+## 📋 快速參考指南
+
+### 🎯 標準開發流程
+```mermaid
+graph TD
+    A[用戶請求] --> B[專案路徑智能檢測]
+    B --> C[任務複雜度判斷]
+    C --> D{複雜度等級}
+    D -->|低| E[直接執行]
+    D -->|中| F[結構化思考 3-5步]
+    D -->|高| G[深度思考 8-12步]
+    E --> H[工具智能選擇]
+    F --> H
+    G --> H
+    H --> I[代碼實現]
+    I --> J[質量驗證]
+    J --> K[自動化測試]
+    K --> L[完成交付]
+```
+
+### ⚡ 智能決策矩陣
+| 任務類型 | 複雜度 | 思考策略 | 推薦工具組合 | 預估時間 | 錯誤處理策略 |
+|---------|-------|---------|------------|---------|------------|
+| 文檔更新 | 低 | 直接執行 | `mcp_Desktop_Commander_read_file` + `edit_file` | 1-2分鐘 | 自動備份 |
+| 配置修改 | 低 | 直接執行 | `grep_search` + `search_replace` | 2-3分鐘 | 修改前驗證 |
+| Bug修復 | 中 | 結構化思考 | `grep_search` + `codebase_search` + `search_replace` | 5-10分鐘 | 漸進式修復 |
+| 功能開發 | 高 | 深度思考 | `codebase_search` + 多工具組合 | 15-30分鐘 | 階段性驗證 |
+| 架構重構 | 高 | 深度思考 | 全工具鏈 + 階段性驗證 | 30+分鐘 | 多層防護 |
+| 效能優化 | 中高 | 結構化思考 | `grep_search` + `mcp_Desktop_Commander_edit_block` | 10-20分鐘 | 性能基準比較 |
+
+### 🛠️ 工具快速選擇
+```python
+# 智能工具選擇算法
+def choose_tool(task_type, file_size, complexity):
+    if task_type == "read":
+        return "mcp_Desktop_Commander_read_file" if file_size > 1000 else "read_file"
+    elif task_type == "edit":
+        return "mcp_Desktop_Commander_edit_block" if complexity == "high" else "edit_file"
+    elif task_type == "search":
+        return "codebase_search" if complexity == "semantic" else "grep_search"
+```
+
+---
+
+## 🎯 規則優先級與智能觸發
+
+### 📊 規則優先級層次
+1. **🥇 Agent自動請求規則**: `fetch_rules` 獲取的專業規則
+2. **🥈 用戶自定義規則**: 用戶明確指定的規則
+3. **🥉 工作區規則**: 項目特定的規則
+4. **📋 本指導文檔**: 通用開發指導（備用參考）
+
+### 🔍 智能規則觸發機制
+```python
+# 智能規則觸發系統
+def trigger_rules(user_query):
+    keywords = extract_keywords(user_query)
+    
+    # 專業領域規則觸發
+    if any(k in keywords for k in ["項目分析", "代碼審查", "架構評估"]):
+        return fetch_rules(["initialise-project"])
+    elif any(k in keywords for k in ["PRD", "需求文檔", "產品規格"]):
+        return fetch_rules(["prd-writing"])
+    elif any(k in keywords for k in ["測試", "測試結果", "測試覆蓋率"]):
+        return fetch_rules(["archive"])
+    else:
+        return use_general_rules()
+```
+
+---
+
+## 🔍 專案路徑智能檢測機制
+
+### 🎯 自動化路徑檢測
+```python
+def detect_project_path():
+    """智能檢測專案根目錄和關鍵路徑"""
+    # 1. 檢測當前工作目錄
+    current_dir = get_current_directory()
+    
+    # 2. 向上查找專案根目錄特徵
+    project_root = find_project_root(current_dir)
+    
+    # 3. 確認專案標識文件
+    validate_project_identifiers(project_root)
+    
+    # 4. 確認記憶庫位置
+    memory_bank_path = os.path.join(project_root, "memory_bank")
+    
+    # 5. 檢測其他關鍵目錄
+    key_paths = {
+        "config": find_config_directory(project_root),
+        "source_code": find_source_code_directory(project_root),
+        "tests": find_tests_directory(project_root),
+        "docs": find_docs_directory(project_root)
+    }
+    
+    return {
+        "project_root": project_root,
+        "memory_bank": memory_bank_path,
+        "key_paths": key_paths,
+        "exists": os.path.exists(project_root),
+        "is_valid": validate_project_structure(project_root)
+    }
+```
+
+### 📋 專案目錄結構驗證
+```python
+def validate_project_structure(project_root):
+    """驗證專案結構的完整性"""
+    required_elements = [
+        "memory_bank",       # 記憶庫目錄
+        "config.py",         # 配置文件
+        "cogs",              # 模組目錄
+        "deploy.py"          # 部署腳本
+    ]
+    
+    # 檢查每個必要元素是否存在
+    for element in required_elements:
+        element_path = os.path.join(project_root, element)
+        if not os.path.exists(element_path):
+            print(f"⚠️ 警告: 專案缺少必要元素 {element}")
+            return False
+            
+    return True
+```
+
+## 🧠 智能任務複雜度判斷
+
+### 📊 複雜度評估矩陣
+| 維度 | 低複雜度 | 中複雜度 | 高複雜度 |
+|------|---------|---------|---------|
+| **文件數量** | 1個文件 | 2-5個文件 | 5+個文件 |
+| **代碼行數** | <50行 | 50-200行 | 200+行 |
+| **依賴關係** | 無依賴 | 少量依賴 | 複雜依賴 |
+| **業務邏輯** | 簡單邏輯 | 中等邏輯 | 複雜邏輯 |
+| **技術難度** | 基礎操作 | 中等技術 | 高級技術 |
+| **錯誤風險** | 低風險 | 中等風險 | 高風險 |
+
+### 🎯 智能複雜度判斷算法
+```python
+def assess_complexity(task):
+    score = 0
+    
+    # 文件影響範圍評估
+    if task.files_count > 5: score += 3
+    elif task.files_count > 2: score += 2
+    elif task.files_count > 1: score += 1
+    
+    # 代碼變更量評估
+    if task.lines_changed > 200: score += 3
+    elif task.lines_changed > 50: score += 2
+    elif task.lines_changed > 10: score += 1
+    
+    # 技術難度評估
+    if task.requires_architecture_change: score += 3
+    elif task.requires_new_dependencies: score += 2
+    elif task.requires_refactoring: score += 1
+    
+    # 複雜度分級
+    if score >= 7: return "高複雜度"
+    elif score >= 4: return "中複雜度"
+    else: return "低複雜度"
+```
+
+---
+
+## 🚀 智能開發流程
+
+### 1. 快速任務執行流程 (低複雜度)
+```python
+def quick_task_execution(task):
+    """低複雜度任務的快速執行流程"""
+    # 1. 快速需求確認
+    requirements = parse_simple_requirements(task)
+    
+    # 2. 直接工具選擇
+    tool = select_optimal_tool(requirements)
+    
+    # 3. 立即執行
+    result = execute_tool(tool, requirements)
+    
+    # 4. 快速驗證
+    if validate_result(result):
+        return complete_task(result)
+    else:
+        return retry_with_alternative_tool(task)
+```
+
+### 2. 結構化開發流程 (中複雜度)
+```python
+def structured_development(task):
+    """中複雜度任務的結構化開發流程"""
+    # 1. 需求分析 (Sequential Thinking Step 1)
+    analysis = analyze_requirements(task)
+    
+    # 2. 影響範圍評估 (Sequential Thinking Step 2)
+    impact = assess_impact_scope(analysis)
+    
+    # 3. 解決方案設計 (Sequential Thinking Step 3)
+    solution = design_solution(analysis, impact)
+    
+    # 4. 執行計劃制定 (Sequential Thinking Step 4)
+    plan = create_execution_plan(solution)
+    
+    # 5. 執行與驗證 (Sequential Thinking Step 5)
+    result = execute_and_validate(plan)
+    
+    return result
+```
+
+### 3. 深度開發流程 (高複雜度)
+```python
+def deep_development_process(task):
+    """高複雜度任務的深度開發流程"""
+    # Phase 1: 深度分析 (Steps 1-4)
+    problem_analysis = deep_problem_analysis(task)
+    architecture_analysis = analyze_current_architecture()
+    solution_options = generate_solution_options(problem_analysis)
+    best_solution = select_best_solution(solution_options)
+    
+    # Phase 2: 設計規劃 (Steps 5-8)
+    detailed_design = create_detailed_design(best_solution)
+    risk_assessment = assess_risks_and_dependencies(detailed_design)
+    execution_strategy = develop_execution_strategy(detailed_design, risk_assessment)
+    quality_plan = create_quality_assurance_plan(execution_strategy)
+    
+    # Phase 3: 實施優化 (Steps 9-12)
+    implementation = implement_solution(execution_strategy)
+    performance_optimization = optimize_performance(implementation)
+    security_review = conduct_security_review(implementation)
+    final_validation = comprehensive_validation(implementation)
+    
+    return final_validation
+```
+
+---
+
+## 🛠️ 智能工具使用系統
+
+### 🎯 工具選擇決策引擎
+```python
+class ToolSelectionEngine:
+    def __init__(self):
+        self.tool_performance_matrix = {
+            "read_small_file": {"tool": "read_file", "max_size": 1000, "speed": "fast"},
+            "read_large_file": {"tool": "mcp_Desktop_Commander_read_file", "max_size": float('inf'), "speed": "medium"},
+            "edit_simple": {"tool": "edit_file", "complexity": "low", "precision": "medium"},
+            "edit_precise": {"tool": "search_replace", "complexity": "medium", "precision": "high"},
+            "edit_surgical": {"tool": "mcp_Desktop_Commander_edit_block", "complexity": "high", "precision": "very_high"},
+            "search_semantic": {"tool": "codebase_search", "type": "semantic", "accuracy": "high"},
+            "search_exact": {"tool": "grep_search", "type": "exact", "speed": "very_fast"}
+        }
+    
+    def select_tool(self, operation, context):
+        """智能選擇最適合的工具"""
+        if operation == "read":
+            return self._select_read_tool(context)
+        elif operation == "edit":
+            return self._select_edit_tool(context)
+        elif operation == "search":
+            return self._select_search_tool(context)
+        else:
+            return self._select_default_tool(operation, context)
+    
+    def _select_read_tool(self, context):
+        file_size = context.get("file_size", 0)
+        if file_size > 1000:
+            return "mcp_Desktop_Commander_read_file"
+        else:
+            return "read_file"
+    
+    def _select_edit_tool(self, context):
+        complexity = context.get("complexity", "low")
+        precision_required = context.get("precision_required", False)
+        
+        if complexity == "high" or precision_required:
+            return "mcp_Desktop_Commander_edit_block"
+        elif complexity == "medium":
+            return "search_replace"
+        else:
+            return "edit_file"
+    
+    def _select_search_tool(self, context):
+        search_type = context.get("search_type", "semantic")
+        if search_type == "semantic":
+            return "codebase_search"
+        else:
+            return "grep_search"
+```
+
+### 🔧 工具組合最佳實踐
+```python
+# 常用工具組合模式
+TOOL_COMBINATIONS = {
+    "功能開發": [
+        "codebase_search",  # 1. 搜索相關代碼
+        "read_file",        # 2. 讀取關鍵文件
+        "edit_file",        # 3. 實現新功能
+        "grep_search"       # 4. 驗證修改
+    ],
+    "Bug修復": [
+        "grep_search",      # 1. 精確定位問題
+        "read_file",        # 2. 分析問題代碼
+        "search_replace",   # 3. 修復問題
+        "codebase_search"   # 4. 檢查影響範圍
+    ],
+    "代碼重構": [
+        "codebase_search",                    # 1. 分析架構
+        "mcp_Desktop_Commander_read_file",    # 2. 讀取大文件
+        "mcp_Desktop_Commander_edit_block",   # 3. 精確重構
+        "grep_search"                         # 4. 驗證一致性
+    ]
+}
+```
+
+---
+
+## 🧠 Sequential Thinking 優化機制
+
+### ⚡ 簡化使用流程
+```python
+def use_sequential_thinking(complexity_level):
+    """增強版 Sequential Thinking 使用流程 - 防卡住、自我監控"""
+    
+    # 初始化思考監控器
+    thinking_monitor = ThinkingMonitor(max_thinking_time=300)  # 5分鐘上限
+    thinking_monitor.start()
+    
+    if complexity_level == "低":
+        # 跳過思考，直接執行
+        thinking_monitor.log("低複雜度任務，跳過思考階段")
+        return execute_directly()
+    
+    elif complexity_level == "中":
+        # 3-5步結構化思考
+        steps = [
+            "問題理解與需求分析",
+            "現有代碼結構分析", 
+            "解決方案設計",
+            "執行計劃制定",
+            "完成思考並開始執行"
+        ]
+        return execute_thinking_steps(steps, max_steps=5, monitor=thinking_monitor)
+    
+    else:  # 高複雜度
+        # 8-12步深度思考
+        steps = [
+            "問題本質深度理解",
+            "現有系統架構分析",
+            "多方案設計與比較",
+            "最優方案選擇",
+            "詳細實施策略",
+            "風險評估與應對",
+            "資源需求分析",
+            "質量保證計劃",
+            "性能優化考慮",
+            "安全性評估",
+            "監控與維護計劃",
+            "完成思考並開始執行"
+        ]
+        return execute_thinking_steps(steps, max_steps=12, monitor=thinking_monitor)
+
+def execute_thinking_steps(steps, max_steps, monitor):
+    """執行思考步驟 - 強化版，包含思考進度追蹤和強制執行轉換"""
+    recommended_tools = []
+    execution_plan = {}
+    
+    for i, step in enumerate(steps, 1):
+        # 檢查是否已超時
+        if monitor.is_timeout():
+            # 強制結束思考，開始執行
+            monitor.log(f"思考步驟 {i}/{max_steps} 已超時，強制轉向執行")
+            return force_execution_with_partial_thinking(i-1, max_steps, recommended_tools, execution_plan)
+        
+        is_last_step = (i == len(steps)) or (i == max_steps)
+        monitor.log(f"開始思考步驟 {i}/{max_steps}: {step}")
+        
+        # 調用 Sequential Thinking 工具
+        result = mcp_Sequential_Thinking_sequentialthinking(
+            thought=f"第{i}步: {step}",
+            nextThoughtNeeded=not is_last_step,  # 關鍵：最後一步必須設置為 false
+            thoughtNumber=i,
+            totalThoughts=min(len(steps), max_steps)
+        )
+        
+        # 從結果中提取工具和執行計劃建議
+        if result.get('recommended_tools'):
+            recommended_tools.extend(result.get('recommended_tools'))
+        
+        if result.get('execution_steps'):
+            execution_plan.update(result.get('execution_steps'))
+        
+        monitor.update_progress(i, max_steps)
+        
+        if is_last_step:
+            # 立即轉向實際執行 - 關鍵步驟
+            monitor.log("思考完成，立即轉向實際執行")
+            return start_actual_execution(recommended_tools, execution_plan)
+    
+    # 保險措施：確保無論如何都會執行
+    monitor.log("思考流程完成，準備執行")
+    return start_actual_execution(recommended_tools, execution_plan)
+
+def force_execution_with_partial_thinking(completed_steps, total_steps, tools, plan):
+    """強制從思考轉向執行的機制"""
+    print(f"⚠️ 警告: 思考階段在完成 {completed_steps}/{total_steps} 步後被強制終止")
+    print("📝 使用已收集的部分思考結果開始執行")
+    
+    # 快速補充任何缺失的必要信息
+    if not tools:
+        tools = suggest_default_tools_for_partial_thinking()
+    
+    if not plan:
+        plan = create_basic_execution_plan()
+    
+    return start_actual_execution(tools, plan)
+
+def start_actual_execution(recommended_tools=None, execution_plan=None):
+    """開始實際執行 - 確保思考後立即執行"""
+    if recommended_tools:
+        for tool in recommended_tools:
+            # 立即使用推薦工具開始執行
+            execute_tool(tool)
+    else:
+        # 使用默認工具開始執行
+        execute_default_tools()
+    
+    return {"status": "execution_started", "from": "sequential_thinking"}
+```
+
+### 🚫 防卡住機制
+```python
+class ThinkingTimeoutManager:
+    def __init__(self, max_thinking_time=300):  # 5分鐘最大思考時間
+        self.max_thinking_time = max_thinking_time
+        self.start_time = None
+    
+    def start_thinking(self):
+        self.start_time = time.time()
+    
+    def check_timeout(self):
+        if self.start_time and (time.time() - self.start_time) > self.max_thinking_time:
+            return True
+        return False
+    
+    def force_execution(self):
+        """強制結束思考，開始執行"""
+        return {
+            "action": "force_execution",
+            "reason": "思考時間超限，強制轉向執行",
+            "next_step": "使用已有思考結果開始實際執行"
+        }
+```
+
+---
+
+## 📋 實用開發模板
+
+### 🔧 功能開發模板
+```python
+def feature_development_template(feature_request):
+    """功能開發標準模板"""
+    
+    # 1. 需求分析
+    requirements = analyze_feature_requirements(feature_request)
+    
+    # 2. 現有代碼分析
+    existing_code = search_related_code(requirements)
+    
+    # 3. 設計方案
+    design = create_feature_design(requirements, existing_code)
+    
+    # 4. 實現功能
+    implementation = implement_feature(design)
+    
+    # 5. 測試驗證
+    validation = validate_feature(implementation)
+    
+    # 6. 文檔更新
+    documentation = update_documentation(feature_request, implementation)
+    
+    return {
+        "feature": implementation,
+        "tests": validation,
+        "docs": documentation,
+        "status": "completed"
+    }
+```
+
+### 🐛 Bug修復模板
+```python
+def bug_fix_template(bug_report):
+    """Bug修復標準模板"""
+    
+    # 1. 問題定位
+    problem_location = locate_bug(bug_report)
+    
+    # 2. 根因分析
+    root_cause = analyze_root_cause(problem_location)
+    
+    # 3. 影響範圍評估
+    impact_scope = assess_impact_scope(root_cause)
+    
+    # 4. 修復方案設計
+    fix_solution = design_fix_solution(root_cause, impact_scope)
+    
+    # 5. 實施修復
+    fix_implementation = implement_fix(fix_solution)
+    
+    # 6. 回歸測試
+    regression_test = perform_regression_test(fix_implementation)
+    
+    return {
+        "fix": fix_implementation,
+        "tests": regression_test,
+        "impact": impact_scope,
+        "status": "fixed"
+    }
+```
+
+### 🔄 代碼重構模板
+```python
+def refactoring_template(refactoring_target):
+    """代碼重構標準模板"""
+    
+    # 1. 現狀分析
+    current_state = analyze_current_code(refactoring_target)
+    
+    # 2. 重構目標確定
+    refactoring_goals = define_refactoring_goals(current_state)
+    
+    # 3. 重構策略制定
+    refactoring_strategy = create_refactoring_strategy(refactoring_goals)
+    
+    # 4. 分階段重構
+    phased_refactoring = execute_phased_refactoring(refactoring_strategy)
+    
+    # 5. 質量驗證
+    quality_validation = validate_refactoring_quality(phased_refactoring)
+    
+    # 6. 性能測試
+    performance_test = test_performance_impact(phased_refactoring)
+    
+    return {
+        "refactored_code": phased_refactoring,
+        "quality_metrics": quality_validation,
+        "performance_impact": performance_test,
+        "status": "completed"
+    }
+```
+
+---
+
+## ⚡ 性能優化系統
+
+### 🚀 智能性能監控
+```python
+class PerformanceMonitor:
+    def __init__(self):
+        self.metrics = {}
+        self.thresholds = {
+            "file_read_time": 2.0,      # 2秒
+            "code_search_time": 5.0,    # 5秒
+            "edit_operation_time": 3.0,  # 3秒
+            "thinking_time": 300.0      # 5分鐘
+        }
+    
+    def monitor_operation(self, operation_name, operation_func, *args, **kwargs):
+        start_time = time.time()
+        try:
+            result = operation_func(*args, **kwargs)
+            execution_time = time.time() - start_time
+            
+            self.metrics[operation_name] = execution_time
+            
+            if execution_time > self.thresholds.get(operation_name, 10.0):
+                self.suggest_optimization(operation_name, execution_time)
+            
+            return result
+        except Exception as e:
+            execution_time = time.time() - start_time
+            self.handle_performance_error(operation_name, execution_time, e)
+            raise
+    
+    def suggest_optimization(self, operation_name, execution_time):
+        suggestions = {
+            "file_read_time": "考慮使用分塊讀取���切換到Desktop Commander工具",
+            "code_search_time": "嘗試使用更精確的搜索關鍵詞或切換搜索工具",
+            "edit_operation_time": "考慮使用更高效的編輯工具或分批處理",
+            "thinking_time": "思考時間過長，建議強制轉向執行階段"
+        }
+        
+        suggestion = suggestions.get(operation_name, "考慮優化操作策略")
+        print(f"⚠️ 性能警告: {operation_name} 耗時 {execution_time:.2f}秒，建議: {suggestion}")
+```
+
+### 🎯 自動優化建議
+```python
+def auto_optimization_suggestions(current_performance):
+    """自動生成性能優化建議"""
+    
+    suggestions = []
+    
+    # 文件操作優化
+    if current_performance.get("large_file_reads", 0) > 3:
+        suggestions.append({
+            "type": "file_operation",
+            "suggestion": "使用 mcp_Desktop_Commander_read_file 替代 read_file 處理大文件",
+            "expected_improvement": "50-70% 性能提升"
+        })
+    
+    # 搜索操作優化
+    if current_performance.get("search_operations", 0) > 5:
+        suggestions.append({
+            "type": "search_operation", 
+            "suggestion": "使用並行搜索或更精確的搜索條件",
+            "expected_improvement": "30-50% 時間節省"
+        })
+    
+    # 思考時間優化
+    if current_performance.get("thinking_time", 0) > 180:
+        suggestions.append({
+            "type": "thinking_optimization",
+            "suggestion": "降低任務複雜度評估或使用更簡化的思考流程",
+            "expected_improvement": "60-80% 時間節省"
+        })
+    
+    return suggestions
+```
+
+---
+
+## 🛡️ 智能錯誤處理系統
+
+### 🔧 自動錯誤診斷
+```python
+class ErrorDiagnosisSystem:
+    def __init__(self):
+        self.error_patterns = {
+            "FileNotFoundError": {
+                "diagnosis": "文件路徑錯誤或文件不存在",
+                "solutions": [
+                    "檢查文件路徑是否正確",
+                    "使用 file_search 查找正確的文件位置",
+                    "檢查文件是否已被移動或刪除"
+                ]
+            },
+            "PermissionError": {
+                "diagnosis": "文件權限不足",
+                "solutions": [
+                    "檢查文件讀寫權限",
+                    "嘗試使用不同的工具",
+                    "確認當前用戶有足夠權限"
+                ]
+            },
+            "SyntaxError": {
+                "diagnosis": "代碼語法錯誤",
+                "solutions": [
+                    "檢查代碼語法",
+                    "使用語法檢查工具",
+                    "參考語言規範修正語法"
+                ]
+            },
+            "TimeoutError": {
+                "diagnosis": "操作超時",
+                "solutions": [
+                    "減少操作複雜度",
+                    "使用更高效的工具",
+                    "分批處理大量數據"
+                ]
+            }
+        }
+    
+    def diagnose_error(self, error):
+        error_type = type(error).__name__
+        error_info = self.error_patterns.get(error_type, {
+            "diagnosis": "未知錯誤",
+            "solutions": ["檢查錯誤詳情", "嘗試重新執行", "使用替代方案"]
+        })
+        
+        return {
+            "error_type": error_type,
+            "error_message": str(error),
+            "diagnosis": error_info["diagnosis"],
+            "solutions": error_info["solutions"],
+            "auto_recovery": self.suggest_auto_recovery(error_type)
+        }
+    
+    def suggest_auto_recovery(self, error_type):
+        recovery_strategies = {
+            "FileNotFoundError": "auto_find_similar_files",
+            "PermissionError": "try_alternative_tools", 
+            "SyntaxError": "auto_syntax_correction",
+            "TimeoutError": "reduce_operation_scope"
+        }
+        
+        return recovery_strategies.get(error_type, "manual_intervention_required")
+```
+
+### 🔄 自動恢復機制
+```python
+def auto_recovery_system(error, context):
+    """自動錯誤恢復系統"""
+    
+    recovery_attempts = 0
+    max_attempts = 3
+    
+    while recovery_attempts < max_attempts:
+        try:
+            # 根據錯誤類型選擇恢復策略
+            recovery_strategy = select_recovery_strategy(error, context)
+            
+            # 執行恢復操作
+            recovery_result = execute_recovery_strategy(recovery_strategy, context)
+            
+            # 驗證恢復結果
+            if validate_recovery(recovery_result):
+                return {
+                    "status": "recovered",
+                    "attempts": recovery_attempts + 1,
+                    "strategy": recovery_strategy,
+                    "result": recovery_result
+                }
+            
+        except Exception as recovery_error:
+            recovery_attempts += 1
+            error = recovery_error
+            
+            if recovery_attempts >= max_attempts:
+                return {
+                    "status": "failed",
+                    "attempts": recovery_attempts,
+                    "final_error": recovery_error,
+                    "manual_intervention_required": True
+                }
+    
+    return {"status": "max_attempts_exceeded"}
+```
+
+---
+
+## 📋 智能開發檢查清單
+
+### ✅ 開發前檢查 (自動化)
+```python
+def pre_development_check():
+    """開發前自動檢查清單"""
+    
+    checks = {
+        "環境檢查": check_development_environment(),
+        "路徑驗證": verify_project_paths(),
+        "權限確認": confirm_file_permissions(),
+        "依賴檢查": check_dependencies(),
+        "工具可用性": verify_tool_availability()
+    }
+    
+    failed_checks = [name for name, result in checks.items() if not result]
+    
+    if failed_checks:
+        return {
+            "status": "failed",
+            "failed_checks": failed_checks,
+            "recommendations": generate_fix_recommendations(failed_checks)
+        }
+    
+    return {"status": "passed", "ready_for_development": True}
+```
+
+### ✅ 開發中檢查 (實時監控)
+```python
+def development_monitoring():
+    """開發過程實時監控"""
+    
+    return {
+        "代碼質量": monitor_code_quality(),
+        "性能指標": monitor_performance_metrics(),
+        "錯誤率": monitor_error_rate(),
+        "進度追蹤": track_development_progress(),
+        "資源使用": monitor_resource_usage()
+    }
+```
+
+### ✅ 開發後檢查 (質量保證)
+```python
+def post_development_check():
+    """開發後質量保證檢查"""
+    
+    return {
+        "功能完整性": verify_feature_completeness(),
+        "代碼一致性": check_code_consistency(),
+        "性能影響": assess_performance_impact(),
+        "安全性檢查": perform_security_check(),
+        "文檔更新": verify_documentation_update(),
+        "測試覆蓋": check_test_coverage()
+    }
+```
+
+---
+
+## 🎯 常見開發場景快速解決方案
+
+### 🔧 場景1: 快速功能添加
+```python
+def quick_feature_addition(feature_description):
+    """快速功能添加解決方案"""
+    
+    # 1. 快速需求解析 (30秒)
+    requirements = parse_requirements_quickly(feature_description)
+    
+    # 2. 相關代碼定位 (1分鐘)
+    related_code = locate_related_code_fast(requirements)
+    
+    # 3. 模板化實現 (2-3分鐘)
+    implementation = implement_using_template(requirements, related_code)
+    
+    # 4. 快速驗證 (30秒)
+    validation = quick_validation(implementation)
+    
+    return {
+        "implementation": implementation,
+        "validation": validation,
+        "estimated_time": "3-5分鐘",
+        "confidence": "高"
+    }
+```
+
+### 🐛 場景2: 緊急Bug修復
+```python
+def emergency_bug_fix(bug_description):
+    """緊急Bug修復解決方案"""
+    
+    # 1. 快速問題定位 (1分鐘)
+    problem_location = locate_problem_quickly(bug_description)
+    
+    # 2. 最小化修復 (2分鐘)
+    minimal_fix = create_minimal_fix(problem_location)
+    
+    # 3. 影響範圍檢查 (1分鐘)
+    impact_check = quick_impact_assessment(minimal_fix)
+    
+    # 4. 緊急部署驗證 (1分鐘)
+    deployment_validation = validate_for_emergency_deployment(minimal_fix)
+    
+    return {
+        "fix": minimal_fix,
+        "impact": impact_check,
+        "validation": deployment_validation,
+        "estimated_time": "5分鐘",
+        "risk_level": "低"
+    }
+```
+
+### 🔄 場景3: 代碼重構優化
+```python
+def code_refactoring_optimization(target_code):
+    """代碼重構優化解決方案"""
+    
+    # 1. 重構機會識別 (2分鐘)
+    refactoring_opportunities = identify_refactoring_opportunities(target_code)
+    
+    # 2. 優先級排序 (1分鐘)
+    prioritized_refactoring = prioritize_refactoring_tasks(refactoring_opportunities)
+    
+    # 3. 分階段重構 (10-15分鐘)
+    phased_refactoring = execute_phased_refactoring(prioritized_refactoring)
+    
+    # 4. 質量驗證 (2分鐘)
+    quality_verification = verify_refactoring_quality(phased_refactoring)
+    
+    return {
+        "refactored_code": phased_refactoring,
+        "quality_metrics": quality_verification,
+        "estimated_time": "15-20分鐘",
+        "improvement": "顯著"
+    }
+```
+
+---
+
+## 📊 開發效率監控儀表板
+
+### 📈 實時效率指標
+```python
+class DevelopmentEfficiencyDashboard:
+    def __init__(self):
+        self.metrics = {
+            "任務完成率": 0.0,
+            "平均完成時間": 0.0,
+            "代碼質量分數": 0.0,
+            "工具使用效率": 0.0,
+            "錯誤率": 0.0
+        }
+    
+    def update_metrics(self, task_result):
+        """更新效率指標"""
+        self.metrics["任務完成率"] = self.calculate_completion_rate(task_result)
+        self.metrics["平均完成時間"] = self.calculate_average_time(task_result)
+        self.metrics["代碼質量分數"] = self.assess_code_quality(task_result)
+        self.metrics["工具使用效率"] = self.evaluate_tool_efficiency(task_result)
+        self.metrics["錯誤率"] = self.calculate_error_rate(task_result)
+    
+    def generate_efficiency_report(self):
+        """生成效率報告"""
+        return {
+            "current_metrics": self.metrics,
+            "performance_trend": self.analyze_performance_trend(),
+            "optimization_suggestions": self.generate_optimization_suggestions(),
+            "next_actions": self.recommend_next_actions()
+        }
+```
+
+---
+
+## 🎯 使用說明和最佳實踐
+
+### 🚀 快速開始指南
+1. **專案路徑檢測**: 自動確認專案根目錄和關鍵路徑
+2. **任務分析**: 解析用戶需求，判斷任務類型與重要性
+3. **複雜度評估**: 使用智能算法評估任務複雜度
+4. **思考策略選擇**: 根據複雜度選擇適當的思考深度
+5. **工具智能選擇**: 使用決策引擎選擇最優工具組合
+6. **執行實施**: 按照模板執行開發任務
+7. **實時錯誤處理**: 智能監測並解決執行過程中的錯誤
+8. **質量驗證**: 自動檢查和驗證結果
+9. **持續優化**: 基於反饋優化流程
+
+### 💡 最佳實踐建議
+1. **路徑智能檢測**: 確保操作在正確的專案路徑下進行
+2. **優先使用模板**: 利用預定義模板提高效率
+3. **Sequential Thinking正確使用**: 確保最後一步設置nextThoughtNeeded=false
+4. **立即執行轉換**: 思考完成後立即轉向實際執行
+5. **智能工具組合**: 根據任務特性選擇最佳工具組合
+6. **性能監控**: 持續監控和優化性能
+7. **預防性錯誤處理**: 在問題發生前預判和預防
+8. **質量保證**: 確保每個開發階段的質量
+9. **持續學習**: 基於經驗不斷優化流程
+
+### 🔧 高級功能使用
+1. **自定義模板**: 根據項目特點創建自定義模板
+2. **性能調優**: 使用性能監控工具優化效率
+3. **錯誤預防**: 使用預防性檢查避免常見錯誤
+4. **自動化流程**: 最大化自動化程度，減少手動干預
+5. **思考超時處理**: 配置思考超時自動轉向執行機制
+
+## 🚀 AI Agent 實戰案例演示
+
+### 案例1: 低複雜度任務 - 文檔更新
+```python
+# 用戶請求: "更新 README.md 文件，添加安裝說明"
+
+# 1. 專案路徑檢測
+project_info = detect_project_path()
+readme_path = os.path.join(project_info["project_root"], "README.md")
+
+# 2. 任務複雜度判斷 - 低複雜度
+complexity = "低複雜度"  # 單文件修改，無依賴
+
+# 3. 直接執行 (跳過Sequential Thinking)
+readme_content = mcp_Desktop_Commander_read_file(path=readme_path)
+
+# 4. 編輯文件
+installation_guide = generate_installation_guide(project_info)
+edit_file(
+    target_file=readme_path,
+    instructions="在README.md中添加安裝說明部分",
+    code_edit=f"# 安裝說明\n\n{installation_guide}\n\n// ... existing code ..."
+)
+
+# 5. 驗證修改
+validate_readme_update(readme_path)
+```
+
+### 案例2: 中複雜度任務 - Bug修復
+```python
+# 用戶請求: "修復登入功能的認證失敗問題"
+
+# 1. 專案路徑檢測
+project_info = detect_project_path()
+
+# 2. 任務複雜度判斷 - 中複雜度
+complexity = "中複雜度"  # 可能涉及多文件，有依賴關係
+
+# 3. 使用Sequential Thinking進行結構化思考
+mcp_Sequential_Thinking_sequentialthinking(
+    thought="分析認證失敗問題：需要檢查登入功能的實現代碼",
+    nextThoughtNeeded=true,
+    thoughtNumber=1,
+    totalThoughts=5
+)
+
+# ... 中間步驟省略 ...
+
+# 最後一步設置nextThoughtNeeded=false
+mcp_Sequential_Thinking_sequentialthinking(
+    thought="執行計劃已制定完成，準備開始修復",
+    nextThoughtNeeded=false,  # 關鍵：設置為false
+    thoughtNumber=5,
+    totalThoughts=5
+)
+
+# 4. 根據分析結果執行修復
+search_results = grep_search(query="auth_function\\(", include_pattern="*.py")
+auth_file = identify_auth_file(search_results)
+
+# 5. 修復問題
+search_replace(
+    file_path=auth_file,
+    old_string="if user.token and validate_token(user.token):\n    return True\nelse:\n    return False",
+    new_string="if user.token and validate_token(user.token):\n    return True\nelif user.credentials and validate_credentials(user.credentials):\n    return True\nelse:\n    return False"
+)
+
+# 6. 驗證修復
+run_tests_for_auth()
+```
+
+### 案例3: 高複雜度任務 - 新功能開發
+```python
+# 用戶請求: "實現新的數據同步模塊"
+
+# 詳細實現步驟略（遵循深度思考流程）...
+```
+
+---
+
+## 🛠️ Sequential Thinking 關鍵修復指南
+
+### ❗ 常見問題診斷與修復
+| 問題描述 | 原因 | 修復方法 |
+|---------|------|---------|
+| 思考卡住不執行 | 未設置 nextThoughtNeeded=false | 確保最後一步設置 nextThoughtNeeded=false |
+| 思考後不執行工具 | 未正確轉換到執行階段 | 思考完成後立即調用推薦工具 |
+| 思考重複循環 | 思考步驟不明確 | 設置明確的 totalThoughts 並監控進度 |
+| 工具選擇不當 | 缺少對任務的理解 | 先分析任務特性，再選擇工具組合 |
+| 路徑錯誤 | 未進行專案路徑檢測 | 使用 detect_project_path() 確認正確路徑 |
+
+### 🔄 思考與執行轉換模式
+```python
+# 正確的思考與執行轉換流程
+def sequential_thinking_to_execution_flow():
+    # 1. 執行結構化思考
+    final_thought = mcp_Sequential_Thinking_sequentialthinking(
+        thought="總結思考並準備執行",
+        nextThoughtNeeded=false,  # 關鍵: 必須設為 false
+        thoughtNumber=5,          # 必須等於 totalThoughts
+        totalThoughts=5           # 明確設定總步驟數
+    )
+    
+    # 2. 立即轉向執行 (必須在思考完成後立即執行)
+    recommended_tools = extract_recommended_tools(final_thought)
+    for tool in recommended_tools:
+        execute_tool(tool)
+    
+    # 3. 不要在思考後繼續分析
+    return {"status": "execution_completed"}
+```
+
+## 📋 版本更新記錄
+
+### v4.0.0 (當前版本)
+- ✅ **專案路徑智能檢測**: 自動確認專案根目錄和關鍵路徑
+- ✅ **思考執行轉換修復**: 徹底解決 Sequential Thinking 卡住問題
+- ✅ **實戰案例演示**: 提供具體的任務執行案例
+- ✅ **任務複雜度判斷增強**: 添加更多維度的複雜度評估
+- ✅ **智能決策矩陣**: 擴展決策樹為更全面的決策矩陣
+- ✅ **錯誤處理機制強化**: 更細緻的錯誤預防和修復策略
+- ✅ **工具組合最佳實踐**: 提供針對不同任務的工具組合模式
+- ✅ **思考超時處理**: 添加思考超時強制執行轉換機制
+
+### v3.0.0 (前版本)
+- ✅ **智能開發流程**: 基於複雜度的智能開發流程
+- ✅ **工具選擇引擎**: 智能工具選擇決策引擎
+- ✅ **開發模板系統**: 標準化開發模板
+- ✅ **性能優化系統**: 自動性能監控和優化
+- ✅ **錯誤處理系統**: 智能錯誤診斷和恢復機制
+- ✅ **Sequential Thinking優化**: 簡化使用流程
+- ✅ **快速解決方案**: 常見場景的快速解決方案
+- ✅ **效率監控**: 開發效率實時監控
+
+### v2.0.0 (更早版本)
+- ✅ 基本開發指導功能
+- ✅ Sequential Thinking基礎支持
+- ✅ 工具使用指導
+- ✅ 錯誤處理機制
+
+---
+
+**優化完成**: 此版本專注於解決 AI Agent 開發過程中的實際問題，特別是 Sequential Thinking 與執行轉換的問題，並提供了更實用的智能路徑檢測和實戰案例演示，大幅提升了開發指導的實用性和效率。

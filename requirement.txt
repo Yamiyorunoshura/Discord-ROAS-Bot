@@ -1,0 +1,50 @@
+# Discord ADR Bot v1.6 - 依賴套件清單
+
+# ===== 核心依賴 =====
+discord.py==2.5.2                    # Discord 機器人框架
+python-dotenv==1.1.0                 # 環境變數管理
+aiosqlite==0.21.0                    # 非同步 SQLite 資料庫
+aiohttp==3.11.18                     # 非同步 HTTP 客戶端
+pydantic==2.5.0                      # 資料驗證
+
+# ===== 效能優化 =====
+uvloop==0.19.0; sys_platform != "win32"  # 非同步迴圈加速（非 Windows）
+cachetools==5.3.2                    # 記憶體快取管理
+zstandard==0.22.0                    # 高效壓縮
+
+# ===== 圖片處理 =====
+Pillow==11.2.1                       # 圖片處理庫
+
+# ===== 日誌與輸出 =====
+python-json-logger==2.0.7            # JSON 格式日誌
+colorama==0.4.6; sys_platform == "win32"  # Windows 彩色輸出
+
+# ===== 系統監控 =====
+psutil==5.9.0                        # 系統資源監控
+watchdog==3.0.0                      # 檔案系統監控
+
+# ===== 工具類庫 =====
+python-dateutil==2.8.2               # 日期時間處理
+regex==2023.12.25                    # 增強正則表達式
+requests==2.31.0                     # HTTP 客戶端
+tldextract==3.7.0                    # 網域名稱解析
+cryptography==41.0.0                 # 加密功能
+
+# ===== 開發與測試 =====
+pytest==7.4.0                        # 測試框架
+tqdm==4.66.0                         # 進度條
+black==23.12.0                       # 程式碼格式化
+flake8==6.1.0                        # 程式碼風格檢查
+mypy==1.8.0                          # 型別檢查
+bandit==1.7.5                        # 安全性檢查
+safety==2.3.0                        # 依賴安全檢查
+sphinx==7.2.0                        # 文檔生成
+
+# ===== 開發工具（可選） =====
+ipython==8.18.0                      # 互動式 Python Shell
+jupyter==1.0.0                       # 筆記本環境
+
+# ===== 部署工具（可選） =====
+gunicorn==21.2.0                     # WSGI HTTP 伺服器
+supervisor==4.2.5                    # 程序管理工具
+prometheus-client==0.19.0            # 監控指標收集
