@@ -1,3 +1,12 @@
-2025-07-23 20:37:42 | INFO     | anti_spam | init_db:50 | 【反垃圾訊息】資料庫初始化完成
-2025-07-23 20:37:42 | INFO     | anti_spam | cog_load:77 | 【反垃圾訊息】模組載入完成
-2025-07-23 20:37:48 | INFO     | anti_spam | _reset_task:493 | 【反垃圾訊息】每日重置任務完成
+2025-07-28 19:36:32 | INFO     | anti_spam | init_db:49 | 【反垃圾訊息】資料庫初始化完成
+2025-07-28 19:36:32 | INFO     | anti_spam | cog_load:83 | 【反垃圾訊息】模組載入完成
+2025-07-28 19:36:38 | INFO     | anti_spam | _reset_task:573 | 【反垃圾訊息】每日重置任務完成
+2025-07-28 19:39:06 | INFO     | anti_spam | init_db:49 | 【反垃圾訊息】資料庫初始化完成
+2025-07-28 19:39:06 | INFO     | anti_spam | cog_load:83 | 【反垃圾訊息】模組載入完成
+2025-07-28 19:39:12 | INFO     | anti_spam | _reset_task:573 | 【反垃圾訊息】每日重置任務完成
+2025-07-28 19:40:57 | INFO     | anti_spam | init_db:49 | 【反垃圾訊息】資料庫初始化完成
+2025-07-28 19:40:57 | INFO     | anti_spam | cog_load:83 | 【反垃圾訊息】模組載入完成
+2025-07-28 19:41:03 | INFO     | anti_spam | _reset_task:573 | 【反垃圾訊息】每日重置任務完成
+2025-07-28 19:41:31 | INFO     | anti_spam | init_db:49 | 【反垃圾訊息】資料庫初始化完成
+2025-07-28 19:41:31 | INFO     | anti_spam | cog_load:83 | 【反垃圾訊息】模組載入完成
+2025-07-28 19:41:36 | INFO     | anti_spam | _reset_task:573 | 【反垃圾訊息】每日重置任務完成

@@ -1,0 +1,25 @@
+"""
+活躍度系統配置包
+- 提供配置項和常數
+"""
+
+from .config import (
+    ACT_BAR_BG,
+    ACT_BAR_BORDER,
+    ACT_BAR_FILL,
+    ACT_BAR_HEIGHT,
+    ACT_BAR_WIDTH,
+    ACT_REPORT_HOUR,
+    ACTIVITY_COOLDOWN,
+    ACTIVITY_DB_PATH,
+    ACTIVITY_DECAY_AFTER,
+    ACTIVITY_DECAY_PER_H,
+    ACTIVITY_GAIN,
+    ACTIVITY_LOG_PATH,
+    ACTIVITY_MAX_SCORE,
+    DAY_FMT,
+    MONTH_FMT,
+    TW_TZ,
+    WELCOME_DEFAULT_FONT,
+    is_allowed,
+)

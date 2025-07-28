@@ -1,0 +1,17 @@
+"""
+歡迎系統配置模組初始化檔案
+"""
+
+from .config import (
+    CACHE_TIMEOUT,
+    DEFAULT_AVATAR_SIZE,
+    DEFAULT_BG_COLOR,
+    DEFAULT_BG_SIZE,
+    DEFAULT_FONT_PATH,
+    DEFAULT_SETTINGS,
+    DEFAULT_TEXT_COLOR,
+    LOG_BACKUP_COUNT,
+    LOG_FORMAT,
+    LOG_MAX_SIZE,
+    MAX_CACHE_SIZE,
+)
