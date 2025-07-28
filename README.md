@@ -1,26 +1,24 @@
-# Discord ADR Bot v2.1.0
+# Discord ROAS Bot v2.0.0
 
-一個功能完整的 Discord 機器人，提供活躍度追蹤、歡迎系統、群組保護、資料同步、訊息監控等多項功能。
+一個功能完整的現代化 Discord 機器人，提供活躍度追蹤、歡迎系統、群組保護、資料同步、訊息監控等多項功能。
 
-## 🆕 v2.1.0 重大更新 - 項目全面歸檔完成
+## 🆕 v2.0.0 重大更新 - 完全重構和現代化
 
-### ✨ PRD需求驗證完成
-- **📊 測試通過率**: 95.0% (96/101 測試通過)
-- **🎯 PRD需求實現率**: 100% - 所有4個核心PRD需求完全實現
-- **📈 UI佈局修復**: 100%完成 - Discord UI限制檢查和智能佈局優化
-- **⚡ 錯誤處理機制**: 100%完成 - 四級錯誤分類和自動恢復功能
-- **🔐 權限架構**: 100%完成 - 四級權限架構和權限驗證機制
-- **📋 項目歸檔**: 完成全面歸檔，建立完整歸檔系統
+### ✨ 架構革新
+- **🏗️ 現代化專案結構**: 全新的 `src/` 目錄結構，符合 Python 最佳實踐
+- **📦 現代化依賴管理**: 使用 pyproject.toml 和 uv 進行高效依賴管理
+- **🐍 Python 3.12+ 支援**: 升級至最新 Python 版本，獲得更好性能
+- **⚡ 異步優化**: 全面優化異步操作，提升並發性能
+- **🔧 開發工具鏈**: 整合 ruff、black、mypy 等現代開發工具
+- **🧪 全新測試系統**: 重建測試架構，提供更完整的測試覆蓋
 
-### 🎯 驗收標準達成
-- **功能驗收**: 需求覆蓋率100%，API可用性99.5%，PRD需求實現率100%
-- **性能驗收**: 測試執行時間3.11秒，API響應時間 < 0.006秒
-- **用戶體驗**: 界面響應時間 < 2秒，錯誤提示準確率98%
-- **文檔完整性**: 完整，測試報告和歸檔系統完善
-- **測試系統**: MessageListener 100%通過，數據庫兼容性修復完成
-- **UI佈局修復**: 100%完成，實現Discord UI限制檢查和智能佈局優化
-- **錯誤處理機制**: 100%完成，實現四級錯誤分類和自動恢復功能
-- **權限架構**: 100%完成，實現四級權限架構和權限驗證機制
+### 🎯 技術特色
+- **🎨 現代化 UI/UX**: 採用 Rich 庫提供美觀的命令行輸出
+- **📊 結構化日誌**: 使用 structlog 提供結構化日誌記錄
+- **🔒 安全性增強**: 整合 bandit 和 safety 進行安全性檢查
+- **⚡ 性能監控**: 內建 Prometheus 指標和 Sentry 錯誤追蹤
+- **🧰 CLI 工具**: 提供 typer 基礎的命令行界面
+- **🐳 容器化支援**: 準備好的 Docker 配置和部署腳本
 
 ## 🆕 v1.71 重大更新 - Phase 3 完成
 
@@ -123,10 +121,10 @@
 
 ## 📋 系統需求
 
-- Python 3.8+
+- Python 3.12+
 - Discord.py 2.5.2+
-- SQLite 3
-- 其他依賴見 `requirement.txt`
+- 現代化 Python 工具鏈 (uv, ruff, etc.)
+- 其他依賴見 `pyproject.toml`
 
 ## 🛠️ 安裝指南
 
@@ -134,18 +132,21 @@
 ```bash
 # 克隆專案
 git clone <repository-url>
-cd "Discord ADR bot v1.5"
+cd "Discord ROAS Bot"
 
-# 建立虛擬環境
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# 或
-venv\Scripts\activate     # Windows
+# 安裝 uv (推薦的現代化包管理器)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# 或在 Windows 上
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 ### 2. 安裝依賴
 ```bash
-pip install -r requirement.txt
+# 使用 uv 安裝 (推薦)
+uv sync
+
+# 或使用傳統 pip
+pip install -e .
 ```
 
 ### 3. 設定環境變數
@@ -153,21 +154,47 @@ pip install -r requirement.txt
 ```env
 DISCORD_TOKEN=your_discord_bot_token
 DISCORD_GUILD_ID=your_guild_id
+ENVIRONMENT=development
+LOG_LEVEL=INFO
 ```
 
-### 4. 設定 config.py
-根據需求修改 `config.py` 中的設定：
-- 資料庫路徑
-- 日誌路徑
-- 權限設定
-- 功能開關
+### 4. 設定配置
+使用新的配置系統（基於 Pydantic）：
+```python
+# config.yaml 或環境變數
+database:
+  url: "sqlite:///data/bot.db"
+discord:
+  token: "${DISCORD_TOKEN}"
+  guild_id: ${DISCORD_GUILD_ID}
+```
 
 ### 5. 啟動機器人
 ```bash
-python main.py
+# 使用 CLI 命令
+adr-bot run
+
+# 或直接執行
+python -m src.main
 ```
 
 ## 🎮 使用方式
+
+### CLI 命令
+```bash
+# 啟動機器人
+adr-bot run
+
+# 查看狀態
+adr-bot status
+
+# 開發模式
+adr-dev test          # 執行測試
+adr-dev lint          # 代碼檢查
+adr-dev format        # 代碼格式化
+```
+
+### Discord 命令
 
 ### 活躍度系統
 ```
@@ -284,6 +311,6 @@ LOG_LEVEL = logging.INFO           # 日誌等級
 
 ---
 
-**版本**: v1.7.2  
-**最後更新**: 2025-07-23  
+**版本**: v2.0.0  
+**最後更新**: 2025-07-28  
 **維護者**: 愛琴海民主共和國科技部
