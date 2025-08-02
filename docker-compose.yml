@@ -1,0 +1,316 @@
+# Discord ROAS Bot - Docker Compose 配置
+# 支援開發、測試、生產多環境部署
+# 包含完整的服務編排和依賴管理
+
+version: '3.8'
+
+# ============================================================================
+# 共用配置
+# ============================================================================
+x-common-variables: &common-env
+  # Discord 機器人配置
+  TOKEN: ${TOKEN:-}
+  ENVIRONMENT: ${ENVIRONMENT:-development}
+  
+  # 資料庫配置
+  DB_POOL_SIZE: ${DB_POOL_SIZE:-10}
+  DB_QUERY_TIMEOUT: ${DB_QUERY_TIMEOUT:-30}
+  
+  # 快取配置
+  CACHE_TTL: ${CACHE_TTL:-3600}
+  CACHE_MAX_SIZE: ${CACHE_MAX_SIZE:-1000}
+  
+  # 日誌配置
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_FORMAT: ${LOG_FORMAT:-json}
+  
+  # 效能配置
+  MAX_WORKERS: ${MAX_WORKERS:-4}
+  MEMORY_LIMIT: ${MEMORY_LIMIT:-512M}
+  
+  # 安全配置
+  SECURITY_RATE_LIMIT_ENABLED: ${SECURITY_RATE_LIMIT_ENABLED:-true}
+  
+  # 功能開關
+  FEATURE_ACHIEVEMENTS: ${FEATURE_ACHIEVEMENTS:-true}
+  FEATURE_ACTIVITY_METER: ${FEATURE_ACTIVITY_METER:-true}
+  FEATURE_MESSAGE_LISTENER: ${FEATURE_MESSAGE_LISTENER:-true}
+  FEATURE_PROTECTION: ${FEATURE_PROTECTION:-true}
+  FEATURE_WELCOME: ${FEATURE_WELCOME:-true}
+  FEATURE_SYNC_DATA: ${FEATURE_SYNC_DATA:-true}
+
+x-common-volumes: &common-volumes
+  - ./dbs:/app/dbs
+  - ./logs:/app/logs
+  - ./cache:/app/cache
+  - ./assets:/app/assets
+
+x-common-healthcheck: &common-healthcheck
+  test: ["CMD", "python", "-c", "import psutil; exit(0 if psutil.cpu_percent() < 90 else 1)"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 60s
+
+# ============================================================================
+# 網路配置
+# ============================================================================
+networks:
+  discord-bot-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# 資料卷配置
+# ============================================================================
+volumes:
+  bot-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./dbs
+  bot-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs
+  bot-cache:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# ============================================================================
+# 服務定義
+# ============================================================================
+services:
+  # 主要機器人服務 - 生產環境
+  discord-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: discord-roas-bot
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      ENVIRONMENT: production
+    volumes: *common-volumes
+    networks:
+      discord-bot-network:
+        ipv4_address: 172.20.0.10
+    healthcheck: *common-healthcheck
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "traefik.enable=false"
+      - "com.discord-roas-bot.service=main"
+      - "com.discord-roas-bot.environment=production"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=100m
+      - /app/cache:rw,size=200m
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # 開發環境服務
+  discord-bot-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: discord-roas-bot-dev
+    environment:
+      <<: *common-env
+      ENVIRONMENT: development
+      LOG_LEVEL: DEBUG
+    volumes:
+      - .:/app
+      - ./dbs:/app/dbs
+      - ./logs:/app/logs
+    networks:
+      - discord-bot-network
+    ports:
+      - "8080:8080"  # API 端口
+      - "5678:5678"  # 除錯端口
+    command: ["--development", "--reload"]
+    profiles:
+      - dev
+    stdin_open: true
+    tty: true
+
+  # 測試服務
+  discord-bot-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: discord-roas-bot-test
+    environment:
+      <<: *common-env
+      ENVIRONMENT: testing
+    volumes:
+      - .:/app
+      - ./test-results:/app/test-results
+    networks:
+      - discord-bot-network
+    profiles:
+      - test
+    command: ["tests/", "--cov=src", "--cov-report=html:/app/test-results/coverage"]
+
+  # Redis 快取服務 (可選)
+  redis:
+    image: redis:7-alpine
+    container_name: discord-bot-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis-data:/data
+    networks:
+      - discord-bot-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    profiles:
+      - cache
+      - production-full
+
+  # Prometheus 監控服務
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: discord-bot-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - discord-bot-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    profiles:
+      - monitoring
+      - production-full
+
+  # Grafana 儀表板服務
+  grafana:
+    image: grafana/grafana:latest
+    container_name: discord-bot-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - discord-bot-network
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+      - production-full
+
+  # 日誌聚合服務 (Loki)
+  loki:
+    image: grafana/loki:latest
+    container_name: discord-bot-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    networks:
+      - discord-bot-network
+    command: -config.file=/etc/loki/local-config.yaml
+    profiles:
+      - logging
+      - production-full
+
+  # Nginx 反向代理 (生產環境)
+  nginx:
+    image: nginx:alpine
+    container_name: discord-bot-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./docs/api:/usr/share/nginx/html/api:ro
+    networks:
+      - discord-bot-network
+    depends_on:
+      - discord-bot
+    profiles:
+      - proxy
+      - production-full
+
+  # 備份服務
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: discord-bot-backup
+    restart: "no"
+    environment:
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-"0 2 * * *"}  # 每天凌晨 2 點
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+      S3_BUCKET: ${S3_BACKUP_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - ./dbs:/backup/source:ro
+      - ./backups:/backup/destination
+    networks:
+      - discord-bot-network
+    profiles:
+      - backup
+      - production-full
+
+# ============================================================================
+# 額外資料卷 (監控和快取)
+# ============================================================================
+volumes:
+  redis-data:
+    driver: local
+  loki-data:
+    driver: local
+
+# ============================================================================
+# 開發環境 Compose 覆蓋範例
+# ============================================================================
+# 使用方式: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up

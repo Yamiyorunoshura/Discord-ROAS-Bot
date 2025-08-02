@@ -935,7 +935,7 @@ def configure_container(configurator: Callable[[Container], None]) -> Container:
 # 裝飾器和工具函數
 
 
-def injectable[T](
+def injectable(
     service_type: type[T] | None = None,
     lifetime: ServiceLifetime = ServiceLifetime.TRANSIENT,
     tags: list[str] | None = None,
@@ -975,7 +975,7 @@ def injectable[T](
     return decorator
 
 
-def singleton[T](
+def singleton(
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
     conditional_rules: list[ConditionalRule] | None = None,
@@ -984,7 +984,7 @@ def singleton[T](
     return injectable(service_type, ServiceLifetime.SINGLETON, tags, conditional_rules)
 
 
-def scoped[T](
+def scoped(
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
     conditional_rules: list[ConditionalRule] | None = None,
@@ -993,7 +993,7 @@ def scoped[T](
     return injectable(service_type, ServiceLifetime.SCOPED, tags, conditional_rules)
 
 
-def transient[T](
+def transient(
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
     conditional_rules: list[ConditionalRule] | None = None,

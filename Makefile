@@ -68,6 +68,36 @@ test-watch: ## Run tests in watch mode
 	@echo "👀 Running tests in watch mode..."
 	uv run pytest-watch
 
+test-unit: ## Run unit tests only
+	@echo "🧪 Running unit tests..."
+	uv run python test_runner.py unit
+	@echo "✅ Unit tests completed"
+
+test-integration: ## Run integration tests only
+	@echo "🔗 Running integration tests..."
+	uv run python test_runner.py integration
+	@echo "✅ Integration tests completed"
+
+test-security: ## Run security tests only
+	@echo "🔒 Running security tests..."
+	uv run python test_runner.py security
+	@echo "✅ Security tests completed"
+
+test-performance: ## Run performance tests only
+	@echo "⚡ Running performance tests..."
+	uv run python test_runner.py performance
+	@echo "✅ Performance tests completed"
+
+test-full: ## Run complete test suite with quality checks
+	@echo "🎯 Running complete test suite..."
+	uv run python test_runner.py full
+	@echo "✅ Complete test suite finished"
+
+test-report: ## Generate comprehensive test report
+	@echo "📋 Generating test report..."
+	uv run python test_runner.py report
+	@echo "✅ Test report generated"
+
 # Bot Operations
 run: ## Run the bot
 	@echo "🚀 Starting Discord ADR Bot..."

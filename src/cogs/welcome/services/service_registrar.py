@@ -63,9 +63,9 @@ class WelcomeServiceRegistrar:
 
     async def _register_cache_service(self) -> None:
         """註冊快取服務"""
+        from ..config.welcome_config import WelcomeConfig
         from ..main.cache import WelcomeCache
         from ..main.main import IWelcomeCache
-        from ..config.welcome_config import WelcomeConfig
 
         # 直接創建快取實例，避免異步工廠方法中的循環依賴
         config = WelcomeConfig()
@@ -81,9 +81,9 @@ class WelcomeServiceRegistrar:
 
     async def _register_renderer_service(self) -> None:
         """註冊渲染器服務"""
+        from ..config.welcome_config import WelcomeConfig
         from ..main.main import IWelcomeRenderer
         from ..main.renderer import WelcomeRenderer
-        from ..config.welcome_config import WelcomeConfig
 
         # 直接創建渲染器實例，避免異步工廠方法中的循環依賴
         config = WelcomeConfig()

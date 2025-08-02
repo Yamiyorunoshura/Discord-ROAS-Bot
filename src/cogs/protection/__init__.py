@@ -38,9 +38,9 @@ from .anti_link import AntiLink
 
 # 暫時使用舊的 anti_executable.py 檔案,直到新架構完全修正
 try:
-    from .anti_executable.main.main import AntiExecutable
-
     import logging
+
+    from .anti_executable.main.main import AntiExecutable
     logging.getLogger("protection").info("[SUCCESS] 使用新架構的 AntiExecutable")
 except ImportError as e:
     import logging

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "discord-adr-bot"
-version = "2.0.0"
+version = "2.1.0"
 description = "Discord ADR Bot - Advanced Discord server management bot with activity tracking, protection systems, and automation features"
 authors = [
     {name = "ADR Bot Team", email = "admin@adrbot.dev"},
@@ -291,5 +291,17 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
+
+[dependency-groups]
+dev = [
+    "beautifulsoup4>=4.13.4",
+    "jsonschema>=4.25.0",
+    "markdown>=3.8.2",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=0.26.0",
+    "pytest-cov>=4.1.0",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.4",
+]
 # Use PyPI for all dependencies by default
 # Override specific packages if needed for development

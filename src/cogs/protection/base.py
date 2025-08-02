@@ -14,14 +14,13 @@ import logging
 import logging.handlers
 import traceback
 
+# ────────────────────────────
+# 日誌配置
+# ────────────────────────────
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-# ────────────────────────────
-# 日誌配置
-# ────────────────────────────
-from pathlib import Path
 from src.core.config import get_settings
 
 # 使用配置系統獲取正確的日誌路徑

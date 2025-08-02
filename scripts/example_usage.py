@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 AI 驅動的智能 Prompt 生成器使用示例
 展示如何使用工具驅動的系統生成提示詞
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -20,22 +18,22 @@ def example_web_app_analysis():
     """Web 應用分析示例"""
     print("🌐 Web 應用分析示例")
     print("=" * 50)
-    
+
     # 模擬一個 React 項目路徑
     project_path = "/tmp/example-react-app"
-    
+
     # 創建示例項目結構
     create_example_react_project(project_path)
-    
+
     # 創建 AI 生成器
     generator = AIPromptGenerator(project_path)
-    
+
     # 使用工具生成提示詞
     prompt_content = generator.generate_prompt_with_tools()
-    
+
     # 保存提示詞
     output_file = generator.save_prompt_with_tools(prompt_content, "web-app-prompt.md")
-    
+
     print(f"✅ Web 應用提示詞已生成: {output_file}")
     return output_file
 
@@ -44,22 +42,22 @@ def example_api_service_analysis():
     """API 服務分析示例"""
     print("\n🔌 API 服務分析示例")
     print("=" * 50)
-    
+
     # 模擬一個 Express 項目路徑
     project_path = "/tmp/example-express-api"
-    
+
     # 創建示例項目結構
     create_example_express_project(project_path)
-    
+
     # 創建 AI 生成器
     generator = AIPromptGenerator(project_path)
-    
+
     # 使用工具生成提示詞
     prompt_content = generator.generate_prompt_with_tools()
-    
+
     # 保存提示詞
     output_file = generator.save_prompt_with_tools(prompt_content, "api-service-prompt.md")
-    
+
     print(f"✅ API 服務提示詞已生成: {output_file}")
     return output_file
 
@@ -68,22 +66,22 @@ def example_mobile_app_analysis():
     """移動應用分析示例"""
     print("\n📱 移動應用分析示例")
     print("=" * 50)
-    
+
     # 模擬一個 React Native 項目路徑
     project_path = "/tmp/example-react-native-app"
-    
+
     # 創建示例項目結構
     create_example_react_native_project(project_path)
-    
+
     # 創建 AI 生成器
     generator = AIPromptGenerator(project_path)
-    
+
     # 使用工具生成提示詞
     prompt_content = generator.generate_prompt_with_tools()
-    
+
     # 保存提示詞
     output_file = generator.save_prompt_with_tools(prompt_content, "mobile-app-prompt.md")
-    
+
     print(f"✅ 移動應用提示詞已生成: {output_file}")
     return output_file
 
@@ -92,7 +90,7 @@ def create_example_react_project(project_path: str):
     """創建示例 React 項目"""
     project_dir = Path(project_path)
     project_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # 創建 package.json
     package_json = {
         "name": "example-react-app",
@@ -121,11 +119,11 @@ def create_example_react_project(project_path: str):
             "prettier": "^2.8.0"
         }
     }
-    
+
     with open(project_dir / "package.json", "w") as f:
         import json
         json.dump(package_json, f, indent=2)
-    
+
     # 創建 README.md
     readme_content = """# Example React App
 
@@ -172,14 +170,14 @@ src/
 - CSRF protection
 - Secure API communication
 """
-    
+
     with open(project_dir / "README.md", "w") as f:
         f.write(readme_content)
-    
+
     # 創建 src 目錄和示例文件
     src_dir = project_dir / "src"
     src_dir.mkdir(exist_ok=True)
-    
+
     # 創建 App.js
     app_js = """import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -206,14 +204,14 @@ function App() {
 
 export default App;
 """
-    
+
     with open(src_dir / "App.js", "w") as f:
         f.write(app_js)
-    
+
     # 創建 store 配置
     store_dir = src_dir / "store"
     store_dir.mkdir(exist_ok=True)
-    
+
     store_js = """import { configureStore } from '@reduxjs/toolkit';
 import userReducer from './userSlice';
 
@@ -226,10 +224,10 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 """
-    
+
     with open(store_dir / "index.js", "w") as f:
         f.write(store_js)
-    
+
     print(f"✅ 示例 React 項目已創建: {project_path}")
 
 
@@ -237,7 +235,7 @@ def create_example_express_project(project_path: str):
     """創建示例 Express 項目"""
     project_dir = Path(project_path)
     project_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # 創建 package.json
     package_json = {
         "name": "example-express-api",
@@ -268,11 +266,11 @@ def create_example_express_project(project_path: str):
             "eslint": "^8.35.0"
         }
     }
-    
+
     with open(project_dir / "package.json", "w") as f:
         import json
         json.dump(package_json, f, indent=2)
-    
+
     # 創建 README.md
     readme_content = """# Example Express API
 
@@ -315,10 +313,10 @@ def create_example_express_project(project_path: str):
 - CORS configuration
 - Security headers
 """
-    
+
     with open(project_dir / "README.md", "w") as f:
         f.write(readme_content)
-    
+
     # 創建 server.js
     server_js = """const express = require('express');
 const cors = require('cors');
@@ -349,14 +347,14 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 """
-    
+
     with open(project_dir / "server.js", "w") as f:
         f.write(server_js)
-    
+
     # 創建 routes 目錄
     routes_dir = project_dir / "routes"
     routes_dir.mkdir(exist_ok=True)
-    
+
     users_js = """const express = require('express');
 const router = express.Router();
 const { validateUser } = require('../middleware/validation');
@@ -384,10 +382,10 @@ router.post('/', validateUser, async (req, res) => {
 
 module.exports = router;
 """
-    
+
     with open(routes_dir / "users.js", "w") as f:
         f.write(users_js)
-    
+
     print(f"✅ 示例 Express 項目已創建: {project_path}")
 
 
@@ -395,7 +393,7 @@ def create_example_react_native_project(project_path: str):
     """創建示例 React Native 項目"""
     project_dir = Path(project_path)
     project_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # 創建 package.json
     package_json = {
         "name": "example-react-native-app",
@@ -437,11 +435,11 @@ def create_example_react_native_project(project_path: str):
             "typescript": "4.8.4"
         }
     }
-    
+
     with open(project_dir / "package.json", "w") as f:
         import json
         json.dump(package_json, f, indent=2)
-    
+
     # 創建 README.md
     readme_content = """# Example React Native App
 
@@ -478,10 +476,10 @@ def create_example_react_native_project(project_path: str):
 - User privacy protection
 - Code obfuscation
 """
-    
+
     with open(project_dir / "README.md", "w") as f:
         f.write(readme_content)
-    
+
     # 創建 App.js
     app_js = """import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -508,17 +506,17 @@ const App = () => {
 
 export default App;
 """
-    
+
     with open(project_dir / "App.js", "w") as f:
         f.write(app_js)
-    
+
     # 創建 src 目錄結構
     src_dir = project_dir / "src"
     src_dir.mkdir(exist_ok=True)
-    
+
     screens_dir = src_dir / "screens"
     screens_dir.mkdir(exist_ok=True)
-    
+
     # 創建 HomeScreen.js
     home_screen_js = """import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
@@ -567,10 +565,10 @@ const styles = StyleSheet.create({
 
 export default HomeScreen;
 """
-    
+
     with open(screens_dir / "HomeScreen.js", "w") as f:
         f.write(home_screen_js)
-    
+
     print(f"✅ 示例 React Native 項目已創建: {project_path}")
 
 
@@ -578,25 +576,25 @@ def main():
     """主函數 - 運行所有示例"""
     print("🚀 AI 驅動的智能 Prompt 生成器示例")
     print("=" * 60)
-    
+
     try:
         # 運行 Web 應用示例
         web_app_file = example_web_app_analysis()
-        
+
         # 運行 API 服務示例
         api_service_file = example_api_service_analysis()
-        
+
         # 運行移動應用示例
         mobile_app_file = example_mobile_app_analysis()
-        
+
         print("\n" + "=" * 60)
         print("🎉 所有示例運行完成！")
-        print(f"📄 生成的文件:")
+        print("📄 生成的文件:")
         print(f"   - Web 應用提示詞: {web_app_file}")
         print(f"   - API 服務提示詞: {api_service_file}")
         print(f"   - 移動應用提示詞: {mobile_app_file}")
         print("\n💡 提示：這些示例展示了如何使用工具驅動的系統生成不同類型的提示詞")
-        
+
     except Exception as e:
         print(f"❌ 運行示例時出錯: {e}")
         import traceback

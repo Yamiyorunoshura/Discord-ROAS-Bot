@@ -6,7 +6,6 @@
 使用專業級連接池管理
 """
 
-import os
 from datetime import datetime, timedelta
 from typing import Any, Protocol
 

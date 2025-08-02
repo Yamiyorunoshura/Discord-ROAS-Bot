@@ -1,0 +1,2981 @@
+{
+  "timestamp": "unknown",
+  "markdown_validation": [
+    {
+      "file": "docs\\architecture.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 67,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\brief.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 40,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\prd.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 145,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H4",
+          "標題層級跳躍：H1 直接跳到 H4",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\architecture\\coding-standards.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 5,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\components.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 7,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\core-workflows.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 3,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\data-models.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 5,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\database-schema.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 1,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\error-handling-strategy.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 7,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\external-apis.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 2,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\high-level-architecture.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 5,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\index.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 2,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\infrastructure-and-deployment.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 53,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\architecture\\introduction.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 3,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\next-steps.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 1,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\security.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 8,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\source-tree.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 1,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\tech-stack.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 3,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\test-strategy-and-standards.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 8,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\architecture\\目錄.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 1,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\operations\\configuration-management.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 71,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\operations\\installation-guide.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 83,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\operations\\security-audit-report.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 44,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H4",
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\epic-和-story-結構.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 13,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\index.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 2,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\prd\\ui-增強目標.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 14,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\專案分析與背景脈絡.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 10,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\技術限制與整合要求.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 18,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\文件資訊.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 1,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\prd\\目標與背景.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 8,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\目錄.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 1,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\prd\\程式碼組織與標準.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 13,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\部署與操作.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 4,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\需求.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 16,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\prd\\風險評估.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 13,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\stories\\1.1.achievement-database-architecture.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 31,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\1.2.achievement-core-api-service.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 30,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\1.3.achievement-cache-integration.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 46,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\stories\\2.1.achievement-main-command-panel.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 44,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\stories\\2.2.achievement-personal-view.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 38,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\2.3.achievement-browser-view.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 43,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\2.4.achievement-leaderboard-view.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 46,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\3.1.achievement-event-listener-system.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 53,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\3.2.achievement-trigger-logic.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 55,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\stories\\3.3.achievement-notification-system.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 61,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\stories\\4.1.admin-panel.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 53,
+      "header_structure": {
+        "valid": false,
+        "issues": [
+          "標題層級跳躍：H1 直接跳到 H3",
+          "標題層級跳躍：H1 直接跳到 H3"
+        ]
+      }
+    },
+    {
+      "file": "docs\\stories\\4.2.achievement-management-features.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 51,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\4.3.user-achievement-management.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 29,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\5.1.performance-optimization-monitoring.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 70,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\5.2.test-coverage-quality-assurance.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 42,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    },
+    {
+      "file": "docs\\stories\\5.3.documentation-deployment-preparation.md",
+      "status": "pass",
+      "issues": [],
+      "headers": 27,
+      "header_structure": {
+        "valid": true,
+        "issues": []
+      }
+    }
+  ],
+  "link_validation": [
+    {
+      "file": "docs\\architecture.md",
+      "links": [
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Introduction",
+          "url": "#introduction"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "High Level Architecture",
+          "url": "#high-level-architecture"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Tech Stack",
+          "url": "#tech-stack"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Data Models",
+          "url": "#data-models"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Components",
+          "url": "#components"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "External APIs",
+          "url": "#external-apis"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Core Workflows",
+          "url": "#core-workflows"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Database Schema",
+          "url": "#database-schema"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Source Tree",
+          "url": "#source-tree"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Infrastructure and Deployment",
+          "url": "#infrastructure-and-deployment"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Error Handling Strategy",
+          "url": "#error-handling-strategy"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Coding Standards",
+          "url": "#coding-standards"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Test Strategy and Standards",
+          "url": "#test-strategy-and-standards"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Security",
+          "url": "#security"
+        }
+      ],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\brief.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd.md",
+      "links": [
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "專案分析與背景脈絡",
+          "url": "#專案分析與背景脈絡"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "目標與背景",
+          "url": "#目標與背景"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "需求",
+          "url": "#需求"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "UI 增強目標",
+          "url": "#ui-增強目標"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "技術限制與整合要求",
+          "url": "#技術限制與整合要求"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "程式碼組織與標準",
+          "url": "#程式碼組織與標準"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "部署與操作",
+          "url": "#部署與操作"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "風險評估",
+          "url": "#風險評估"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Epic 和 Story 結構",
+          "url": "#epic-和-story-結構"
+        }
+      ],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\coding-standards.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\components.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\core-workflows.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\data-models.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\database-schema.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\error-handling-strategy.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\external-apis.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\high-level-architecture.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\index.md",
+      "links": [
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Discord ROAS Bot v2.1 成就系統 Architecture Document",
+          "url": "#table-of-contents"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\目錄.md",
+          "text": "📋 目錄",
+          "url": "./目錄.md"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\introduction.md",
+          "text": "Introduction",
+          "url": "./introduction.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\introduction.md#starter-template-or-existing-project",
+          "text": "Starter Template or Existing Project",
+          "url": "./introduction.md#starter-template-or-existing-project"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\introduction.md#change-log",
+          "text": "Change Log",
+          "url": "./introduction.md#change-log"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\high-level-architecture.md",
+          "text": "High Level Architecture",
+          "url": "./high-level-architecture.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\high-level-architecture.md#technical-summary",
+          "text": "Technical Summary",
+          "url": "./high-level-architecture.md#technical-summary"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\high-level-architecture.md#high-level-overview",
+          "text": "High Level Overview",
+          "url": "./high-level-architecture.md#high-level-overview"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\high-level-architecture.md#high-level-project-diagram",
+          "text": "High Level Project Diagram",
+          "url": "./high-level-architecture.md#high-level-project-diagram"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\high-level-architecture.md#architectural-and-design-patterns",
+          "text": "Architectural and Design Patterns",
+          "url": "./high-level-architecture.md#architectural-and-design-patterns"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\tech-stack.md",
+          "text": "Tech Stack",
+          "url": "./tech-stack.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\tech-stack.md#cloud-infrastructure",
+          "text": "Cloud Infrastructure",
+          "url": "./tech-stack.md#cloud-infrastructure"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\tech-stack.md#technology-stack-table",
+          "text": "Technology Stack Table",
+          "url": "./tech-stack.md#technology-stack-table"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\data-models.md",
+          "text": "Data Models",
+          "url": "./data-models.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\data-models.md#achievement",
+          "text": "Achievement",
+          "url": "./data-models.md#achievement"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\data-models.md#userachievement",
+          "text": "UserAchievement",
+          "url": "./data-models.md#userachievement"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\data-models.md#achievementprogress",
+          "text": "AchievementProgress",
+          "url": "./data-models.md#achievementprogress"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\data-models.md#achievementcategory",
+          "text": "AchievementCategory",
+          "url": "./data-models.md#achievementcategory"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\components.md",
+          "text": "Components",
+          "url": "./components.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\components.md#achievement-main-component",
+          "text": "Achievement Main Component",
+          "url": "./components.md#achievement-main-component"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\components.md#achievement-panel-component",
+          "text": "Achievement Panel Component",
+          "url": "./components.md#achievement-panel-component"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\components.md#achievement-database-component",
+          "text": "Achievement Database Component",
+          "url": "./components.md#achievement-database-component"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\components.md#achievement-tracker-component",
+          "text": "Achievement Tracker Component",
+          "url": "./components.md#achievement-tracker-component"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\components.md#achievement-notification-component",
+          "text": "Achievement Notification Component",
+          "url": "./components.md#achievement-notification-component"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\components.md#component-diagrams",
+          "text": "Component Diagrams",
+          "url": "./components.md#component-diagrams"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\external-apis.md",
+          "text": "External APIs",
+          "url": "./external-apis.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\external-apis.md#discord-api",
+          "text": "Discord API",
+          "url": "./external-apis.md#discord-api"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\core-workflows.md",
+          "text": "Core Workflows",
+          "url": "./core-workflows.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\core-workflows.md#achievement-progress-update-workflow",
+          "text": "Achievement Progress Update Workflow",
+          "url": "./core-workflows.md#achievement-progress-update-workflow"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\core-workflows.md#achievement-panel-interaction-workflow",
+          "text": "Achievement Panel Interaction Workflow",
+          "url": "./core-workflows.md#achievement-panel-interaction-workflow"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\database-schema.md",
+          "text": "Database Schema",
+          "url": "./database-schema.md"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\source-tree.md",
+          "text": "Source Tree",
+          "url": "./source-tree.md"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\infrastructure-and-deployment.md",
+          "text": "Infrastructure and Deployment",
+          "url": "./infrastructure-and-deployment.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\infrastructure-and-deployment.md#infrastructure-as-code",
+          "text": "Infrastructure as Code",
+          "url": "./infrastructure-and-deployment.md#infrastructure-as-code"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\infrastructure-and-deployment.md#deployment-strategy",
+          "text": "Deployment Strategy",
+          "url": "./infrastructure-and-deployment.md#deployment-strategy"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\infrastructure-and-deployment.md#environments",
+          "text": "Environments",
+          "url": "./infrastructure-and-deployment.md#environments"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\infrastructure-and-deployment.md#environment-promotion-flow",
+          "text": "Environment Promotion Flow",
+          "url": "./infrastructure-and-deployment.md#environment-promotion-flow"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\infrastructure-and-deployment.md#rollback-strategy",
+          "text": "Rollback Strategy",
+          "url": "./infrastructure-and-deployment.md#rollback-strategy"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\error-handling-strategy.md",
+          "text": "Error Handling Strategy",
+          "url": "./error-handling-strategy.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\error-handling-strategy.md#general-approach",
+          "text": "General Approach",
+          "url": "./error-handling-strategy.md#general-approach"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\error-handling-strategy.md#logging-standards",
+          "text": "Logging Standards",
+          "url": "./error-handling-strategy.md#logging-standards"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\error-handling-strategy.md#error-handling-patterns",
+          "text": "Error Handling Patterns",
+          "url": "./error-handling-strategy.md#error-handling-patterns"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\error-handling-strategy.md#external-api-errors",
+          "text": "External API Errors",
+          "url": "./error-handling-strategy.md#external-api-errors"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\error-handling-strategy.md#business-logic-errors",
+          "text": "Business Logic Errors",
+          "url": "./error-handling-strategy.md#business-logic-errors"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\error-handling-strategy.md#data-consistency",
+          "text": "Data Consistency",
+          "url": "./error-handling-strategy.md#data-consistency"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\coding-standards.md",
+          "text": "Coding Standards",
+          "url": "./coding-standards.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\coding-standards.md#core-standards",
+          "text": "Core Standards",
+          "url": "./coding-standards.md#core-standards"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\coding-standards.md#critical-rules",
+          "text": "Critical Rules",
+          "url": "./coding-standards.md#critical-rules"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\coding-standards.md#language-specific-guidelines",
+          "text": "Language-Specific Guidelines",
+          "url": "./coding-standards.md#language-specific-guidelines"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\coding-standards.md#python-specifics",
+          "text": "Python Specifics",
+          "url": "./coding-standards.md#python-specifics"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md",
+          "text": "Test Strategy and Standards",
+          "url": "./test-strategy-and-standards.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md#testing-philosophy",
+          "text": "Testing Philosophy",
+          "url": "./test-strategy-and-standards.md#testing-philosophy"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md#test-types-and-organization",
+          "text": "Test Types and Organization",
+          "url": "./test-strategy-and-standards.md#test-types-and-organization"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md#unit-tests",
+          "text": "Unit Tests",
+          "url": "./test-strategy-and-standards.md#unit-tests"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md#integration-tests",
+          "text": "Integration Tests",
+          "url": "./test-strategy-and-standards.md#integration-tests"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md#end-to-end-tests",
+          "text": "End-to-End Tests",
+          "url": "./test-strategy-and-standards.md#end-to-end-tests"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md#test-data-management",
+          "text": "Test Data Management",
+          "url": "./test-strategy-and-standards.md#test-data-management"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\test-strategy-and-standards.md#continuous-testing",
+          "text": "Continuous Testing",
+          "url": "./test-strategy-and-standards.md#continuous-testing"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md",
+          "text": "Security",
+          "url": "./security.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md#input-validation",
+          "text": "Input Validation",
+          "url": "./security.md#input-validation"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md#authentication-authorization",
+          "text": "Authentication & Authorization",
+          "url": "./security.md#authentication-authorization"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md#secrets-management",
+          "text": "Secrets Management",
+          "url": "./security.md#secrets-management"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md#api-security",
+          "text": "API Security",
+          "url": "./security.md#api-security"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md#data-protection",
+          "text": "Data Protection",
+          "url": "./security.md#data-protection"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md#dependency-security",
+          "text": "Dependency Security",
+          "url": "./security.md#dependency-security"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md#security-testing",
+          "text": "Security Testing",
+          "url": "./security.md#security-testing"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\next-steps.md",
+          "text": "Next Steps",
+          "url": "./next-steps.md"
+        }
+      ],
+      "broken_links": 50
+    },
+    {
+      "file": "docs\\architecture\\infrastructure-and-deployment.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\introduction.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\next-steps.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\security.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\source-tree.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\tech-stack.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\test-strategy-and-standards.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\architecture\\目錄.md",
+      "links": [
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Introduction",
+          "url": "#introduction"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "High Level Architecture",
+          "url": "#high-level-architecture"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Tech Stack",
+          "url": "#tech-stack"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Data Models",
+          "url": "#data-models"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Components",
+          "url": "#components"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "External APIs",
+          "url": "#external-apis"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Core Workflows",
+          "url": "#core-workflows"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Database Schema",
+          "url": "#database-schema"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Source Tree",
+          "url": "#source-tree"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Infrastructure and Deployment",
+          "url": "#infrastructure-and-deployment"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Error Handling Strategy",
+          "url": "#error-handling-strategy"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Coding Standards",
+          "url": "#coding-standards"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Test Strategy and Standards",
+          "url": "#test-strategy-and-standards"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Security",
+          "url": "#security"
+        }
+      ],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\operations\\configuration-management.md",
+      "links": [
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\environment-variables.md",
+          "text": "環境變數參考",
+          "url": "environment-variables.md"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\security.md",
+          "text": "安全配置指南",
+          "url": "../architecture/security.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\performance-tuning.md",
+          "text": "效能調優指南",
+          "url": "performance-tuning.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\troubleshooting.md",
+          "text": "故障排除手冊",
+          "url": "troubleshooting.md"
+        }
+      ],
+      "broken_links": 3
+    },
+    {
+      "file": "docs\\operations\\installation-guide.md",
+      "links": [
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\configuration-management.md",
+          "text": "配置管理指南",
+          "url": "configuration-management.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\monitoring-setup.md",
+          "text": "監控和警報設定",
+          "url": "monitoring-setup.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\backup-restore.md",
+          "text": "備份和恢復程序",
+          "url": "backup-restore.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\troubleshooting.md",
+          "text": "故障排除手冊",
+          "url": "troubleshooting.md"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\troubleshooting.md",
+          "text": "故障排除手冊",
+          "url": "troubleshooting.md"
+        },
+        {
+          "valid": true,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\architecture\\infrastructure-and-deployment.md",
+          "text": "系統需求",
+          "url": "../architecture/infrastructure-and-deployment.md"
+        }
+      ],
+      "broken_links": 5
+    },
+    {
+      "file": "docs\\operations\\security-audit-report.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\epic-和-story-結構.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\index.md",
+      "links": [
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Discord ROAS Bot v2.1 成就系統 - Brownfield Enhancement PRD",
+          "url": "#table-of-contents"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "📋 目錄",
+          "url": "#目錄"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "🔍 專案分析與背景脈絡",
+          "url": "#專案分析與背景脈絡"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "🎯 目標與背景",
+          "url": "#目標與背景"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "📋 需求",
+          "url": "#需求"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "🎨 UI 增強目標",
+          "url": "#ui-增強目標"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "🔧 技術限制與整合要求",
+          "url": "#技術限制與整合要求"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "📋 程式碼組織與標準",
+          "url": "#程式碼組織與標準"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "🚀 部署與操作",
+          "url": "#部署與操作"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "⚠️ 風險評估",
+          "url": "#風險評估"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "📚 Epic 和 Story 結構",
+          "url": "#epic-和-story-結構"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "📄 文件資訊",
+          "url": "#文件資訊"
+        }
+      ],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\ui-增強目標.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\專案分析與背景脈絡.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\技術限制與整合要求.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\文件資訊.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\目標與背景.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\目錄.md",
+      "links": [
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "專案分析與背景脈絡",
+          "url": "#專案分析與背景脈絡"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "目標與背景",
+          "url": "#目標與背景"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "需求",
+          "url": "#需求"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "UI 增強目標",
+          "url": "#ui-增強目標"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "技術限制與整合要求",
+          "url": "#技術限制與整合要求"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "程式碼組織與標準",
+          "url": "#程式碼組織與標準"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "部署與操作",
+          "url": "#部署與操作"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "風險評估",
+          "url": "#風險評估"
+        },
+        {
+          "valid": true,
+          "type": "anchor",
+          "text": "Epic 和 Story 結構",
+          "url": "#epic-和-story-結構"
+        }
+      ],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\程式碼組織與標準.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\部署與操作.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\需求.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\prd\\風險評估.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\1.1.achievement-database-architecture.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\1.2.achievement-core-api-service.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\1.3.achievement-cache-integration.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\2.1.achievement-main-command-panel.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\2.2.achievement-personal-view.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\2.3.achievement-browser-view.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\2.4.achievement-leaderboard-view.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\3.1.achievement-event-listener-system.md",
+      "links": [
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\src\\cogs\\achievement\\main\\tracker.py:1-750",
+          "text": "Event Listener Implementation",
+          "url": "src/cogs/achievement/main/tracker.py:1-750"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\src\\cogs\\achievement\\main\\event_processor.py:1-546",
+          "text": "Event Data Processor",
+          "url": "src/cogs/achievement/main/event_processor.py:1-546"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\src\\cogs\\achievement\\database\\models.py:310-429",
+          "text": "Achievement Event Models",
+          "url": "src/cogs/achievement/database/models.py:310-429"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\src\\cogs\\achievement\\database\\repository.py:848-1376",
+          "text": "Event Repository",
+          "url": "src/cogs/achievement/database/repository.py:848-1376"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\tests\\unit\\achievement\\main\\test_tracker.py:1-659",
+          "text": "Test Coverage - Tracker",
+          "url": "tests/unit/achievement/main/test_tracker.py:1-659"
+        },
+        {
+          "valid": false,
+          "type": "local",
+          "target_path": "D:\\coding\\Discord ROAS Bot\\docs\\tests\\unit\\achievement\\main\\test_event_processor.py:1-570",
+          "text": "Test Coverage - Event Processor",
+          "url": "tests/unit/achievement/main/test_event_processor.py:1-570"
+        }
+      ],
+      "broken_links": 6
+    },
+    {
+      "file": "docs\\stories\\3.2.achievement-trigger-logic.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\3.3.achievement-notification-system.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\4.1.admin-panel.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\4.2.achievement-management-features.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\4.3.user-achievement-management.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\5.1.performance-optimization-monitoring.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\5.2.test-coverage-quality-assurance.md",
+      "links": [],
+      "broken_links": 0
+    },
+    {
+      "file": "docs\\stories\\5.3.documentation-deployment-preparation.md",
+      "links": [],
+      "broken_links": 0
+    }
+  ],
+  "code_validation": [
+    {
+      "file": "docs\\architecture.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "sql",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\brief.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "sql",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: 'await' outside function (<string>, line 8)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "sql",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: invalid decimal literal (<string>, line 4)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 2
+    },
+    {
+      "file": "docs\\architecture\\coding-standards.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\components.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\core-workflows.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\data-models.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\database-schema.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "sql",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\error-handling-strategy.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\external-apis.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\high-level-architecture.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\index.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\infrastructure-and-deployment.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "dockerfile",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "mermaid",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\introduction.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\next-steps.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\security.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\source-tree.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\tech-stack.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\test-strategy-and-standards.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\architecture\\目錄.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\operations\\configuration-management.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: invalid syntax (<string>, line 10)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        }
+      ],
+      "issues": 1
+    },
+    {
+      "file": "docs\\operations\\installation-guide.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "nginx",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "ini",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "bash",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\operations\\security-audit-report.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "dockerfile",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "dockerfile",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "dockerfile",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "env",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "yaml",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\epic-和-story-結構.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\index.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\ui-增強目標.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\專案分析與背景脈絡.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\技術限制與整合要求.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\文件資訊.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\目標與背景.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\目錄.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\程式碼組織與標準.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "sql",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\部署與操作.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\需求.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\prd\\風險評估.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\1.1.achievement-database-architecture.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\1.2.achievement-core-api-service.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\1.3.achievement-cache-integration.md",
+      "code_blocks": [
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: invalid syntax (<string>, line 2)"
+          ]
+        }
+      ],
+      "issues": 1
+    },
+    {
+      "file": "docs\\stories\\2.1.achievement-main-command-panel.md",
+      "code_blocks": [
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: invalid character '├' (U+251C) (<string>, line 3)"
+          ]
+        }
+      ],
+      "issues": 1
+    },
+    {
+      "file": "docs\\stories\\2.2.achievement-personal-view.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\2.3.achievement-browser-view.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\2.4.achievement-leaderboard-view.md",
+      "code_blocks": [],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\3.1.achievement-event-listener-system.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\3.2.achievement-trigger-logic.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\3.3.achievement-notification-system.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: unexpected indent (<string>, line 2)"
+          ]
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: unexpected indent (<string>, line 2)"
+          ]
+        }
+      ],
+      "issues": 2
+    },
+    {
+      "file": "docs\\stories\\4.1.admin-panel.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: expected an indented block after function definition on line 3 (<string>, line 6)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        }
+      ],
+      "issues": 1
+    },
+    {
+      "file": "docs\\stories\\4.2.achievement-management-features.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: expected ':' (<string>, line 2)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: expected an indented block after function definition on line 3 (<string>, line 10)"
+          ]
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: expected ':' (<string>, line 2)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        }
+      ],
+      "issues": 3
+    },
+    {
+      "file": "docs\\stories\\4.3.user-achievement-management.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: expected ':' (<string>, line 3)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: expected an indented block after function definition on line 9 (<string>, line 11)"
+          ]
+        },
+        {
+          "valid": true,
+          "language": "python",
+          "issues": []
+        }
+      ],
+      "issues": 2
+    },
+    {
+      "file": "docs\\stories\\5.1.performance-optimization-monitoring.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "sql",
+          "issues": []
+        },
+        {
+          "valid": true,
+          "language": "sql",
+          "issues": []
+        },
+        {
+          "valid": false,
+          "language": "python",
+          "issues": [
+            "語法錯誤: expected ':' (<string>, line 5)"
+          ]
+        }
+      ],
+      "issues": 1
+    },
+    {
+      "file": "docs\\stories\\5.2.test-coverage-quality-assurance.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    },
+    {
+      "file": "docs\\stories\\5.3.documentation-deployment-preparation.md",
+      "code_blocks": [
+        {
+          "valid": true,
+          "language": "text",
+          "issues": []
+        }
+      ],
+      "issues": 0
+    }
+  ],
+  "api_validation": {
+    "spec_valid": true,
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/categories",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /categories (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7F590>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "取得成就分類列表",
+        "spec_description": "取得所有成就分類，支援篩選和排序"
+      },
+      {
+        "method": "POST",
+        "path": "/categories",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /categories (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7ED20>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "建立新的成就分類",
+        "spec_description": "建立一個新的成就分類"
+      },
+      {
+        "method": "GET",
+        "path": "/categories/{category_id}",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /categories/%7Bcategory_id%7D (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7E450>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "取得特定成就分類",
+        "spec_description": "根據 ID 取得特定成就分類的詳細資訊"
+      },
+      {
+        "method": "PUT",
+        "path": "/categories/{category_id}",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /categories/%7Bcategory_id%7D (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7DDC0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "更新成就分類",
+        "spec_description": "更新特定成就分類的資訊"
+      },
+      {
+        "method": "DELETE",
+        "path": "/categories/{category_id}",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /categories/%7Bcategory_id%7D (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7E270>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "刪除成就分類",
+        "spec_description": "刪除特定的成就分類（需要確保分類下沒有成就）"
+      },
+      {
+        "method": "GET",
+        "path": "/achievements",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /achievements (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7DBE0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "取得成就列表",
+        "spec_description": "取得成就列表，支援多種篩選和分頁"
+      },
+      {
+        "method": "POST",
+        "path": "/achievements",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /achievements (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7ED50>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "建立新成就",
+        "spec_description": "建立一個新的成就"
+      },
+      {
+        "method": "GET",
+        "path": "/users/{user_id}/achievements",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /users/%7Buser_id%7D/achievements (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7FF80>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "取得用戶成就列表",
+        "spec_description": "取得特定用戶的所有成就"
+      },
+      {
+        "method": "POST",
+        "path": "/users/{user_id}/achievements",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /users/%7Buser_id%7D/achievements (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7C710>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "頒發成就給用戶",
+        "spec_description": "為特定用戶頒發成就"
+      },
+      {
+        "method": "GET",
+        "path": "/users/{user_id}/progress",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /users/%7Buser_id%7D/progress (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7D9D0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "取得用戶成就進度",
+        "spec_description": "取得特定用戶的所有成就進度"
+      },
+      {
+        "method": "GET",
+        "path": "/statistics/global",
+        "accessible": false,
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /statistics/global (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000285C5F7DA90>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+        "spec_summary": "取得全域統計資料",
+        "spec_description": "取得成就系統的全域統計資料"
+      }
+    ],
+    "total_endpoints": 11,
+    "working_endpoints": 0,
+    "issues": []
+  },
+  "summary": {
+    "total_files": 51,
+    "valid_files": 51,
+    "total_links": 141,
+    "broken_links": 64,
+    "total_code_blocks": 156,
+    "invalid_code_blocks": 14,
+    "api_endpoints": 11,
+    "working_endpoints": 0,
+    "file_success_rate": 1.0,
+    "link_success_rate": 0.5460992907801419,
+    "code_success_rate": 0.9102564102564102,
+    "api_success_rate": 0.0
+  }
+}

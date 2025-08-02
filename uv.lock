@@ -723,8 +723,16 @@ production = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "beautifulsoup4" },
     { name = "commitizen" },
+    { name = "jsonschema" },
+    { name = "markdown" },
     { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "pyyaml" },
+    { name = "requests" },
     { name = "ruff" },
 ]
 
@@ -781,8 +789,16 @@ provides-extras = ["dev", "production", "jupyter", "all"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "beautifulsoup4", specifier = ">=4.13.4" },
     { name = "commitizen", specifier = ">=3.13.0" },
+    { name = "jsonschema", specifier = ">=4.25.0" },
+    { name = "markdown", specifier = ">=3.8.2" },
     { name = "pre-commit", specifier = ">=3.6.0" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", specifier = ">=0.26.0" },
+    { name = "pytest-cov", specifier = ">=4.1.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "requests", specifier = ">=2.32.4" },
     { name = "ruff", specifier = ">=0.12.5" },
 ]
 

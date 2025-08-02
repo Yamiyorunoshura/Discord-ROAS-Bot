@@ -7,8 +7,8 @@
 import os
 from dataclasses import dataclass
 
-from src.core.config import get_settings
 from src.cogs.core.logger import setup_module_logger
+from src.core.config import get_settings
 
 logger = setup_module_logger("welcome.config")
 
@@ -54,7 +54,7 @@ class WelcomeConfig:
     def max_cache_size(self) -> int:
         """最大快取大小"""
         return self._max_cache_size
-    
+
     @property
     def default_backgrounds_dir(self) -> str:
         """默認背景圖片目錄（專案內靜態資源）"""
@@ -66,7 +66,7 @@ class WelcomeConfig:
         # 使用統一配置系統獲取用戶數據目錄下的背景目錄
         if "WELCOME_BG_DIR" in os.environ:
             return os.environ["WELCOME_BG_DIR"]
-        
+
         settings = get_settings()
         user_backgrounds_dir = settings.data_dir / "backgrounds"
         user_backgrounds_dir.mkdir(parents=True, exist_ok=True)

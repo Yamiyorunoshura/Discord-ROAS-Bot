@@ -4,7 +4,6 @@
 """
 
 from datetime import timedelta, timezone
-from pathlib import Path
 
 # 使用統一配置系統獲取路徑
 from src.core.config import get_settings

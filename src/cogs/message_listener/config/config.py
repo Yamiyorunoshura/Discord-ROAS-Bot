@@ -4,9 +4,7 @@
 """
 
 import logging
-import os
 from datetime import timedelta, timezone
-from pathlib import Path
 
 # 使用統一配置系統獲取路徑
 from src.core.config import get_settings
@@ -134,6 +132,7 @@ RENDER_CONFIG = {
 
 # 字型設定 - 使用統一配置系統
 from src.core.config import get_settings
+
 _settings = get_settings()
 FONT_PATH = str(_settings.assets_dir / "fonts")
 DEFAULT_FONT = "arial.ttf"

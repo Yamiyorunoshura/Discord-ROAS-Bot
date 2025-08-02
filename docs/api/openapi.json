@@ -1,0 +1,903 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Discord ROAS Bot API",
+    "version": "2.1.0",
+    "description": "Discord ROAS Bot API 文档 - 成就系統核心 API",
+    "contact": {
+      "name": "愛琴海民主共和國科技部",
+      "email": "laitszkin1206@gmail.com",
+      "url": "https://github.com/Yamiyorunoshura/Discord-ROAS-Bot"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://github.com/Yamiyorunoshura/Discord-ROAS-Bot/blob/main/LICENSE"
+    },
+    "x-generated-at": "2025-08-01T23:51:05.239133"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api/v1",
+      "description": "開發環境"
+    },
+    {
+      "url": "https://api.adrbot.dev/v1",
+      "description": "生產環境"
+    }
+  ],
+  "paths": {
+    "/categories": {
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "取得成就分類列表",
+        "description": "取得所有成就分類，支援篩選和排序",
+        "parameters": [
+          {
+            "name": "active_only",
+            "in": "query",
+            "description": "是否只取得啟用的分類",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得分類列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AchievementCategory"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "伺服器內部錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "建立新的成就分類",
+        "description": "建立一個新的成就分類",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AchievementCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "成功建立分類",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AchievementCategory"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "請求資料無效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories/{category_id}": {
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "取得特定成就分類",
+        "description": "根據 ID 取得特定成就分類的詳細資訊",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "description": "分類 ID",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得分類",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AchievementCategory"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "分類不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "更新成就分類",
+        "description": "更新特定成就分類的資訊",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "description": "分類 ID",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AchievementCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功更新分類",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AchievementCategory"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "分類不存在"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "刪除成就分類",
+        "description": "刪除特定的成就分類（需要確保分類下沒有成就）",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "description": "分類 ID",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "成功刪除分類"
+          },
+          "400": {
+            "description": "分類下還有成就，無法刪除"
+          },
+          "404": {
+            "description": "分類不存在"
+          }
+        }
+      }
+    },
+    "/achievements": {
+      "get": {
+        "tags": [
+          "achievements"
+        ],
+        "summary": "取得成就列表",
+        "description": "取得成就列表，支援多種篩選和分頁",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "篩選特定分類",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "篩選特定類型",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/AchievementType"
+            }
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "description": "是否只取得啟用的成就",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "最大返回數量",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "跳過的記錄數",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得成就列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Achievement"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "achievements"
+        ],
+        "summary": "建立新成就",
+        "description": "建立一個新的成就",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Achievement"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "成功建立成就",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Achievement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "請求資料無效"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/achievements": {
+      "get": {
+        "tags": [
+          "user-achievements"
+        ],
+        "summary": "取得用戶成就列表",
+        "description": "取得特定用戶的所有成就",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "description": "用戶 Discord ID",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "篩選特定分類",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得用戶成就列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "user_achievement": {
+                        "$ref": "#/components/schemas/UserAchievement"
+                      },
+                      "achievement": {
+                        "$ref": "#/components/schemas/Achievement"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "user-achievements"
+        ],
+        "summary": "頒發成就給用戶",
+        "description": "為特定用戶頒發成就",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "description": "用戶 Discord ID",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "achievement_id"
+                ],
+                "properties": {
+                  "achievement_id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "成就 ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "成功頒發成就",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAchievement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "用戶已獲得此成就或成就不存在"
+          }
+        }
+      }
+    },
+    "/users/{user_id}/progress": {
+      "get": {
+        "tags": [
+          "progress"
+        ],
+        "summary": "取得用戶成就進度",
+        "description": "取得特定用戶的所有成就進度",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "description": "用戶 Discord ID",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功取得用戶進度",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AchievementProgress"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/statistics/global": {
+      "get": {
+        "tags": [
+          "statistics"
+        ],
+        "summary": "取得全域統計資料",
+        "description": "取得成就系統的全域統計資料",
+        "responses": {
+          "200": {
+            "description": "成功取得統計資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_achievements": {
+                      "type": "integer",
+                      "description": "總成就數量"
+                    },
+                    "active_achievements": {
+                      "type": "integer",
+                      "description": "啟用的成就數量"
+                    },
+                    "total_user_achievements": {
+                      "type": "integer",
+                      "description": "用戶獲得的總成就數"
+                    },
+                    "unique_users": {
+                      "type": "integer",
+                      "description": "有成就的獨特用戶數"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AchievementType": {
+        "type": "string",
+        "enum": [
+          "COUNT",
+          "THRESHOLD",
+          "ACCUMULATION",
+          "STREAK",
+          "TIME_BASED"
+        ],
+        "description": "成就類型",
+        "example": "COUNT"
+      },
+      "AchievementCategory": {
+        "type": "object",
+        "required": [
+          "name",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "分類 ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "分類名稱",
+            "example": "活躍度成就"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "分類描述",
+            "example": "與用戶活躍度相關的成就"
+          },
+          "display_order": {
+            "type": "integer",
+            "description": "顯示順序",
+            "default": 0,
+            "example": 1
+          },
+          "icon_emoji": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "分類圖示表情符號",
+            "example": "🏆"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "創建時間",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新時間",
+            "readOnly": true
+          }
+        },
+        "example": {
+          "id": 1,
+          "name": "活躍度成就",
+          "description": "與用戶活躍度相關的成就",
+          "display_order": 1,
+          "icon_emoji": "🏆",
+          "created_at": "2024-01-01T00:00:00Z",
+          "updated_at": "2024-01-01T00:00:00Z"
+        }
+      },
+      "Achievement": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "category_id",
+          "type",
+          "criteria",
+          "points"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "成就 ID",
+            "readOnly": true,
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "成就名稱",
+            "example": "活躍會員"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "成就描述",
+            "example": "連續30天在伺服器中發言"
+          },
+          "category_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "所屬分類 ID",
+            "example": 1
+          },
+          "type": {
+            "$ref": "#/components/schemas/AchievementType"
+          },
+          "criteria": {
+            "type": "object",
+            "description": "成就達成條件",
+            "properties": {
+              "target_value": {
+                "type": "number",
+                "description": "目標數值",
+                "example": 30
+              }
+            },
+            "example": {
+              "target_value": 30,
+              "event_type": "message_sent",
+              "consecutive_days": true
+            }
+          },
+          "points": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "成就點數",
+            "example": 100
+          },
+          "badge_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "成就徽章圖片 URL",
+            "example": "https://example.com/badge.png"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "是否啟用",
+            "default": true,
+            "example": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "創建時間",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新時間",
+            "readOnly": true
+          }
+        }
+      },
+      "UserAchievement": {
+        "type": "object",
+        "required": [
+          "user_id",
+          "achievement_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "記錄 ID",
+            "readOnly": true,
+            "example": 1
+          },
+          "user_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用戶 Discord ID",
+            "example": 123456789012345678
+          },
+          "achievement_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "成就 ID",
+            "example": 1
+          },
+          "earned_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "獲得時間",
+            "example": "2024-01-01T00:00:00Z"
+          },
+          "notified": {
+            "type": "boolean",
+            "description": "是否已通知",
+            "default": false,
+            "example": true
+          }
+        }
+      },
+      "AchievementProgress": {
+        "type": "object",
+        "required": [
+          "user_id",
+          "achievement_id",
+          "current_value",
+          "target_value"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "進度 ID",
+            "readOnly": true,
+            "example": 1
+          },
+          "user_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "用戶 Discord ID",
+            "example": 123456789012345678
+          },
+          "achievement_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "成就 ID",
+            "example": 1
+          },
+          "current_value": {
+            "type": "number",
+            "description": "當前進度值",
+            "minimum": 0,
+            "example": 15.5
+          },
+          "target_value": {
+            "type": "number",
+            "description": "目標值",
+            "minimum": 0,
+            "example": 30
+          },
+          "progress_data": {
+            "type": "object",
+            "description": "額外進度資料",
+            "example": {
+              "daily_counts": [
+                1,
+                2,
+                1,
+                3,
+                0,
+                2,
+                1
+              ],
+              "streak_count": 5
+            }
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "最後更新時間",
+            "example": "2024-01-01T12:00:00Z"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "錯誤代碼",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "錯誤訊息",
+            "example": "請求參數無效"
+          },
+          "details": {
+            "type": "object",
+            "description": "詳細錯誤資訊",
+            "example": {
+              "field": "name",
+              "issue": "不能為空"
+            }
+          }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "總記錄數",
+            "example": 100
+          },
+          "page": {
+            "type": "integer",
+            "description": "當前頁碼",
+            "example": 1
+          },
+          "per_page": {
+            "type": "integer",
+            "description": "每頁記錄數",
+            "example": 20
+          },
+          "pages": {
+            "type": "integer",
+            "description": "總頁數",
+            "example": 5
+          }
+        }
+      }
+    },
+    "responses": {},
+    "parameters": {},
+    "examples": {},
+    "requestBodies": {},
+    "headers": {},
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    },
+    {
+      "BearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "achievements",
+      "description": "成就管理相關操作"
+    },
+    {
+      "name": "categories",
+      "description": "成就分類管理"
+    },
+    {
+      "name": "user-achievements",
+      "description": "用戶成就操作"
+    },
+    {
+      "name": "progress",
+      "description": "成就進度追蹤"
+    },
+    {
+      "name": "statistics",
+      "description": "統計和報表"
+    },
+    {
+      "name": "leaderboard",
+      "description": "排行榜功能"
+    }
+  ]
+}

@@ -94,6 +94,11 @@ class StartupManager:
                 "critical": False,
                 "description": "Message monitoring",
             },
+            "achievement": {
+                "priority": 1,
+                "critical": False,
+                "description": "Achievement system",
+            },
             "protection": {
                 "priority": 2,
                 "critical": False,
@@ -615,7 +620,7 @@ class ADRBot(commands.Bot):
                     )
             else:
                 self.logger.warning("Bot is not connected to any guilds")
-        
+
         except Exception as e:
             self.logger.error(f"Error in on_ready: {type(e).__name__}: {e}", exc_info=True)
 

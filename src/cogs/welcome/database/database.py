@@ -6,7 +6,6 @@
 """
 
 import logging
-from pathlib import Path
 from typing import Any
 
 # 使用統一配置系統獲取路徑

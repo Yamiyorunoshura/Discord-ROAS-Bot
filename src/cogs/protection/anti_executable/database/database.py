@@ -30,14 +30,14 @@ class AntiExecutableDatabase:
             cog: 反可執行檔案保護 Cog 實例
         """
         self.cog = cog
-        
+
         # 使用配置系統獲取正確的資料庫路徑
         settings = get_settings()
         db_path = settings.database.sqlite_path / "anti_executable.db"
-        
+
         # 確保資料庫目錄存在
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         self.db_path = str(db_path)
         self._lock = asyncio.Lock()
 

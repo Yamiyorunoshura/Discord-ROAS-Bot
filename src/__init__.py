@@ -3,7 +3,7 @@
 from src.core.bot import ADRBot
 from src.core.config import Settings
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __author__ = "ROAS MOTS"
 __email__ = "admin@adrbot.dev"
 __description__ = (

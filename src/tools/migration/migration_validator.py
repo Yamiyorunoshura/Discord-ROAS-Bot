@@ -23,9 +23,9 @@ from typing import TYPE_CHECKING, Any
 
 from src.cogs.welcome.config.config import WelcomeConfig
 from src.cogs.welcome.database.repository import WelcomeRepository
+from src.core.config import get_settings
 from src.core.logger import BotLogger
 from src.core.monitor import PerformanceMonitor
-from src.core.config import get_settings
 
 if TYPE_CHECKING:
     from src.core.container import Container

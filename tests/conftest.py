@@ -7,18 +7,18 @@
 """
 
 import asyncio
+import os
+import time
+from collections.abc import AsyncGenerator, Generator
+from datetime import datetime
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import aiosqlite
+import discord
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Generator, AsyncGenerator, Dict, Any, List
-import time
-import tempfile
-import os
-from datetime import datetime, timedelta
-
-import discord
 from discord.ext import commands
-import aiosqlite
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🎯 測試環境配置
@@ -38,7 +38,7 @@ def setup_test_environment(monkeypatch):
     monkeypatch.setenv("PROJECT_ROOT", "/tmp/test_project")
     monkeypatch.setenv("ENV", "test")
     monkeypatch.setenv("TESTING", "true")
-    
+
     # 創建測試目錄
     test_dirs = ["/tmp/test_project/data", "/tmp/test_project/logs", "/tmp/test_project/dbs"]
     for dir_path in test_dirs:
@@ -96,7 +96,7 @@ def mock_member(mock_guild: discord.Guild, mock_user: discord.User) -> discord.M
     member.created_at = mock_user.created_at
     member.display_avatar = mock_user.display_avatar
     member.mention = mock_user.mention
-    
+
     # 權限設定
     member.guild_permissions = MagicMock(spec=discord.Permissions)
     member.guild_permissions.administrator = False
@@ -104,11 +104,11 @@ def mock_member(mock_guild: discord.Guild, mock_user: discord.User) -> discord.M
     member.guild_permissions.manage_messages = False
     member.guild_permissions.manage_channels = False
     member.guild_permissions.manage_roles = False
-    
+
     # 超時功能
     member.timeout = AsyncMock()
     member.edit = AsyncMock()
-    
+
     return member
 
 @pytest.fixture
@@ -123,7 +123,7 @@ def mock_admin_member(mock_guild: discord.Guild, mock_user: discord.User) -> dis
     member.guild = mock_guild
     member.joined_at = datetime.utcnow()
     member.created_at = datetime.utcnow()
-    
+
     # 管理員權限
     member.guild_permissions = MagicMock(spec=discord.Permissions)
     member.guild_permissions.administrator = True
@@ -131,7 +131,7 @@ def mock_admin_member(mock_guild: discord.Guild, mock_user: discord.User) -> dis
     member.guild_permissions.manage_messages = True
     member.guild_permissions.manage_channels = True
     member.guild_permissions.manage_roles = True
-    
+
     return member
 
 @pytest.fixture
@@ -149,10 +149,10 @@ def mock_channel(mock_guild: discord.Guild) -> discord.TextChannel:
     channel.edit = AsyncMock()
     channel.delete = AsyncMock()
     channel.mention = f"<#{channel.id}>"
-    
+
     # 權限覆蓋
     channel.permissions_for = MagicMock(return_value=discord.Permissions.all())
-    
+
     return channel
 
 @pytest.fixture
@@ -169,7 +169,7 @@ def mock_voice_channel(mock_guild: discord.Guild) -> discord.VoiceChannel:
     channel.created_at = datetime.utcnow()
     channel.edit = AsyncMock()
     channel.delete = AsyncMock()
-    
+
     return channel
 
 @pytest.fixture
@@ -188,7 +188,7 @@ def mock_role(mock_guild: discord.Guild) -> discord.Role:
     role.mention = f"<@&{role.id}>"
     role.edit = AsyncMock()
     role.delete = AsyncMock()
-    
+
     return role
 
 @pytest.fixture
@@ -210,7 +210,7 @@ def mock_message(mock_guild: discord.Guild, mock_member: discord.Member, mock_ch
     message.role_mentions = []
     message.reference = None
     message.type = discord.MessageType.default
-    
+
     # 訊息操作
     message.edit = AsyncMock()
     message.delete = AsyncMock()
@@ -219,7 +219,7 @@ def mock_message(mock_guild: discord.Guild, mock_member: discord.Member, mock_ch
     message.pin = AsyncMock()
     message.unpin = AsyncMock()
     message.reply = AsyncMock()
-    
+
     return message
 
 @pytest.fixture
@@ -233,7 +233,7 @@ def mock_attachment() -> discord.Attachment:
     attachment.proxy_url = attachment.url
     attachment.content_type = "text/plain"
     attachment.read = AsyncMock(return_value=b"test content")
-    
+
     return attachment
 
 @pytest.fixture
@@ -247,19 +247,19 @@ def mock_interaction(mock_guild: discord.Guild, mock_member: discord.Member) -> 
     interaction.id = 111222333
     interaction.token = "test_token"
     interaction.type = discord.InteractionType.application_command
-    
+
     # 響應方法
     interaction.response = AsyncMock()
     interaction.response.send_message = AsyncMock()
     interaction.response.edit_message = AsyncMock()
     interaction.response.defer = AsyncMock()
     interaction.response.is_done.return_value = False
-    
+
     # 跟進方法
     interaction.followup = AsyncMock()
     interaction.followup.send = AsyncMock()
     interaction.followup.edit_message = AsyncMock()
-    
+
     return interaction
 
 @pytest.fixture
@@ -271,7 +271,7 @@ def mock_bot() -> commands.Bot:
     bot.user.name = "測試機器人"
     bot.user.discriminator = "0000"
     bot.user.bot = True
-    
+
     # Bot 方法
     bot.add_cog = AsyncMock()
     bot.remove_cog = AsyncMock()
@@ -283,10 +283,10 @@ def mock_bot() -> commands.Bot:
     bot.fetch_user = AsyncMock()
     bot.fetch_guild = AsyncMock()
     bot.fetch_channel = AsyncMock()
-    
+
     # 事件循環
     bot.loop = asyncio.get_event_loop()
-    
+
     return bot
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -298,7 +298,7 @@ async def test_db() -> AsyncGenerator[aiosqlite.Connection, None]:
     """🗄️ 提供記憶體資料庫用於測試"""
     db = await aiosqlite.connect(":memory:")
     db.row_factory = aiosqlite.Row
-    
+
     try:
         yield db
     finally:
@@ -411,7 +411,7 @@ async def protection_test_db(test_db: aiosqlite.Connection) -> aiosqlite.Connect
             timestamp REAL,
             action TEXT
         );
-        
+
         -- 反惡意連結
         CREATE TABLE IF NOT EXISTS link_settings (
             guild_id INTEGER PRIMARY KEY,
@@ -433,7 +433,7 @@ async def protection_test_db(test_db: aiosqlite.Connection) -> aiosqlite.Connect
             added_at REAL,
             PRIMARY KEY(guild_id, domain)
         );
-        
+
         -- 反可執行檔案
         CREATE TABLE IF NOT EXISTS executable_settings (
             guild_id INTEGER PRIMARY KEY,
@@ -539,7 +539,7 @@ def assert_discord_id_valid(discord_id: int) -> None:
 
 def assert_timestamp_valid(timestamp: float) -> None:
     """✅ 驗證時間戳格式"""
-    assert isinstance(timestamp, (int, float)), "時間戳必須是數字"
+    assert isinstance(timestamp, int | float), "時間戳必須是數字"
     assert timestamp > 0, "時間戳必須大於 0"
     # 檢查是否為合理的時間範圍（2020-2030年）
     assert 1577836800 <= timestamp <= 1893456000, "時間戳不在合理範圍內"
@@ -550,7 +550,7 @@ def assert_embed_valid(embed: discord.Embed) -> None:
     assert len(embed.title or "") <= 256, "標題長度不能超過 256 字符"
     assert len(embed.description or "") <= 4096, "描述長度不能超過 4096 字符"
     assert len(embed.fields) <= 25, "欄位數量不能超過 25 個"
-    
+
     for field in embed.fields:
         assert len(field.name) <= 256, "欄位名稱長度不能超過 256 字符"
         assert len(field.value) <= 1024, "欄位值長度不能超過 1024 字符"
@@ -582,38 +582,39 @@ def performance_timer():
         def __init__(self):
             self.start_time = None
             self.end_time = None
-        
+
         def start(self):
             self.start_time = time.perf_counter()
-        
+
         def stop(self):
             self.end_time = time.perf_counter()
-        
+
         @property
         def elapsed(self) -> float:
             if self.start_time is None or self.end_time is None:
                 return 0.0
             return self.end_time - self.start_time
-    
+
     return PerformanceTimer()
 
 @pytest.fixture
 def memory_monitor():
     """🧠 記憶體監控器"""
-    import psutil
     import os
-    
+
+    import psutil
+
     class MemoryMonitor:
         def __init__(self):
             self.process = psutil.Process(os.getpid())
             self.initial_memory = self.process.memory_info().rss
-        
+
         def get_current_usage(self) -> int:
             return self.process.memory_info().rss
-        
+
         def get_memory_increase(self) -> int:
             return self.get_current_usage() - self.initial_memory
-    
+
     return MemoryMonitor()
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -626,27 +627,27 @@ def mock_manager():
     class MockManager:
         def __init__(self):
             self.patches = []
-        
+
         def patch_async(self, target: str, return_value=None, side_effect=None):
             """創建異步 Mock"""
             mock = AsyncMock(return_value=return_value, side_effect=side_effect)
             patcher = patch(target, mock)
             self.patches.append(patcher)
             return patcher.start()
-        
+
         def patch_sync(self, target: str, return_value=None, side_effect=None):
             """創建同步 Mock"""
             mock = MagicMock(return_value=return_value, side_effect=side_effect)
             patcher = patch(target, mock)
             self.patches.append(patcher)
             return patcher.start()
-        
+
         def cleanup(self):
             """清理所有 Mock"""
             for patcher in self.patches:
                 patcher.stop()
             self.patches.clear()
-    
+
     manager = MockManager()
     yield manager
     manager.cleanup()
@@ -660,7 +661,7 @@ def test_data_generator():
     """🧪 測試資料生成器"""
     class TestDataGenerator:
         @staticmethod
-        def generate_guild_data(count: int = 1) -> List[Dict[str, Any]]:
+        def generate_guild_data(count: int = 1) -> list[dict[str, Any]]:
             """生成測試伺服器資料"""
             return [
                 {
@@ -673,9 +674,9 @@ def test_data_generator():
                 }
                 for i in range(count)
             ]
-        
+
         @staticmethod
-        def generate_user_data(count: int = 1) -> List[Dict[str, Any]]:
+        def generate_user_data(count: int = 1) -> list[dict[str, Any]]:
             """生成測試用戶資料"""
             return [
                 {
@@ -687,9 +688,9 @@ def test_data_generator():
                 }
                 for i in range(count)
             ]
-        
+
         @staticmethod
-        def generate_message_data(count: int = 1) -> List[Dict[str, Any]]:
+        def generate_message_data(count: int = 1) -> list[dict[str, Any]]:
             """生成測試訊息資料"""
             return [
                 {
@@ -705,7 +706,7 @@ def test_data_generator():
                 }
                 for i in range(count)
             ]
-    
+
     return TestDataGenerator()
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -717,7 +718,7 @@ def security_tester():
     """🔒 安全測試工具"""
     class SecurityTester:
         @staticmethod
-        def generate_malicious_inputs() -> List[str]:
+        def generate_malicious_inputs() -> list[str]:
             """生成惡意輸入測試資料"""
             return [
                 "'; DROP TABLE users; --",  # SQL 注入
@@ -729,18 +730,18 @@ def security_tester():
                 "",  # 空字符串
                 None,  # None 值
             ]
-        
+
         @staticmethod
         def generate_large_data(size_mb: int = 1) -> bytes:
             """生成大量資料"""
             return b"A" * (size_mb * 1024 * 1024)
-        
+
         @staticmethod
         def simulate_network_error():
             """模擬網路錯誤"""
             import aiohttp
             return aiohttp.ClientError("模擬網路錯誤")
-    
+
     return SecurityTester()
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -756,4 +757,4 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "security: 標記為安全測試")
     config.addinivalue_line("markers", "database: 標記為資料庫測試")
     config.addinivalue_line("markers", "network: 標記為網路測試")
-    config.addinivalue_line("markers", "timeout: 標記為超時測試") 
+    config.addinivalue_line("markers", "timeout: 標記為超時測試")

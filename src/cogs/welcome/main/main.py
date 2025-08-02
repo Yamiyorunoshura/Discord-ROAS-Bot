@@ -109,7 +109,7 @@ class WelcomeCog(commands.Cog):
 
         try:
             logger.info("開始初始化歡迎系統...")
-            
+
             # 獲取依賴注入容器
             logger.info("正在獲取依賴注入容器...")
             container = self._container or await get_global_container()
@@ -119,15 +119,15 @@ class WelcomeCog(commands.Cog):
             logger.info("正在解析 IWelcomeDatabase...")
             self._db = await container.resolve(IWelcomeDatabase)
             logger.info("IWelcomeDatabase 解析成功")
-            
+
             logger.info("正在解析 IWelcomeRenderer...")
             self._renderer = await container.resolve(IWelcomeRenderer)
             logger.info("IWelcomeRenderer 解析成功")
-            
+
             logger.info("正在解析 IWelcomeCache...")
             self._cache = await container.resolve(IWelcomeCache)
             logger.info("IWelcomeCache 解析成功")
-            
+
             logger.info("正在解析 IWelcomeConfig...")
             self._config = await container.resolve(IWelcomeConfig)
             logger.info("IWelcomeConfig 解析成功")

@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 智能 Prompt 生成器
 完全工具驅動的提示詞生成系統
 """
 
-import os
 import json
 import re
-from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 
 class SmartPromptGenerator:
     """智能提示詞生成器"""
-    
+
     def __init__(self, project_path: str):
         self.project_path = Path(project_path)
         self.project_analysis = {}
         self.tech_stack = {}
         self.requirements = {}
         self.prompt_template = ""
-        
-    def analyze_project_structure(self) -> Dict[str, Any]:
+
+    def analyze_project_structure(self) -> dict[str, Any]:
         """分析項目結構"""
         analysis = {
             "project_type": "unknown",
@@ -35,7 +33,7 @@ class SmartPromptGenerator:
             "has_tests": False,
             "has_docs": False
         }
-        
+
         # 檢測項目類型
         if (self.project_path / "package.json").exists():
             analysis["project_type"] = "nodejs"
@@ -49,13 +47,13 @@ class SmartPromptGenerator:
         elif (self.project_path / "Cargo.toml").exists():
             analysis["project_type"] = "rust"
             analysis["build_tool"] = "cargo"
-            
+
         # 檢測框架
         if (self.project_path / "package.json").exists():
-            with open(self.project_path / "package.json", "r") as f:
+            with open(self.project_path / "package.json") as f:
                 package_data = json.load(f)
                 dependencies = package_data.get("dependencies", {})
-                
+
                 if "react" in dependencies:
                     analysis["framework"] = "react"
                 elif "vue" in dependencies:
@@ -64,24 +62,24 @@ class SmartPromptGenerator:
                     analysis["framework"] = "angular"
                 elif "express" in dependencies:
                     analysis["framework"] = "express"
-                    
+
         # 檢測測試
         test_dirs = ["tests", "test", "__tests__", "spec"]
         for test_dir in test_dirs:
             if (self.project_path / test_dir).exists():
                 analysis["has_tests"] = True
                 break
-                
+
         # 檢測文檔
         doc_files = ["README.md", "README.txt", "docs"]
         for doc_file in doc_files:
             if (self.project_path / doc_file).exists():
                 analysis["has_docs"] = True
                 break
-                
+
         return analysis
-    
-    def extract_requirements(self) -> Dict[str, Any]:
+
+    def extract_requirements(self) -> dict[str, Any]:
         """提取需求信息"""
         requirements = {
             "core_features": [],
@@ -90,52 +88,52 @@ class SmartPromptGenerator:
             "security_requirements": [],
             "user_scenarios": []
         }
-        
+
         # 讀取 README 文件
         readme_files = ["README.md", "README.txt", "readme.md"]
         for readme_file in readme_files:
             readme_path = self.project_path / readme_file
             if readme_path.exists():
-                with open(readme_path, "r", encoding="utf-8") as f:
+                with open(readme_path, encoding="utf-8") as f:
                     content = f.read()
-                    
+
                     # 提取核心功能
                     feature_patterns = [
                         r"## Features\n(.*?)(?=\n##|\n#|\Z)",
                         r"## 功能\n(.*?)(?=\n##|\n#|\Z)",
                         r"## 特性\n(.*?)(?=\n##|\n#|\Z)"
                     ]
-                    
+
                     for pattern in feature_patterns:
                         matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
                         if matches:
                             features = matches[0].strip().split("\n")
                             requirements["core_features"] = [
-                                f.strip("- ").strip() for f in features 
+                                f.strip("- ").strip() for f in features
                                 if f.strip().startswith("-")
                             ]
                             break
-                            
+
                     # 提取技術要求
                     tech_patterns = [
                         r"## 技術要求\n(.*?)(?=\n##|\n#|\Z)",
                         r"## Technical Requirements\n(.*?)(?=\n##|\n#|\Z)"
                     ]
-                    
+
                     for pattern in tech_patterns:
                         matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
                         if matches:
                             tech_reqs = matches[0].strip().split("\n")
                             requirements["technical_requirements"] = [
-                                req.strip("- ").strip() for req in tech_reqs 
+                                req.strip("- ").strip() for req in tech_reqs
                                 if req.strip().startswith("-")
                             ]
                             break
-                            
+
                 break
-                
+
         return requirements
-    
+
     def generate_web_app_template(self) -> str:
         """生成 Web 應用模板"""
         return """# [Web 應用名稱] 開發提示詞
@@ -261,7 +259,7 @@ class SmartPromptGenerator:
 - 使用 React.memo 優化渲染
 - 實現錯誤邊界處理
 """
-    
+
     def generate_api_service_template(self) -> str:
         """生成 API 服務模板"""
         return """# [API 服務名稱] 開發提示詞
@@ -387,7 +385,7 @@ class SmartPromptGenerator:
 - 添加健康檢查端點
 - 使用結構化日誌
 """
-    
+
     def generate_mobile_app_template(self) -> str:
         """生成移動應用模板"""
         return """# [移動應用名稱] 開發提示詞
@@ -513,7 +511,7 @@ class SmartPromptGenerator:
 - 使用 React.memo 優化渲染
 - 實現錯誤邊界處理
 """
-    
+
     def generate_generic_template(self) -> str:
         """生成通用模板"""
         return """# [項目名稱] 開發提示詞
@@ -618,12 +616,12 @@ class SmartPromptGenerator:
 - [最佳實踐 3]
 - [最佳實踐 4]
 """
-    
+
     def select_template(self) -> str:
         """根據項目類型選擇模板"""
         project_type = self.project_analysis.get("project_type", "unknown")
         framework = self.project_analysis.get("framework")
-        
+
         if project_type == "nodejs":
             if framework in ["react", "vue", "angular"]:
                 return self.generate_web_app_template()
@@ -631,13 +629,11 @@ class SmartPromptGenerator:
                 return self.generate_api_service_template()
             else:
                 return self.generate_generic_template()
-        elif project_type == "python":
-            return self.generate_api_service_template()
-        elif project_type == "java":
+        elif project_type == "python" or project_type == "java":
             return self.generate_api_service_template()
         else:
             return self.generate_generic_template()
-    
+
     def fill_template(self, template: str) -> str:
         """填充模板內容"""
         # 填充核心功能
@@ -645,56 +641,56 @@ class SmartPromptGenerator:
             f"- {feature}" for feature in self.requirements.get("core_features", [])
         ])
         template = template.replace("{core_features}", core_features)
-        
+
         # 填充技術棧
         tech_stack = self.project_analysis.get("framework", "未知框架")
         template = template.replace("{framework}", tech_stack)
-        
+
         # 填充技術棧列表
         tech_stack_list = []
         if self.project_analysis.get("framework"):
             tech_stack_list.append(self.project_analysis["framework"])
         if self.project_analysis.get("build_tool"):
             tech_stack_list.append(self.project_analysis["build_tool"])
-        
+
         tech_stack_str = ", ".join(tech_stack_list) if tech_stack_list else "待確定"
         template = template.replace("{tech_stack}", tech_stack_str)
-        
+
         return template
-    
+
     def generate_prompt(self) -> str:
         """生成完整的提示詞"""
         # 1. 分析項目
         self.project_analysis = self.analyze_project_structure()
-        
+
         # 2. 提取需求
         self.requirements = self.extract_requirements()
-        
+
         # 3. 選擇模板
         template = self.select_template()
-        
+
         # 4. 填充內容
         filled_template = self.fill_template(template)
-        
+
         return filled_template
-    
+
     def save_prompt(self, prompt_content: str, output_path: str = "memory_bank/prompt.md"):
         """保存提示詞到文件"""
         output_file = self.project_path / output_path
-        
+
         # 確保memory_bank目錄存在
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # 創建備份
         if output_file.exists():
             backup_file = output_file.with_suffix(f".backup_{int(datetime.now().timestamp())}.md")
             output_file.rename(backup_file)
             print(f"舊文件已備份至: {backup_file}")
-        
+
         # 寫入新文件
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(prompt_content)
-        
+
         print(f"提示詞已生成: {output_file}")
         return str(output_file)
 
@@ -702,23 +698,23 @@ class SmartPromptGenerator:
 def main():
     """主函數"""
     import sys
-    
+
     if len(sys.argv) < 2:
         print("使用方法: python smart_prompt_generator.py <項目路徑> [輸出文件]")
         sys.exit(1)
-    
+
     project_path = sys.argv[1]
     output_file = sys.argv[2] if len(sys.argv) > 2 else "memory_bank/prompt.md"
-    
+
     # 創建生成器
     generator = SmartPromptGenerator(project_path)
-    
+
     # 生成提示詞
     prompt_content = generator.generate_prompt()
-    
+
     # 保存文件
     generator.save_prompt(prompt_content, output_file)
-    
+
     print("提示詞生成完成！")
 
 

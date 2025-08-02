@@ -28,7 +28,7 @@ class PersistentConfig:
             self.config_dir = settings.data_dir / "message_listener"
         else:
             self.config_dir = Path(config_dir)
-        
+
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         # 預設配置

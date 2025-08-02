@@ -190,6 +190,20 @@ class AsyncCursorWrapper:
             except StopAsyncIteration:
                 return None
 
+    @property
+    def lastrowid(self) -> int | None:
+        """Get last inserted row ID."""
+        if hasattr(self._cursor, "lastrowid"):
+            return self._cursor.lastrowid
+        return None
+
+    @property
+    def rowcount(self) -> int:
+        """Get affected row count."""
+        if hasattr(self._cursor, "rowcount"):
+            return self._cursor.rowcount
+        return -1
+
 
 def fix_database_cursor(cursor: Any) -> AsyncCursorWrapper:
     """Fix database cursor for Python 3.12 compatibility.
@@ -266,7 +280,7 @@ async def ensure_awaitable(obj: Any) -> Any:
 
 
 # Task creation helpers for Python 3.12
-def create_task_safe[T](
+def create_task_safe(
     coro: Awaitable[T], *, name: str | None = None
 ) -> asyncio.Task[T]:
     """Safely create asyncio task with Python 3.12 compatibility.

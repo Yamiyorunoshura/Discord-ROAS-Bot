@@ -1,0 +1,86 @@
+[tool.pytest.ini_options]
+# Pytest 配置
+
+# 測試目錄
+testpaths = ["tests"]
+
+# Python 文件模式
+python_files = ["test_*.py", "*_test.py"]
+
+# Python 類別模式
+python_classes = ["Test*"]
+
+# Python 函數模式
+python_functions = ["test_*"]
+
+# 額外的命令列選項
+addopts = [
+    "-v",                           # 詳細輸出
+    "--strict-markers",             # 嚴格標記模式
+    "--tb=short",                   # 簡潔的錯誤追蹤
+    "--asyncio-mode=auto",          # 自動異步模式
+    "--disable-warnings",           # 禁用警告
+]
+
+# 異步測試配置
+asyncio_mode = "auto"
+
+# 測試標記
+markers = [
+    "unit: 單元測試標記",
+    "integration: 整合測試標記", 
+    "security: 安全測試標記",
+    "performance: 效能測試標記",
+    "database: 資料庫測試標記",
+    "slow: 緩慢測試標記",
+    "network: 需要網路的測試",
+    "mock: 使用Mock對象的測試"
+]
+
+# 最低Python版本
+minversion = "6.0"
+
+# 測試發現模式
+testmon_noselect = true
+
+# 日誌配置
+log_auto_indent = true
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+# 過濾警告
+filterwarnings = [
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning"
+]
+
+# 覆蓋率配置（如果使用 pytest-cov）
+[tool.coverage.run]
+source = ["src/cogs/achievement"]
+omit = [
+    "tests/*",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/__pycache__/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:"
+]
+
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"

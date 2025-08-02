@@ -22,9 +22,9 @@ from typing import TYPE_CHECKING, Any
 
 from src.cogs.welcome.config.config import WelcomeConfig
 from src.cogs.welcome.database.repository import WelcomeRepository
+from src.core.config import get_settings
 from src.core.logger import BotLogger
 from src.core.monitor import PerformanceMonitor
-from src.core.config import get_settings
 
 if TYPE_CHECKING:
     from src.core.container import Container
@@ -75,7 +75,7 @@ class WelcomeMigrationTool:
 
         # 使用配置系統獲取正確路徑
         settings = get_settings()
-        
+
         # 路徑配置
         self._old_db_path = Path(old_db_path) if old_db_path else (settings.database.sqlite_path / "welcome.db")
         self._old_bg_dir = Path(old_bg_dir) if old_bg_dir else (settings.data_dir / "backgrounds")

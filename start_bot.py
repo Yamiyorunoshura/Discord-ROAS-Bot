@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Discord ADR Bot v2.0 - 智能跨平台啟動腳本
+Discord ADR Bot v2.1 - 智能跨平台啟動腳本
 支援自動虛擬環境檢測與創建，兼容 Windows/Linux/macOS
 """
 

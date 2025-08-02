@@ -1,0 +1,33 @@
+# 成就系統配置文件
+achievement:
+  # 快取設定
+  cache:
+    duration: 300                          # 成就快取時間（秒）
+    max_size: 1000                         # 最大快取項目數
+    
+  # 通知設定
+  notifications:
+    enabled: true                          # 是否啟用成就通知
+    channel_mention: false                 # 是否在頻道中提及用戶
+    dm_notification: true                  # 是否發送私訊通知
+    
+  # 效能設定
+  performance:
+    batch_size: 100                        # 批次處理大小
+    max_concurrent_operations: 10          # 最大並發操作數
+    
+  # 安全設定
+  security:
+    admin_only_management: true            # 僅管理員可管理成就
+    rate_limit_per_minute: 60             # 每分鐘操作限制
+    
+  # 資料庫設定
+  database:
+    connection_pool_size: 10               # 連線池大小
+    query_timeout: 30                      # 查詢超時時間（秒）
+    
+  # 日誌設定
+  logging:
+    level: "INFO"                          # 日誌級別
+    enable_performance_logs: true          # 是否啟用效能日誌
+    enable_audit_logs: true                # 是否啟用審計日誌
