@@ -36,7 +36,7 @@ class TestSettings:
 
     def test_settings_initialization_with_env_vars(self):
         """測試使用環境變數的設定初始化."""
-        test_token = "MTAzNzMxMzE5NDMyNDYzMzczMA.GbcKCG.dQw4w9WgXcQ7aBcDeFgHiJkLmNoPqRsT"
+        test_token = "TEST_TOKEN_FOR_TESTING_ONLY_THIS_IS_NOT_A_REAL_TOKEN_123456789"
 
         with patch.dict(os.environ, {
             'TOKEN': test_token,
@@ -139,7 +139,7 @@ class TestConfigValidation:
 
     def test_settings_token_validation_with_valid_token(self):
         """測試有效 token 的驗證."""
-        valid_token = "MTAzNzMxMzE5NDMyNDYzMzczMA.GbcKCG.dQw4w9WgXcQ7aBcDeFgHiJkLmNoPqRsT"
+        valid_token = "TEST_TOKEN_FOR_TESTING_ONLY_THIS_IS_NOT_A_REAL_TOKEN_123456789"
 
         with patch.dict(os.environ, {'TOKEN': valid_token}):
             try:

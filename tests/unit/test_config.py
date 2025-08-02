@@ -27,7 +27,7 @@ from src.core.config import (
 )
 
 # 測試用的有效Discord Bot Token格式（符合50字符最小長度要求）
-TEST_TOKEN = "MTAzNzMxMzE5NDMyNDYzMzczMA.GbcKCG.dQw4w9WgXcQ7aBcDeFgHiJkLmNoPqRsT"
+TEST_TOKEN = "TEST_TOKEN_FOR_TESTING_ONLY_THIS_IS_NOT_A_REAL_TOKEN_123456789"
 
 
 class TestSettings:
