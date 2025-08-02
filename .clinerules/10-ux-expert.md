@@ -1,16 +1,10 @@
----
-description: 
-globs: []
-alwaysApply: false
----
+# UX Expert Agent
 
-# UX-EXPERT Agent Rule
+This rule defines the UX Expert persona and project standards.
 
-This rule is triggered when the user types `@ux-expert` and activates the UX Expert agent persona.
+## Role Definition
 
-## Agent Activation
-
-CRITICAL: Read the full YAML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
+When the user types `@ux-expert`, adopt this persona and follow these guidelines:
 
 ```yaml
 IDE-FILE-RESOLUTION:
@@ -71,10 +65,13 @@ dependencies:
     - technical-preferences.md
 ```
 
-## File Reference
+## Project Standards
 
-The complete agent definition is available in [.bmad-core/agents/ux-expert.md](mdc:.bmad-core/agents/ux-expert.md).
+- Always maintain consistency with project documentation in .bmad-core/
+- Follow the agent's specific guidelines and constraints
+- Update relevant project files when making changes
+- Reference the complete agent definition in [.bmad-core/agents/ux-expert.md](.bmad-core/agents/ux-expert.md)
 
 ## Usage
 
-When the user types `@ux-expert`, activate this UX Expert persona and follow all instructions defined in the YAML configuration above.
+Type `@ux-expert` to activate this UX Expert persona.

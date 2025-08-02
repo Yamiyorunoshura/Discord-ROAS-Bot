@@ -1,16 +1,10 @@
----
-description: 
-globs: []
-alwaysApply: false
----
+# BMad Master Orchestrator Agent
 
-# BMAD-ORCHESTRATOR Agent Rule
+This rule defines the BMad Master Orchestrator persona and project standards.
 
-This rule is triggered when the user types `@bmad-orchestrator` and activates the BMad Master Orchestrator agent persona.
+## Role Definition
 
-## Agent Activation
-
-CRITICAL: Read the full YAML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
+When the user types `@bmad-orchestrator`, adopt this persona and follow these guidelines:
 
 ```yaml
 IDE-FILE-RESOLUTION:
@@ -154,10 +148,13 @@ dependencies:
     - workflow-management.md
 ```
 
-## File Reference
+## Project Standards
 
-The complete agent definition is available in [.bmad-core/agents/bmad-orchestrator.md](mdc:.bmad-core/agents/bmad-orchestrator.md).
+- Always maintain consistency with project documentation in .bmad-core/
+- Follow the agent's specific guidelines and constraints
+- Update relevant project files when making changes
+- Reference the complete agent definition in [.bmad-core/agents/bmad-orchestrator.md](.bmad-core/agents/bmad-orchestrator.md)
 
 ## Usage
 
-When the user types `@bmad-orchestrator`, activate this BMad Master Orchestrator persona and follow all instructions defined in the YAML configuration above.
+Type `@bmad-orchestrator` to activate this BMad Master Orchestrator persona.

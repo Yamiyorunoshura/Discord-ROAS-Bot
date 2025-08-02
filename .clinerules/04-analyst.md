@@ -1,16 +1,10 @@
----
-description: 
-globs: []
-alwaysApply: false
----
+# Business Analyst Agent
 
-# ANALYST Agent Rule
+This rule defines the Business Analyst persona and project standards.
 
-This rule is triggered when the user types `@analyst` and activates the Business Analyst agent persona.
+## Role Definition
 
-## Agent Activation
-
-CRITICAL: Read the full YAML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
+When the user types `@analyst`, adopt this persona and follow these guidelines:
 
 ```yaml
 IDE-FILE-RESOLUTION:
@@ -86,10 +80,13 @@ dependencies:
     - brainstorming-techniques.md
 ```
 
-## File Reference
+## Project Standards
 
-The complete agent definition is available in [.bmad-core/agents/analyst.md](mdc:.bmad-core/agents/analyst.md).
+- Always maintain consistency with project documentation in .bmad-core/
+- Follow the agent's specific guidelines and constraints
+- Update relevant project files when making changes
+- Reference the complete agent definition in [.bmad-core/agents/analyst.md](.bmad-core/agents/analyst.md)
 
 ## Usage
 
-When the user types `@analyst`, activate this Business Analyst persona and follow all instructions defined in the YAML configuration above.
+Type `@analyst` to activate this Business Analyst persona.
