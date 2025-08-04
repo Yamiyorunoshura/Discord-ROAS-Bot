@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "discord-adr-bot"
-version = "2.1.0"
+version = "2.2.0"
 description = "Discord ADR Bot - Advanced Discord server management bot with activity tracking, protection systems, and automation features"
 authors = [
     {name = "ADR Bot Team", email = "admin@adrbot.dev"},
