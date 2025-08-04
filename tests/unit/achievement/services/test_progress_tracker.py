@@ -1,12 +1,12 @@
 """ProgressTracker 單元測試.
 
-此模組測試進度追蹤器的核心功能，包含：
+此模組測試進度追蹤器的核心功能,包含:
 - 進度更新邏輯測試
 - 進度計算測試
 - 批量操作測試
 - 驗證邏輯測試
 
-遵循 AAA 模式（Arrange, Act, Assert）和測試最佳實踐。
+遵循 AAA 模式(Arrange, Act, Assert)和測試最佳實踐.
 """
 
 from datetime import datetime, timedelta
@@ -69,16 +69,12 @@ class TestProgressTracker:
 
         # Act - 第一次更新
         progress1 = await progress_tracker.update_user_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            increment_value=10.0
+            user_id=user_id, achievement_id=achievement.id, increment_value=10.0
         )
 
-        # Act - 第二次更新（累加）
+        # Act - 第二次更新(累加)
         progress2 = await progress_tracker.update_user_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            increment_value=15.0
+            user_id=user_id, achievement_id=achievement.id, increment_value=15.0
         )
 
         # Assert
@@ -91,21 +87,19 @@ class TestProgressTracker:
         """測試強制設定進度值."""
         # Arrange
         category = await create_test_category(repository, "force_cat")
-        achievement = await create_test_achievement(repository, category.id, "force_ach")
+        achievement = await create_test_achievement(
+            repository, category.id, "force_ach"
+        )
         user_id = 123456789
 
         # 先設定一些進度
         await progress_tracker.update_user_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            increment_value=50.0
+            user_id=user_id, achievement_id=achievement.id, increment_value=50.0
         )
 
         # Act - 強制設定進度值
         progress = await progress_tracker.update_user_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            force_value=80.0
+            user_id=user_id, achievement_id=achievement.id, force_value=80.0
         )
 
         # Assert
@@ -123,7 +117,7 @@ class TestProgressTracker:
 
         progress_data = {
             "session_data": {"duration": 300, "score": 85},
-            "custom_field": "test_value"
+            "custom_field": "test_value",
         }
 
         # Act
@@ -131,7 +125,7 @@ class TestProgressTracker:
             user_id=user_id,
             achievement_id=achievement.id,
             increment_value=1.0,
-            progress_data=progress_data
+            progress_data=progress_data,
         )
 
         # Assert
@@ -152,15 +146,19 @@ class TestProgressTracker:
             await progress_tracker.update_user_progress(
                 user_id=user_id,
                 achievement_id=nonexistent_achievement_id,
-                increment_value=1.0
+                increment_value=1.0,
             )
 
     @pytest.mark.asyncio
-    async def test_update_progress_inactive_achievement(self, progress_tracker, repository):
+    async def test_update_progress_inactive_achievement(
+        self, progress_tracker, repository
+    ):
         """測試更新未啟用成就的進度時失敗."""
         # Arrange
         category = await create_test_category(repository, "inactive_cat")
-        achievement = await create_test_achievement(repository, category.id, "inactive_ach")
+        achievement = await create_test_achievement(
+            repository, category.id, "inactive_ach"
+        )
 
         # 停用成就
         await repository.update_achievement(achievement.id, {"is_active": False})
@@ -170,24 +168,24 @@ class TestProgressTracker:
         # Act & Assert
         with pytest.raises(ValueError, match=f"成就 {achievement.id} 未啟用"):
             await progress_tracker.update_user_progress(
-                user_id=user_id,
-                achievement_id=achievement.id,
-                increment_value=1.0
+                user_id=user_id, achievement_id=achievement.id, increment_value=1.0
             )
 
     @pytest.mark.asyncio
-    async def test_update_progress_negative_value_clamped(self, progress_tracker, repository):
+    async def test_update_progress_negative_value_clamped(
+        self, progress_tracker, repository
+    ):
         """測試負數進度值被限制為 0."""
         # Arrange
         category = await create_test_category(repository, "negative_cat")
-        achievement = await create_test_achievement(repository, category.id, "negative_ach")
+        achievement = await create_test_achievement(
+            repository, category.id, "negative_ach"
+        )
         user_id = 123456789
 
         # Act - 嘗試設定負數進度值
         progress = await progress_tracker.update_user_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            force_value=-10.0
+            user_id=user_id, achievement_id=achievement.id, force_value=-10.0
         )
 
         # Assert
@@ -212,19 +210,25 @@ class TestProgressTracker:
             user_id=user_id,
             achievement_id=achievement.id,
             increment_value=1.0,
-            progress_data={"activity": "login"}
+            progress_data={"activity": "login"},
         )
 
-        # Act - 第二次更新（應該合併進度資料）
-        with patch('src.cogs.achievement.services.progress_tracker.datetime') as mock_datetime:
-            mock_datetime.now.return_value.date.return_value.isoformat.return_value = "2024-01-01"
-            mock_datetime.now.return_value.isoformat.return_value = "2024-01-01T10:00:00"
+        # Act - 第二次更新(應該合併進度資料)
+        with patch(
+            "src.cogs.achievement.services.progress_tracker.datetime"
+        ) as mock_datetime:
+            mock_datetime.now.return_value.date.return_value.isoformat.return_value = (
+                "2024-01-01"
+            )
+            mock_datetime.now.return_value.isoformat.return_value = (
+                "2024-01-01T10:00:00"
+            )
 
             progress = await progress_tracker.update_user_progress(
                 user_id=user_id,
                 achievement_id=achievement.id,
                 increment_value=1.0,
-                progress_data={"activity": "interaction"}
+                progress_data={"activity": "interaction"},
             )
 
         # Assert
@@ -243,14 +247,18 @@ class TestProgressTracker:
         user_id = 123456789
 
         # Act - 多次更新計數型成就
-        with patch('src.cogs.achievement.services.progress_tracker.datetime') as mock_datetime:
-            mock_datetime.now.return_value.date.return_value.isoformat.return_value = "2024-01-01"
-            mock_datetime.now.return_value.isoformat.return_value = "2024-01-01T10:00:00"
+        with patch(
+            "src.cogs.achievement.services.progress_tracker.datetime"
+        ) as mock_datetime:
+            mock_datetime.now.return_value.date.return_value.isoformat.return_value = (
+                "2024-01-01"
+            )
+            mock_datetime.now.return_value.isoformat.return_value = (
+                "2024-01-01T10:00:00"
+            )
 
             progress = await progress_tracker.update_user_progress(
-                user_id=user_id,
-                achievement_id=achievement.id,
-                increment_value=1.0
+                user_id=user_id, achievement_id=achievement.id, increment_value=1.0
             )
 
         # Assert
@@ -285,11 +293,15 @@ class TestProgressTracker:
         assert results[1].current_value == 20.0
 
     @pytest.mark.asyncio
-    async def test_batch_update_progress_partial_failure(self, progress_tracker, repository):
+    async def test_batch_update_progress_partial_failure(
+        self, progress_tracker, repository
+    ):
         """測試批量進度更新部分失敗."""
         # Arrange
         category = await create_test_category(repository, "partial_batch_cat")
-        achievement = await create_test_achievement(repository, category.id, "partial_batch")
+        achievement = await create_test_achievement(
+            repository, category.id, "partial_batch"
+        )
 
         user_id = 123456789
 
@@ -322,7 +334,7 @@ class TestProgressTracker:
             category_id=category.id,
             type=AchievementType.COUNTER,
             criteria={"target_value": 100, "counter_field": "messages"},
-            points=100
+            points=100,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -331,9 +343,7 @@ class TestProgressTracker:
 
         # Act
         progress_value = await progress_tracker.calculate_achievement_progress(
-            user_id=user_id,
-            achievement=achievement,
-            current_metrics=current_metrics
+            user_id=user_id, achievement=achievement, current_metrics=current_metrics
         )
 
         # Assert
@@ -350,7 +360,7 @@ class TestProgressTracker:
             category_id=category.id,
             type=AchievementType.MILESTONE,
             criteria={"target_value": 50, "milestone_type": "level"},
-            points=200
+            points=200,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -359,9 +369,7 @@ class TestProgressTracker:
 
         # Act
         progress_value = await progress_tracker.calculate_achievement_progress(
-            user_id=user_id,
-            achievement=achievement,
-            current_metrics=current_metrics
+            user_id=user_id, achievement=achievement, current_metrics=current_metrics
         )
 
         # Assert
@@ -378,7 +386,7 @@ class TestProgressTracker:
             category_id=category.id,
             type=AchievementType.TIME_BASED,
             criteria={"target_value": 7, "time_unit": "days"},
-            points=300
+            points=300,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -389,21 +397,19 @@ class TestProgressTracker:
         streak_dates = [
             (today - timedelta(days=2)).isoformat(),
             (today - timedelta(days=1)).isoformat(),
-            today.isoformat()
+            today.isoformat(),
         ]
 
         await repository.update_progress(
             user_id=user_id,
             achievement_id=achievement.id,
             current_value=3.0,
-            progress_data={"streak_dates": streak_dates}
+            progress_data={"streak_dates": streak_dates},
         )
 
         # Act
         progress_value = await progress_tracker.calculate_achievement_progress(
-            user_id=user_id,
-            achievement=achievement,
-            current_metrics={}
+            user_id=user_id, achievement=achievement, current_metrics={}
         )
 
         # Assert
@@ -423,10 +429,10 @@ class TestProgressTracker:
                 "target_value": 2,
                 "conditions": [
                     {"type": "metric_threshold", "metric": "level", "threshold": 10},
-                    {"type": "metric_threshold", "metric": "messages", "threshold": 50}
-                ]
+                    {"type": "metric_threshold", "metric": "messages", "threshold": 50},
+                ],
             },
-            points=400
+            points=400,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -435,9 +441,7 @@ class TestProgressTracker:
 
         # Act
         progress_value = await progress_tracker.calculate_achievement_progress(
-            user_id=user_id,
-            achievement=achievement,
-            current_metrics=current_metrics
+            user_id=user_id, achievement=achievement, current_metrics=current_metrics
         )
 
         # Assert
@@ -452,14 +456,14 @@ class TestProgressTracker:
         """測試進度更新驗證成功."""
         # Arrange
         category = await create_test_category(repository, "validate_cat")
-        achievement = await create_test_achievement(repository, category.id, "validate_ach")
+        achievement = await create_test_achievement(
+            repository, category.id, "validate_ach"
+        )
         user_id = 123456789
 
         # Act
         is_valid, error_message = await progress_tracker.validate_progress_update(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            new_value=50.0
+            user_id=user_id, achievement_id=achievement.id, new_value=50.0
         )
 
         # Assert
@@ -467,7 +471,9 @@ class TestProgressTracker:
         assert error_message is None
 
     @pytest.mark.asyncio
-    async def test_validate_progress_update_nonexistent_achievement(self, progress_tracker):
+    async def test_validate_progress_update_nonexistent_achievement(
+        self, progress_tracker
+    ):
         """測試驗證不存在成就的進度更新."""
         # Arrange
         user_id = 123456789
@@ -475,9 +481,7 @@ class TestProgressTracker:
 
         # Act
         is_valid, error_message = await progress_tracker.validate_progress_update(
-            user_id=user_id,
-            achievement_id=nonexistent_achievement_id,
-            new_value=50.0
+            user_id=user_id, achievement_id=nonexistent_achievement_id, new_value=50.0
         )
 
         # Assert
@@ -485,18 +489,20 @@ class TestProgressTracker:
         assert "成就 999 不存在" in error_message
 
     @pytest.mark.asyncio
-    async def test_validate_progress_update_negative_value(self, progress_tracker, repository):
+    async def test_validate_progress_update_negative_value(
+        self, progress_tracker, repository
+    ):
         """測試驗證負數進度值."""
         # Arrange
         category = await create_test_category(repository, "negative_validate_cat")
-        achievement = await create_test_achievement(repository, category.id, "negative_validate")
+        achievement = await create_test_achievement(
+            repository, category.id, "negative_validate"
+        )
         user_id = 123456789
 
         # Act
         is_valid, error_message = await progress_tracker.validate_progress_update(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            new_value=-10.0
+            user_id=user_id, achievement_id=achievement.id, new_value=-10.0
         )
 
         # Assert
@@ -512,14 +518,22 @@ class TestProgressTracker:
         """測試取得用戶進度摘要."""
         # Arrange
         category = await create_test_category(repository, "summary_cat")
-        achievement1 = await create_test_achievement(repository, category.id, "summary1")
-        achievement2 = await create_test_achievement(repository, category.id, "summary2")
+        achievement1 = await create_test_achievement(
+            repository, category.id, "summary1"
+        )
+        achievement2 = await create_test_achievement(
+            repository, category.id, "summary2"
+        )
 
         user_id = 123456789
 
         # 建立一些進度
-        await progress_tracker.update_user_progress(user_id, achievement1.id, force_value=100.0)  # 完成
-        await progress_tracker.update_user_progress(user_id, achievement2.id, force_value=50.0)   # 進行中
+        await progress_tracker.update_user_progress(
+            user_id, achievement1.id, force_value=100.0
+        )  # 完成
+        await progress_tracker.update_user_progress(
+            user_id, achievement2.id, force_value=50.0
+        )  # 進行中
 
         # Act
         summary = await progress_tracker.get_user_progress_summary(user_id)
@@ -541,19 +555,23 @@ class TestProgressTracker:
         consecutive_dates = [
             (today - timedelta(days=2)).isoformat(),
             (today - timedelta(days=1)).isoformat(),
-            today.isoformat()
+            today.isoformat(),
         ]
 
         # 非連續日期
         non_consecutive_dates = [
             (today - timedelta(days=3)).isoformat(),
             (today - timedelta(days=1)).isoformat(),
-            today.isoformat()
+            today.isoformat(),
         ]
 
         # Act
-        consecutive_count = progress_tracker._calculate_consecutive_days(consecutive_dates)
-        non_consecutive_count = progress_tracker._calculate_consecutive_days(non_consecutive_dates)
+        consecutive_count = progress_tracker._calculate_consecutive_days(
+            consecutive_dates
+        )
+        non_consecutive_count = progress_tracker._calculate_consecutive_days(
+            non_consecutive_dates
+        )
 
         # Assert
         assert consecutive_count == 3

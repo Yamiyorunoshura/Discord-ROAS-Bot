@@ -3,4 +3,84 @@
 - 包含所有配置項和常數
 """
 
-from .config import *
+from .config import (
+    AVATAR_SIZE,
+    BG_COLOR,
+    # 圖片渲染設定
+    CHAT_WIDTH,
+    CHINESE_FONTS,
+    CONTENT_PADDING,
+    # 字型設定
+    DEFAULT_FONT,
+    DEFAULT_FONT_SIZE,
+    # 顏色系統
+    DISCORD_COLORS,
+    EMBED_COLOR,
+    FONT_DOWNLOAD_URLS,
+    FONT_PATH,
+    FONT_TEST_SIZE,
+    HTTP_OK,
+    MAX_ATTACHMENTS_DISPLAY,
+    MAX_CACHE_TIME,
+    MAX_CACHED_MESSAGES,
+    MAX_CHANNELS_DISPLAY,
+    MAX_HEIGHT,
+    MAX_REPLY_CONTENT_LENGTH,
+    MAX_SEARCH_RESULTS,
+    # 路徑配置
+    MESSAGE_DB_PATH,
+    MESSAGE_LOG_PATH,
+    MESSAGE_PADDING,
+    # 訊息設定
+    MESSAGE_RETENTION_DAYS,
+    # 渲染配置
+    RENDER_CONFIG,
+    REPLY_CONTENT_TRUNCATE_SUFFIX,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
+    TEXT_COLOR,
+    TIMESTAMP_FONT_SIZE,
+    # 時區配置
+    TW_TZ,
+    USERNAME_FONT_SIZE,
+    is_allowed,
+    # 函數
+    setup_logger,
+)
+
+__all__ = [
+    "AVATAR_SIZE",
+    "BG_COLOR",
+    "CHAT_WIDTH",
+    "CHINESE_FONTS",
+    "CONTENT_PADDING",
+    "DEFAULT_FONT",
+    "DEFAULT_FONT_SIZE",
+    "DISCORD_COLORS",
+    "EMBED_COLOR",
+    "FONT_DOWNLOAD_URLS",
+    "FONT_PATH",
+    "FONT_TEST_SIZE",
+    "HTTP_OK",
+    "MAX_ATTACHMENTS_DISPLAY",
+    "MAX_CACHED_MESSAGES",
+    "MAX_CACHE_TIME",
+    "MAX_CHANNELS_DISPLAY",
+    "MAX_HEIGHT",
+    "MAX_REPLY_CONTENT_LENGTH",
+    "MAX_SEARCH_RESULTS",
+    "MESSAGE_DB_PATH",
+    "MESSAGE_LOG_PATH",
+    "MESSAGE_PADDING",
+    "MESSAGE_RETENTION_DAYS",
+    "RENDER_CONFIG",
+    "REPLY_CONTENT_TRUNCATE_SUFFIX",
+    "SECONDS_PER_HOUR",
+    "SECONDS_PER_MINUTE",
+    "TEXT_COLOR",
+    "TIMESTAMP_FONT_SIZE",
+    "TW_TZ",
+    "USERNAME_FONT_SIZE",
+    "is_allowed",
+    "setup_logger",
+]

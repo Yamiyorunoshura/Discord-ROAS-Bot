@@ -1,6 +1,6 @@
 """成就系統 UI 組件模組.
 
-提供成就系統面板使用的可重用 UI 組件：
+提供成就系統面板使用的可重用 UI 組件:
 - 頁面選擇器
 - 導航按鈕
 - 篩選組件
@@ -19,11 +19,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class PageSelector(discord.ui.Select):
     """頁面選擇器組件.
 
-    提供成就系統主面板的頁面導航功能。
+    提供成就系統主面板的頁面導航功能.
     """
 
     def __init__(self, panel: AchievementPanel):
@@ -68,14 +67,13 @@ class PageSelector(discord.ui.Select):
             selected_page = self.values[0]
             await self.panel.change_page(interaction, selected_page)
         except Exception as e:
-            logger.error(f"【頁面選擇器】頁面切換失敗: {e}")
+            logger.error(f"[頁面選擇器]頁面切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class NavigationButton(discord.ui.Button):
     """導航按鈕組件.
 
-    提供頁面間的導航功能。
+    提供頁面間的導航功能.
     """
 
     def __init__(
@@ -106,9 +104,8 @@ class NavigationButton(discord.ui.Button):
         try:
             await self.panel.change_page(interaction, self.target_page)
         except Exception as e:
-            logger.error(f"【導航按鈕】頁面切換失敗: {e}")
+            logger.error(f"[導航按鈕]頁面切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class RefreshButton(discord.ui.Button):
     """重新整理按鈕組件."""
@@ -130,9 +127,8 @@ class RefreshButton(discord.ui.Button):
         try:
             await self.panel.refresh_callback(interaction)
         except Exception as e:
-            logger.error(f"【重新整理按鈕】重新整理失敗: {e}")
+            logger.error(f"[重新整理按鈕]重新整理失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class CloseButton(discord.ui.Button):
     """關閉按鈕組件."""
@@ -152,14 +148,13 @@ class CloseButton(discord.ui.Button):
         try:
             await self.panel.close_callback(interaction)
         except Exception as e:
-            logger.error(f"【關閉按鈕】關閉失敗: {e}")
+            logger.error(f"[關閉按鈕]關閉失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class BrowserCategorySelector(discord.ui.Select):
     """成就瀏覽頁面分類選擇器組件.
 
-    專為成就瀏覽頁面設計的分類篩選功能。
+    專為成就瀏覽頁面設計的分類篩選功能.
     """
 
     def __init__(self, panel: AchievementPanel, categories: list[dict[str, Any]]):
@@ -180,7 +175,7 @@ class BrowserCategorySelector(discord.ui.Select):
             )
         ]
 
-        # 添加分類選項，包含成就數量資訊
+        # 添加分類選項,包含成就數量資訊
         for category in categories[:24]:  # Discord 限制最多25個選項
             options.append(
                 discord.SelectOption(
@@ -209,14 +204,13 @@ class BrowserCategorySelector(discord.ui.Select):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【瀏覽分類選擇器】分類切換失敗: {e}")
+            logger.error(f"[瀏覽分類選擇器]分類切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class BrowserPaginationButton(discord.ui.Button):
     """成就瀏覽頁面分頁按鈕組件.
 
-    專為成就瀏覽頁面設計的分頁導航功能。
+    專為成就瀏覽頁面設計的分頁導航功能.
     """
 
     def __init__(
@@ -269,14 +263,13 @@ class BrowserPaginationButton(discord.ui.Button):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【瀏覽分頁按鈕】分頁導航失敗: {e}")
+            logger.error(f"[瀏覽分頁按鈕]分頁導航失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class AchievementBrowserDetailButton(discord.ui.Button):
     """成就詳情按鈕組件.
 
-    點擊後顯示成就的詳細資訊。
+    點擊後顯示成就的詳細資訊.
     """
 
     def __init__(self, panel: AchievementPanel, achievement_data: dict[str, Any]):
@@ -291,7 +284,7 @@ class AchievementBrowserDetailButton(discord.ui.Button):
 
         super().__init__(
             label=f"{achievement_data['name'][:20]}...",
-            emoji="ℹ️",
+            emoji="i",
             style=discord.ButtonStyle.primary,
         )
 
@@ -305,14 +298,13 @@ class AchievementBrowserDetailButton(discord.ui.Button):
             await interaction.response.send_modal(modal)
 
         except Exception as e:
-            logger.error(f"【成就詳情按鈕】顯示詳情失敗: {e}")
+            logger.error(f"[成就詳情按鈕]顯示詳情失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class AchievementProgressIndicatorView:
     """成就進度指示器視圖組件.
 
-    提供成就進度的視覺化顯示。
+    提供成就進度的視覺化顯示.
     """
 
     @staticmethod
@@ -375,11 +367,10 @@ class AchievementProgressIndicatorView:
 
         return f"[{filled}{empty}]"
 
-
 class AchievementCategorySelector(discord.ui.Select):
     """成就分類選擇器組件.
 
-    用於成就瀏覽頁面的分類篩選。
+    用於成就瀏覽頁面的分類篩選.
     """
 
     def __init__(self, panel: AchievementPanel, categories: list[dict[str, Any]]):
@@ -424,14 +415,13 @@ class AchievementCategorySelector(discord.ui.Select):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【分類選擇器】分類切換失敗: {e}")
+            logger.error(f"[分類選擇器]分類切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class AchievementStatusButton(discord.ui.Button):
     """成就狀態篩選按鈕組件.
 
-    用於篩選已獲得或未獲得的成就。
+    用於篩選已獲得或未獲得的成就.
     """
 
     def __init__(
@@ -467,14 +457,13 @@ class AchievementStatusButton(discord.ui.Button):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【狀態篩選按鈕】狀態切換失敗: {e}")
+            logger.error(f"[狀態篩選按鈕]狀態切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class PaginationButton(discord.ui.Button):
     """分頁導航按鈕組件.
 
-    用於個人成就頁面的分頁導航。
+    用於個人成就頁面的分頁導航.
     """
 
     def __init__(
@@ -527,14 +516,13 @@ class PaginationButton(discord.ui.Button):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【分頁按鈕】分頁導航失敗: {e}")
+            logger.error(f"[分頁按鈕]分頁導航失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class PersonalCategorySelector(discord.ui.Select):
     """個人成就分類選擇器組件.
 
-    用於個人成就頁面的分類篩選。
+    用於個人成就頁面的分類篩選.
     """
 
     def __init__(self, panel: AchievementPanel, categories: list[dict[str, Any]]):
@@ -555,7 +543,6 @@ class PersonalCategorySelector(discord.ui.Select):
             )
         ]
 
-        # 添加分類選項（只顯示用戶有成就的分類）
         for category in categories[:24]:  # Discord 限制最多25個選項
             if category.get("user_achievements_count", 0) > 0:
                 options.append(
@@ -588,14 +575,13 @@ class PersonalCategorySelector(discord.ui.Select):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【個人分類選擇器】分類切換失敗: {e}")
+            logger.error(f"[個人分類選擇器]分類切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class AchievementDetailModal(discord.ui.Modal):
     """成就詳情模態框組件.
 
-    顯示成就的詳細資訊。
+    顯示成就的詳細資訊.
     """
 
     def __init__(self, achievement_data: dict[str, Any]):
@@ -608,7 +594,6 @@ class AchievementDetailModal(discord.ui.Modal):
 
         self.achievement_data = achievement_data
 
-        # 添加成就詳情文本輸入（只讀）
         self.add_item(
             discord.ui.TextInput(
                 label="成就名稱",
@@ -638,14 +623,13 @@ class AchievementDetailModal(discord.ui.Modal):
             )
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        """模態框提交處理（關閉）."""
+        """模態框提交處理(關閉)."""
         await interaction.response.defer()
-
 
 class AchievementProgressIndicator:
     """成就進度指示器組件.
 
-    提供成就進度的視覺化顯示方法。
+    提供成就進度的視覺化顯示方法.
     """
 
     @staticmethod
@@ -714,11 +698,10 @@ class AchievementProgressIndicator:
 
         return f"{filled}{empty}"
 
-
 class ComponentFactory:
     """UI 組件工廠類.
 
-    提供統一的組件創建介面。
+    提供統一的組件創建介面.
     """
 
     @staticmethod
@@ -994,11 +977,10 @@ class ComponentFactory:
             ),
         ]
 
-
 class LeaderboardTypeSelector(discord.ui.Select):
     """排行榜類型選擇器組件.
 
-    用於排行榜頁面的類型切換。
+    用於排行榜頁面的類型切換.
     """
 
     def __init__(
@@ -1008,7 +990,7 @@ class LeaderboardTypeSelector(discord.ui.Select):
 
         Args:
             panel: 所屬的成就面板實例
-            categories: 可用的成就分類列表（可選）
+            categories: 可用的成就分類列表(可選)
         """
         self.panel = panel
         self.categories = categories or []
@@ -1028,7 +1010,6 @@ class LeaderboardTypeSelector(discord.ui.Select):
             ),
         ]
 
-        # 添加分類排行榜選項（最多3個）
         for category in self.categories[:3]:
             options.append(
                 discord.SelectOption(
@@ -1061,14 +1042,13 @@ class LeaderboardTypeSelector(discord.ui.Select):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【排行榜類型選擇器】類型切換失敗: {e}")
+            logger.error(f"[排行榜類型選擇器]類型切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class LeaderboardPaginationButton(discord.ui.Button):
     """排行榜分頁按鈕組件.
 
-    專為排行榜頁面設計的分頁導航功能。
+    專為排行榜頁面設計的分頁導航功能.
     """
 
     def __init__(
@@ -1121,14 +1101,13 @@ class LeaderboardPaginationButton(discord.ui.Button):
             await self.panel.refresh_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【排行榜分頁按鈕】分頁導航失敗: {e}")
+            logger.error(f"[排行榜分頁按鈕]分頁導航失敗: {e}")
             await self.panel.on_error(interaction, e, self)
-
 
 class ComponentManager:
     """組件管理器.
 
-    負責管理面板中的 UI 組件狀態和生命週期。
+    負責管理面板中的 UI 組件狀態和生命週期.
     """
 
     def __init__(self, panel: AchievementPanel):

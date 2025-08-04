@@ -1,6 +1,6 @@
 """核心資料庫模組測試.
 
-此模組測試 src.core.database 中的所有類別和功能，包括：
+此模組測試 src.core.database 中的所有類別和功能,包括:
 - DatabaseConnection 和 DatabasePool
 - BaseRepository 抽象基礎類
 - QueryBuilder 和相關 SQL 構建功能
@@ -39,13 +39,14 @@ class TestDatabaseConnection:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.db_path)
 
@@ -109,24 +110,21 @@ class TestDatabasePool:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.db_path)
 
     @pytest.mark.asyncio
     async def test_database_pool_initialization(self):
         """測試資料庫池初始化."""
-        pool = DatabasePool(
-            database_path=self.db_path,
-            max_connections=5,
-            timeout=30.0
-        )
+        pool = DatabasePool(database_path=self.db_path, max_connections=5, timeout=30.0)
 
         assert str(pool.database_path) == self.db_path
         assert pool.max_connections == 5
@@ -161,11 +159,11 @@ class TestDatabasePool:
         async with pool.get_connection() as conn1:
             connection_ids.append(id(conn1))
 
-        # 第二次使用連接（應該重用）
+        # 第二次使用連接(應該重用)
         async with pool.get_connection() as conn2:
             connection_ids.append(id(conn2))
 
-        # 連接可能被重用，但不保證 ID 相同（取決於實現）
+        # 連接可能被重用,但不保證 ID 相同(取決於實現)
         assert len(connection_ids) == 2
 
     @pytest.mark.asyncio
@@ -177,12 +175,14 @@ class TestDatabasePool:
             assert conn1 is not None
 
             # 嘗試獲取第二個連接應該等待或創建新連接
-            # 這取決於具體實現，這裡只是驗證不會拋出錯誤
+            # 這取決於具體實現,這裡只是驗證不會拋出錯誤
             try:
-                async with asyncio.wait_for(pool.get_connection(), timeout=1.0) as conn2:
+                async with asyncio.wait_for(
+                    pool.get_connection(), timeout=1.0
+                ) as conn2:
                     assert conn2 is not None
             except TimeoutError:
-                # 如果超時，這也是可接受的行為
+                # 如果超時,這也是可接受的行為
                 pass
 
     @pytest.mark.asyncio
@@ -279,10 +279,9 @@ class TestQueryBuilder:
     def test_query_builder_to_select_sql(self):
         """測試生成 SELECT SQL 語句."""
         builder = QueryBuilder("users")
-        builder.select("name", "email")\
-               .where("age", ">", 18)\
-               .order_by("name", OrderDirection.ASC)\
-               .limit(10)
+        builder.select("name", "email").where("age", ">", 18).order_by(
+            "name", OrderDirection.ASC
+        ).limit(10)
 
         sql, params = builder.to_select_sql()
 
@@ -399,7 +398,7 @@ class TestBaseRepository:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
@@ -458,7 +457,9 @@ class TestBaseRepository:
         insert_sql = "INSERT INTO test_table (name) VALUES (?)"
         data = [("name1",), ("name2",), ("name3",)]
 
-        result = await self.repository.execute_many(insert_sql, data, return_changes=True)
+        result = await self.repository.execute_many(
+            insert_sql, data, return_changes=True
+        )
         assert result == 3
 
         # 驗證資料
@@ -481,7 +482,9 @@ class TestBaseRepository:
 
         # 驗證資料已提交
         result = await self.repository.execute_query(
-            "SELECT name FROM test_table WHERE name = ?", ("transaction_test",), fetch_one=True
+            "SELECT name FROM test_table WHERE name = ?",
+            ("transaction_test",),
+            fetch_one=True,
         )
         assert result is not None
         assert result[0] == "transaction_test"
@@ -506,7 +509,9 @@ class TestBaseRepository:
 
         # 驗證資料已回滾
         result = await self.repository.execute_query(
-            "SELECT COUNT(*) FROM test_table WHERE name = ?", ("rollback_test",), fetch_one=True
+            "SELECT COUNT(*) FROM test_table WHERE name = ?",
+            ("rollback_test",),
+            fetch_one=True,
         )
         assert result[0] == 0
 
@@ -516,13 +521,14 @@ class TestDatabaseIntegration:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.db_path)
 
@@ -555,17 +561,15 @@ class TestDatabaseIntegration:
                 for name, email, age, status in test_users:
                     await conn.execute(
                         "INSERT INTO users (name, email, age, status) VALUES (?, ?, ?, ?)",
-                        (name, email, age, status)
+                        (name, email, age, status),
                     )
                 await conn.commit()
 
                 # 使用 QueryBuilder 建構複雜查詢
                 builder = QueryBuilder("users")
-                builder.select("name", "email", "age")\
-                       .where("status", "=", "active")\
-                       .where("age", ">", 20)\
-                       .order_by("age", OrderDirection.DESC)\
-                       .limit(10)
+                builder.select("name", "email", "age").where(
+                    "status", "=", "active"
+                ).where("age", ">", 20).order_by("age", OrderDirection.DESC).limit(10)
 
                 sql, params = builder.to_select_sql()
 
@@ -575,7 +579,7 @@ class TestDatabaseIntegration:
 
                 # 驗證結果
                 assert len(results) == 2  # Alice 和 Charlie
-                assert results[0][0] == "Charlie"  # 按年齡降序，Charlie 在前
+                assert results[0][0] == "Charlie"  # 按年齡降序,Charlie 在前
                 assert results[1][0] == "Alice"
 
         finally:
@@ -599,12 +603,12 @@ class TestDatabaseIntegration:
                 await conn.commit()
 
             async def worker(worker_id: int, iterations: int = 5):
-                """工作協程，執行並發資料庫操作."""
+                """工作協程,執行並發資料庫操作."""
                 for i in range(iterations):
                     async with pool.get_connection() as conn:
                         await conn.execute(
                             "INSERT INTO concurrent_test (worker_id, value) VALUES (?, ?)",
-                            (worker_id, f"value_{worker_id}_{i}")
+                            (worker_id, f"value_{worker_id}_{i}"),
                         )
                         await conn.commit()
                 return worker_id
@@ -654,7 +658,8 @@ class TestDatabaseIntegration:
                 # 嘗試插入重複值
                 with pytest.raises(aiosqlite.IntegrityError):
                     await conn.execute(
-                        "INSERT INTO unique_test (unique_field) VALUES (?)", ("test_value",)
+                        "INSERT INTO unique_test (unique_field) VALUES (?)",
+                        ("test_value",),
                     )
                     await conn.commit()
 

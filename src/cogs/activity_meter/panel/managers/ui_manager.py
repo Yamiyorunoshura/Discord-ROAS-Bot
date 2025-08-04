@@ -59,17 +59,19 @@ class UIManager:
             if not self.permission_manager.can_access_page(user, page_name):
                 return self._create_permission_error_embed(page_name)
 
-            # 根據頁面類型渲染
-            if page_name == "settings":
-                return await self._render_settings_page(guild_id, user)
-            elif page_name == "preview":
-                return await self._render_preview_page(guild_id, user)
-            elif page_name == "stats":
-                return await self._render_stats_page(guild_id, user)
-            elif page_name == "history":
-                return await self._render_history_page(guild_id, user)
-            else:
-                return self._create_error_embed(f"未知頁面: {page_name}")
+            # 頁面渲染器映射
+            page_renderers = {
+                "settings": self._render_settings_page,
+                "preview": self._render_preview_page,
+                "stats": self._render_stats_page,
+                "history": self._render_history_page,
+            }
+
+            renderer = page_renderers.get(page_name)
+            if renderer:
+                return await renderer(guild_id, user)
+
+            return self._create_error_embed(f"未知頁面: {page_name}")
 
         except Exception as e:
             logger.error(f"渲染頁面失敗: {e}")
@@ -288,7 +290,7 @@ class UIManager:
         return embed
 
     async def _render_history_page(
-        self, guild_id: int, user: discord.Member
+        self, _guild_id: int, user: discord.Member
     ) -> discord.Embed:
         """渲染歷史頁面"""
         embed = discord.Embed(

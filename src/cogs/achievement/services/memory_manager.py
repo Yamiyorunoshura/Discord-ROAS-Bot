@@ -1,13 +1,13 @@
 """成就系統記憶體管理器.
 
-此模組提供記憶體使用優化功能，包含：
+此模組提供記憶體使用優化功能,包含:
 - 記憶體使用監控和追蹤
 - 垃圾回收優化
 - 記憶體洩漏檢測
 - 大資料集分頁處理
 - 記憶體使用警報
 
-根據 Story 5.1 Task 4 的要求實作。
+根據 Story 5.1 Task 4 的要求實作.
 """
 
 from __future__ import annotations
@@ -26,19 +26,26 @@ from typing import TYPE_CHECKING, Any
 
 import psutil
 
+# 常數定義
+MAX_SNAPSHOTS = 100  # 最大快照保留數量
+SNAPSHOT_KEEP_COUNT = 50  # 清理後保留的快照數量
+MAX_LEAK_RECORDS = 50  # 最大洩漏記錄數量
+LEAK_KEEP_COUNT = 25  # 清理後保留的洩漏記錄數量
+RECENT_SNAPSHOTS_COUNT = 10  # 最近快照分析數量
+MIN_SNAPSHOTS_FOR_TREND = 2  # 趨勢分析所需的最小快照數量
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
 logger = logging.getLogger(__name__)
 
-
 class MemoryThreshold(str, Enum):
     """記憶體閾值級別."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
-
 
 @dataclass
 class MemorySnapshot:
@@ -48,10 +55,10 @@ class MemorySnapshot:
     """快照時間"""
 
     rss_mb: float = 0.0
-    """常駐記憶體大小（MB）"""
+    """常駐記憶體大小(MB)"""
 
     vms_mb: float = 0.0
-    """虛擬記憶體大小（MB）"""
+    """虛擬記憶體大小(MB)"""
 
     percent: float = 0.0
     """記憶體使用百分比"""
@@ -65,7 +72,6 @@ class MemorySnapshot:
     active_coroutines: int = 0
     """活躍協程數量"""
 
-
 @dataclass
 class MemoryLeak:
     """記憶體洩漏資訊."""
@@ -77,7 +83,7 @@ class MemoryLeak:
     """行號"""
 
     size_mb: float
-    """洩漏大小（MB）"""
+    """洩漏大小(MB)"""
 
     count: int
     """洩漏數量"""
@@ -85,11 +91,10 @@ class MemoryLeak:
     traceback: list[str]
     """堆疊追蹤"""
 
-
 class MemoryManager:
     """記憶體管理器.
 
-    提供記憶體使用優化和監控功能。
+    提供記憶體使用優化和監控功能.
     """
 
     def __init__(
@@ -99,7 +104,7 @@ class MemoryManager:
         gc_threshold_1: int = 10,
         gc_threshold_2: int = 10,
         memory_warning_mb: float = 80.0,
-        memory_critical_mb: float = 100.0
+        memory_critical_mb: float = 100.0,
     ):
         """初始化記憶體管理器.
 
@@ -108,8 +113,8 @@ class MemoryManager:
             gc_threshold_0: 第0代垃圾回收閾值
             gc_threshold_1: 第1代垃圾回收閾值
             gc_threshold_2: 第2代垃圾回收閾值
-            memory_warning_mb: 記憶體警告閾值（MB）
-            memory_critical_mb: 記憶體嚴重閾值（MB）
+            memory_warning_mb: 記憶體警告閾值(MB)
+            memory_critical_mb: 記憶體嚴重閾值(MB)
         """
         self._enable_tracing = enable_tracing
         self._memory_warning_mb = memory_warning_mb
@@ -139,7 +144,7 @@ class MemoryManager:
             "memory_warnings": 0,
             "memory_criticals": 0,
             "leaks_detected": 0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
 
         logger.info(
@@ -147,8 +152,8 @@ class MemoryManager:
             extra={
                 "tracing_enabled": enable_tracing,
                 "warning_threshold": memory_warning_mb,
-                "critical_threshold": memory_critical_mb
-            }
+                "critical_threshold": memory_critical_mb,
+            },
         )
 
     async def __aenter__(self) -> MemoryManager:
@@ -224,11 +229,15 @@ class MemoryManager:
             # 取得垃圾回收器資訊
             gc_objects = len(gc.get_objects())
             gc_stats = gc.get_stats()
-            gc_collections = {i: stat.get('collections', 0) for i, stat in enumerate(gc_stats)}
+            gc_collections = {
+                i: stat.get("collections", 0) for i, stat in enumerate(gc_stats)
+            }
 
             # 取得協程資訊
             try:
-                active_coroutines = len([task for task in asyncio.all_tasks() if not task.done()])
+                active_coroutines = len(
+                    [task for task in asyncio.all_tasks() if not task.done()]
+                )
             except RuntimeError:
                 active_coroutines = 0
 
@@ -238,13 +247,13 @@ class MemoryManager:
                 percent=memory_percent,
                 gc_objects=gc_objects,
                 gc_collections=gc_collections,
-                active_coroutines=active_coroutines
+                active_coroutines=active_coroutines,
             )
 
             # 儲存快照
             self._snapshots.append(snapshot)
             if len(self._snapshots) > self._max_snapshots:
-                self._snapshots = self._snapshots[-self._max_snapshots//2:]
+                self._snapshots = self._snapshots[-self._max_snapshots // 2 :]
 
             self._stats["total_snapshots"] += 1
 
@@ -269,8 +278,8 @@ class MemoryManager:
                     "memory_mb": rss_mb,
                     "threshold_mb": self._memory_critical_mb,
                     "gc_objects": snapshot.gc_objects,
-                    "active_coroutines": snapshot.active_coroutines
-                }
+                    "active_coroutines": snapshot.active_coroutines,
+                },
             )
 
             # 執行緊急垃圾回收
@@ -283,8 +292,8 @@ class MemoryManager:
                 extra={
                     "memory_mb": rss_mb,
                     "threshold_mb": self._memory_warning_mb,
-                    "gc_objects": snapshot.gc_objects
-                }
+                    "gc_objects": snapshot.gc_objects,
+                },
             )
 
     async def _monitoring_loop(self) -> None:
@@ -319,7 +328,7 @@ class MemoryManager:
         # 設定更積極的垃圾回收閾值
         gc.set_threshold(*self._optimized_gc_thresholds)
 
-        # 啟用垃圾回收調試（開發環境）
+        # Enable GC debugging in development
         if logger.level <= logging.DEBUG:
             gc.set_debug(gc.DEBUG_STATS)
 
@@ -327,14 +336,14 @@ class MemoryManager:
 
         logger.info(
             f"垃圾回收器已優化: {self._optimized_gc_thresholds}",
-            extra={"original_thresholds": self._original_gc_thresholds}
+            extra={"original_thresholds": self._original_gc_thresholds},
         )
 
     async def force_gc(self, generation: int | None = None) -> dict[str, int]:
         """強制執行垃圾回收.
 
         Args:
-            generation: 要回收的代數，None 表示所有代
+            generation: 要回收的代數,None 表示所有代
 
         Returns:
             垃圾回收統計
@@ -348,12 +357,12 @@ class MemoryManager:
         stats = {
             "collected_objects": collected,
             "duration_ms": duration_ms,
-            "generation": generation or "all"
+            "generation": generation or "all",
         }
 
         logger.debug(
-            f"強制垃圾回收完成: 回收 {collected} 個物件，耗時 {duration_ms:.2f}ms",
-            extra=stats
+            f"強制垃圾回收完成: 回收 {collected} 個物件,耗時 {duration_ms:.2f}ms",
+            extra=stats,
         )
 
         return stats
@@ -374,16 +383,16 @@ class MemoryManager:
             gc_stats = await self.force_gc()
             results["garbage_collection"] = gc_stats
 
-            # 2. 清理快照歷史（保留最近的）
-            if len(self._snapshots) > 100:
+            # 2. 清理快照歷史(保留最近的)
+            if len(self._snapshots) > MAX_SNAPSHOTS:
                 old_count = len(self._snapshots)
-                self._snapshots = self._snapshots[-50:]
+                self._snapshots = self._snapshots[-SNAPSHOT_KEEP_COUNT:]
                 results["snapshots_cleaned"] = old_count - len(self._snapshots)
 
             # 3. 清理檢測到的洩漏記錄
-            if len(self._detected_leaks) > 50:
+            if len(self._detected_leaks) > MAX_LEAK_RECORDS:
                 old_count = len(self._detected_leaks)
-                self._detected_leaks = self._detected_leaks[-25:]
+                self._detected_leaks = self._detected_leaks[-LEAK_KEEP_COUNT:]
                 results["leaks_cleaned"] = old_count - len(self._detected_leaks)
 
             # 4. 檢查並清理未完成的任務
@@ -398,10 +407,7 @@ class MemoryManager:
             duration_ms = (time.time() - optimization_start) * 1000
             results["total_duration_ms"] = duration_ms
 
-            logger.info(
-                f"記憶體優化完成，耗時 {duration_ms:.2f}ms",
-                extra=results
-            )
+            logger.info(f"記憶體優化完成,耗時 {duration_ms:.2f}ms", extra=results)
 
             return results
 
@@ -448,12 +454,12 @@ class MemoryManager:
             current_snapshot = current_snapshot.filter_traces(filters)
 
             # 取得前10個記憶體使用最多的程式碼行
-            top_stats = current_snapshot.statistics('lineno')[:10]
+            top_stats = current_snapshot.statistics("lineno")[:10]
 
             detected_leaks = []
 
             for stat in top_stats:
-                # 檢查是否可能是記憶體洩漏（大於1MB的分配）
+                # Check for potential memory leaks (> 1MB allocations)
                 size_mb = stat.size / 1024 / 1024
                 if size_mb > 1.0:
                     traceback_lines = []
@@ -461,11 +467,13 @@ class MemoryManager:
                         traceback_lines.append(f"{frame.filename}:{frame.lineno}")
 
                     leak = MemoryLeak(
-                        file_name=stat.traceback[0].filename if stat.traceback else "unknown",
+                        file_name=stat.traceback[0].filename
+                        if stat.traceback
+                        else "unknown",
                         line_number=stat.traceback[0].lineno if stat.traceback else 0,
                         size_mb=size_mb,
                         count=stat.count,
-                        traceback=traceback_lines
+                        traceback=traceback_lines,
                     )
 
                     detected_leaks.append(leak)
@@ -483,11 +491,11 @@ class MemoryManager:
                                 "file": leak.file_name,
                                 "line": leak.line_number,
                                 "size_mb": round(leak.size_mb, 2),
-                                "count": leak.count
+                                "count": leak.count,
                             }
                             for leak in detected_leaks
                         ]
-                    }
+                    },
                 )
 
             return detected_leaks
@@ -504,14 +512,14 @@ class MemoryManager:
         self,
         dataset: list[Any],
         page_size: int = 100,
-        process_func: callable | None = None
+        process_func: callable | None = None,
     ) -> Generator[list[Any], None, None]:
         """分頁處理大資料集.
 
         Args:
             dataset: 要處理的資料集
             page_size: 每頁大小
-            process_func: 處理函數（可選）
+            process_func: 處理函數(可選)
 
         Yields:
             分頁後的資料
@@ -521,22 +529,22 @@ class MemoryManager:
         if total_items == 0:
             return
 
-        logger.info(f"開始分頁處理大資料集: {total_items} 項，頁大小: {page_size}")
+        logger.info(f"開始分頁處理大資料集: {total_items} 項,頁大小: {page_size}")
 
         for i in range(0, total_items, page_size):
-            page_data = dataset[i:i + page_size]
+            page_data = dataset[i : i + page_size]
 
             if process_func:
                 try:
                     processed_data = await process_func(page_data)
                     yield processed_data
                 except Exception as e:
-                    logger.error(f"處理第 {i//page_size + 1} 頁失敗: {e}")
+                    logger.error(f"處理第 {i // page_size + 1} 頁失敗: {e}")
                     yield page_data
             else:
                 yield page_data
 
-            # 在處理頁面間進行小幅延遲，讓其他協程有機會執行
+            # 在處理頁面間進行小幅延遲,讓其他協程有機會執行
             await asyncio.sleep(0.001)
 
             # 定期進行垃圾回收
@@ -548,7 +556,7 @@ class MemoryManager:
         items: list[Any],
         operation_func: callable,
         batch_size: int = 50,
-        memory_limit_mb: float = 50.0
+        memory_limit_mb: float = 50.0,
     ) -> list[Any]:
         """記憶體安全的批量操作.
 
@@ -556,7 +564,7 @@ class MemoryManager:
             items: 要處理的項目列表
             operation_func: 操作函數
             batch_size: 批次大小
-            memory_limit_mb: 記憶體限制（MB）
+            memory_limit_mb: 記憶體限制(MB)
 
         Returns:
             處理結果列表
@@ -567,7 +575,7 @@ class MemoryManager:
             # 檢查記憶體使用量
             snapshot = await self.take_snapshot()
             if snapshot.rss_mb > memory_limit_mb:
-                logger.warning(f"記憶體使用過高 ({snapshot.rss_mb:.1f}MB)，執行優化")
+                logger.warning(f"記憶體使用過高 ({snapshot.rss_mb:.1f}MB),執行優化")
                 await self.optimize_memory()
 
             try:
@@ -592,11 +600,13 @@ class MemoryManager:
         if not self._snapshots:
             return {"error": "沒有可用的記憶體快照"}
 
-        recent_snapshots = self._snapshots[-10:] if len(self._snapshots) >= 10 else self._snapshots
+        recent_snapshots = (
+            self._snapshots[-RECENT_SNAPSHOTS_COUNT:] if len(self._snapshots) >= RECENT_SNAPSHOTS_COUNT else self._snapshots
+        )
         current_snapshot = self._snapshots[-1]
 
         # 計算趨勢
-        if len(self._snapshots) >= 2:
+        if len(self._snapshots) >= MIN_SNAPSHOTS_FOR_TREND:
             memory_trend = self._snapshots[-1].rss_mb - self._snapshots[-2].rss_mb
         else:
             memory_trend = 0.0
@@ -607,11 +617,15 @@ class MemoryManager:
                 "vms_mb": round(current_snapshot.vms_mb, 2),
                 "percent": round(current_snapshot.percent, 2),
                 "gc_objects": current_snapshot.gc_objects,
-                "active_coroutines": current_snapshot.active_coroutines
+                "active_coroutines": current_snapshot.active_coroutines,
             },
             "trend": {
                 "memory_change_mb": round(memory_trend, 2),
-                "direction": "increasing" if memory_trend > 0 else "decreasing" if memory_trend < 0 else "stable"
+                "direction": "increasing"
+                if memory_trend > 0
+                else "decreasing"
+                if memory_trend < 0
+                else "stable",
             },
             "statistics": {
                 "total_snapshots": len(self._snapshots),
@@ -623,7 +637,7 @@ class MemoryManager:
                 ),
                 "peak_memory_mb": round(max(s.rss_mb for s in self._snapshots), 2),
                 "memory_warnings": self._stats["memory_warnings"],
-                "memory_criticals": self._stats["memory_criticals"]
+                "memory_criticals": self._stats["memory_criticals"],
             },
             "leaks": {
                 "detection_enabled": self._leak_detection_enabled,
@@ -633,15 +647,15 @@ class MemoryManager:
                         "file": leak.file_name.split("/")[-1],  # 只顯示檔案名
                         "line": leak.line_number,
                         "size_mb": round(leak.size_mb, 2),
-                        "count": leak.count
+                        "count": leak.count,
                     }
                     for leak in self._detected_leaks[-5:]  # 最近5個
-                ]
+                ],
             },
             "thresholds": {
                 "warning_mb": self._memory_warning_mb,
-                "critical_mb": self._memory_critical_mb
-            }
+                "critical_mb": self._memory_critical_mb,
+            },
         }
 
     def reset_stats(self) -> None:
@@ -652,13 +666,12 @@ class MemoryManager:
             "memory_warnings": 0,
             "memory_criticals": 0,
             "leaks_detected": 0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
         self._snapshots.clear()
         self._detected_leaks.clear()
 
         logger.info("記憶體統計已重置")
-
 
 __all__ = [
     "MemoryLeak",

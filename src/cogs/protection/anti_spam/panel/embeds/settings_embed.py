@@ -35,7 +35,6 @@ async def create_settings_embed(
     else:
         return await _create_category_embed(cog, guild, category)
 
-
 async def _create_overview_embed(
     cog: "AntiSpam", guild: discord.Guild
 ) -> discord.Embed:
@@ -93,7 +92,7 @@ async def _create_overview_embed(
         try:
             channel = guild.get_channel(int(notify_channel))
             channel_name = channel.name if channel else "已刪除的頻道"
-        except:
+        except Exception:
             channel_name = "無效頻道"
     else:
         channel_name = "未設定"
@@ -114,7 +113,6 @@ async def _create_overview_embed(
 
     embed.set_footer(text="選擇上方的分類進行詳細設定")
     return embed
-
 
 async def _create_category_embed(
     cog: "AntiSpam", guild: discord.Guild, category_id: str
@@ -164,49 +162,47 @@ async def _create_category_embed(
     embed.set_footer(text="點擊下方按鈕進行設定或查看其他功能")
     return embed
 
-
 def _format_config_value(key: str, value: str, guild: discord.Guild) -> str:
     """格式化設定值顯示"""
     try:
-        if key == "spam_notify_channel":
-            if not value or value == "":
-                return "未設定"
-            try:
-                channel = guild.get_channel(int(value))
-                return f"#{channel.name}" if channel else "無效頻道"
-            except:
-                return "無效頻道"
+        # 定義格式化規則
+        formatters = {
+            "spam_notify_channel": lambda v: _format_channel_value(v, guild),
+            "spam_response_enabled": lambda v: "啟用" if v.lower() == "true" else "停用",
+            "spam_timeout_minutes": lambda v: f"{v} 分鐘",
+            "spam_similar_threshold": lambda v: f"{float(v):.1%}",
+            "spam_response_message": lambda v: f'"{v}"' if v else "預設訊息",
+        }
 
-        elif key in ["spam_response_enabled"]:
-            return "啟用" if value.lower() == "true" else "停用"
+        # 處理多個鍵的通用格式
+        limit_keys = [
+            "spam_freq_limit", "spam_identical_limit",
+            "spam_similar_limit", "spam_sticker_limit"
+        ]
+        window_keys = [
+            "spam_freq_window", "spam_identical_window",
+            "spam_similar_window", "spam_sticker_window"
+        ]
 
-        elif key in [
-            "spam_freq_limit",
-            "spam_identical_limit",
-            "spam_similar_limit",
-            "spam_sticker_limit",
-        ]:
+        # 根據鍵類型進行格式化
+        if key in formatters:
+            return formatters[key](value)
+        elif key in limit_keys:
             return f"{value} 次"
-
-        elif key in [
-            "spam_freq_window",
-            "spam_identical_window",
-            "spam_similar_window",
-            "spam_sticker_window",
-        ]:
+        elif key in window_keys:
             return f"{value} 秒"
-
-        elif key == "spam_timeout_minutes":
-            return f"{value} 分鐘"
-
-        elif key == "spam_similar_threshold":
-            return f"{float(value):.1%}"
-
-        elif key == "spam_response_message":
-            return f'"{value}"' if value else "預設訊息"
-
         else:
             return value
 
-    except:
+    except Exception:
         return value
+
+def _format_channel_value(value: str, guild: discord.Guild) -> str:
+    """格式化頻道值"""
+    if not value or value == "":
+        return "未設定"
+    try:
+        channel = guild.get_channel(int(value))
+        return f"#{channel.name}" if channel else "無效頻道"
+    except Exception:
+        return "無效頻道"

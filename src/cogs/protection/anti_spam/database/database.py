@@ -12,7 +12,6 @@ from ...base import ProtectionCog
 
 logger = logging.getLogger("anti_spam")
 
-
 class AntiSpamDatabase:
     """
     反垃圾訊息保護模組資料庫操作類
@@ -46,10 +45,10 @@ class AntiSpamDatabase:
             # 創建操作日誌表
             await self._create_action_log_table()
 
-            logger.info("【反垃圾訊息】資料庫初始化完成")
+            logger.info("[反垃圾訊息]資料庫初始化完成")
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】資料庫初始化失敗: {exc}")
+            logger.error(f"[反垃圾訊息]資料庫初始化失敗: {exc}")
             raise
 
     async def _create_stats_table(self):
@@ -132,7 +131,7 @@ class AntiSpamDatabase:
             return {row["key"]: row["value"] for row in rows}
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】取得配置失敗: {exc}")
+            logger.error(f"[反垃圾訊息]取得配置失敗: {exc}")
             return {}
 
     async def reset_all_configs(self, guild_id: int):
@@ -156,10 +155,10 @@ class AntiSpamDatabase:
             if guild_id in self.cog._cache:
                 del self.cog._cache[guild_id]
 
-            logger.info(f"【反垃圾訊息】已重置伺服器 {guild_id} 的所有配置")
+            logger.info(f"[反垃圾訊息]已重置伺服器 {guild_id} 的所有配置")
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】重置配置失敗: {exc}")
+            logger.error(f"[反垃圾訊息]重置配置失敗: {exc}")
             raise
 
     # ───────── 統計資料 ─────────
@@ -185,7 +184,7 @@ class AntiSpamDatabase:
             )
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】增加統計失敗: {exc}")
+            logger.error(f"[反垃圾訊息]增加統計失敗: {exc}")
 
     async def get_stats(self, guild_id: int) -> dict[str, int]:
         """
@@ -210,7 +209,7 @@ class AntiSpamDatabase:
             return {row["stat_type"]: row["count"] for row in rows}
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】取得統計失敗: {exc}")
+            logger.error(f"[反垃圾訊息]取得統計失敗: {exc}")
             return {}
 
     async def reset_stats(self, guild_id: int):
@@ -229,10 +228,10 @@ class AntiSpamDatabase:
                 "DELETE FROM anti_spam_stats WHERE guild_id=?", (guild_id,)
             )
 
-            logger.info(f"【反垃圾訊息】已重置伺服器 {guild_id} 的統計資料")
+            logger.info(f"[反垃圾訊息]已重置伺服器 {guild_id} 的統計資料")
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】重置統計失敗: {exc}")
+            logger.error(f"[反垃圾訊息]重置統計失敗: {exc}")
             raise
 
     # ───────── 操作日誌 ─────────
@@ -259,7 +258,7 @@ class AntiSpamDatabase:
             )
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】添加操作日誌失敗: {exc}")
+            logger.error(f"[反垃圾訊息]添加操作日誌失敗: {exc}")
 
     async def get_action_logs(
         self, guild_id: int, limit: int = 50
@@ -287,7 +286,7 @@ class AntiSpamDatabase:
             return [dict(row) for row in rows]
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】取得操作日誌失敗: {exc}")
+            logger.error(f"[反垃圾訊息]取得操作日誌失敗: {exc}")
             return []
 
     async def cleanup_old_logs(self, guild_id: int, days: int = 30):
@@ -309,7 +308,7 @@ class AntiSpamDatabase:
             )
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】清理舊日誌失敗: {exc}")
+            logger.error(f"[反垃圾訊息]清理舊日誌失敗: {exc}")
 
     # ───────── 配置變更日誌 ─────────
     async def log_config_change(

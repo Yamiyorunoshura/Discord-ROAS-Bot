@@ -2,7 +2,7 @@
 📨 訊息監聽系統單元測試
 Discord ADR Bot v1.6 - 訊息監聽系統專業測試套件
 
-測試範圍：
+測試範圍:
 - 💾 訊息緩存機制測試
 - 🎨 訊息渲染功能測試
 - 🔍 訊息搜尋系統測試
@@ -13,8 +13,8 @@ Discord ADR Bot v1.6 - 訊息監聽系統專業測試套件
 - 🛡️ 錯誤處理測試
 - 🔗 整合測試
 
-作者：Discord ADR Bot 測試與除錯專家
-版本：v1.6
+作者:Discord ADR Bot 測試與除錯專家
+版本:v1.6
 """
 
 import time
@@ -43,12 +43,13 @@ TEST_CONFIG = {
     "image_width": 800,
     "image_height": 600,
     "timeout_seconds": 30,
-    "max_content_length": 2000
+    "max_content_length": 2000,
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 全局 Fixtures
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 @pytest_asyncio.fixture
 async def mock_pool(test_db):
@@ -63,6 +64,7 @@ async def mock_pool(test_db):
     mock_pool.get_connection_context = mock_get_connection_context
     return mock_pool
 
+
 class TestMessageCache:
     """💾 訊息緩存系統測試類"""
 
@@ -71,9 +73,10 @@ class TestMessageCache:
         """建立測試用緩存實例"""
         try:
             from cogs.message_listener.main.cache import MessageCache
+
             return MessageCache()
         except ImportError:
-            # 如果模組不存在，建立模擬緩存
+            # 如果模組不存在,建立模擬緩存
             cache = Mock()
             cache._cache = {}
             cache._timestamps = {}
@@ -135,7 +138,7 @@ class TestMessageCache:
     def test_add_message_timeout(self, cache, mock_message):
         """測試緩存超時觸發處理"""
         # 添加一條舊訊息
-        with patch('time.time') as mock_time:
+        with patch("time.time") as mock_time:
             mock_time.return_value = 1000000000  # 基準時間
             cache.add_message(mock_message)
 
@@ -180,21 +183,24 @@ class TestMessageCache:
 
     def test_cleanup_old_entries(self, cache, mock_message):
         """測試清理過期緩存條目"""
-        with patch('time.time') as mock_time:
+        with patch("time.time") as mock_time:
             # 設置初始時間
             mock_time.return_value = 1000000000
 
             # 添加訊息到緩存
             cache.add_message(mock_message)
 
-            # 時間流逝，超過最大緩存時間
+            # 時間流逝,超過最大緩存時間
             mock_time.return_value = 1000000000 + config.MAX_CACHE_TIME + 100
 
             # 執行清理 - 使用 check_all_channels 方法替代不存在的 _cleanup_old_entries
             channels_to_process = cache.check_all_channels()
 
             # 檢查是否需要處理該頻道
-            assert mock_message.channel.id in channels_to_process, "過期的頻道應該被標記為需要處理"
+            assert mock_message.channel.id in channels_to_process, (
+                "過期的頻道應該被標記為需要處理"
+            )
+
 
 class TestMessageRenderer:
     """訊息渲染器測試"""
@@ -219,12 +225,12 @@ class TestMessageRenderer:
         message.reference = None
         return message
 
-    @patch('cogs.message_listener.main.renderer.utils.find_available_font')
+    @patch("cogs.message_listener.main.renderer.utils.find_available_font")
     def test_load_fonts_success(self, mock_find_font, renderer):
         """測試字型載入成功"""
         mock_find_font.return_value = "/path/to/font.ttf"
 
-        with patch('PIL.ImageFont.truetype') as mock_truetype:
+        with patch("PIL.ImageFont.truetype") as mock_truetype:
             mock_font = Mock()
             mock_truetype.return_value = mock_font
 
@@ -234,12 +240,12 @@ class TestMessageRenderer:
             assert renderer.username_font == mock_font
             assert renderer.timestamp_font == mock_font
 
-    @patch('cogs.message_listener.main.renderer.utils.find_available_font')
+    @patch("cogs.message_listener.main.renderer.utils.find_available_font")
     def test_load_fonts_failure(self, mock_find_font, renderer):
         """測試字型載入失敗時的降級處理"""
         mock_find_font.side_effect = Exception("字型載入失敗")
 
-        with patch('PIL.ImageFont.load_default') as mock_default:
+        with patch("PIL.ImageFont.load_default") as mock_default:
             mock_font = Mock()
             mock_default.return_value = mock_font
 
@@ -264,15 +270,15 @@ class TestMessageRenderer:
         """測試頭像獲取成功"""
         mock_user.display_avatar.url = "https://example.com/avatar.png"
 
-        # 簡化測試 - 直接模擬失敗情況，測試預設頭像返回
-        with patch.object(renderer, 'get_session') as mock_get_session:
+        # 簡化測試 - 直接模擬失敗情況,測試預設頭像返回
+        with patch.object(renderer, "get_session") as mock_get_session:
             mock_session = AsyncMock()
             mock_get_session.return_value = mock_session
 
-            # 模擬網路錯誤，觸發預設頭像邏輯
+            # 模擬網路錯誤,觸發預設頭像邏輯
             mock_session.get.side_effect = Exception("網路錯誤")
 
-            with patch.object(renderer, '_get_default_avatar') as mock_get_default:
+            with patch.object(renderer, "_get_default_avatar") as mock_get_default:
                 mock_default_avatar = Mock()
                 mock_get_default.return_value = mock_default_avatar
 
@@ -280,7 +286,7 @@ class TestMessageRenderer:
 
                 # 檢查返回的是否為預設頭像
                 assert result is not None, "應該返回預設頭像"
-                # 允許被調用多次，因為頭像處理流程可能需要多次調用
+                # 允許被調用多次,因為頭像處理流程可能需要多次調用
                 assert mock_get_default.call_count >= 1, "應該調用預設頭像方法"
 
     @pytest.mark.asyncio
@@ -288,19 +294,19 @@ class TestMessageRenderer:
         """測試頭像獲取失敗時的降級處理"""
         mock_user.display_avatar.url = "https://example.com/avatar.png"
 
-        with patch.object(renderer, 'get_session') as mock_get_session:
+        with patch.object(renderer, "get_session") as mock_get_session:
             mock_session = AsyncMock()
             mock_get_session.return_value = mock_session
             mock_session.get.side_effect = Exception("網路錯誤")
 
-            with patch.object(renderer, '_get_default_avatar') as mock_get_default:
+            with patch.object(renderer, "_get_default_avatar") as mock_get_default:
                 mock_img = Mock()
                 mock_get_default.return_value = mock_img
 
                 result = await renderer.get_enhanced_avatar(mock_user)
 
                 assert result is not None, "失敗時應該返回預設頭像"
-                # 允許被調用多次，因為頭像處理流程可能需要多次調用
+                # 允許被調用多次,因為頭像處理流程可能需要多次調用
                 assert mock_get_default.call_count >= 1, "應該調用預設頭像方法"
 
     def test_format_timestamp(self, renderer):
@@ -330,12 +336,13 @@ class TestMessageRenderer:
         """測試成功渲染訊息"""
         messages = [mock_message]
 
-        with patch.object(renderer, 'get_enhanced_avatar') as mock_get_avatar, \
-             patch('PIL.Image.new') as mock_image_new, \
-             patch('PIL.ImageDraw.Draw') as mock_draw, \
-             patch('tempfile.mkstemp') as mock_mkstemp, \
-             patch('os.close'):
-
+        with (
+            patch.object(renderer, "get_enhanced_avatar") as mock_get_avatar,
+            patch("PIL.Image.new") as mock_image_new,
+            patch("PIL.ImageDraw.Draw") as mock_draw,
+            patch("tempfile.mkstemp") as mock_mkstemp,
+            patch("os.close"),
+        ):
             # 設置模擬對象
             mock_avatar = Mock()
             mock_avatar.size = (40, 40)  # 添加必要的屬性
@@ -358,6 +365,7 @@ class TestMessageRenderer:
             # 修復檢查邏輯 - 檢查是否返回了檔案路徑
             assert result is not None, "應該返回圖片檔案路徑"
             mock_img.save.assert_called_once()
+
 
 class TestMessageListenerDB:
     """訊息監聽資料庫測試"""
@@ -409,16 +417,43 @@ class TestMessageListenerDB:
         # 使用當前時間戳來確保資料在搜尋範圍內
         current_time = time.time()
         test_data = [
-            (123456789, 67890, 12345, 11111, "測試訊息1", current_time - 3600, None, 0),  # 1小時前
-            (123456790, 67890, 12345, 11111, "測試訊息2", current_time - 1800, None, 0),  # 30分鐘前
-            (123456791, 67891, 12345, 11112, "測試訊息3", current_time - 900, None, 0),   # 15分鐘前
+            (
+                123456789,
+                67890,
+                12345,
+                11111,
+                "測試訊息1",
+                current_time - 3600,
+                None,
+                0,
+            ),  # 1小時前
+            (
+                123456790,
+                67890,
+                12345,
+                11111,
+                "測試訊息2",
+                current_time - 1800,
+                None,
+                0,
+            ),  # 30分鐘前
+            (
+                123456791,
+                67891,
+                12345,
+                11112,
+                "測試訊息3",
+                current_time - 900,
+                None,
+                0,
+            ),  # 15分鐘前
         ]
 
         # 直接使用test_db插入測試數據
         for data in test_data:
             await test_db.execute(
                 "INSERT INTO messages (message_id, channel_id, guild_id, author_id, content, timestamp, attachments, deleted) VALUES (?,?,?,?,?,?,?,?)",
-                data
+                data,
             )
         await test_db.commit()
 
@@ -428,23 +463,27 @@ class TestMessageListenerDB:
         db = MessageListenerDB(":memory:")
         db._pool = mock_pool
 
-        # 手動設置表格已存在（因為我們在fixture中已經創建了）
+        # 手動設置表格已存在(因為我們在fixture中已經創建了)
         await db.init_db()
 
         # 檢查表格是否存在 - 通過查詢表格信息
-        cursor = await test_db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='messages'")
+        cursor = await test_db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='messages'"
+        )
         result = await cursor.fetchone()
         assert result is not None, "messages表格應該存在"
 
         # 檢查表格是否可以插入數據
         await test_db.execute(
             "INSERT INTO messages (message_id, channel_id, guild_id, author_id, content, timestamp, deleted) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (999999, 1, 1, 1, "test", 1000, 0)
+            (999999, 1, 1, 1, "test", 1000, 0),
         )
         await test_db.commit()
 
         # 驗證數據是否成功插入
-        cursor = await test_db.execute("SELECT COUNT(*) FROM messages WHERE message_id = 999999")
+        cursor = await test_db.execute(
+            "SELECT COUNT(*) FROM messages WHERE message_id = 999999"
+        )
         count = await cursor.fetchone()
         assert count[0] == 1, "應該成功插入一條測試數據"
 
@@ -464,7 +503,7 @@ class TestMessageListenerDB:
         # 設置正確的連接池
         db._pool = mock_pool
 
-        # 模擬execute方法，直接插入到test_db
+        # 模擬execute方法,直接插入到test_db
         original_execute = db.execute
 
         async def mock_execute(query, *args):
@@ -480,12 +519,16 @@ class TestMessageListenerDB:
         await db.save_message(mock_message)
 
         # 驗證數據是否成功保存
-        cursor = await test_db.execute("SELECT COUNT(*) FROM messages WHERE message_id = ?", (999888777,))
+        cursor = await test_db.execute(
+            "SELECT COUNT(*) FROM messages WHERE message_id = ?", (999888777,)
+        )
         count = await cursor.fetchone()
         assert count[0] == 1, "訊息應該成功保存到資料庫"
 
         # 驗證內容是否正確
-        cursor = await test_db.execute("SELECT content FROM messages WHERE message_id = ?", (999888777,))
+        cursor = await test_db.execute(
+            "SELECT content FROM messages WHERE message_id = ?", (999888777,)
+        )
         content = await cursor.fetchone()
         assert content[0] == "測試訊息內容", "訊息內容應該正確"
 
@@ -499,17 +542,20 @@ class TestMessageListenerDB:
         original_select = db.select
 
         async def mock_select(query: str, params: tuple = ()) -> list[dict[str, Any]]:
-            # 簡化查詢，直接返回模擬結果
+            # 簡化查詢,直接返回模擬結果
             if params and "測試訊息1" in str(params):
-                return [{"message_id": 123456789, "content": "測試訊息1", "timestamp": time.time() - 3600}]
+                return [
+                    {
+                        "message_id": 123456789,
+                        "content": "測試訊息1",
+                        "timestamp": time.time() - 3600,
+                    }
+                ]
             return []
 
         db.select = mock_select
 
-        results = await db.search_messages(
-            keyword="測試訊息1",
-            limit=10
-        )
+        results = await db.search_messages(keyword="測試訊息1", limit=10)
 
         assert len(results) == 1, "應該找到一條匹配的訊息"
         assert results[0]["content"] == "測試訊息1", "訊息內容應該匹配"
@@ -524,20 +570,25 @@ class TestMessageListenerDB:
         original_select = db.select
 
         async def mock_select(query: str, params: tuple = ()) -> list[dict[str, Any]]:
-            # 簡化查詢，直接返回模擬結果
+            # 簡化查詢,直接返回模擬結果
             if params and 67890 in params:
                 return [
-                    {"message_id": 123456789, "content": "測試訊息1", "timestamp": time.time() - 3600},
-                    {"message_id": 123456790, "content": "測試訊息2", "timestamp": time.time() - 1800}
+                    {
+                        "message_id": 123456789,
+                        "content": "測試訊息1",
+                        "timestamp": time.time() - 3600,
+                    },
+                    {
+                        "message_id": 123456790,
+                        "content": "測試訊息2",
+                        "timestamp": time.time() - 1800,
+                    },
                 ]
             return []
 
         db.select = mock_select
 
-        results = await db.search_messages(
-            channel_id=67890,
-            limit=10
-        )
+        results = await db.search_messages(channel_id=67890, limit=10)
 
         assert len(results) == 2, "應該找到兩條該頻道的訊息"
 
@@ -551,15 +602,21 @@ class TestMessageListenerDB:
         original_select = db.select
 
         async def mock_select(query: str, params: tuple = ()) -> list[dict[str, Any]]:
-            # 簡化查詢，直接返回模擬結果
-            return [{"message_id": 123456791, "content": "測試訊息3", "timestamp": time.time() - 900}]
+            # 簡化查詢,直接返回模擬結果
+            return [
+                {
+                    "message_id": 123456791,
+                    "content": "測試訊息3",
+                    "timestamp": time.time() - 900,
+                }
+            ]
 
         db.select = mock_select
 
         # 使用hours參數替代since參數
         results = await db.search_messages(
             hours=1,  # 搜尋1小時內的訊息
-            limit=10
+            limit=10,
         )
 
         assert len(results) >= 0, "應該找到時間範圍內的訊息"
@@ -667,7 +724,7 @@ class TestMessageListenerDB:
 
         db.execute = mock_execute
 
-        # 執行清理（保留1天的訊息）
+        # 執行清理(保留1天的訊息)
         await db.purge_old_messages(days=1)
 
         # 驗證清理方法被調用
@@ -676,16 +733,20 @@ class TestMessageListenerDB:
         # 恢復原來的execute方法
         db.execute = original_execute
 
+
 class TestMessageListenerCog:
     """訊息監聽Cog整合測試"""
 
     @pytest_asyncio.fixture
     async def message_listener(self, mock_bot):
         """建立測試用的訊息監聽Cog"""
-        with patch('cogs.message_listener.main.main.MessageListenerDB') as mock_db_class, \
-             patch('cogs.message_listener.main.main.MessageCache') as mock_cache_class, \
-             patch('cogs.message_listener.main.main.MessageRenderer') as mock_renderer_class:
-
+        with (
+            patch("cogs.message_listener.main.main.MessageListenerDB") as mock_db_class,
+            patch("cogs.message_listener.main.main.MessageCache") as mock_cache_class,
+            patch(
+                "cogs.message_listener.main.main.MessageRenderer"
+            ) as mock_renderer_class,
+        ):
             # 設置模擬對象
             mock_db = AsyncMock()
             mock_db.init_db = AsyncMock()
@@ -709,7 +770,7 @@ class TestMessageListenerCog:
 
     @pytest.mark.asyncio
     async def test_on_message_bot_message(self, message_listener, mock_message):
-        """測試機器人訊息處理（應該被忽略）"""
+        """測試機器人訊息處理(應該被忽略)"""
         mock_message.author.bot = True
 
         await message_listener.on_message(mock_message)
@@ -718,7 +779,9 @@ class TestMessageListenerCog:
         message_listener.db.save_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_on_message_not_monitored_channel(self, message_listener, mock_message):
+    async def test_on_message_not_monitored_channel(
+        self, message_listener, mock_message
+    ):
         """測試非監控頻道的訊息處理"""
         mock_message.channel.id = 99999  # 非監控頻道
 
@@ -751,14 +814,16 @@ class TestMessageListenerCog:
         # 設置緩存觸發處理
         message_listener.message_cache.add_message.return_value = True
 
-        with patch.object(message_listener, 'process_channel_messages') as mock_process:
+        with patch.object(message_listener, "process_channel_messages") as mock_process:
             await message_listener.on_message(mock_message)
 
             # 驗證觸發了訊息處理
             mock_process.assert_called_once_with(mock_message.channel.id)
 
     @pytest.mark.asyncio
-    async def test_process_channel_messages_success(self, message_listener, mock_message):
+    async def test_process_channel_messages_success(
+        self, message_listener, mock_message
+    ):
         """測試頻道訊息處理成功"""
         channel_id = 67890
         messages = [mock_message]
@@ -770,10 +835,11 @@ class TestMessageListenerCog:
         # 模擬日誌頻道
         mock_log_channel = AsyncMock(spec=discord.TextChannel)
 
-        with patch.object(message_listener, '_get_log_channel') as mock_get_log, \
-             patch('discord.File') as mock_file, \
-             patch('cogs.message_listener.main.utils.safe_remove_file') as mock_remove:
-
+        with (
+            patch.object(message_listener, "_get_log_channel") as mock_get_log,
+            patch("discord.File") as mock_file,
+            patch("cogs.message_listener.main.utils.safe_remove_file") as mock_remove,
+        ):
             mock_get_log.return_value = mock_log_channel
             mock_discord_file = Mock()
             mock_file.return_value = mock_discord_file
@@ -784,7 +850,9 @@ class TestMessageListenerCog:
             message_listener.renderer.render_messages.assert_called_once_with(messages)
             mock_log_channel.send.assert_called_once()
             mock_remove.assert_called_once_with("/tmp/test.png")
-            message_listener.message_cache.clear_channel.assert_called_once_with(channel_id)
+            message_listener.message_cache.clear_channel.assert_called_once_with(
+                channel_id
+            )
 
     @pytest.mark.asyncio
     async def test_search_messages_command(self, message_listener):
@@ -797,7 +865,11 @@ class TestMessageListenerCog:
 
         # 設置搜尋結果
         search_results = [
-            {"message_id": 123, "content": "測試訊息", "timestamp": "2024-01-01 12:00:00"}
+            {
+                "message_id": 123,
+                "content": "測試訊息",
+                "timestamp": "2024-01-01 12:00:00",
+            }
         ]
         message_listener.db.search_messages.return_value = search_results
 
@@ -808,16 +880,18 @@ class TestMessageListenerCog:
             keyword="測試",
             channel=None,
             hours=24,
-            render_image=False
+            render_image=False,
         )
 
         # 驗證搜尋被執行
         message_listener.db.search_messages.assert_called_once()
         mock_interaction.followup.send.assert_called_once()
 
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 效能測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestMessageListenerPerformance:
     """訊息監聽系統效能測試"""
@@ -844,6 +918,7 @@ class TestMessageListenerPerformance:
             messages.append(message)
 
         import time
+
         start_time = time.time()
 
         # 添加所有訊息到緩存
@@ -853,7 +928,7 @@ class TestMessageListenerPerformance:
         end_time = time.time()
         processing_time = end_time - start_time
 
-        # 效能檢查：1000條訊息應該在0.1秒內處理完成
+        # 效能檢查:1000條訊息應該在0.1秒內處理完成
         assert processing_time < 0.1, f"緩存效能不足: {processing_time}秒"
 
     @pytest.mark.asyncio
@@ -880,28 +955,26 @@ class TestMessageListenerPerformance:
         # 生成測試數據
         test_data = []
         for i in range(100):
-            test_data.append((
-                i, 12345, 67890, 11111,
-                f"測試訊息 {i}",
-                1000 + i,
-                None, 0
-            ))
+            test_data.append(
+                (i, 12345, 67890, 11111, f"測試訊息 {i}", 1000 + i, None, 0)
+            )
 
         import time
+
         start_time = time.time()
 
         # 直接使用test_db進行批次插入
         for data in test_data:
             await test_db.execute(
                 "INSERT INTO messages (message_id, channel_id, guild_id, author_id, content, timestamp, attachments, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                data
+                data,
             )
         await test_db.commit()
 
         end_time = time.time()
         processing_time = end_time - start_time
 
-        # 效能檢查：100條訊息應該在0.5秒內處理完成
+        # 效能檢查:100條訊息應該在0.5秒內處理完成
         assert processing_time < 0.5, f"批次操作效能不足: {processing_time}秒"
 
         # 檢查數據是否正確插入
@@ -909,9 +982,11 @@ class TestMessageListenerPerformance:
         count = await cursor.fetchone()
         assert count[0] == 100, "應該插入100條測試數據"
 
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 錯誤處理測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestMessageListenerErrorHandling:
     """訊息監聽系統錯誤處理測試"""
@@ -986,7 +1061,7 @@ class TestMessageListenerErrorHandling:
         original_select = db.select
 
         async def mock_select(query: str, params: tuple = ()) -> list[dict[str, Any]]:
-            # 對於無效參數，返回空結果
+            # 對於無效參數,返回空結果
             return []
 
         db.select = mock_select
@@ -996,7 +1071,7 @@ class TestMessageListenerErrorHandling:
             keyword="",  # 空關鍵字
             channel_id=None,
             hours=0,  # 無效時間範圍
-            limit=0  # 無效限制
+            limit=0,  # 無效限制
         )
 
         # 應該返回空結果而不是拋出異常
@@ -1027,6 +1102,6 @@ class TestMessageListenerErrorHandling:
         # 檢查緩存大小是否受到控制
         total_cached = sum(len(messages) for messages in cache._cache.values())
 
-        # 由於有清理機制，總緩存數量應該受到控制
-        # 修改預期值，因為測試中的緩存沒有實際的清理機制
+        # 由於有清理機制,總緩存數量應該受到控制
+        # 修改預期值,因為測試中的緩存沒有實際的清理機制
         assert total_cached <= 10000, f"緩存數量: {total_cached}"

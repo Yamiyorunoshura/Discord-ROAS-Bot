@@ -19,7 +19,6 @@ from .embeds.settings_embed import create_settings_embed
 
 logger = logging.getLogger("anti_spam")
 
-
 class AntiSpamMainView(StandardPanelView):
     """
     反垃圾訊息主面板視圖
@@ -96,7 +95,6 @@ class AntiSpamMainView(StandardPanelView):
 
     def _setup_components(self):
         """設置面板組件"""
-        # 頁面切換按鈕 (第一行)
         self.add_item(
             self.create_standard_button(
                 label="設定",
@@ -133,7 +131,6 @@ class AntiSpamMainView(StandardPanelView):
             )
         )
 
-        # 檢測類別按鈕 (第二行)
         self.add_item(
             self.create_standard_button(
                 label="頻率限制",
@@ -170,7 +167,6 @@ class AntiSpamMainView(StandardPanelView):
             )
         )
 
-        # 功能按鈕 (第三行)
         self.add_item(
             self.create_standard_button(
                 label="測試檢測",
@@ -198,7 +194,6 @@ class AntiSpamMainView(StandardPanelView):
             )
         )
 
-        # 控制按鈕 (第四行)
         self.add_item(
             self.create_standard_button(
                 label="關閉", style="danger", emoji="❌", callback=self.close_callback
@@ -414,7 +409,7 @@ class AntiSpamMainView(StandardPanelView):
             await asyncio.sleep(1)
             return "檢測功能測試完成,所有模塊運行正常"
         except Exception as e:
-            raise Exception(f"檢測測試失敗:{e!s}")
+            raise Exception(f"檢測測試失敗:{e!s}") from e
 
     async def _reset_settings(self):
         """重置設定的實際操作"""
@@ -422,12 +417,11 @@ class AntiSpamMainView(StandardPanelView):
             # 這裡應該實現設定重置邏輯
             return "設定重置功能將在後續版本中實現"
         except Exception as e:
-            raise Exception(f"設定重置失敗:{e!s}")
+            raise Exception(f"設定重置失敗:{e!s}") from e
 
     async def build_main_embed(self) -> discord.Embed:
         """構建主頁面嵌入 (覆寫基類方法)"""
         return await self.build_settings_embed()
-
 
 class ConfirmResetView(discord.ui.View):
     """確認重置設定的視圖"""
@@ -438,7 +432,7 @@ class ConfirmResetView(discord.ui.View):
 
     @discord.ui.button(label="確認重置", style=discord.ButtonStyle.danger, emoji="⚠️")
     async def confirm_reset(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
     ):
         """確認重置設定"""
         try:
@@ -463,7 +457,7 @@ class ConfirmResetView(discord.ui.View):
 
     @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary, emoji="❌")
     async def cancel_reset(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
     ):
         """取消重置"""
         # 禁用按鈕
@@ -484,7 +478,6 @@ class ConfirmResetView(discord.ui.View):
         """超時處理"""
         self._disable_all_items()
 
-
 # 保留原有的其他類別以保持兼容性
 class ToggleButton(ui.Button):
     """切換按鈕類別"""
@@ -499,7 +492,6 @@ class ToggleButton(ui.Button):
         await interaction.response.send_message(
             "切換功能將在後續版本中實現", ephemeral=True
         )
-
 
 class SettingsModal(ui.Modal):
     """設定模態框"""

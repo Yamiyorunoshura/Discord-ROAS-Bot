@@ -13,7 +13,6 @@ import discord
 if TYPE_CHECKING:
     from ...main.main import SyncDataCog
 
-
 async def create_history_embed(
     cog: "SyncDataCog", guild: discord.Guild, page: int = 0
 ) -> discord.Embed:
@@ -35,7 +34,6 @@ async def create_history_embed(
     )
 
     try:
-        # 獲取歷史記錄 (暫時使用模擬資料)
         history_records = await _get_sync_history(cog, guild.id, page)
 
         if not history_records:
@@ -53,7 +51,7 @@ async def create_history_embed(
                         sync_time = dt.datetime.fromisoformat(
                             sync_time.replace("Z", "+00:00")
                         )
-                    except:
+                    except (ValueError, AttributeError):
                         sync_time = dt.datetime.utcnow()
 
                 time_str = sync_time.strftime("%m/%d %H:%M")
@@ -109,9 +107,8 @@ async def create_history_embed(
 
     return embed
 
-
 async def _get_sync_history(
-    cog: "SyncDataCog", guild_id: int, page: int = 0
+    cog: "SyncDataCog", guild_id: int, page: int = 0  # noqa: ARG001
 ) -> list[dict[str, Any]]:
     """
     獲取同步歷史記錄
@@ -164,8 +161,7 @@ async def _get_sync_history(
     except Exception:
         return []
 
-
-async def _get_total_sync_count(cog: "SyncDataCog", guild_id: int) -> int:
+async def _get_total_sync_count(cog: "SyncDataCog", guild_id: int) -> int:  # noqa: ARG001
     """獲取總同步次數"""
     try:
         # 這裡應該調用資料庫方法
@@ -173,15 +169,13 @@ async def _get_total_sync_count(cog: "SyncDataCog", guild_id: int) -> int:
     except Exception:
         return 0
 
-
-async def _get_success_sync_count(cog: "SyncDataCog", guild_id: int) -> int:
+async def _get_success_sync_count(cog: "SyncDataCog", guild_id: int) -> int:  # noqa: ARG001
     """獲取成功同步次數"""
     try:
         # 這裡應該調用資料庫方法
         return 2  # 模擬資料
     except Exception:
         return 0
-
 
 def _get_sync_type_name(sync_type: str) -> str:
     """獲取同步類型名稱"""

@@ -10,7 +10,6 @@ import time
 
 logger = logging.getLogger("welcome")
 
-
 class WelcomeCache:
     """歡迎圖片快取管理類別"""
 
@@ -49,7 +48,6 @@ class WelcomeCache:
             del self._cache[guild_id]
             return None
 
-        # 返回快取的圖片(複製一份,避免修改原始資料)
         image.seek(0)
         image_copy = io.BytesIO(image.getvalue())
         return image_copy

@@ -1,7 +1,7 @@
 """資料庫測試模組.
 
-此模組測試 Discord ROAS Bot 的資料庫功能，
-包括連接管理、查詢建構器、BaseRepository 等核心功能。
+此模組測試 Discord ROAS Bot 的資料庫功能,
+包括連接管理、查詢建構器、BaseRepository 等核心功能.
 """
 
 import tempfile
@@ -208,7 +208,7 @@ class TestQueryBuilder:
 
     def test_paginate(self):
         """測試分頁功能."""
-        result = self.qb.paginate(2, 10)  # 第2頁，每頁10筆
+        result = self.qb.paginate(2, 10)  # 第2頁,每頁10筆
 
         assert result is self.qb
         assert self.qb._limit_value == 10
@@ -226,7 +226,7 @@ class TestQueryBuilder:
         """測試批量INSERT資料設定."""
         data_list = [
             {"name": "John", "email": "john@example.com"},
-            {"name": "Jane", "email": "jane@example.com"}
+            {"name": "Jane", "email": "jane@example.com"},
         ]
         result = self.qb.bulk_insert(data_list)
 
@@ -317,7 +317,7 @@ class TestQueryBuilder:
         assert params == []
 
     def test_to_select_sql_with_joins_and_conditions(self):
-        """測試複雜的SELECT SQL生成（包含JOIN和多個條件）."""
+        """測試複雜的SELECT SQL生成(包含JOIN和多個條件)."""
         sql, params = (
             self.qb.select("u.id", "u.name", "p.bio")
             .join("profiles", "users.id = profiles.user_id", JoinType.LEFT, "p")
@@ -367,14 +367,21 @@ class TestQueryBuilder:
         data_list = [
             {"name": "John", "email": "john@example.com"},
             {"name": "Jane", "email": "jane@example.com"},
-            {"name": "Bob", "email": "bob@example.com"}
+            {"name": "Bob", "email": "bob@example.com"},
         ]
         sql, params = self.qb.bulk_insert(data_list).to_insert_sql()
 
         assert "INSERT INTO users" in sql
         assert "name, email" in sql
         assert "VALUES (?,?), (?,?), (?,?)" in sql
-        expected_params = ["John", "john@example.com", "Jane", "jane@example.com", "Bob", "bob@example.com"]
+        expected_params = [
+            "John",
+            "john@example.com",
+            "Jane",
+            "jane@example.com",
+            "Bob",
+            "bob@example.com",
+        ]
         assert params == expected_params
 
     def test_to_update_sql_with_increment(self):
@@ -404,7 +411,7 @@ class TestQueryBuilder:
 
     def test_bulk_insert_empty_data_raises_error(self):
         """測試空的批量INSERT資料拋出錯誤."""
-        # 使用 bulk_insert 來設定空列表，這樣可以觸發批量插入的檢查
+        # 使用 bulk_insert 來設定空列表,這樣可以觸發批量插入的檢查
         qb_empty = QueryBuilder("users")
         qb_empty._bulk_insert_data = []  # 直接設定空列表
 
@@ -490,7 +497,7 @@ class TestQueryCondition:
         assert params == (18,)
 
     def test_to_sql_in_condition_list(self):
-        """測試IN條件SQL轉換（列表）."""
+        """測試IN條件SQL轉換(列表)."""
         condition = QueryCondition("status", "IN", ["active", "pending"])
         sql, params = condition.to_sql()
 
@@ -498,7 +505,7 @@ class TestQueryCondition:
         assert params == ["active", "pending"]
 
     def test_to_sql_in_condition_single(self):
-        """測試IN條件SQL轉換（單值）."""
+        """測試IN條件SQL轉換(單值)."""
         condition = QueryCondition("id", "IN", 1)
         sql, params = condition.to_sql()
 
@@ -514,7 +521,7 @@ class TestQueryCondition:
         assert params == [18, 65]
 
     def test_to_sql_between_condition_tuple(self):
-        """測試BETWEEN條件SQL轉換（元組）."""
+        """測試BETWEEN條件SQL轉換(元組)."""
         condition = QueryCondition("price", "BETWEEN", (100, 1000))
         sql, params = condition.to_sql()
 
@@ -525,7 +532,9 @@ class TestQueryCondition:
         """測試BETWEEN條件無效值."""
         condition = QueryCondition("age", "BETWEEN", [18])  # 只有一個值
 
-        with pytest.raises(ValueError, match="BETWEEN 操作符需要包含兩個值的列表或元組"):
+        with pytest.raises(
+            ValueError, match="BETWEEN 操作符需要包含兩個值的列表或元組"
+        ):
             condition.to_sql()
 
     def test_to_sql_like_condition(self):
@@ -566,7 +575,9 @@ class TestJoinClause:
 
     def test_join_clause_to_sql(self):
         """測試JOIN子句SQL生成."""
-        join = JoinClause(JoinType.INNER, "profiles", "users.id = profiles.user_id", "p")
+        join = JoinClause(
+            JoinType.INNER, "profiles", "users.id = profiles.user_id", "p"
+        )
         sql = join.to_sql()
 
         assert "INNER JOIN profiles AS p ON users.id = profiles.user_id" in sql
@@ -613,7 +624,7 @@ class TestDatabasePool:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = Path(self.temp_db.name)
         self.temp_db.close()
 
@@ -672,7 +683,7 @@ class TestBaseRepository:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = Path(self.temp_db.name)
         self.temp_db.close()
 
@@ -710,7 +721,7 @@ class TestBaseRepository:
     @pytest.mark.asyncio
     async def test_repository_execute_with_mock_pool(self):
         """測試使用模擬連接池的儲存庫執行."""
-        # 這個測試主要驗證初始化，實際的資料庫操作需要真實的連接
+        # 這個測試主要驗證初始化,實際的資料庫操作需要真實的連接
         await self.pool.initialize()
 
         # 驗證儲存庫可以訪問連接池
@@ -732,6 +743,7 @@ class TestBaseRepository:
 
         # 使用真實的設定和連接
         from src.core.config import Settings
+
         settings = Settings()
         real_pool = DatabasePool(self.db_path, settings)
         await real_pool.initialize()
@@ -758,6 +770,7 @@ class TestBaseRepository:
 
         # 使用真實的設定和連接
         from src.core.config import Settings
+
         settings = Settings()
         real_pool = DatabasePool(self.db_path, settings)
         await real_pool.initialize()
@@ -774,7 +787,7 @@ class TestDatabaseIntegration:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = Path(self.temp_db.name)
         self.temp_db.close()
 
@@ -800,15 +813,16 @@ class TestDatabaseIntegration:
 
             # 插入測試資料
             await conn.execute(
-                "INSERT INTO test_table (name, value) VALUES (?, ?)",
-                ("test_item", 42)
+                "INSERT INTO test_table (name, value) VALUES (?, ?)", ("test_item", 42)
             )
             await conn.commit()
 
             # 查詢資料
-            cursor = await conn.execute("SELECT * FROM test_table WHERE name = ?", ("test_item",))
+            cursor = await conn.execute(
+                "SELECT * FROM test_table WHERE name = ?", ("test_item",)
+            )
             row = await cursor.fetchone()
 
             assert row is not None
             assert row[1] == "test_item"  # name
-            assert row[2] == 42          # value
+            assert row[2] == 42  # value

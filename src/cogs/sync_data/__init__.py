@@ -13,7 +13,6 @@ __description__ = "Discord 伺服器資料同步模組 - 重構版"
 
 __all__ = ["SyncDataCog"]
 
-
 async def setup(bot):
     """載入 SyncDataCog 到機器人"""
     await bot.add_cog(SyncDataCog(bot))

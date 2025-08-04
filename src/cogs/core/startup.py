@@ -32,7 +32,6 @@ class ModuleStatus(Enum):
     RETRYING = "retrying"  # 重試中
     CRITICAL_FAILED = "critical_failed"  # 關鍵模組失敗
 
-
 @dataclass
 class ModuleInfo:
     """模組資訊類別"""
@@ -57,7 +56,6 @@ class ModuleInfo:
         if not self.description:
             self.description = f"模組 {self.name}"
 
-
 @dataclass
 class StartupStats:
     """啟動統計資料"""
@@ -81,7 +79,6 @@ class StartupStats:
     def is_complete(self) -> bool:
         """是否完成載入"""
         return (self.success_count + self.failure_count) >= self.total_modules
-
 
 class StartupManager:
     """優化的啟動管理器"""
@@ -499,7 +496,6 @@ class StartupManager:
             for priority in sorted(priority_groups.keys()):
                 critical_modules, normal_modules = priority_groups[priority]
 
-                # 先載入關鍵模組(序列載入)
                 if critical_modules:
                     self.logger.info(
                         f"🔑 載入關鍵模組 (優先級 {priority}):{', '.join(critical_modules)}"
@@ -617,7 +613,6 @@ class StartupManager:
             if module.status in [ModuleStatus.FAILED, ModuleStatus.CRITICAL_FAILED]
         ]
 
-
 def create_startup_manager(bot: commands.Bot) -> StartupManager:
     """
     創建啟動管理器
@@ -629,7 +624,6 @@ def create_startup_manager(bot: commands.Bot) -> StartupManager:
         StartupManager: 啟動管理器實例
     """
     return StartupManager(bot)
-
 
 # 工具函數
 def print_progress_bar(
@@ -653,7 +647,6 @@ def print_progress_bar(
 
     status = f"載入中: {module_name}" if module_name else "完成"
     print(f"\r🚀 [進度] |{bar}| {percentage:.1f}% {status}", end="", flush=True)
-
 
 def create_progress_callback() -> Callable[[int, int, str], None]:
     """

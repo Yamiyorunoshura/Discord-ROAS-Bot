@@ -1,12 +1,12 @@
 """成就系統效能分析器.
 
-此模組提供成就系統的效能瓶頸分析，包含：
+此模組提供成就系統的效能瓶頸分析,包含:
 - 查詢效能分析和基準測試
 - 資料庫索引優化建議
 - 記憶體使用量分析
 - 瓶頸識別和效能報告
 
-根據 Story 5.1 Task 1.1 的要求，分析現有成就查詢的效能瓶頸。
+根據 Story 5.1 Task 1.1 的要求,分析現有成就查詢的效能瓶頸.
 """
 
 from __future__ import annotations
@@ -25,15 +25,30 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# 常數定義
+SLOW_QUERY_THRESHOLD_MS = 200  # 慢查詢閾值(毫秒)
+CRITICAL_QUERY_THRESHOLD_MS = 500  # 關鍵慢查詢閾值(毫秒)
+HIGH_QUERY_THRESHOLD_MS = 300  # 高慢查詢閾值(毫秒)
+HIGH_MEMORY_THRESHOLD_MB = 10  # 高記憶體使用閾值(MB)
+MEMORY_WARNING_THRESHOLD_MB = 50  # 記憶體警告閾值(MB)
+EFFICIENCY_THRESHOLD = 0.1  # 效率閾值
+EXCELLENT_RESPONSE_TIME_MS = 100  # 優秀回應時間(毫秒)
+GOOD_RESPONSE_TIME_MS = 200  # 良好回應時間(毫秒)
+FAIR_RESPONSE_TIME_MS = 300  # 一般回應時間(毫秒)
+POOR_RESPONSE_TIME_MS = 500  # 差勁回應時間(毫秒)
+EXCELLENT_SLOW_QUERY_RATIO = 0.1  # 優秀慢查詢比例
+GOOD_SLOW_QUERY_RATIO = 0.2  # 良好慢查詢比例
+FAIR_SLOW_QUERY_RATIO = 0.3  # 一般慢查詢比例
+POOR_SLOW_QUERY_RATIO = 0.5  # 差勁慢查詢比例
 
 class QueryType(str, Enum):
     """查詢類型列舉."""
+
     ACHIEVEMENT_LIST = "achievement_list"
     USER_ACHIEVEMENTS = "user_achievements"
     USER_PROGRESS = "user_progress"
     STATS_QUERY = "stats_query"
     LEADERBOARD = "leaderboard"
-
 
 @dataclass
 class QueryPerformanceMetric:
@@ -43,7 +58,7 @@ class QueryPerformanceMetric:
     """查詢類型"""
 
     execution_time_ms: float
-    """執行時間（毫秒）"""
+    """執行時間(毫秒)"""
 
     rows_examined: int
     """檢查的行數"""
@@ -52,7 +67,7 @@ class QueryPerformanceMetric:
     """返回的行數"""
 
     memory_usage_mb: float
-    """記憶體使用量（MB）"""
+    """記憶體使用量(MB)"""
 
     query_sql: str
     """查詢 SQL"""
@@ -62,7 +77,6 @@ class QueryPerformanceMetric:
 
     timestamp: datetime = field(default_factory=datetime.now)
     """測試時間"""
-
 
 @dataclass
 class PerformanceBottleneck:
@@ -84,8 +98,7 @@ class PerformanceBottleneck:
     """優化建議"""
 
     performance_impact: float
-    """效能影響（百分比）"""
-
+    """效能影響(百分比)"""
 
 @dataclass
 class PerformanceBenchmark:
@@ -97,11 +110,10 @@ class PerformanceBenchmark:
     current_time_ms: float
     improvement_percentage: float
 
-
 class PerformanceAnalyzer:
     """效能分析器.
 
-    提供成就系統的全面效能分析功能。
+    提供成就系統的全面效能分析功能.
     """
 
     def __init__(self, repository: AchievementRepository):
@@ -114,7 +126,7 @@ class PerformanceAnalyzer:
         self._metrics_history: list[QueryPerformanceMetric] = []
         self._benchmarks: dict[QueryType, PerformanceBenchmark] = {}
 
-        # 效能目標（毫秒）
+        # Performance targets in milliseconds
         self._performance_targets = {
             QueryType.ACHIEVEMENT_LIST: 200,
             QueryType.USER_ACHIEVEMENTS: 150,
@@ -139,17 +151,21 @@ class PerformanceAnalyzer:
             "bottlenecks": [],
             "recommendations": [],
             "benchmark_results": {},
-            "overall_health": "unknown"
+            "overall_health": "unknown",
         }
 
         try:
             # 1. 分析成就列表查詢
             achievement_metrics = await self._analyze_achievement_list_queries()
-            analysis_results["query_performance"]["achievement_list"] = achievement_metrics
+            analysis_results["query_performance"]["achievement_list"] = (
+                achievement_metrics
+            )
 
             # 2. 分析用戶成就查詢
             user_achievement_metrics = await self._analyze_user_achievement_queries()
-            analysis_results["query_performance"]["user_achievements"] = user_achievement_metrics
+            analysis_results["query_performance"]["user_achievements"] = (
+                user_achievement_metrics
+            )
 
             # 3. 分析用戶進度查詢
             progress_metrics = await self._analyze_progress_queries()
@@ -161,7 +177,9 @@ class PerformanceAnalyzer:
 
             # 5. 識別效能瓶頸
             bottlenecks = await self._identify_bottlenecks()
-            analysis_results["bottlenecks"] = [self._bottleneck_to_dict(b) for b in bottlenecks]
+            analysis_results["bottlenecks"] = [
+                self._bottleneck_to_dict(b) for b in bottlenecks
+            ]
 
             # 6. 生成優化建議
             recommendations = await self._generate_recommendations(bottlenecks)
@@ -171,7 +189,7 @@ class PerformanceAnalyzer:
             overall_health = self._calculate_overall_health()
             analysis_results["overall_health"] = overall_health
 
-            logger.info(f"效能分析完成，整體健康度: {overall_health}")
+            logger.info(f"效能分析完成,整體健康度: {overall_health}")
 
         except Exception as e:
             logger.error(f"效能分析失敗: {e}", exc_info=True)
@@ -188,7 +206,9 @@ class PerformanceAnalyzer:
         # 測試場景 1: 基本成就列表查詢
         start_time = time.perf_counter()
         try:
-            achievements = await self._repository.list_achievements(active_only=True, limit=50)
+            achievements = await self._repository.list_achievements(
+                active_only=True, limit=50
+            )
             execution_time = (time.perf_counter() - start_time) * 1000
 
             metric = QueryPerformanceMetric(
@@ -198,7 +218,7 @@ class PerformanceAnalyzer:
                 rows_returned=len(achievements),
                 memory_usage_mb=len(achievements) * 0.005,  # 估算每個成就 5KB
                 query_sql="SELECT * FROM achievements WHERE is_active = 1 LIMIT 50",
-                parameters={"active_only": True, "limit": 50}
+                parameters={"active_only": True, "limit": 50},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -210,20 +230,18 @@ class PerformanceAnalyzer:
         start_time = time.perf_counter()
         try:
             achievements = await self._repository.list_achievements(
-                category_id=1,
-                active_only=True,
-                limit=20
+                category_id=1, active_only=True, limit=20
             )
             execution_time = (time.perf_counter() - start_time) * 1000
 
             metric = QueryPerformanceMetric(
                 query_type=QueryType.ACHIEVEMENT_LIST,
                 execution_time_ms=execution_time,
-                rows_examined=len(achievements) * 3,  # 估算，需要JOIN
+                rows_examined=len(achievements) * 3,  # 估算,需要JOIN
                 rows_returned=len(achievements),
                 memory_usage_mb=len(achievements) * 0.005,
                 query_sql="SELECT * FROM achievements WHERE category_id = 1 AND is_active = 1 LIMIT 20",
-                parameters={"category_id": 1, "active_only": True, "limit": 20}
+                parameters={"category_id": 1, "active_only": True, "limit": 20},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -235,8 +253,7 @@ class PerformanceAnalyzer:
         start_time = time.perf_counter()
         try:
             achievements = await self._repository.list_achievements(
-                achievement_type=AchievementType.PROGRESSIVE,
-                active_only=True
+                achievement_type=AchievementType.PROGRESSIVE, active_only=True
             )
             execution_time = (time.perf_counter() - start_time) * 1000
 
@@ -247,7 +264,7 @@ class PerformanceAnalyzer:
                 rows_returned=len(achievements),
                 memory_usage_mb=len(achievements) * 0.005,
                 query_sql="SELECT * FROM achievements WHERE type = 'progressive' AND is_active = 1",
-                parameters={"achievement_type": "progressive", "active_only": True}
+                parameters={"achievement_type": "progressive", "active_only": True},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -271,8 +288,9 @@ class PerformanceAnalyzer:
             "min_time_ms": round(min_time, 2),
             "total_memory_mb": round(total_memory, 2),
             "target_time_ms": self._performance_targets[QueryType.ACHIEVEMENT_LIST],
-            "meets_target": avg_time <= self._performance_targets[QueryType.ACHIEVEMENT_LIST],
-            "details": [self._metric_to_dict(m) for m in metrics]
+            "meets_target": avg_time
+            <= self._performance_targets[QueryType.ACHIEVEMENT_LIST],
+            "details": [self._metric_to_dict(m) for m in metrics],
         }
 
     async def _analyze_user_achievement_queries(self) -> dict[str, Any]:
@@ -285,7 +303,9 @@ class PerformanceAnalyzer:
         # 測試場景 1: 基本用戶成就查詢
         start_time = time.perf_counter()
         try:
-            user_achievements = await self._repository.get_user_achievements(test_user_id)
+            user_achievements = await self._repository.get_user_achievements(
+                test_user_id
+            )
             execution_time = (time.perf_counter() - start_time) * 1000
 
             metric = QueryPerformanceMetric(
@@ -297,7 +317,7 @@ class PerformanceAnalyzer:
                 query_sql="""SELECT ua.*, a.* FROM user_achievements ua
                            JOIN achievements a ON a.id = ua.achievement_id
                            WHERE ua.user_id = ?""",
-                parameters={"user_id": test_user_id}
+                parameters={"user_id": test_user_id},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -309,8 +329,7 @@ class PerformanceAnalyzer:
         start_time = time.perf_counter()
         try:
             user_achievements = await self._repository.get_user_achievements(
-                test_user_id,
-                category_id=1
+                test_user_id, category_id=1
             )
             execution_time = (time.perf_counter() - start_time) * 1000
 
@@ -323,7 +342,7 @@ class PerformanceAnalyzer:
                 query_sql="""SELECT ua.*, a.* FROM user_achievements ua
                            JOIN achievements a ON a.id = ua.achievement_id
                            WHERE ua.user_id = ? AND a.category_id = ?""",
-                parameters={"user_id": test_user_id, "category_id": 1}
+                parameters={"user_id": test_user_id, "category_id": 1},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -346,7 +365,7 @@ class PerformanceAnalyzer:
                 query_sql="""SELECT COUNT(*), SUM(a.points) FROM user_achievements ua
                            JOIN achievements a ON a.id = ua.achievement_id
                            WHERE ua.user_id = ?""",
-                parameters={"user_id": test_user_id}
+                parameters={"user_id": test_user_id},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -370,8 +389,9 @@ class PerformanceAnalyzer:
             "min_time_ms": round(min_time, 2),
             "total_memory_mb": round(total_memory, 2),
             "target_time_ms": self._performance_targets[QueryType.USER_ACHIEVEMENTS],
-            "meets_target": avg_time <= self._performance_targets[QueryType.USER_ACHIEVEMENTS],
-            "details": [self._metric_to_dict(m) for m in metrics]
+            "meets_target": avg_time
+            <= self._performance_targets[QueryType.USER_ACHIEVEMENTS],
+            "details": [self._metric_to_dict(m) for m in metrics],
         }
 
     async def _analyze_progress_queries(self) -> dict[str, Any]:
@@ -385,7 +405,9 @@ class PerformanceAnalyzer:
         # 測試場景 1: 單個進度查詢
         start_time = time.perf_counter()
         try:
-            progress = await self._repository.get_user_progress(test_user_id, test_achievement_id)
+            progress = await self._repository.get_user_progress(
+                test_user_id, test_achievement_id
+            )
             execution_time = (time.perf_counter() - start_time) * 1000
 
             metric = QueryPerformanceMetric(
@@ -396,7 +418,10 @@ class PerformanceAnalyzer:
                 memory_usage_mb=0.001,
                 query_sql="""SELECT * FROM achievement_progress
                            WHERE user_id = ? AND achievement_id = ?""",
-                parameters={"user_id": test_user_id, "achievement_id": test_achievement_id}
+                parameters={
+                    "user_id": test_user_id,
+                    "achievement_id": test_achievement_id,
+                },
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -418,7 +443,7 @@ class PerformanceAnalyzer:
                 memory_usage_mb=len(progresses) * 0.003,
                 query_sql="""SELECT * FROM achievement_progress WHERE user_id = ?
                            ORDER BY last_updated DESC""",
-                parameters={"user_id": test_user_id}
+                parameters={"user_id": test_user_id},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -442,8 +467,9 @@ class PerformanceAnalyzer:
             "min_time_ms": round(min_time, 2),
             "total_memory_mb": round(total_memory, 2),
             "target_time_ms": self._performance_targets[QueryType.USER_PROGRESS],
-            "meets_target": avg_time <= self._performance_targets[QueryType.USER_PROGRESS],
-            "details": [self._metric_to_dict(m) for m in metrics]
+            "meets_target": avg_time
+            <= self._performance_targets[QueryType.USER_PROGRESS],
+            "details": [self._metric_to_dict(m) for m in metrics],
         }
 
     async def _analyze_stats_queries(self) -> dict[str, Any]:
@@ -468,7 +494,7 @@ class PerformanceAnalyzer:
                            SELECT COUNT(*) FROM achievements WHERE is_active = 1;
                            SELECT COUNT(*) FROM user_achievements;
                            SELECT COUNT(DISTINCT user_id) FROM user_achievements""",
-                parameters={}
+                parameters={},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -479,7 +505,9 @@ class PerformanceAnalyzer:
         # 測試場景 2: 熱門成就查詢
         start_time = time.perf_counter()
         try:
-            popular_achievements = await self._repository.get_popular_achievements(limit=10)
+            popular_achievements = await self._repository.get_popular_achievements(
+                limit=10
+            )
             execution_time = (time.perf_counter() - start_time) * 1000
 
             metric = QueryPerformanceMetric(
@@ -494,7 +522,7 @@ class PerformanceAnalyzer:
                            WHERE a.is_active = 1
                            GROUP BY a.id
                            ORDER BY earned_count DESC LIMIT 10""",
-                parameters={"limit": 10}
+                parameters={"limit": 10},
             )
             metrics.append(metric)
             self._metrics_history.append(metric)
@@ -518,8 +546,9 @@ class PerformanceAnalyzer:
             "min_time_ms": round(min_time, 2),
             "total_memory_mb": round(total_memory, 2),
             "target_time_ms": self._performance_targets[QueryType.STATS_QUERY],
-            "meets_target": avg_time <= self._performance_targets[QueryType.STATS_QUERY],
-            "details": [self._metric_to_dict(m) for m in metrics]
+            "meets_target": avg_time
+            <= self._performance_targets[QueryType.STATS_QUERY],
+            "details": [self._metric_to_dict(m) for m in metrics],
         }
 
     async def _identify_bottlenecks(self) -> list[PerformanceBottleneck]:
@@ -532,78 +561,92 @@ class PerformanceAnalyzer:
             return bottlenecks
 
         # 分析查詢時間瓶頸
-        slow_queries = [m for m in self._metrics_history if m.execution_time_ms > 200]
+        slow_queries = [m for m in self._metrics_history if m.execution_time_ms > SLOW_QUERY_THRESHOLD_MS]
         if slow_queries:
             affected_types = list({q.query_type for q in slow_queries})
-            avg_slow_time = sum(q.execution_time_ms for q in slow_queries) / len(slow_queries)
+            avg_slow_time = sum(q.execution_time_ms for q in slow_queries) / len(
+                slow_queries
+            )
 
-            severity = "critical" if avg_slow_time > 500 else "high" if avg_slow_time > 300 else "medium"
+            severity = (
+                "critical"
+                if avg_slow_time > CRITICAL_QUERY_THRESHOLD_MS
+                else "high"
+                if avg_slow_time > HIGH_QUERY_THRESHOLD_MS
+                else "medium"
+            )
 
             bottleneck = PerformanceBottleneck(
                 type="slow_queries",
                 severity=severity,
-                description=f"發現 {len(slow_queries)} 個慢查詢，平均執行時間 {avg_slow_time:.1f}ms",
+                description=f"發現 {len(slow_queries)} 個慢查詢,平均執行時間 {avg_slow_time:.1f}ms",
                 affected_queries=affected_types,
                 recommendations=[
                     "優化資料庫索引",
                     "實施查詢快取",
                     "考慮分頁查詢",
-                    "優化JOIN操作"
+                    "優化JOIN操作",
                 ],
-                performance_impact=min(avg_slow_time / 100, 90)  # 最高90%影響
+                performance_impact=min(avg_slow_time / 100, 90),  # 最高90%影響
             )
             bottlenecks.append(bottleneck)
 
         # 分析記憶體使用瓶頸
-        high_memory_queries = [m for m in self._metrics_history if m.memory_usage_mb > 10]
+        high_memory_queries = [
+            m for m in self._metrics_history if m.memory_usage_mb > HIGH_MEMORY_THRESHOLD_MB
+        ]
         if high_memory_queries:
             total_memory = sum(q.memory_usage_mb for q in high_memory_queries)
 
             bottleneck = PerformanceBottleneck(
                 type="high_memory_usage",
-                severity="medium" if total_memory < 50 else "high",
+                severity="medium" if total_memory < MEMORY_WARNING_THRESHOLD_MB else "high",
                 description=f"高記憶體使用查詢總計 {total_memory:.1f}MB",
                 affected_queries=list({q.query_type for q in high_memory_queries}),
                 recommendations=[
                     "實施結果集限制",
                     "使用分頁查詢",
                     "優化資料結構",
-                    "增加記憶體快取"
+                    "增加記憶體快取",
                 ],
-                performance_impact=min(total_memory * 2, 70)
+                performance_impact=min(total_memory * 2, 70),
             )
             bottlenecks.append(bottleneck)
 
         # 分析資料庫掃描瓶頸
-        high_scan_queries = [m for m in self._metrics_history
-                           if m.rows_examined > m.rows_returned * 10]
+        high_scan_queries = [
+            m for m in self._metrics_history if m.rows_examined > m.rows_returned * 10
+        ]
         if high_scan_queries:
-            avg_efficiency = sum(q.rows_returned / max(q.rows_examined, 1)
-                               for q in high_scan_queries) / len(high_scan_queries)
+            avg_efficiency = sum(
+                q.rows_returned / max(q.rows_examined, 1) for q in high_scan_queries
+            ) / len(high_scan_queries)
 
             bottleneck = PerformanceBottleneck(
                 type="inefficient_scans",
-                severity="high" if avg_efficiency < 0.1 else "medium",
-                description=f"低效掃描查詢，平均效率 {avg_efficiency:.1%}",
+                severity="high" if avg_efficiency < EFFICIENCY_THRESHOLD else "medium",
+                description=f"低效掃描查詢,平均效率 {avg_efficiency:.1%}",
                 affected_queries=list({q.query_type for q in high_scan_queries}),
                 recommendations=[
                     "添加適當的索引",
                     "優化WHERE條件",
                     "避免SELECT *",
-                    "使用覆蓋索引"
+                    "使用覆蓋索引",
                 ],
-                performance_impact=(1 - avg_efficiency) * 80
+                performance_impact=(1 - avg_efficiency) * 80,
             )
             bottlenecks.append(bottleneck)
 
         return bottlenecks
 
-    async def _generate_recommendations(self, bottlenecks: list[PerformanceBottleneck]) -> list[str]:
+    async def _generate_recommendations(
+        self, bottlenecks: list[PerformanceBottleneck]
+    ) -> list[str]:
         """生成優化建議."""
         recommendations = []
 
         if not bottlenecks:
-            recommendations.append("系統效能良好，無明顯瓶頸")
+            recommendations.append("系統效能良好,無明顯瓶頸")
             return recommendations
 
         # 按嚴重程度排序瓶頸
@@ -614,28 +657,36 @@ class PerformanceAnalyzer:
         if critical_bottlenecks:
             recommendations.append("🚨 緊急優化建議:")
             for bottleneck in critical_bottlenecks:
-                recommendations.extend([f"  - {rec}" for rec in bottleneck.recommendations])
+                recommendations.extend(
+                    [f"  - {rec}" for rec in bottleneck.recommendations]
+                )
 
         if high_bottlenecks:
             recommendations.append("⚠️ 高優先級優化建議:")
             for bottleneck in high_bottlenecks:
-                recommendations.extend([f"  - {rec}" for rec in bottleneck.recommendations])
+                recommendations.extend(
+                    [f"  - {rec}" for rec in bottleneck.recommendations]
+                )
 
         if medium_bottlenecks:
             recommendations.append("💡 中優先級優化建議:")
             for bottleneck in medium_bottlenecks:
-                recommendations.extend([f"  - {rec}" for rec in bottleneck.recommendations])
+                recommendations.extend(
+                    [f"  - {rec}" for rec in bottleneck.recommendations]
+                )
 
         # 添加通用建議
-        recommendations.extend([
-            "",
-            "🔧 通用優化建議:",
-            "  - 定期更新資料庫統計資訊",
-            "  - 監控查詢執行計畫",
-            "  - 實施適當的快取策略",
-            "  - 考慮讀寫分離架構",
-            "  - 定期清理歷史資料"
-        ])
+        recommendations.extend(
+            [
+                "",
+                "🔧 通用優化建議:",
+                "  - 定期更新資料庫統計資訊",
+                "  - 監控查詢執行計畫",
+                "  - 實施適當的快取策略",
+                "  - 考慮讀寫分離架構",
+                "  - 定期清理歷史資料",
+            ]
+        )
 
         return recommendations
 
@@ -645,17 +696,21 @@ class PerformanceAnalyzer:
             return "unknown"
 
         # 計算各項指標
-        avg_time = sum(m.execution_time_ms for m in self._metrics_history) / len(self._metrics_history)
-        slow_query_ratio = len([m for m in self._metrics_history if m.execution_time_ms > 200]) / len(self._metrics_history)
+        avg_time = sum(m.execution_time_ms for m in self._metrics_history) / len(
+            self._metrics_history
+        )
+        slow_query_ratio = len(
+            [m for m in self._metrics_history if m.execution_time_ms > SLOW_QUERY_THRESHOLD_MS]
+        ) / len(self._metrics_history)
 
         # 根據指標評估健康度
-        if avg_time <= 100 and slow_query_ratio <= 0.1:
+        if avg_time <= EXCELLENT_RESPONSE_TIME_MS and slow_query_ratio <= EXCELLENT_SLOW_QUERY_RATIO:
             return "excellent"
-        elif avg_time <= 200 and slow_query_ratio <= 0.2:
+        elif avg_time <= GOOD_RESPONSE_TIME_MS and slow_query_ratio <= GOOD_SLOW_QUERY_RATIO:
             return "good"
-        elif avg_time <= 300 and slow_query_ratio <= 0.3:
+        elif avg_time <= FAIR_RESPONSE_TIME_MS and slow_query_ratio <= FAIR_SLOW_QUERY_RATIO:
             return "fair"
-        elif avg_time <= 500 and slow_query_ratio <= 0.5:
+        elif avg_time <= POOR_RESPONSE_TIME_MS and slow_query_ratio <= POOR_SLOW_QUERY_RATIO:
             return "poor"
         else:
             return "critical"
@@ -671,7 +726,7 @@ class PerformanceAnalyzer:
             "efficiency": round(metric.rows_returned / max(metric.rows_examined, 1), 3),
             "query_sql": metric.query_sql,
             "parameters": metric.parameters,
-            "timestamp": metric.timestamp.isoformat()
+            "timestamp": metric.timestamp.isoformat(),
         }
 
     def _bottleneck_to_dict(self, bottleneck: PerformanceBottleneck) -> dict[str, Any]:
@@ -682,7 +737,7 @@ class PerformanceAnalyzer:
             "description": bottleneck.description,
             "affected_queries": [q.value for q in bottleneck.affected_queries],
             "recommendations": bottleneck.recommendations,
-            "performance_impact": round(bottleneck.performance_impact, 1)
+            "performance_impact": round(bottleneck.performance_impact, 1),
         }
 
     def get_metrics_history(self) -> list[dict[str, Any]]:
@@ -693,7 +748,6 @@ class PerformanceAnalyzer:
         """清空效能指標歷史."""
         self._metrics_history.clear()
         logger.info("效能指標歷史已清空")
-
 
 __all__ = [
     "PerformanceAnalyzer",

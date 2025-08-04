@@ -1,6 +1,6 @@
 """成就系統整合測試.
 
-完整的端到端整合測試，涵蓋：
+完整的端到端整合測試,涵蓋:
 - 完整的成就管理工作流程
 - 多組件協作和資料流
 - 真實使用場景模擬
@@ -38,28 +38,26 @@ class IntegrationTestSuite(AsyncTestCase):
         # 初始化所有核心服務
         self.audit_logger = AuditLogger(
             database_service=self.mock_database_service,
-            cache_service=self.mock_cache_service
+            cache_service=self.mock_cache_service,
         )
 
-        self.security_validator = SecurityValidator(
-            audit_logger=self.audit_logger
-        )
+        self.security_validator = SecurityValidator(audit_logger=self.audit_logger)
 
         self.history_manager = HistoryManager(
             database_service=self.mock_database_service,
-            cache_service=self.mock_cache_service
+            cache_service=self.mock_cache_service,
         )
 
         self.security_wrapper = SecurityOperationWrapper(
             audit_logger=self.audit_logger,
             security_validator=self.security_validator,
-            history_manager=self.history_manager
+            history_manager=self.history_manager,
         )
 
         self.transaction_coordinator = TransactionCoordinator(
             achievement_service=self.mock_achievement_service,
             cache_service=self.mock_cache_service,
-            enable_validation=True
+            enable_validation=True,
         )
 
         # 創建管理面板
@@ -74,7 +72,7 @@ class IntegrationTestSuite(AsyncTestCase):
             achievement_service=self.mock_achievement_service,
             admin_permission_service=self.mock_admin_permission_service,
             guild_id=self.test_guild.id,
-            admin_user_id=self.test_user.id
+            admin_user_id=self.test_user.id,
         )
 
         self.secure_admin_panel = SecureAdminPanel(
@@ -82,7 +80,7 @@ class IntegrationTestSuite(AsyncTestCase):
             achievement_service=self.mock_achievement_service,
             admin_permission_service=self.mock_admin_permission_service,
             guild_id=self.test_guild.id,
-            admin_user_id=self.test_user.id
+            admin_user_id=self.test_user.id,
         )
 
 
@@ -97,9 +95,7 @@ class TestCompleteWorkflow(IntegrationTestSuite):
 
         # 1. 授予管理員權限
         await self.security_validator.grant_permission(
-            user_id=user_id,
-            permission_level=PermissionLevel.ADMIN,
-            granted_by=11111
+            user_id=user_id, permission_level=PermissionLevel.ADMIN, granted_by=11111
         )
 
         # 2. 啟動管理面板
@@ -111,18 +107,16 @@ class TestCompleteWorkflow(IntegrationTestSuite):
         assert self.admin_panel.current_interaction == self.test_interaction
 
         # 3. 透過協調器調整進度
-        progress_result = await self.transaction_coordinator.adjust_progress_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            new_value=8.0
+        progress_result = (
+            await self.transaction_coordinator.adjust_progress_coordinated(
+                user_id=user_id, achievement_id=achievement_id, new_value=8.0
+            )
         )
         assert progress_result["success"] is True
 
         # 4. 透過協調器授予成就
         grant_result = await self.transaction_coordinator.grant_achievement_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            notify=True
+            user_id=user_id, achievement_id=achievement_id, notify=True
         )
         assert grant_result["success"] is True
 
@@ -134,7 +128,8 @@ class TestCompleteWorkflow(IntegrationTestSuite):
 
         # 查找成就授予事件
         grant_events = [
-            e for e in audit_events
+            e
+            for e in audit_events
             if e.event_type == AuditEventType.ACHIEVEMENT_GRANTED
         ]
         assert len(grant_events) > 0
@@ -147,7 +142,8 @@ class TestCompleteWorkflow(IntegrationTestSuite):
 
         # 查找授予記錄
         grant_records = [
-            r for r in history_records
+            r
+            for r in history_records
             if r.action == HistoryAction.GRANT and r.executor_id == user_id
         ]
         assert len(grant_records) > 0
@@ -156,7 +152,9 @@ class TestCompleteWorkflow(IntegrationTestSuite):
         assert len(self.mock_cache_service.invalidation_calls) > 0
 
         # 8. 驗證最終資料狀態
-        user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+        user_achievements = await self.mock_achievement_service.get_user_achievements(
+            user_id
+        )
         user_progress = await self.mock_achievement_service.get_user_progress(user_id)
 
         assert len(user_achievements) == 1
@@ -174,12 +172,10 @@ class TestCompleteWorkflow(IntegrationTestSuite):
 
         # 授予權限
         await self.security_validator.grant_permission(
-            user_id=user_id,
-            permission_level=PermissionLevel.ELEVATED,
-            granted_by=11111
+            user_id=user_id, permission_level=PermissionLevel.ELEVATED, granted_by=11111
         )
 
-        # 模擬安全操作（使用裝飾器）
+        # 模擬安全操作(使用裝飾器)
         from src.cogs.achievement.services.security_wrapper import (
             secure_grant_achievement,
         )
@@ -190,7 +186,9 @@ class TestCompleteWorkflow(IntegrationTestSuite):
                 self.achievement_service = achievement_service
 
             @secure_grant_achievement
-            async def grant_achievement_secure(self, interaction, user_id, achievement_id):
+            async def grant_achievement_secure(
+                self, interaction, user_id, achievement_id
+            ):
                 """安全的成就授予操作."""
                 result = await self.achievement_service.grant_user_achievement(
                     user_id, achievement_id, notify=True
@@ -201,17 +199,17 @@ class TestCompleteWorkflow(IntegrationTestSuite):
                     "target_type": "user",
                     "target_id": user_id,
                     "affected_users": [user_id],
-                    "affected_achievements": [achievement_id]
+                    "affected_achievements": [achievement_id],
                 }
 
         # 創建測試目標
-        test_target = TestOperationTarget(self.security_wrapper, self.mock_achievement_service)
+        test_target = TestOperationTarget(
+            self.security_wrapper, self.mock_achievement_service
+        )
 
         # 執行安全操作
         result = await test_target.grant_achievement_secure(
-            self.test_interaction,
-            user_id=user_id,
-            achievement_id=1
+            self.test_interaction, user_id=user_id, achievement_id=1
         )
 
         # 驗證操作結果
@@ -221,16 +219,14 @@ class TestCompleteWorkflow(IntegrationTestSuite):
         # 驗證安全記錄
         audit_events = self.audit_logger._event_buffer
         security_events = [
-            e for e in audit_events
+            e
+            for e in audit_events
             if e.event_type == AuditEventType.ACHIEVEMENT_GRANTED
         ]
         assert len(security_events) > 0
 
         history_records = self.history_manager._history_buffer
-        grant_records = [
-            r for r in history_records
-            if r.action == HistoryAction.GRANT
-        ]
+        grant_records = [r for r in history_records if r.action == HistoryAction.GRANT]
         assert len(grant_records) > 0
 
     @pytest.mark.asyncio
@@ -245,11 +241,10 @@ class TestCompleteWorkflow(IntegrationTestSuite):
             side_effect=Exception("模擬服務錯誤")
         )
 
-        # 嘗試執行操作（應該失敗）
+        # 嘗試執行操作(應該失敗)
         with pytest.raises(Exception, match="模擬服務錯誤"):
             await self.transaction_coordinator.grant_achievement_coordinated(
-                user_id=user_id,
-                achievement_id=achievement_id
+                user_id=user_id, achievement_id=achievement_id
             )
 
         # 檢查協調器狀態是否正確恢復
@@ -262,10 +257,9 @@ class TestCompleteWorkflow(IntegrationTestSuite):
         # 恢復服務並重試
         self.mock_achievement_service.grant_user_achievement = original_grant_method
 
-        # 重新執行操作（應該成功）
+        # 重新執行操作(應該成功)
         result = await self.transaction_coordinator.grant_achievement_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id
+            user_id=user_id, achievement_id=achievement_id
         )
 
         assert result["success"] is True
@@ -288,8 +282,7 @@ class TestConcurrencyAndPerformance(IntegrationTestSuite):
         tasks = []
         for user_id in user_ids:
             task = self.transaction_coordinator.grant_achievement_coordinated(
-                user_id=user_id,
-                achievement_id=achievement_id
+                user_id=user_id, achievement_id=achievement_id
             )
             tasks.append(task)
 
@@ -302,13 +295,15 @@ class TestConcurrencyAndPerformance(IntegrationTestSuite):
         successful_results = [r for r in results if not isinstance(r, Exception)]
         assert len(successful_results) == len(user_ids)
 
-        # 檢查效能（應該在合理時間內完成）
+        # 檢查效能(應該在合理時間內完成)
         total_time = (end_time - start_time).total_seconds()
         assert total_time < 5.0, f"併發操作時間過長: {total_time}秒"
 
         # 檢查所有用戶都獲得了成就
         for user_id in user_ids:
-            user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+            user_achievements = (
+                await self.mock_achievement_service.get_user_achievements(user_id)
+            )
             assert len(user_achievements) == 1
             assert user_achievements[0]["achievement_id"] == achievement_id
 
@@ -324,7 +319,7 @@ class TestConcurrencyAndPerformance(IntegrationTestSuite):
         result = await self.transaction_coordinator.bulk_operation_coordinated(
             operation_type="bulk_grant",
             user_ids=user_ids,
-            achievement_id=achievement_id
+            achievement_id=achievement_id,
         )
 
         end_time = datetime.utcnow()
@@ -342,7 +337,9 @@ class TestConcurrencyAndPerformance(IntegrationTestSuite):
 
         # 檢查所有用戶都獲得了成就
         for user_id in user_ids:
-            user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+            user_achievements = (
+                await self.mock_achievement_service.get_user_achievements(user_id)
+            )
             assert len(user_achievements) == 1
 
     @pytest.mark.asyncio
@@ -382,11 +379,8 @@ class TestDataConsistency(IntegrationTestSuite):
 
         # 在事務中執行多個操作
         async with self.transaction_coordinator.coordinate_operation(
-            "complex_operation",
-            user_ids=[user_id],
-            achievement_ids=[achievement_id]
+            "complex_operation", user_ids=[user_id], achievement_ids=[achievement_id]
         ) as coord_op:
-
             # 調整進度
             await self.mock_achievement_service.update_user_progress(
                 user_id, achievement_id, 10.0
@@ -401,7 +395,9 @@ class TestDataConsistency(IntegrationTestSuite):
             assert coord_op.transaction is not None
 
         # 檢查最終狀態一致性
-        user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+        user_achievements = await self.mock_achievement_service.get_user_achievements(
+            user_id
+        )
         user_progress = await self.mock_achievement_service.get_user_progress(user_id)
 
         assert len(user_achievements) == 1
@@ -415,16 +411,11 @@ class TestDataConsistency(IntegrationTestSuite):
         achievement_id = 1
 
         # 設置初始快取
-        await self.mock_cache_service.set(
-            "user_achievements",
-            str(user_id),
-            []
-        )
+        await self.mock_cache_service.set("user_achievements", str(user_id), [])
 
-        # 執行操作（應該使快取失效）
+        # 執行操作(應該使快取失效)
         await self.transaction_coordinator.grant_achievement_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id
+            user_id=user_id, achievement_id=achievement_id
         )
 
         # 檢查快取是否被正確失效
@@ -433,10 +424,9 @@ class TestDataConsistency(IntegrationTestSuite):
 
         # 檢查新的快取狀態
         cached_achievements = await self.mock_cache_service.get(
-            "user_achievements",
-            str(user_id)
+            "user_achievements", str(user_id)
         )
-        # 因為快取已失效，應該返回 None
+        # 因為快取已失效,應該返回 None
         assert cached_achievements is None
 
 
@@ -452,7 +442,7 @@ class TestSecurityIntegration(IntegrationTestSuite):
         await self.security_validator.grant_permission(
             user_id=admin_id,
             permission_level=PermissionLevel.ADMIN,
-            granted_by=admin_id
+            granted_by=admin_id,
         )
 
         # 2. 啟動安全面板
@@ -463,24 +453,21 @@ class TestSecurityIntegration(IntegrationTestSuite):
         permission_result = await self.security_validator.check_permission(
             user_id=admin_id,
             operation_type="grant_achievement",
-            context={"guild_id": self.test_guild.id}
+            context={"guild_id": self.test_guild.id},
         )
         assert permission_result["allowed"] is True
 
         # 4. 執行安全操作
         from src.cogs.achievement.services.audit_logger import AuditContext
 
-        context = AuditContext(
-            user_id=admin_id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=admin_id, guild_id=self.test_guild.id)
 
         audit_event = await self.audit_logger.log_event(
             event_type=AuditEventType.ACHIEVEMENT_GRANTED,
             context=context,
             operation_name="secure_grant_test",
             success=True,
-            metadata={"security_validated": True}
+            metadata={"security_validated": True},
         )
 
         # 5. 記錄操作歷史
@@ -489,7 +476,7 @@ class TestSecurityIntegration(IntegrationTestSuite):
             category="user_achievement",
             operation_name="secure_grant_test",
             executor_id=admin_id,
-            success=True
+            success=True,
         )
 
         # 6. 驗證安全記錄
@@ -512,7 +499,7 @@ class TestSecurityIntegration(IntegrationTestSuite):
         permission_result = await self.security_validator.check_permission(
             user_id=user_id,
             operation_type="reset_user_data",
-            context={"guild_id": self.test_guild.id}
+            context={"guild_id": self.test_guild.id},
         )
 
         # 應該被拒絕
@@ -524,10 +511,7 @@ class TestSecurityIntegration(IntegrationTestSuite):
             AuditSeverity,
         )
 
-        context = AuditContext(
-            user_id=user_id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=user_id, guild_id=self.test_guild.id)
 
         violation_event = await self.audit_logger.log_event(
             event_type=AuditEventType.SECURITY_VIOLATION,
@@ -536,7 +520,7 @@ class TestSecurityIntegration(IntegrationTestSuite):
             severity=AuditSeverity.WARNING,
             success=False,
             error_message="權限不足",
-            risk_level="high"
+            risk_level="high",
         )
 
         # 檢查違規記錄
@@ -582,8 +566,7 @@ class TestSystemHealth(IntegrationTestSuite):
 
         for i in range(10):
             await self.transaction_coordinator.grant_achievement_coordinated(
-                user_id=user_id + i,
-                achievement_id=1
+                user_id=user_id + i, achievement_id=1
             )
 
         # 檢查緩衝區狀態
@@ -593,7 +576,7 @@ class TestSystemHealth(IntegrationTestSuite):
         assert audit_buffer_size > 0
         assert history_buffer_size > 0
 
-        # 模擬清理操作（在實際實現中會有自動清理機制）
+        # 模擬清理操作(在實際實現中會有自動清理機制)
         # 這裡只是驗證資源使用在合理範圍內
         assert audit_buffer_size < 100
         assert history_buffer_size < 100
@@ -607,7 +590,4 @@ def integration_test_suite():
 
 
 # 測試標記
-pytestmark = [
-    pytest.mark.integration,
-    pytest.mark.asyncio
-]
+pytestmark = [pytest.mark.integration, pytest.mark.asyncio]

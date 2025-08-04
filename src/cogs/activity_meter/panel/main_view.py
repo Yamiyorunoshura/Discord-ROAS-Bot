@@ -8,14 +8,20 @@
 """
 
 import contextlib
+import io
+import json
 import logging
 from datetime import datetime
 from typing import Any
 
 import discord
+from PIL import Image, ImageDraw, ImageFont
 
 from ...core.base_cog import StandardPanelView
+from ..constants import DISCORD_UI_MAX_COMPONENTS, MAX_HOUR, UI_OPTIMIZATION_THRESHOLD
 from ..database.database import ActivityDatabase
+from .components.buttons import TimeSettingButton
+from .components.modals import CustomOptionsModal
 from .components.selectors import (
     STYLE_CONFIGS,
     ChannelSelector,
@@ -44,7 +50,6 @@ ERROR_CODES = {
     "E402": "設定保存失敗",
 }
 
-
 class ActivityMeterError(Exception):
     """活躍度系統錯誤基類"""
 
@@ -52,7 +57,6 @@ class ActivityMeterError(Exception):
         self.error_code = error_code
         self.message = message
         super().__init__(f"[{error_code}] {message}")
-
 
 class ActivityPanelView(StandardPanelView):
     """
@@ -142,12 +146,10 @@ class ActivityPanelView(StandardPanelView):
             # 清除所有組件
             self.clear_items()
 
-            # 添加頁面選擇器(第一行,row=0)
             page_selector = PageSelector(self)
             page_selector.row = 0
             self.add_item(page_selector)
 
-            # 根據頁面添加對應組件(修復佈局問題)
             if page_name == "settings":
                 self._add_settings_components_fixed()
             elif page_name == "preview":
@@ -168,7 +170,7 @@ class ActivityPanelView(StandardPanelView):
             logger.error(f"更新頁面組件失敗: {e}")
             # 使用錯誤處理機制
             self.handle_layout_error(e)
-            raise ActivityMeterError("E202", f"頁面切換失敗:{e!s}")
+            raise ActivityMeterError("E202", f"頁面切換失敗:{e!s}") from e
 
     def _clear_page_components(self):
         """清除頁面組件(保留頁面選擇器和關閉按鈕)"""
@@ -208,6 +210,12 @@ class ActivityPanelView(StandardPanelView):
                     style=discord.ButtonStyle.primary,
                     emoji="👁️",
                     callback=self.preview_style_callback,
+                ),
+                self.create_standard_button(
+                    label="自訂選項",
+                    style=discord.ButtonStyle.secondary,
+                    emoji="🎨",
+                    callback=self.custom_options_callback,
                 ),
                 self.create_standard_button(
                     label="關閉面板",
@@ -298,7 +306,6 @@ class ActivityPanelView(StandardPanelView):
 
             except Exception as fallback_error:
                 logger.error(f"簡化佈局也失敗: {fallback_error}")
-                # 最後的備用方案:只保留頁面選擇器
                 try:
                     self.clear_items()
                     page_selector = PageSelector(self)
@@ -315,7 +322,7 @@ class ActivityPanelView(StandardPanelView):
         """
         total_components = len(components)
 
-        if total_components > 25:  # Discord UI總組件限制
+        if total_components > DISCORD_UI_MAX_COMPONENTS:  # Discord UI總組件限制
             return False, "組件總數超過Discord UI限制"
 
         return True, "佈局兼容"
@@ -405,12 +412,10 @@ class ActivityPanelView(StandardPanelView):
         try:
             items = []
 
-            # 第一行:頁面選擇器
             page_selector = PageSelector(self)
             page_selector.row = 0
             items.append(page_selector)
 
-            # 第二行:頻道選擇器和風格選擇器
             channel_selector = ChannelSelector(self)
             channel_selector.row = 1
             items.append(channel_selector)
@@ -418,9 +423,6 @@ class ActivityPanelView(StandardPanelView):
             style_selector = StyleSelector(self)
             style_selector.row = 1
             items.append(style_selector)
-
-            # 第三行:時間設定按鈕和預覽按鈕
-            from .components.buttons import TimeSettingButton
 
             time_setting_button = TimeSettingButton()
             time_setting_button.row = 2
@@ -435,7 +437,6 @@ class ActivityPanelView(StandardPanelView):
             preview_button.row = 2
             items.append(preview_button)
 
-            # 第四行:關閉按鈕
             close_button = self.create_standard_button(
                 label="關閉面板",
                 style=discord.ButtonStyle.secondary,
@@ -562,7 +563,6 @@ class ActivityPanelView(StandardPanelView):
 
         except Exception as e:
             logger.error(f"創建備用佈局失敗: {e}")
-            # 最後的備用方案:只保留關閉按鈕
             try:
                 self.clear_items()
                 close_button = self.create_standard_button(
@@ -635,19 +635,14 @@ class ActivityPanelView(StandardPanelView):
         """
         權限檢查邏輯 - 四級權限架構
         """
-        if action_type == "view_panel":
-            return True  # 所有用戶都可以查看面板
+        permission_checks = {
+            "view_panel": True,  # 所有用戶都可以查看面板
+            "basic_operation": user.guild_permissions.view_channel,
+            "manage_settings": user.guild_permissions.manage_guild,
+            "advanced_management": user.guild_permissions.administrator,
+        }
 
-        elif action_type == "basic_operation":
-            return user.guild_permissions.view_channel
-
-        elif action_type == "manage_settings":
-            return user.guild_permissions.manage_guild
-
-        elif action_type == "advanced_management":
-            return user.guild_permissions.administrator
-
-        return False
+        return permission_checks.get(action_type, False)
 
     def can_view_panel(self, user: discord.Member) -> bool:
         """檢查用戶是否可以查看面板"""
@@ -857,7 +852,7 @@ class ActivityPanelView(StandardPanelView):
             # 4. 優化錯誤提示
 
             # 實現智能佈局檢測
-            if len(self.children) > 20:
+            if len(self.children) > UI_OPTIMIZATION_THRESHOLD:
                 logger.info("檢測到組件數量較多,啟用優化模式")
                 self._enable_optimization_mode()
 
@@ -1036,6 +1031,27 @@ class ActivityPanelView(StandardPanelView):
         except Exception as e:
             await self.handle_error(interaction, e)
 
+    async def custom_options_callback(self, interaction: discord.Interaction):
+        """自訂選項回調"""
+        try:
+            if not self.can_edit_settings(interaction.user):
+                await interaction.response.send_message(
+                    "❌ 您沒有權限編輯設定", ephemeral=True
+                )
+                return
+
+            # 導入自訂選項模態框
+
+            # 獲取當前自訂選項
+            current_options = await self.get_current_custom_options()
+
+            # 創建並顯示模態框
+            modal = CustomOptionsModal(self, current_options)
+            await interaction.response.send_modal(modal)
+
+        except Exception as e:
+            await self.handle_error(interaction, e)
+
     async def apply_settings_callback(self, interaction: discord.Interaction):
         """套用設定回調(已棄用,使用自動保存機制)"""
         try:
@@ -1151,12 +1167,47 @@ class ActivityPanelView(StandardPanelView):
         # 從數據庫載入設定
         return await self.db.get_progress_style(self.guild_id)
 
+    async def get_current_custom_options(self) -> dict:
+        """獲取當前自訂選項"""
+        try:
+
+            # 從數據庫載入自訂選項
+            async with self.db.pool.acquire() as conn:
+                result = await conn.fetchrow(
+                    "SELECT custom_options FROM activity_meter_config WHERE guild_id = $1",
+                    self.guild_id,
+                )
+
+                if result and result["custom_options"]:
+                    return json.loads(result["custom_options"])
+                else:
+                    # 返回預設選項
+                    return {
+                        "show_percentage": True,
+                        "show_level_badge": True,
+                        "show_animation": True,
+                        "animation_style": "pulse",
+                        "custom_text": None,
+                        "progress_style": "gradient",
+                        "bar_thickness": "normal",
+                        "corner_style": "rounded",
+                    }
+        except Exception:
+            # 如果出錯, 返回預設選項
+            return {
+                "show_percentage": True,
+                "show_level_badge": True,
+                "show_animation": True,
+                "animation_style": "pulse",
+                "custom_text": None,
+                "progress_style": "gradient",
+                "bar_thickness": "normal",
+                "corner_style": "rounded",
+            }
+
     async def render_progress_preview(self, style: str) -> discord.File:
         """渲染進度條預覽圖片"""
         try:
-            import io
-
-            from PIL import Image, ImageDraw, ImageFont
 
             # 獲取風格配置
             style_config = STYLE_CONFIGS.get(style, STYLE_CONFIGS["classic"])
@@ -1187,7 +1238,7 @@ class ActivityPanelView(StandardPanelView):
             try:
                 # 嘗試使用系統字體
                 font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 16)
-            except:
+            except (OSError, ImportError):
                 # 如果沒有Arial,使用預設字體
                 font = ImageFont.load_default()
 
@@ -1212,7 +1263,7 @@ class ActivityPanelView(StandardPanelView):
             return discord.File(buffer, filename=f"preview_{style}.png")
 
         except Exception as e:
-            raise ActivityMeterError("E301", f"進度條渲染失敗:{e!s}")
+            raise ActivityMeterError("E301", f"進度條渲染失敗:{e!s}") from e
 
     async def save_current_settings(self):
         """保存當前設定"""
@@ -1229,7 +1280,7 @@ class ActivityPanelView(StandardPanelView):
             )
 
         except Exception as e:
-            raise ActivityMeterError("E402", f"設定保存失敗:{e!s}")
+            raise ActivityMeterError("E402", f"設定保存失敗:{e!s}") from e
 
     # 設定更新方法
     async def update_progress_style(self, interaction: discord.Interaction, style: str):
@@ -1282,7 +1333,7 @@ class ActivityPanelView(StandardPanelView):
         """更新公告時間(已棄用,使用自動保存機制)"""
         try:
             # 檢查時間是否有效
-            if not 0 <= hour <= 23:
+            if not 0 <= hour <= MAX_HOUR:
                 await interaction.response.send_message(
                     "❌ 無效的時間格式", ephemeral=True
                 )
@@ -1293,7 +1344,6 @@ class ActivityPanelView(StandardPanelView):
 
         except Exception as e:
             await self.handle_error(interaction, e)
-
 
 class ProgressBarPreviewButton(discord.ui.Button):
     """進度條風格預覽按鈕"""

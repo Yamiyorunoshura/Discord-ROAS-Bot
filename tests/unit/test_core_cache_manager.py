@@ -1,7 +1,7 @@
 """快取管理系統測試模組.
 
-此模組測試 Discord ROAS Bot 的企業級多級快取功能，
-包括L1內存快取、L2持久化快取、智能快取策略等核心功能。
+此模組測試 Discord ROAS Bot 的企業級多級快取功能,
+包括L1內存快取、L2持久化快取、智能快取策略等核心功能.
 """
 
 import os
@@ -282,7 +282,7 @@ class TestSmartCacheStrategy:
         """測試不需要淘汰的情況."""
         entries = {
             "key1": CacheEntry("key1", "value1"),
-            "key2": CacheEntry("key2", "value2")
+            "key2": CacheEntry("key2", "value2"),
         }
 
         keys_to_evict = await strategy.should_evict(entries, max_size=5)
@@ -295,7 +295,7 @@ class TestSmartCacheStrategy:
         entries = {
             "key1": CacheEntry("key1", "value1"),
             "key2": CacheEntry("key2", "value2"),
-            "key3": CacheEntry("key3", "value3")
+            "key3": CacheEntry("key3", "value3"),
         }
 
         keys_to_evict = await strategy.should_evict(entries, max_size=2)
@@ -427,7 +427,7 @@ class TestMemoryCacheBackend:
             entry = CacheEntry(f"key{i}", f"value{i}")
             await backend.set(f"key{i}", entry)
 
-        # 添加一個新條目，應該觸發淘汰
+        # 添加一個新條目,應該觸發淘汰
         entry = CacheEntry("new_key", "new_value")
         await backend.set("new_key", entry)
 
@@ -465,7 +465,7 @@ class TestPersistentCacheBackend:
     @pytest.fixture
     def temp_db_path(self):
         """創建臨時資料庫路徑."""
-        temp_file = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        temp_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         temp_file.close()
         yield temp_file.name
         # 清理
@@ -577,7 +577,7 @@ class TestPersistentCacheBackend:
             "string": "test",
             "number": 42,
             "list": [1, 2, 3],
-            "nested": {"key": "value"}
+            "nested": {"key": "value"},
         }
 
         entry = CacheEntry("complex_key", complex_value)
@@ -598,7 +598,7 @@ class TestMultiLevelCache:
     @pytest.fixture
     def temp_db_path(self):
         """創建臨時資料庫路徑."""
-        temp_file = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        temp_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         temp_file.close()
         yield temp_file.name
         # 清理
@@ -616,7 +616,7 @@ class TestMultiLevelCache:
             l1_strategy=CacheStrategy.LRU,
             default_ttl=3600.0,
             db_path=temp_db_path,
-            enable_preloading=False  # 禁用預載入以簡化測試
+            enable_preloading=False,  # 禁用預載入以簡化測試
         )
         yield manager
         await manager.shutdown()
@@ -655,7 +655,9 @@ class TestMultiLevelCache:
     async def test_multi_level_cache_set_and_get_both(self, cache_manager):
         """測試兩級快取設置和獲取."""
         # 設置到兩級
-        success = await cache_manager.set("test_key", "test_value", level=CacheLevel.BOTH)
+        success = await cache_manager.set(
+            "test_key", "test_value", level=CacheLevel.BOTH
+        )
         assert success
 
         # 從快取獲取
@@ -797,6 +799,7 @@ class TestCacheUtilities:
 
     def test_cache_key_with_objects(self):
         """測試對象快取鍵生成."""
+
         class TestObject:
             def __init__(self, value):
                 self.value = value
@@ -839,6 +842,7 @@ class TestCacheUtilities:
     @pytest.mark.asyncio
     async def test_cached_decorator_custom_key(self):
         """測試自定義鍵的快取裝飾器."""
+
         def custom_key_func(x, y):
             return f"custom_{x}_{y}"
 
@@ -940,7 +944,7 @@ class TestCacheErrorHandling:
             # 應該能夠處理並返回結果
             assert result is not None or result is None
         except Exception as e:
-            # 如果拋出異常，應該是預期的類型
+            # 如果拋出異常,應該是預期的類型
             assert isinstance(e, (ValueError, TypeError, AttributeError))
 
     @pytest.mark.asyncio
@@ -988,7 +992,7 @@ class TestCachePerformance:
     @pytest.mark.asyncio
     async def test_multi_level_cache_performance(self):
         """測試多級快取性能."""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as temp_file:
             temp_db_path = temp_file.name
 
         try:
@@ -996,7 +1000,7 @@ class TestCachePerformance:
                 l1_max_size=50,
                 l2_max_size=500,
                 db_path=temp_db_path,
-                enable_preloading=False
+                enable_preloading=False,
             )
 
             start_time = time.time()

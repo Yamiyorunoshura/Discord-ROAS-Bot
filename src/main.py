@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
+import traceback
 from pathlib import Path
 
 import typer
@@ -12,11 +13,30 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
+try:
+    import uvloop
+except ImportError:
+    uvloop = None
+
 from src.core.bot import create_and_run_bot
 from src.core.config import (
     Settings,
 )
 from src.core.logger import setup_logging
+
+# Import version info for CLI commands
+try:
+    from src import __author__, __description__, __version__
+except ImportError:
+    __author__ = "ADR Bot Team"
+    __description__ = "Discord ADR Bot"
+    __version__ = "2.1.0"
+
+# Import config manager for advanced configuration
+try:
+    from src.core.config import get_config_manager
+except ImportError:
+    get_config_manager = None  # type: ignore[assignment]
 
 # Rich console for beautiful output
 console = Console()
@@ -28,26 +48,19 @@ app = typer.Typer(
     add_completion=False,
 )
 
-
 def setup_event_loop() -> None:
     """Set up the optimal event loop for the platform."""
-    try:
-        # Use uvloop on Unix systems for better performance
-        if sys.platform != "win32":
-            import uvloop
-            uvloop.install()
-            console.print("[green]Using uvloop for enhanced performance[/green]")
-        else:
-            console.print("[yellow]Using default asyncio event loop (Windows)[/yellow]")
-    except ImportError:
-        console.print(
-            "[yellow]uvloop not available, using default event loop[/yellow]"
-        )
-
+    # Use uvloop on Unix systems for better performance
+    if sys.platform != "win32" and uvloop is not None:
+        uvloop.install()
+        console.print("[green]Using uvloop for enhanced performance[/green]")
+    elif sys.platform == "win32":
+        console.print("[yellow]Using default asyncio event loop (Windows)[/yellow]")
+    else:
+        console.print("[yellow]uvloop not available, using default event loop[/yellow]")
 
 def check_python_version() -> None:
     """Check if Python version is compatible."""
-
 
 def print_banner() -> None:
     """Print application banner."""
@@ -66,12 +79,8 @@ def print_banner() -> None:
 
     console.print(panel)
 
-
-async def validate_and_load_configuration(config_file: Path | None = None) -> Settings:
+async def validate_and_load_configuration() -> Settings:
     """Validate environment and load configuration using simple Settings.
-
-    Args:
-        config_file: Optional configuration file path
 
     Returns:
         Loaded settings
@@ -80,7 +89,7 @@ async def validate_and_load_configuration(config_file: Path | None = None) -> Se
         typer.Exit: If validation fails
     """
     try:
-        # 臨時使用簡單的Settings類，避免複雜配置系統的編碼問題
+        # 載入配置設定，讓 Pydantic 從 .env 文件讀取配置
         console.print("[cyan]Loading configuration...[/cyan]")
         settings = Settings()
 
@@ -97,9 +106,7 @@ async def validate_and_load_configuration(config_file: Path | None = None) -> Se
 
         # Validate token format (basic check)
         if not settings.token.startswith(("MTI", "OTk", "MTA", "MTM", "Bot ")):
-            console.print(
-                "[yellow]Warning: Token format might be incorrect[/yellow]"
-            )
+            console.print("[yellow]Warning: Token format might be incorrect[/yellow]")
             console.print(
                 "   Discord bot tokens usually start with 'MTI', 'OTk', or 'MTA'"
             )
@@ -109,15 +116,12 @@ async def validate_and_load_configuration(config_file: Path | None = None) -> Se
         settings.logging.file_path.mkdir(parents=True, exist_ok=True)
         settings.database.sqlite_path.mkdir(parents=True, exist_ok=True)
 
-        console.print(
-            "[green]Configuration loaded successfully[/green]"
-        )
+        console.print("[green]Configuration loaded successfully[/green]")
         return settings
 
     except Exception as e:
         console.print(f"[red]Failed to load configuration: {e}[/red]")
-        raise typer.Exit(1)
-
+        raise typer.Exit(1) from e
 
 @app.command()
 def run(
@@ -139,12 +143,6 @@ def run(
         "-d",
         help="Enable debug mode",
     ),
-    config_file: Path | None = typer.Option(
-        None,
-        "--config",
-        "-c",
-        help="Path to configuration file",
-    ),
     hot_reload: bool = typer.Option(
         True,
         "--hot-reload/--no-hot-reload",
@@ -153,7 +151,7 @@ def run(
 ) -> None:
     """Run the Discord ADR Bot with unified configuration system."""
 
-    async def main():
+    async def main() -> None:
         # Print banner
         print_banner()
 
@@ -170,7 +168,7 @@ def run(
 
         try:
             # Validate environment and load settings
-            settings = await validate_and_load_configuration(config_file)
+            settings = await validate_and_load_configuration()
 
             # Print configuration summary
             console.print(f"[green]Environment:[/green] {settings.environment}")
@@ -228,15 +226,8 @@ def run(
         console.print(f"💥 [red bold]Application error: {e}[/red bold]")
         sys.exit(1)
 
-
 @app.command()
 def validate_config(
-    config_file: Path | None = typer.Option(
-        None,
-        "--config",
-        "-c",
-        help="Path to configuration file",
-    ),
     show_sources: bool = typer.Option(
         False,
         "--show-sources",
@@ -245,12 +236,12 @@ def validate_config(
 ) -> None:
     """Validate configuration using unified configuration system."""
 
-    async def main():
+    async def main() -> None:
         console.print("[cyan]Validating configuration...[/cyan]")
 
         try:
             # Load configuration using unified system
-            settings = await validate_and_load_configuration(config_file)
+            settings = await validate_and_load_configuration()
 
             # Print detailed configuration
             console.print(
@@ -327,10 +318,8 @@ def validate_config(
             )
 
             # Configuration sources (if requested)
-            if show_sources:
+            if show_sources and get_config_manager is not None:
                 try:
-                    from src.core.config import get_config_manager
-
                     manager = get_config_manager()
                     console.print("\n📊 Configuration Sources:")
                     for name, loader in manager.loaders.items():
@@ -342,8 +331,6 @@ def validate_config(
 
         except Exception as e:
             console.print(f"❌ [red]Configuration validation failed: {e}[/red]")
-            import traceback
-
             console.print(f"📝 [dim]Details: {traceback.format_exc()}[/dim]")
             sys.exit(1)
         finally:
@@ -355,7 +342,6 @@ def validate_config(
     except Exception as e:
         console.print(f"💥 [red bold]Validation error: {e}[/red bold]")
         sys.exit(1)
-
 
 @app.command()
 def create_config() -> None:
@@ -398,8 +384,7 @@ SECURITY_RATE_LIMIT_WINDOW=60
     config_path = Path(".env.example")
 
     try:
-        with open(config_path, "w", encoding="utf-8") as f:
-            f.write(config_content)
+        config_path.write_text(config_content, encoding="utf-8")
 
         console.print(f"✅ [green]Sample configuration created: {config_path}[/green]")
         console.print(
@@ -410,23 +395,18 @@ SECURITY_RATE_LIMIT_WINDOW=60
         console.print(f"❌ [red]Failed to create configuration file: {e}[/red]")
         sys.exit(1)
 
-
 @app.command()
 def version() -> None:
     """Show version information."""
-    from src import __author__, __description__, __version__
-
     console.print(f"Discord ADR Bot v{__version__}")
     console.print(f"Author: {__author__}")
     console.print(f"Description: {__description__}")
     console.print(f"Python: {sys.version.split()[0]}")
     console.print(f"Platform: {sys.platform}")
 
-
 def cli() -> None:
     """CLI entry point for setuptools."""
     app()
-
 
 if __name__ == "__main__":
     cli()

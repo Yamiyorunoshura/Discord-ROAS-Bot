@@ -5,9 +5,11 @@
 - 管理用戶行為歷史和統計資料
 """
 
+import contextlib
 import datetime as dt
 import time
 from collections import defaultdict
+from difflib import SequenceMatcher
 from typing import Any
 
 import discord
@@ -19,22 +21,22 @@ from ....core import create_error_handler, setup_module_logger
 from ...base import ProtectionCog, admin_only
 from ..config.config import DEFAULTS
 from ..database.database import AntiSpamDatabase
+from ..panel.embeds.settings_embed import create_settings_embed
+from ..panel.main_view import AntiSpamMainView
+
+# 常數定義
+MAX_ACTION_LOGS = 100
 
 # 設置模塊日誌記錄器
 logger = setup_module_logger("anti_spam")
 error_handler = create_error_handler("anti_spam", logger)
 
 # 相似度計算函數
-import contextlib
-from difflib import SequenceMatcher
-
-
 def _similar(a: str, b: str) -> float:
     """計算兩個字串的相似度"""
     if not a or not b:
         return 0.0
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
-
 
 class AntiSpam(ProtectionCog):
     """
@@ -80,9 +82,9 @@ class AntiSpam(ProtectionCog):
             await self.db.init_db()
             # 啟動背景任務
             self._reset_task.start()
-            logger.info("【反垃圾訊息】模組載入完成")
+            logger.info("[反垃圾訊息]模組載入完成")
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】模組載入失敗: {exc}")
+            logger.error(f"[反垃圾訊息]模組載入失敗: {exc}")
             raise
 
     async def cog_unload(self):
@@ -90,9 +92,9 @@ class AntiSpam(ProtectionCog):
         try:
             # 停止背景任務
             self._reset_task.cancel()
-            logger.info("【反垃圾訊息】模組卸載完成")
+            logger.info("[反垃圾訊息]模組卸載完成")
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】模組卸載失敗: {exc}")
+            logger.error(f"[反垃圾訊息]模組卸載失敗: {exc}")
 
     # ───────── 事件處理 ─────────
     @commands.Cog.listener()
@@ -108,7 +110,6 @@ class AntiSpam(ProtectionCog):
             if not enabled or enabled.lower() != "true":
                 return
 
-            # 檢查用戶權限(管理員免檢)
             if (
                 isinstance(msg.author, discord.Member)
                 and msg.author.guild_permissions.manage_messages
@@ -183,7 +184,7 @@ class AntiSpam(ProtectionCog):
             return len(recent_messages) >= limit
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】頻率檢查失敗: {exc}")
+            logger.error(f"[反垃圾訊息]頻率檢查失敗: {exc}")
             return False
 
     async def _match_identical(
@@ -223,7 +224,7 @@ class AntiSpam(ProtectionCog):
             return False
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】重複檢查失敗: {exc}")
+            logger.error(f"[反垃圾訊息]重複檢查失敗: {exc}")
             return False
 
     async def _match_similar(
@@ -271,7 +272,7 @@ class AntiSpam(ProtectionCog):
             return False
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】相似度檢查失敗: {exc}")
+            logger.error(f"[反垃圾訊息]相似度檢查失敗: {exc}")
             return False
 
     async def _match_sticker(
@@ -297,7 +298,7 @@ class AntiSpam(ProtectionCog):
             return len(recent_stickers) >= limit
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】貼圖檢查失敗: {exc}")
+            logger.error(f"[反垃圾訊息]貼圖檢查失敗: {exc}")
             return False
 
     def _cleanup_history(self, user_id: int, now: float):
@@ -323,7 +324,7 @@ class AntiSpam(ProtectionCog):
                 del self.sticker_history[user_id]
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】清理歷史失敗: {exc}")
+            logger.error(f"[反垃圾訊息]清理歷史失敗: {exc}")
 
     # ───────── 違規處理 ─────────
     async def _handle_violation(self, msg: discord.Message, violations: list[str]):
@@ -335,7 +336,7 @@ class AntiSpam(ProtectionCog):
             except discord.NotFound:
                 pass
             except discord.Forbidden:
-                logger.warning(f"【反垃圾訊息】無權刪除訊息: {msg.id}")
+                logger.warning(f"[反垃圾訊息]無權刪除訊息: {msg.id}")
 
             # 增加違規次數
             self.violate[msg.author.id] += 1
@@ -405,7 +406,7 @@ class AntiSpam(ProtectionCog):
             )
 
             logger.info(
-                f"【反垃圾訊息】處理違規: {msg.author.id} - {', '.join(violations)}"
+                f"[反垃圾訊息]處理違規: {msg.author.id} - {', '.join(violations)}"
             )
 
         except Exception as exc:
@@ -420,10 +421,10 @@ class AntiSpam(ProtectionCog):
             await member.timeout(timeout_duration, reason="反垃圾訊息保護")
             return True
         except discord.Forbidden:
-            logger.warning(f"【反垃圾訊息】無權限對用戶 {member.id} 進行超時")
+            logger.warning(f"[反垃圾訊息]無權限對用戶 {member.id} 進行超時")
             return False
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】超時處理失敗: {exc}")
+            logger.error(f"[反垃圾訊息]超時處理失敗: {exc}")
             return False
 
     async def _send_notification(self, guild: discord.Guild, message: str):
@@ -444,10 +445,10 @@ class AntiSpam(ProtectionCog):
                     )
                     await channel.send(embed=embed)
             except (ValueError, AttributeError):
-                logger.warning(f"【反垃圾訊息】無效的通知頻道ID: {notify_channel_id}")
+                logger.warning(f"[反垃圾訊息]無效的通知頻道ID: {notify_channel_id}")
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】發送通知失敗: {exc}")
+            logger.error(f"[反垃圾訊息]發送通知失敗: {exc}")
 
     # ───────── 統計和日誌 ─────────
     async def _add_stat(self, guild_id: int, stat_type: str):
@@ -457,7 +458,7 @@ class AntiSpam(ProtectionCog):
             # 同時記錄到資料庫
             await self.db.add_stat(guild_id, stat_type)
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】添加統計失敗: {exc}")
+            logger.error(f"[反垃圾訊息]添加統計失敗: {exc}")
 
     async def _add_action_log(
         self, guild_id: int, user_id: int, action: str, details: str
@@ -474,15 +475,15 @@ class AntiSpam(ProtectionCog):
             # 添加到內存日誌
             self.action_logs[guild_id].append(log_entry)
 
-            # 保持最近 100 條記錄
-            if len(self.action_logs[guild_id]) > 100:
-                self.action_logs[guild_id] = self.action_logs[guild_id][-100:]
+            # 保持最近的記錄
+            if len(self.action_logs[guild_id]) > MAX_ACTION_LOGS:
+                self.action_logs[guild_id] = self.action_logs[guild_id][-MAX_ACTION_LOGS:]
 
             # 記錄到資料庫
             await self.db.add_action_log(guild_id, user_id, action, details)
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】添加操作日誌失敗: {exc}")
+            logger.error(f"[反垃圾訊息]添加操作日誌失敗: {exc}")
 
     # ───────── 斜線指令 ─────────
     @app_commands.command(name="洗版設定面板", description="開啟反垃圾訊息設定面板")
@@ -496,10 +497,6 @@ class AntiSpam(ProtectionCog):
             return
 
         try:
-            # 導入面板視圖
-            from ..panel.embeds.settings_embed import create_settings_embed
-            from ..panel.main_view import AntiSpamMainView
-
             # 創建設定嵌入
             embed = await create_settings_embed(self, interaction.guild, "all")
 
@@ -510,7 +507,7 @@ class AntiSpam(ProtectionCog):
             await interaction.response.send_message(
                 embed=embed, view=view, ephemeral=True
             )
-            logger.info(f"【反垃圾訊息】{interaction.user.id} 開啟了設定面板")
+            logger.info(f"[反垃圾訊息]{interaction.user.id} 開啟了設定面板")
 
         except Exception as exc:
             error_handler.log_error(
@@ -528,7 +525,7 @@ class AntiSpam(ProtectionCog):
                 await interaction.response.send_message(
                     embed=error_embed, ephemeral=True
                 )
-            except:
+            except Exception:
                 await interaction.followup.send(embed=error_embed, ephemeral=True)
 
     # ───────── 背景任務 ─────────
@@ -570,10 +567,10 @@ class AntiSpam(ProtectionCog):
                 if not self.action_logs[guild_id]:
                     del self.action_logs[guild_id]
 
-            logger.info("【反垃圾訊息】每日重置任務完成")
+            logger.info("[反垃圾訊息]每日重置任務完成")
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】每日重置任務失敗: {exc}")
+            logger.error(f"[反垃圾訊息]每日重置任務失敗: {exc}")
 
     @_reset_task.before_loop
     async def _before_reset_task(self):
@@ -598,7 +595,7 @@ class AntiSpam(ProtectionCog):
             return dict(combined_stats)
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】取得統計失敗: {exc}")
+            logger.error(f"[反垃圾訊息]取得統計失敗: {exc}")
             return {}
 
     async def get_action_logs(
@@ -617,5 +614,5 @@ class AntiSpam(ProtectionCog):
             return all_logs[:limit]
 
         except Exception as exc:
-            logger.error(f"【反垃圾訊息】取得操作日誌失敗: {exc}")
+            logger.error(f"[反垃圾訊息]取得操作日誌失敗: {exc}")
             return []

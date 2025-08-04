@@ -3,12 +3,28 @@
 負責管理面板狀態和UI元件的協調
 """
 
+import logging
+
 import discord
 from discord import ui
 
 from ..main.main import AntiLink
-from .components.buttons import *
-from .components.modals import *
+from .components.buttons import (
+    AddBlacklistButton,
+    AddWhitelistButton,
+    ClearStatsButton,
+    ClearWhitelistButton,
+    CloseButton,
+    DisableButton,
+    EditSettingsButton,
+    EnableButton,
+    ExportStatsButton,
+    RefreshBlacklistButton,
+    RemoveBlacklistButton,
+    RemoveWhitelistButton,
+    ResetSettingsButton,
+    TutorialButton,
+)
 from .components.selectors import PanelSelector
 from .embeds.blacklist_embed import BlacklistEmbed
 from .embeds.config_embed import ConfigEmbed
@@ -67,7 +83,6 @@ class AntiLinkMainView(ui.View):
 
     def _update_buttons(self):
         """根據當前面板更新按鈕"""
-        # 清除現有按鈕(保留選擇器)
         items_to_remove = [
             item for item in self.children if isinstance(item, ui.Button)
         ]
@@ -105,26 +120,23 @@ class AntiLinkMainView(ui.View):
             當前面板的Embed
         """
         try:
-            if self.current_panel == "preview":
-                return await self.preview_embed.create_embed()
-            elif self.current_panel == "config":
-                return await self.config_embed.create_embed()
-            elif self.current_panel == "stats":
-                return await self.stats_embed.create_embed()
-            elif self.current_panel == "whitelist":
-                return await self.whitelist_embed.create_embed(self.page_number)
-            elif self.current_panel == "blacklist":
-                return await self.blacklist_embed.create_embed(self.page_number)
-            else:
-                return await self.preview_embed.create_embed()
+            panel_handlers = {
+                "preview": lambda: self.preview_embed.create_embed(),
+                "config": lambda: self.config_embed.create_embed(),
+                "stats": lambda: self.stats_embed.create_embed(),
+                "whitelist": lambda: self.whitelist_embed.create_embed(self.page_number),
+                "blacklist": lambda: self.blacklist_embed.create_embed(self.page_number),
+            }
+
+            handler = panel_handlers.get(self.current_panel, panel_handlers["preview"])
+            return await handler()
+
         except Exception as exc:
-            # 錯誤處理:返回錯誤Embed
-            embed = discord.Embed(
+            return discord.Embed(
                 title="❌ 面板載入錯誤",
                 description=f"載入面板時發生錯誤:{exc}",
                 color=discord.Color.red(),
             )
-            return embed
 
     async def switch_panel(self, panel_name: str, interaction: discord.Interaction):
         """
@@ -191,8 +203,6 @@ class AntiLinkMainView(ui.View):
                 await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception:
             # 如果連錯誤處理都失敗,記錄到日誌
-            import logging
-
             logger = logging.getLogger("anti_link")
             logger.error(f"面板錯誤處理失敗:{error_msg}")
 

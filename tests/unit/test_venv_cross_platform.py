@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 # 添加項目根目錄到 Python 路徑
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from cogs.core.venv_manager import VirtualEnvironmentManager
 
@@ -38,7 +38,7 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
         actual_platform = platform.system().lower()
 
         self.assertEqual(detected_platform, actual_platform)
-        self.assertIn(detected_platform, ['windows', 'darwin', 'linux'])
+        self.assertIn(detected_platform, ["windows", "darwin", "linux"])
 
     def test_python_executable_paths_windows(self):
         """測試 Windows 平台的 Python 執行檔路徑"""
@@ -46,7 +46,7 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
         fake_venv.mkdir()
 
         # 模擬 Windows 環境
-        with patch.object(self.venv_manager, 'platform', 'windows'):
+        with patch.object(self.venv_manager, "platform", "windows"):
             # 創建 Windows 結構
             scripts_dir = fake_venv / "Scripts"
             scripts_dir.mkdir()
@@ -59,12 +59,12 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
             self.assertEqual(result, python_exe)
 
     def test_python_executable_paths_unix(self):
-        """測試 Unix 系統（macOS/Linux）的 Python 執行檔路徑"""
+        """測試 Unix 系統(macOS/Linux)的 Python 執行檔路徑"""
         fake_venv = self.project_root / "venv"
         fake_venv.mkdir()
 
         # 模擬 Unix 環境
-        with patch.object(self.venv_manager, 'platform', 'darwin'):
+        with patch.object(self.venv_manager, "platform", "darwin"):
             # 創建 Unix 結構
             bin_dir = fake_venv / "bin"
             bin_dir.mkdir()
@@ -82,7 +82,7 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
         fake_venv.mkdir()
 
         # 模擬 Windows 環境
-        with patch.object(self.venv_manager, 'platform', 'windows'):
+        with patch.object(self.venv_manager, "platform", "windows"):
             # 創建 Windows 結構
             lib_dir = fake_venv / "Lib" / "site-packages"
             lib_dir.mkdir(parents=True)
@@ -96,7 +96,7 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
         fake_venv.mkdir()
 
         # 模擬 Unix 環境
-        with patch.object(self.venv_manager, 'platform', 'darwin'):
+        with patch.object(self.venv_manager, "platform", "darwin"):
             # 創建 Unix 結構
             python_version = f"python{sys.version_info.major}.{sys.version_info.minor}"
             lib_dir = fake_venv / "lib" / python_version / "site-packages"
@@ -111,7 +111,7 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
         fake_venv.mkdir()
 
         # 模擬 Windows 環境
-        with patch.object(self.venv_manager, 'platform', 'windows'):
+        with patch.object(self.venv_manager, "platform", "windows"):
             # 創建完整的 Windows 虛擬環境結構
             (fake_venv / "pyvenv.cfg").write_text("home = C:\\Python\\python.exe\n")
 
@@ -131,7 +131,7 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
         fake_venv.mkdir()
 
         # 模擬 Unix 環境
-        with patch.object(self.venv_manager, 'platform', 'darwin'):
+        with patch.object(self.venv_manager, "platform", "darwin"):
             # 創建完整的 Unix 虛擬環境結構
             (fake_venv / "pyvenv.cfg").write_text("home = /usr/bin\n")
 
@@ -148,9 +148,9 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
 
     def test_environment_variables_setup(self):
         """測試環境變數設置"""
-        # 如果已經在虛擬環境中，跳過這個測試
+        # 如果已經在虛擬環境中,跳過這個測試
         if self.venv_manager.is_in_virtual_env():
-            self.skipTest("已在虛擬環境中運行，跳過環境變數設置測試")
+            self.skipTest("已在虛擬環境中運行,跳過環境變數設置測試")
 
         fake_venv = self.project_root / "venv"
         fake_venv.mkdir()
@@ -203,6 +203,7 @@ class TestCrossPlatformVirtualEnvironmentManager(unittest.TestCase):
             if original_path:
                 os.environ["PATH"] = original_path
 
+
 class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTestCase):
     """跨平台異步測試類"""
 
@@ -216,7 +217,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
         """異步清理"""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_create_venv_command_windows(self, mock_subprocess):
         """測試 Windows 平台的虛擬環境創建命令"""
         mock_process = AsyncMock()
@@ -225,7 +226,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
         mock_subprocess.return_value = mock_process
 
         # 模擬 Windows 環境
-        with patch.object(self.venv_manager, 'platform', 'windows'):
+        with patch.object(self.venv_manager, "platform", "windows"):
             venv_path = self.project_root / "test_venv"
             success, message = await self.venv_manager.create_virtual_env(venv_path)
 
@@ -238,7 +239,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
             # Windows 不應該包含 --copies 參數
             self.assertNotIn("--copies", call_args)
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_create_venv_command_unix(self, mock_subprocess):
         """測試 Unix 系統的虛擬環境創建命令"""
         mock_process = AsyncMock()
@@ -247,7 +248,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
         mock_subprocess.return_value = mock_process
 
         # 模擬 Unix 環境
-        with patch.object(self.venv_manager, 'platform', 'darwin'):
+        with patch.object(self.venv_manager, "platform", "darwin"):
             venv_path = self.project_root / "test_venv"
             success, message = await self.venv_manager.create_virtual_env(venv_path)
 
@@ -260,7 +261,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
             # Unix 系統應該包含 --copies 參數
             self.assertIn("--copies", call_args)
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_remove_directory_windows(self, mock_subprocess):
         """測試 Windows 平台的目錄刪除"""
         mock_process = AsyncMock()
@@ -269,7 +270,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
         mock_subprocess.return_value = mock_process
 
         # 模擬 Windows 環境
-        with patch.object(self.venv_manager, 'platform', 'windows'):
+        with patch.object(self.venv_manager, "platform", "windows"):
             test_path = self.project_root / "test_dir"
             test_path.mkdir()
 
@@ -285,7 +286,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
             self.assertIn("/s", call_args)
             self.assertIn("/q", call_args)
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_remove_directory_unix(self, mock_subprocess):
         """測試 Unix 系統的目錄刪除"""
         mock_process = AsyncMock()
@@ -294,7 +295,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
         mock_subprocess.return_value = mock_process
 
         # 模擬 Unix 環境
-        with patch.object(self.venv_manager, 'platform', 'darwin'):
+        with patch.object(self.venv_manager, "platform", "darwin"):
             test_path = self.project_root / "test_dir"
             test_path.mkdir()
 
@@ -309,6 +310,7 @@ class TestCrossPlatformVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTe
             self.assertEqual(call_args[0], "rm")
             self.assertIn("-rf", call_args)
 
+
 class TestEnvironmentIntegration(unittest.TestCase):
     """環境集成測試"""
 
@@ -320,17 +322,17 @@ class TestEnvironmentIntegration(unittest.TestCase):
         env_info = venv_manager.get_environment_info()
 
         # 驗證基本資訊
-        self.assertIsInstance(env_info['platform'], str)
-        self.assertIsInstance(env_info['python_version'], str)
-        self.assertIsInstance(env_info['is_in_virtual_env'], bool)
+        self.assertIsInstance(env_info["platform"], str)
+        self.assertIsInstance(env_info["python_version"], str)
+        self.assertIsInstance(env_info["is_in_virtual_env"], bool)
 
         # 驗證 Python 版本格式
-        version_parts = env_info['python_version'].split('.')
+        version_parts = env_info["python_version"].split(".")
         self.assertEqual(len(version_parts), 2)
         self.assertTrue(all(part.isdigit() for part in version_parts))
 
         # 驗證平台名稱
-        self.assertIn(env_info['platform'], ['windows', 'darwin', 'linux'])
+        self.assertIn(env_info["platform"], ["windows", "darwin", "linux"])
 
     def test_requirements_file_detection(self):
         """測試 requirements 文件檢測"""
@@ -339,7 +341,9 @@ class TestEnvironmentIntegration(unittest.TestCase):
             venv_manager = VirtualEnvironmentManager(str(project_root))
 
             # 測試沒有 requirements 文件的情況
-            self.assertFalse(any(req_file.exists() for req_file in venv_manager.requirements_files))
+            self.assertFalse(
+                any(req_file.exists() for req_file in venv_manager.requirements_files)
+            )
 
             # 創建 requirements.txt
             req_file = project_root / "requirements.txt"
@@ -349,7 +353,10 @@ class TestEnvironmentIntegration(unittest.TestCase):
             venv_manager = VirtualEnvironmentManager(str(project_root))
 
             # 測試檢測到 requirements 文件
-            self.assertTrue(any(req_file.exists() for req_file in venv_manager.requirements_files))
+            self.assertTrue(
+                any(req_file.exists() for req_file in venv_manager.requirements_files)
+            )
+
 
 if __name__ == "__main__":
     # 運行測試

@@ -1,6 +1,6 @@
 """成就管理資料驗證和安全性測試.
 
-此模組測試資料驗證和安全性功能：
+此模組測試資料驗證和安全性功能:
 - 成就資料完整性驗證
 - 輸入資料清理和驗證
 - 權限控制測試
@@ -263,7 +263,7 @@ class TestDataValidationAndSecurity:
         valid_inputs = [
             "這是一個正常的成就名稱",
             "Achievement with numbers 123",
-            "符號測試！@#$%^&*()",
+            "符號測試!@#$%^&*()",
             "多行文本\n第二行內容",
             "包含引號的'文本'內容",
         ]
@@ -411,7 +411,7 @@ class TestDataValidationAndSecurity:
             task = admin_service.create_achievement(data, 123 + i)
             tasks.append(task)
 
-        # 並發執行（實際上是序列，但測試邏輯）
+        # 並發執行(實際上是序列,但測試邏輯)
         results = []
         for task in tasks:
             result = await task
@@ -420,7 +420,7 @@ class TestDataValidationAndSecurity:
         # 驗證所有操作都有適當處理
         for _achievement, validation in results:
             assert validation is not None
-            # 在真實環境中，只有第一個應該成功，其他應該因名稱重複失敗
+            # 在真實環境中,只有第一個應該成功,其他應該因名稱重複失敗
 
     # 資料一致性測試
     async def test_data_consistency_validation(self, admin_service):
@@ -498,13 +498,13 @@ class TestDataValidationAndSecurity:
         for malicious_input in malicious_inputs:
             data = {**base_data, "name": malicious_input}
 
-            # 應該不會導致系統崩潰，而是優雅地處理
+            # 應該不會導致系統崩潰,而是優雅地處理
             try:
                 validation = await admin_service._validate_achievement_data(data)
                 # 大部分惡意輸入應該被拒絕
                 assert validation is not None
             except Exception as e:
-                # 如果有異常，應該是可控的
+                # 如果有異常,應該是可控的
                 assert isinstance(e, ValueError | TypeError)
 
     # 資源限制測試
@@ -527,7 +527,7 @@ class TestDataValidationAndSecurity:
 
         validation = await admin_service._validate_achievement_data(data)
 
-        # 根據實現，可能拒絕過大的條件資料
+        # 根據實現,可能拒絕過大的條件資料
         if not validation.is_valid:
             assert any(
                 "大小" in error or "限制" in error for error in validation.errors
@@ -560,4 +560,4 @@ class TestDataValidationAndSecurity:
 
             # Unicode字符應該被正確處理
             assert validation is not None
-            # 根據系統設計，可能接受或拒絕某些Unicode字符
+            # 根據系統設計,可能接受或拒絕某些Unicode字符

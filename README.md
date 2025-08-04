@@ -68,7 +68,32 @@
 
 ## 🛠️ 安裝指南
 
-### 1. 環境準備
+### 📦 快速安裝
+
+#### Linux/macOS 自動安裝
+```bash
+# 下載並執行安裝腳本
+curl -sSL https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.sh | bash
+
+# 或手動下載後執行
+wget https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.sh
+chmod +x install.sh
+./install.sh
+```
+
+#### Windows PowerShell 自動安裝
+```powershell
+# 下載並執行安裝腳本
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.ps1" -OutFile "install.ps1"
+.\install.ps1
+
+# 或一行執行
+powershell -c "irm https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.ps1 | iex"
+```
+
+### 🔧 手動安裝
+
+#### 1. 環境準備
 ```bash
 # 克隆專案
 git clone <repository-url>
@@ -80,7 +105,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-### 2. 安裝依賴
+#### 2. 安裝依賴
 ```bash
 # 使用 uv 安裝 (推薦)
 uv sync
@@ -89,7 +114,7 @@ uv sync
 pip install -e .
 ```
 
-### 3. 設定環境變數
+#### 3. 設定環境變數
 建立 `.env` 檔案：
 ```env
 DISCORD_TOKEN=your_discord_bot_token
@@ -98,7 +123,7 @@ ENVIRONMENT=development
 LOG_LEVEL=INFO
 ```
 
-### 4. 設定配置
+#### 4. 設定配置
 使用新的配置系統（基於 Pydantic）：
 ```python
 # config.yaml 或環境變數
@@ -109,7 +134,7 @@ discord:
   guild_id: ${DISCORD_GUILD_ID}
 ```
 
-### 5. 啟動機器人
+#### 5. 啟動機器人
 ```bash
 # 使用 CLI 命令
 adr-bot run
@@ -117,6 +142,53 @@ adr-bot run
 # 或直接執行
 python -m src.main
 ```
+
+### ⚡ 升級與維護
+
+#### 升級到新版本
+```bash
+# Linux/macOS
+./scripts/upgrade.sh
+
+# Windows
+.\scripts\upgrade.ps1
+```
+
+#### 回滾到舊版本
+```bash
+# Linux/macOS
+./scripts/upgrade.sh --rollback
+
+# Windows
+.\scripts\upgrade.ps1 -Rollback
+```
+
+### 📋 系統需求
+- **Python**: 3.12+ (必須)
+- **作業系統**: Windows 10+, Ubuntu 20.04+, macOS 11+
+- **記憶體**: 最少 512MB RAM (建議 1GB+)
+- **硬碟**: 最少 100MB 可用空間
+- **網路**: 穩定的網際網路連線
+- **Discord**: 有效的 Discord Bot Token
+
+### 🔍 安裝驗證
+
+安裝完成後，使用以下命令驗證：
+```bash
+# 檢查版本
+discord-adr-bot --version
+
+# 驗證配置
+discord-adr-bot validate-config
+
+# 測試啟動
+discord-adr-bot run --dry-run
+```
+
+### 📚 詳細文檔
+- [完整安裝指南](docs/installation.md)
+- [故障排除指南](docs/troubleshooting.md)
+- [配置說明](docs/configuration.md)
 
 ## 🎮 使用方式
 

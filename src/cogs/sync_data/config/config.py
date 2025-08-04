@@ -62,7 +62,6 @@ class ISyncDataConfig(Protocol):
         """取得同步類型名稱"""
         ...
 
-
 class SyncDataConfigService:
     """資料同步配置服務實現"""
 
@@ -154,7 +153,6 @@ class SyncDataConfigService:
         """
         return self._sync_types.get(sync_type, sync_type)
 
-
 # ────────────────────────────
 # 向後相容的常數和函數
 # ────────────────────────────
@@ -170,11 +168,9 @@ SYNC_TYPES = _config_service.sync_types
 ERROR_CODES = _config_service.error_codes
 DEFAULT_CONFIG = _config_service.default_config
 
-
 def get_error_message(code: str) -> str:
     """向後相容的錯誤訊息取得函數"""
     return _config_service.get_error_message(code)
-
 
 def get_sync_type_name(sync_type: str) -> str:
     """向後相容的同步類型名稱取得函數"""

@@ -2,7 +2,7 @@
 事件總線系統測試
 Discord ADR Bot v1.6 - 事件驅動架構測試
 
-測試覆蓋：
+測試覆蓋:
 - 事件發布和訂閱
 - 事件過濾和路由
 - 事件持久化
@@ -10,8 +10,8 @@ Discord ADR Bot v1.6 - 事件驅動架構測試
 - 優先級處理
 - 錯誤處理和重試
 
-作者：Discord ADR Bot 測試工程師
-版本：v1.6
+作者:Discord ADR Bot 測試工程師
+版本:v1.6
 """
 
 import asyncio
@@ -42,7 +42,7 @@ class TestEvent:
             data={"key": "value"},
             source="test_source",
             target="test_target",
-            priority=EventPriority.HIGH
+            priority=EventPriority.HIGH,
         )
 
         assert event.event_type == "test.event"
@@ -59,8 +59,12 @@ class TestEvent:
         event2 = Event("test.event2")
 
         assert event1.event_id != event2.event_id
-        assert event1.event_id is not None and event1.event_id.startswith("test.event1_")
-        assert event2.event_id is not None and event2.event_id.startswith("test.event2_")
+        assert event1.event_id is not None and event1.event_id.startswith(
+            "test.event1_"
+        )
+        assert event2.event_id is not None and event2.event_id.startswith(
+            "test.event2_"
+        )
 
     def test_event_to_dict(self):
         """測試事件轉字典"""
@@ -68,7 +72,7 @@ class TestEvent:
             event_type="test.event",
             data={"test": "data"},
             source="source",
-            priority=EventPriority.CRITICAL
+            priority=EventPriority.CRITICAL,
         )
 
         event_dict = event.to_dict()
@@ -86,7 +90,7 @@ class TestEvent:
             "source": "source",
             "priority": EventPriority.HIGH.value,
             "timestamp": 1234567890.0,
-            "event_id": "test_id"
+            "event_id": "test_id",
         }
 
         event = Event.from_dict(event_dict)
@@ -177,7 +181,7 @@ class TestEventSubscription:
             handler=mock_handler,
             event_types={"test.event"},
             priority=EventPriority.HIGH,
-            max_retries=5
+            max_retries=5,
         )
 
         assert subscription.handler == mock_handler
@@ -189,8 +193,7 @@ class TestEventSubscription:
     def test_subscription_matches_event_type(self, mock_handler):
         """測試訂閱匹配事件類型"""
         subscription = EventSubscription(
-            handler=mock_handler,
-            event_types={"test.event", "other.event"}
+            handler=mock_handler, event_types={"test.event", "other.event"}
         )
 
         event1 = Event("test.event")
@@ -203,10 +206,7 @@ class TestEventSubscription:
 
     def test_subscription_matches_wildcard(self, mock_handler):
         """測試訂閱匹配通配符"""
-        subscription = EventSubscription(
-            handler=mock_handler,
-            event_types={"*"}
-        )
+        subscription = EventSubscription(handler=mock_handler, event_types={"*"})
 
         event1 = Event("test.event")
         event2 = Event("any.event")
@@ -219,7 +219,7 @@ class TestEventSubscription:
         subscription = EventSubscription(
             handler=mock_handler,
             event_types={"test.event"},
-            filters=[EventFilter.by_source("test_source")]
+            filters=[EventFilter.by_source("test_source")],
         )
 
         event1 = Event("test.event", source="test_source")
@@ -373,9 +373,7 @@ class TestEventBus:
         """測試事件過濾"""
         # 訂閱帶過濾器的事件
         event_bus.subscribe(
-            "test.event",
-            mock_handler,
-            filters=[EventFilter.by_source("test_source")]
+            "test.event", mock_handler, filters=[EventFilter.by_source("test_source")]
         )
 
         # 發布匹配的事件
@@ -404,8 +402,12 @@ class TestEventBus:
             results.append("low")
 
         # 訂閱不同優先級的處理器
-        event_bus.subscribe("test.event", high_priority_handler, priority=EventPriority.HIGH)
-        event_bus.subscribe("test.event", low_priority_handler, priority=EventPriority.LOW)
+        event_bus.subscribe(
+            "test.event", high_priority_handler, priority=EventPriority.HIGH
+        )
+        event_bus.subscribe(
+            "test.event", low_priority_handler, priority=EventPriority.LOW
+        )
 
         # 同步發布事件
         event = Event("test.event")
@@ -463,17 +465,17 @@ class TestEventBus:
             call_count += 1
             raise Exception("Test error")  # 總是失敗
 
-        # 訂閱事件（最大重試2次）
+        # 訂閱事件(最大重試2次)
         event_bus.subscribe("test.event", failing_handler, max_retries=2)
 
         # 發布事件
         event = Event("test.event")
         await event_bus.publish(event)
 
-        # 等待處理和重試（增加等待時間）
+        # 等待處理和重試(增加等待時間)
         await asyncio.sleep(5.0)
 
-        # 應該被調用3次（原始 + 2次重試）
+        # 應該被調用3次(原始 + 2次重試)
         assert call_count == 3
 
     @pytest.mark.asyncio
@@ -514,7 +516,7 @@ class TestGlobalEventBus:
         """測試便利發布函數"""
         mock_handler = AsyncMock()
 
-        # 創建新的事件總線實例（避免全局實例問題）
+        # 創建新的事件總線實例(避免全局實例問題)
         bus = EventBus()
         await bus.initialize()
 
@@ -526,7 +528,7 @@ class TestGlobalEventBus:
                 event_type="test.event",
                 data={"test": "data"},
                 source="test_source",
-                priority=EventPriority.HIGH
+                priority=EventPriority.HIGH,
             )
 
             result = await bus.publish(event)

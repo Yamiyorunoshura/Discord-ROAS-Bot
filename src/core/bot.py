@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import sys
 import time
 from pathlib import Path
@@ -17,10 +19,7 @@ from src.core.logger import get_logger, setup_discord_logging, setup_logging
 
 # 導入整合的事件匯流排和錯誤處理模組
 try:
-    import os
-    import sys
-
-    sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+    sys.path.append(str(Path(__file__).parent / ".." / ".."))
     from src.cogs.core.error_handler import (
         ErrorHandler,
         ErrorSeverity,
@@ -42,7 +41,6 @@ except ImportError:
     ErrorSeverity = None
     create_error_handler = None
 
-
 class ModuleLoadResult:
     """Result of module loading operation."""
 
@@ -61,7 +59,6 @@ class ModuleLoadResult:
         self.success = success
         self.load_time = load_time
         self.error = error
-
 
 class StartupManager:
     """Modern startup manager for bot modules."""
@@ -270,7 +267,7 @@ class StartupManager:
                         module_name = normal_modules[i]
                         self.logger.error(
                             f"Module {module_name} failed to load with exception: {type(result).__name__}: {result}",
-                            exc_info=result
+                            exc_info=result,
                         )
                         all_results.append(
                             ModuleLoadResult(
@@ -343,7 +340,6 @@ class StartupManager:
                 error=e,
             )
 
-
 class ADRBot(commands.Bot):
     """Modern Discord ADR Bot with Python 3.12 features."""
 
@@ -371,18 +367,15 @@ class ADRBot(commands.Bot):
         if EventBus and get_global_event_bus:
             try:
                 # 非阻塞方式獲取事件匯流排
-                import asyncio
-
                 if asyncio.get_event_loop().is_running():
                     # 如果事件循環已經在運行,創建任務
-                    asyncio.create_task(self._init_event_bus())
+                    self._event_bus_task = asyncio.create_task(self._init_event_bus())
                 else:
                     # 否則同步獲取
                     self.event_bus = EventBus()
             except Exception as e:
                 self.logger.warning(f"無法初始化事件匯流排: {e}")
 
-        # 初始化錯誤處理器(如果可用)
         self.error_handler = None
         if ErrorHandler and create_error_handler:
             try:
@@ -390,7 +383,6 @@ class ADRBot(commands.Bot):
             except Exception as e:
                 self.logger.warning(f"無法初始化錯誤處理器: {e}")
 
-        # 現在註冊服務（在所有屬性初始化之後）
         self._register_services()
 
         # Set up Discord intents
@@ -427,14 +419,9 @@ class ADRBot(commands.Bot):
         # Register bot instance
         self.container.register_singleton(ADRBot, self)
 
-        # Register settings (already registered in container)
-        # Register logger factory (already registered in container)
-
-        # 註冊事件匯流排(如果可用)
         if self.event_bus and EventBus:
             self.container.register_singleton(EventBus, self.event_bus)
 
-        # 註冊錯誤處理器(如果可用)
         if self.error_handler and ErrorHandler:
             self.container.register_singleton(ErrorHandler, self.error_handler)
 
@@ -622,7 +609,9 @@ class ADRBot(commands.Bot):
                 self.logger.warning("Bot is not connected to any guilds")
 
         except Exception as e:
-            self.logger.error(f"Error in on_ready: {type(e).__name__}: {e}", exc_info=True)
+            self.logger.error(
+                f"Error in on_ready: {type(e).__name__}: {e}", exc_info=True
+            )
 
     async def on_message(self, message: discord.Message) -> None:
         """Handle message events.
@@ -682,16 +671,13 @@ class ADRBot(commands.Bot):
         elif isinstance(error, commands.BadArgument):
             error_message = "Invalid argument provided."
 
-        try:
+        with contextlib.suppress(discord.HTTPException):
             await ctx.send(f"❌ {error_message}")
-        except discord.HTTPException:
-            pass  # Ignore if we can't send the message
 
     async def close(self) -> None:
         """Close the bot and clean up resources."""
         self.logger.info("Bot is shutting down")
 
-        # 關閉事件匯流排(如果存在)
         if self.event_bus and hasattr(self.event_bus, "shutdown"):
             try:
                 await self.event_bus.shutdown()
@@ -706,7 +692,6 @@ class ADRBot(commands.Bot):
         await super().close()
 
         self.logger.info("Bot shutdown completed")
-
 
 async def create_and_run_bot(settings: Settings | None = None) -> None:
     """Create and run the bot.
@@ -739,6 +724,5 @@ async def create_and_run_bot(settings: Settings | None = None) -> None:
         sys.exit(1)
     finally:
         await bot.close()
-
 
 __all__ = ["ADRBot", "ModuleLoadResult", "StartupManager", "create_and_run_bot"]

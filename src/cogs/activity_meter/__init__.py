@@ -12,7 +12,6 @@ from .main.main import ActivityMeter
 # 為了向後相容,提供別名
 ActivityMeterCog = ActivityMeter
 
-
 async def setup(bot: commands.Bot):
     """
     模組載入函數,由 Discord.py 調用

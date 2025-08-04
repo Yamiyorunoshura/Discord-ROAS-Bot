@@ -9,7 +9,6 @@ from ..config import config
 
 logger = logging.getLogger("activity_meter")
 
-
 class ActivityCalculator:
     """
     活躍度計算器類別
@@ -40,7 +39,6 @@ class ActivityCalculator:
             delta - config.ACTIVITY_DECAY_AFTER
         )
 
-        # 返回衰減後的分數(不低於0)
         return max(0, score - decay)
 
     @staticmethod

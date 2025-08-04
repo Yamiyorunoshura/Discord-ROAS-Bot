@@ -13,27 +13,31 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import hashlib
 import json
+import logging
 import os
+import re
+import sys
 from abc import ABC, abstractmethod
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Literal,
-    TypeVar,
-)
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from src.core.logger import BotLogger
 
 import yaml
 from cryptography.fernet import Fernet
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from watchfiles import awatch
 
 def get_app_data_dir(app_name: str = "DiscordADRBot") -> Path:
-    """獲取應用程式數據目錄，跨平台支援
+    """獲取應用程式數據目錄, 跨平台支援
 
     Windows: %APPDATA%\\AppName
     Linux: ~/.local/share/AppName
@@ -50,24 +54,39 @@ def get_app_data_dir(app_name: str = "DiscordADRBot") -> Path:
     elif sys.platform == "darwin":  # macOS
         base_dir = Path.home() / "Library" / "Application Support"
     else:  # Linux and others
-        base_dir = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+        base_dir = Path(
+            os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")
+        )
 
     app_dir = base_dir / app_name
     app_dir.mkdir(parents=True, exist_ok=True)
     return app_dir
-from watchfiles import awatch
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-# 嘗試導入toml,如果沒有則設為None
+# 嘗試導入可選依賴項
 try:
     import toml
 except ImportError:
     toml = None
 
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
+
+try:
+    import aiosqlite
+except ImportError:
+    aiosqlite = None
+
 T = TypeVar("T")
 
+# 常數定義
+MIN_TOKEN_LENGTH = 10
+MIN_DISCORD_TOKEN_LENGTH = 50
+MIN_TOKEN_PARTS = 3
+HTTP_OK = 200
+HTTP_NOT_MODIFIED = 304
+FILE_PERMISSION_MODE = 0o600
 
 class DatabaseSettings(BaseSettings):
     """Database configuration settings."""
@@ -79,7 +98,7 @@ class DatabaseSettings(BaseSettings):
     # SQLite settings
     sqlite_path: Path = Field(
         default_factory=lambda: get_app_data_dir() / "databases",
-        description="Directory for SQLite database files"
+        description="Directory for SQLite database files",
     )
 
     # Connection pool settings
@@ -104,7 +123,6 @@ class DatabaseSettings(BaseSettings):
         default=True, description="Enable SQLite WAL mode for better concurrency"
     )
 
-
 class CacheSettings(BaseSettings):
     """Cache configuration settings."""
 
@@ -128,7 +146,6 @@ class CacheSettings(BaseSettings):
 
     redis_prefix: str = Field(default="adr_bot:", description="Redis key prefix")
 
-
 class LoggingSettings(BaseSettings):
     """Logging configuration settings."""
 
@@ -150,7 +167,7 @@ class LoggingSettings(BaseSettings):
 
     file_path: Path = Field(
         default_factory=lambda: get_app_data_dir() / "logs",
-        description="Directory for log files"
+        description="Directory for log files",
     )
 
     file_max_size: int = Field(
@@ -163,7 +180,6 @@ class LoggingSettings(BaseSettings):
 
     # Console logging
     console_enabled: bool = Field(default=True, description="Enable console logging")
-
 
 class SecuritySettings(BaseSettings):
     """Security and authentication settings."""
@@ -197,7 +213,6 @@ class SecuritySettings(BaseSettings):
         default=8,  # Administrator
         description="Required bot permissions",
     )
-
 
 class PerformanceSettings(BaseSettings):
     """Performance and optimization settings."""
@@ -235,7 +250,6 @@ class PerformanceSettings(BaseSettings):
         default=30, ge=5, le=300, description="Health check interval in seconds"
     )
 
-
 class Settings(BaseSettings):
     """Main application settings."""
 
@@ -248,7 +262,7 @@ class Settings(BaseSettings):
     )
 
     # Basic Discord bot settings
-    token: str = Field(..., min_length=50, description="Discord bot token")
+    token: str = Field(..., min_length=MIN_TOKEN_LENGTH, description="Discord bot token")
 
     command_prefix: str = Field(
         default="!",
@@ -275,22 +289,20 @@ class Settings(BaseSettings):
         description="Project root directory",
     )
 
-    # 靜態資源目錄（專案內）
     assets_dir: Path = Field(
         default_factory=lambda: Path(__file__).parent.parent / "assets",
-        description="Static assets directory (fonts, default backgrounds)"
+        description="Static assets directory (fonts, default backgrounds)",
     )
 
-    # 用戶數據目錄（專案外）
     data_dir: Path = Field(
         default_factory=lambda: get_app_data_dir() / "data",
-        description="User data directory"
+        description="User data directory",
     )
 
     # Feature flags
     features: dict[str, bool] = Field(
         default_factory=lambda: {
-            "core": True,  # 修復：添加核心模組功能標誌
+            "core": True,  # 修復: 添加核心模組功能標誌
             "activity_meter": True,
             "message_listener": True,
             "protection": True,
@@ -313,14 +325,14 @@ class Settings(BaseSettings):
     @classmethod
     def validate_token(cls, v: str) -> str:
         """Validate Discord bot token format."""
-        if not v or len(v) < 10:
+        if not v or len(v) < MIN_TOKEN_LENGTH:
             raise ValueError("Invalid Discord bot token format")
         # Discord bot tokens typically start with MTI, OTk, MTA, MTM, etc. or Bot
         # More flexible validation: check for basic token structure
         if v.startswith("Bot "):
             # Bot token format: "Bot actual_token"
             return v
-        elif "." in v and len(v.split(".")) >= 3:
+        elif "." in v and len(v.split(".")) >= MIN_TOKEN_PARTS:
             # Standard Discord token format: user_id.timestamp.hmac
             return v
         else:
@@ -363,8 +375,6 @@ class Settings(BaseSettings):
     @property
     def log_level_int(self) -> int:
         """Get numeric log level."""
-        import logging
-
         return getattr(logging, self.logging.level)
 
     def get_database_url(self, db_name: str) -> str:
@@ -395,30 +405,25 @@ class Settings(BaseSettings):
         """Get default background path from assets directory."""
         return self.assets_dir / "backgrounds" / bg_name
 
-
 # Global settings instance
 _settings: Settings | None = None
 
-
 def get_settings() -> Settings:
     """Get the global settings instance."""
-    global _settings
+    global _settings  # noqa: PLW0603
     if _settings is None:
         _settings = Settings()
     return _settings
 
-
 def reload_settings() -> Settings:
     """Reload settings from environment."""
-    global _settings
+    global _settings  # noqa: PLW0603
     _settings = Settings()
     return _settings
-
 
 # =====================================================
 # 配置來源系統 (Config Sources System)
 # =====================================================
-
 
 class ConfigSource(Enum):
     """配置來源優先級 (數字越小優先級越高)"""
@@ -430,12 +435,10 @@ class ConfigSource(Enum):
     REMOTE = 5  # 遠端配置
     DEFAULT = 6  # 預設值
 
-
 class ConfigurationError(Exception):
     """配置錯誤異常"""
 
     pass
-
 
 class ConfigLoader(ABC):
     """配置載入器抽象基類
@@ -456,17 +459,15 @@ class ConfigLoader(ABC):
         self._logger = None
 
     @property
-    def logger(self):
+    def logger(self) -> "BotLogger":
         """延遲載入logger"""
         if self._logger is None:
             # 避免循環導入,延遲載入logger
             try:
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 self._logger = get_logger(f"config_loader_{self.source.name.lower()}")
             except ImportError:
-                import logging
-
                 self._logger = logging.getLogger(
                     f"config_loader_{self.source.name.lower()}"
                 )
@@ -502,7 +503,6 @@ class ConfigLoader(ABC):
         """
         pass
 
-
 class EnvironmentConfigLoader(ConfigLoader):
     """環境變數配置載入器
 
@@ -521,7 +521,7 @@ class EnvironmentConfigLoader(ConfigLoader):
 
     async def load(self) -> dict[str, Any]:
         """載入環境變數配置"""
-        config = {}
+        config: dict[str, Any] = {}
 
         try:
             for key, value in os.environ.items():
@@ -541,9 +541,9 @@ class EnvironmentConfigLoader(ConfigLoader):
             return config
 
         except Exception as e:
-            raise ConfigurationError(f"載入環境變數配置失敗: {e}")
+            raise ConfigurationError(f"載入環境變數配置失敗: {e}") from e
 
-    def _set_nested_value(self, config: dict, key: str, value: Any):
+    def _set_nested_value(self, config: dict[str, Any], key: str, value: Any) -> None:
         """設定嵌套配置值"""
         parts = key.split("__")  # 使用 __ 作為嵌套分隔符
         current = config
@@ -567,26 +567,39 @@ class EnvironmentConfigLoader(ConfigLoader):
         if value.lower() in ("true", "false"):
             return value.lower() == "true"
 
-        # 數字
-        try:
-            if "." in value:
-                return float(value)
-            return int(value)
-        except ValueError:
-            pass
+        # 嘗試數字轉換
+        numeric_value = self._try_convert_numeric(value)
+        if numeric_value is not None:
+            return numeric_value
 
-        # JSON 值
-        if value.startswith(("{", "[")):
-            try:
-                return json.loads(value)
-            except json.JSONDecodeError:
-                pass
+        # 嘗試 JSON 轉換
+        json_value = self._try_convert_json(value)
+        if json_value is not None:
+            return json_value
 
         # 逗號分隔的列表
         if "," in value and not value.startswith(("{", "[", '"', "'")):
             return [item.strip() for item in value.split(",")]
 
         return value
+
+    def _try_convert_numeric(self, value: str) -> int | float | None:
+        """嘗試轉換為數字"""
+        try:
+            if "." in value:
+                return float(value)
+            return int(value)
+        except ValueError:
+            return None
+
+    def _try_convert_json(self, value: str) -> Any | None:
+        """嘗試轉換為 JSON"""
+        if value.startswith(("{", "[")):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                pass
+        return None
 
     async def is_changed(self) -> bool:
         """環境變數變更檢測 (簡化實作)"""
@@ -597,7 +610,6 @@ class EnvironmentConfigLoader(ConfigLoader):
         """環境變數監控 (簡化實作)"""
         # 環境變數通常不需要監控
         pass
-
 
 class FileConfigLoader(ConfigLoader):
     """檔案配置載入器
@@ -640,7 +652,7 @@ class FileConfigLoader(ConfigLoader):
             raise ConfigurationError(f"不支援的配置檔案格式: {suffix}")
 
         try:
-            with open(self.file_path, encoding="utf-8") as f:
+            with self.file_path.open(encoding="utf-8") as f:
                 content = f.read()
 
             config = loader(content)
@@ -653,13 +665,13 @@ class FileConfigLoader(ConfigLoader):
             return config
 
         except Exception as e:
-            raise ConfigurationError(f"載入配置檔案失敗 {self.file_path}: {e}")
+            raise ConfigurationError(f"載入配置檔案失敗 {self.file_path}: {e}") from e
 
     def _load_env(self, content: str) -> dict[str, Any]:
         """載入 .env 檔案"""
         config = {}
-        for line in content.splitlines():
-            line = line.strip()
+        for raw_line in content.splitlines():
+            line = raw_line.strip()
             if not line or line.startswith("#"):
                 continue
 
@@ -748,7 +760,6 @@ class FileConfigLoader(ConfigLoader):
         except Exception as e:
             self.logger.error(f"檔案監控失敗: {e}")
 
-
 class CliConfigLoader(ConfigLoader):
     """命令列參數配置載入器
 
@@ -761,11 +772,11 @@ class CliConfigLoader(ConfigLoader):
         self.config_data = {}
         self._parsed = False
 
-    def parse_args(self, args: list[str] | None = None):
+    def parse_args(self, _args: list[str] | None = None):
         """解析命令列參數
 
         Args:
-            args: 命令列參數列表,None則使用sys.argv
+            _args: 命令列參數列表,None則使用sys.argv (目前未使用)
         """
         if self._parsed:
             return
@@ -796,7 +807,6 @@ class CliConfigLoader(ConfigLoader):
     async def watch(self, callback: Callable[[dict[str, Any]], None]) -> None:
         """命令列參數不需要監控"""
         pass
-
 
 class RemoteConfigLoader(ConfigLoader):
     """遠端配置載入器
@@ -829,7 +839,8 @@ class RemoteConfigLoader(ConfigLoader):
 
     async def load(self) -> dict[str, Any]:
         """載入遠端配置"""
-        import aiohttp
+        if aiohttp is None:
+            raise ConfigurationError("遠端配置需要安裝 aiohttp: pip install aiohttp")
 
         for attempt in range(self.retry_attempts):
             try:
@@ -839,7 +850,7 @@ class RemoteConfigLoader(ConfigLoader):
                     ) as session,
                     session.get(self.url, headers=self.headers) as response,
                 ):
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         # 更新快取標頭
                         self.last_etag = response.headers.get("ETag")
                         self.last_modified_header = response.headers.get(
@@ -861,7 +872,7 @@ class RemoteConfigLoader(ConfigLoader):
                             # 嘗試JSON解析
                             try:
                                 config_data = await response.json()
-                            except:
+                            except Exception:
                                 text = await response.text()
                                 config_data = yaml.safe_load(text) or {}
 
@@ -869,7 +880,7 @@ class RemoteConfigLoader(ConfigLoader):
                             f"載入遠端配置成功: {self.url} ({len(config_data)} 項)"
                         )
                         return config_data
-                    elif response.status == 304:
+                    elif response.status == HTTP_NOT_MODIFIED:
                         # 未修改,返回空配置
                         self.logger.debug(f"遠端配置未修改: {self.url}")
                         return {}
@@ -881,7 +892,7 @@ class RemoteConfigLoader(ConfigLoader):
             except Exception as e:
                 if attempt == self.retry_attempts - 1:
                     self.logger.error(f"遠端配置載入失敗 (所有重試已用盡): {e}")
-                    raise ConfigurationError(f"遠端配置載入失敗: {e}")
+                    raise ConfigurationError(f"遠端配置載入失敗: {e}") from e
                 else:
                     self.logger.warning(
                         f"遠端配置載入失敗 (嘗試 {attempt + 1}/{self.retry_attempts}): {e}"
@@ -892,7 +903,8 @@ class RemoteConfigLoader(ConfigLoader):
 
     async def is_changed(self) -> bool:
         """檢查遠端配置是否變更"""
-        import aiohttp
+        if aiohttp is None:
+            raise ConfigurationError("遠端配置需要安裝 aiohttp: pip install aiohttp")
 
         try:
             headers = self.headers.copy()
@@ -909,7 +921,7 @@ class RemoteConfigLoader(ConfigLoader):
                 ) as session,
                 session.head(self.url, headers=headers) as response,
             ):
-                return response.status != 304
+                return response.status != HTTP_NOT_MODIFIED
 
         except Exception as e:
             self.logger.warning(f"檢查遠端配置變更失敗: {e}")
@@ -931,7 +943,6 @@ class RemoteConfigLoader(ConfigLoader):
             except Exception as e:
                 self.logger.error(f"遠端配置監控失敗: {e}")
                 await asyncio.sleep(300)  # 錯誤後等待5分鐘
-
 
 class DatabaseConfigLoader(ConfigLoader):
     """資料庫配置載入器
@@ -966,7 +977,8 @@ class DatabaseConfigLoader(ConfigLoader):
 
     async def _ensure_table_exists(self):
         """確保配置表存在"""
-        import aiosqlite
+        if aiosqlite is None:
+            raise ConfigurationError("資料庫配置需要安裝 aiosqlite: pip install aiosqlite")
 
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute(f"""
@@ -991,7 +1003,8 @@ class DatabaseConfigLoader(ConfigLoader):
 
     async def load(self) -> dict[str, Any]:
         """載入資料庫配置"""
-        import aiosqlite
+        if aiosqlite is None:
+            raise ConfigurationError("資料庫配置需要安裝 aiosqlite: pip install aiosqlite")
 
         # 確保表存在
         await self._ensure_table_exists()
@@ -1001,7 +1014,7 @@ class DatabaseConfigLoader(ConfigLoader):
 
         try:
             async with aiosqlite.connect(self.db_path) as db:
-                # 載入配置(優先使用特定環境,回退到default)
+
                 cursor = await db.execute(
                     f"""
                     SELECT {self.key_column}, {self.value_column}
@@ -1036,8 +1049,6 @@ class DatabaseConfigLoader(ConfigLoader):
                 result = await cursor.fetchone()
                 if result and result[0]:
                     # 轉換時間戳
-                    from datetime import datetime
-
                     dt = datetime.fromisoformat(result[0].replace("Z", "+00:00"))
                     self.last_modified = dt.timestamp()
 
@@ -1047,7 +1058,7 @@ class DatabaseConfigLoader(ConfigLoader):
                 return config
 
         except Exception as e:
-            raise ConfigurationError(f"載入資料庫配置失敗: {e}")
+            raise ConfigurationError(f"載入資料庫配置失敗: {e}") from e
 
     def _set_nested_value(self, config: dict[str, Any], key: str, value: Any):
         """設定嵌套配置值"""
@@ -1069,7 +1080,8 @@ class DatabaseConfigLoader(ConfigLoader):
 
     async def is_changed(self) -> bool:
         """檢查資料庫配置是否變更"""
-        import aiosqlite
+        if aiosqlite is None:
+            raise ConfigurationError("資料庫配置需要安裝 aiosqlite: pip install aiosqlite")
 
         try:
             if not self.db_path.exists():
@@ -1082,8 +1094,6 @@ class DatabaseConfigLoader(ConfigLoader):
                 result = await cursor.fetchone()
 
                 if result and result[0]:
-                    from datetime import datetime
-
                     dt = datetime.fromisoformat(result[0].replace("Z", "+00:00"))
                     current_modified = dt.timestamp()
                     return current_modified != self.last_modified
@@ -1110,11 +1120,9 @@ class DatabaseConfigLoader(ConfigLoader):
                 self.logger.error(f"資料庫配置監控失敗: {e}")
                 await asyncio.sleep(60)  # 錯誤後等待1分鐘
 
-
 # =====================================================
 # 配置合併引擎 (Config Merge Engine)
 # =====================================================
-
 
 class ConfigMergeEngine:
     """配置合併引擎
@@ -1133,16 +1141,14 @@ class ConfigMergeEngine:
         self._logger = None
 
     @property
-    def logger(self):
+    def logger(self) -> "BotLogger":
         """延遲載入logger"""
         if self._logger is None:
             try:
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 self._logger = get_logger("config_merge_engine")
             except ImportError:
-                import logging
-
                 self._logger = logging.getLogger("config_merge_engine")
         return self._logger
 
@@ -1160,7 +1166,7 @@ class ConfigMergeEngine:
         Returns:
             合併後的配置字典
         """
-        # 按優先級排序 (優先級數字越小越優先)
+
         sorted_configs = sorted(configs, key=lambda x: x[0].value)
 
         if not sorted_configs:
@@ -1242,11 +1248,9 @@ class ConfigMergeEngine:
 
         return result
 
-
 # =====================================================
 # 配置驗證系統 (Configuration Validation)
 # =====================================================
-
 
 class ConfigurationValidator:
     """配置驗證器
@@ -1261,16 +1265,14 @@ class ConfigurationValidator:
         self._logger = None
 
     @property
-    def logger(self):
+    def logger(self) -> "BotLogger":
         """延遲載入logger"""
         if self._logger is None:
             try:
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 self._logger = get_logger("config_validator")
             except ImportError:
-                import logging
-
                 self._logger = logging.getLogger("config_validator")
         return self._logger
 
@@ -1352,7 +1354,6 @@ class ConfigurationValidator:
 
         return current
 
-
 class CommonValidators:
     """常用驗證器集合"""
 
@@ -1391,7 +1392,6 @@ class CommonValidators:
         """有效URL驗證"""
         if not isinstance(value, str):
             return False
-        import re
 
         url_pattern = re.compile(
             r"^https?://"  # http:// or https://
@@ -1449,11 +1449,9 @@ class CommonValidators:
 
         return validator
 
-
 # =====================================================
 # 配置熱重載系統 (Hot Reload System)
 # =====================================================
-
 
 class ConfigChangeListener(ABC):
     """配置變更監聽器介面
@@ -1477,13 +1475,12 @@ class ConfigChangeListener(ABC):
         """
         pass
 
-
 class LoggerConfigChangeListener(ConfigChangeListener):
     """日誌器配置變更監聽器"""
 
     async def on_config_changed(
         self,
-        old_settings: Settings,
+        _old_settings: Settings,
         new_settings: Settings,
         changes: list[dict[str, Any]],
     ):
@@ -1494,12 +1491,12 @@ class LoggerConfigChangeListener(ConfigChangeListener):
         if log_changes:
             try:
                 # 重新配置日誌系統
-                from src.core.logger import setup_logging
+                from src.core.logger import setup_logging  # noqa: PLC0415
 
                 setup_logging(new_settings)
 
                 # 記錄配置變更
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 logger = get_logger("config_change_listener")
                 logger.info(f"日誌配置已更新: {len(log_changes)} 項變更")
@@ -1507,14 +1504,13 @@ class LoggerConfigChangeListener(ConfigChangeListener):
             except Exception as e:
                 print(f"重新配置日誌系統失敗: {e}")
 
-
 class DatabaseConfigChangeListener(ConfigChangeListener):
     """資料庫配置變更監聽器"""
 
     async def on_config_changed(
         self,
-        old_settings: Settings,
-        new_settings: Settings,
+        _old_settings: Settings,
+        _new_settings: Settings,
         changes: list[dict[str, Any]],
     ):
         """處理資料庫配置變更"""
@@ -1523,7 +1519,7 @@ class DatabaseConfigChangeListener(ConfigChangeListener):
         if db_changes:
             try:
                 # 重新初始化資料庫連線池
-                from src.core.database import close_all_pools
+                from src.core.database import close_all_pools  # noqa: PLC0415
 
                 await close_all_pools()
                 # 新的連線池會在下次使用時自動創建
@@ -1532,7 +1528,6 @@ class DatabaseConfigChangeListener(ConfigChangeListener):
 
             except Exception as e:
                 print(f"重新配置資料庫連線失敗: {e}")
-
 
 class ConfigHotReloader:
     """配置熱重載器
@@ -1554,16 +1549,14 @@ class ConfigHotReloader:
         self._logger = None
 
     @property
-    def logger(self):
+    def logger(self) -> "BotLogger":
         """延遲載入logger"""
         if self._logger is None:
             try:
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 self._logger = get_logger("config_hot_reloader")
             except ImportError:
-                import logging
-
                 self._logger = logging.getLogger("config_hot_reloader")
         return self._logger
 
@@ -1618,7 +1611,7 @@ class ConfigHotReloader:
         async with self.reload_lock:
             await self._perform_reload(source_name, new_config)
 
-    async def _perform_reload(self, source_name: str, new_config: dict[str, Any]):
+    async def _perform_reload(self, source_name: str, _new_config: dict[str, Any]):
         """執行配置重載"""
         try:
             self.logger.info(f"重載配置來源: {source_name}")
@@ -1677,7 +1670,6 @@ class ConfigHotReloader:
         old_dict = old_settings.model_dump()
         new_dict = new_settings.model_dump()
 
-        # 簡單的變更檢測 (可以優化為深度比較)
         for key in set(old_dict.keys()) | set(new_dict.keys()):
             old_value = old_dict.get(key)
             new_value = new_dict.get(key)
@@ -1708,12 +1700,6 @@ class ConfigHotReloader:
         # 這裡可以整合告警系統
         self.logger.critical(f"配置重載失敗告警 - 來源: {source_name}, 錯誤: {error}")
 
-
-# =====================================================
-# 安全加密系統 (Security & Encryption)
-# =====================================================
-
-
 class ConfigEncryptionService:
     """配置加密服務
 
@@ -1733,16 +1719,14 @@ class ConfigEncryptionService:
         self.cipher = Fernet(self.master_key)
 
     @property
-    def logger(self):
+    def logger(self) -> "BotLogger":
         """延遲載入logger"""
         if self._logger is None:
             try:
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 self._logger = get_logger("config_encryption")
             except ImportError:
-                import logging
-
                 self._logger = logging.getLogger("config_encryption")
         return self._logger
 
@@ -1752,22 +1736,18 @@ class ConfigEncryptionService:
 
         try:
             if key_file.exists():
-                with open(key_file, "rb") as f:
+                with key_file.open("rb") as f:
                     key = f.read()
                 self.logger.debug("載入現有加密密鑰")
                 return key
             else:
                 # 生成新密鑰
                 key = Fernet.generate_key()
-                with open(key_file, "wb") as f:
+                with key_file.open("wb") as f:
                     f.write(key)
 
-                # 設定適當的檔案權限 (僅限Unix系統)
-                try:
-                    key_file.chmod(0o600)
-                except (AttributeError, OSError):
-                    # Windows系統或權限設定失敗
-                    pass
+                with contextlib.suppress(AttributeError, OSError):
+                    key_file.chmod(FILE_PERMISSION_MODE)
 
                 self.logger.info("生成新的加密密鑰")
                 return key
@@ -1794,7 +1774,7 @@ class ConfigEncryptionService:
             return base64.b64encode(encrypted).decode()
         except Exception as e:
             self.logger.error(f"加密失敗: {e}")
-            raise ConfigurationError(f"加密失敗: {e}")
+            raise ConfigurationError(f"加密失敗: {e}") from e
 
     def decrypt_value(self, encrypted_value: str) -> str:
         """解密配置值
@@ -1811,7 +1791,7 @@ class ConfigEncryptionService:
             return decrypted.decode()
         except Exception as e:
             self.logger.error(f"解密失敗: {e}")
-            raise ConfigurationError(f"解密失敗: {e}")
+            raise ConfigurationError(f"解密失敗: {e}") from e
 
     def is_encrypted(self, value: str) -> bool:
         """檢查值是否已加密
@@ -1829,7 +1809,7 @@ class ConfigEncryptionService:
             # 嘗試解密,如果成功則已加密
             self.decrypt_value(value)
             return True
-        except:
+        except Exception:
             return False
 
     def register_encrypted_field(self, field_path: str):
@@ -1900,7 +1880,6 @@ class ConfigEncryptionService:
 
         current[parts[-1]] = value
 
-
 class SecureConfigStorage:
     """安全配置存儲
 
@@ -1919,16 +1898,14 @@ class SecureConfigStorage:
         self._logger = None
 
     @property
-    def logger(self):
+    def logger(self) -> "BotLogger":
         """延遲載入logger"""
         if self._logger is None:
             try:
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 self._logger = get_logger("secure_config_storage")
             except ImportError:
-                import logging
-
                 self._logger = logging.getLogger("secure_config_storage")
         return self._logger
 
@@ -1947,21 +1924,17 @@ class SecureConfigStorage:
 
             # 存儲到檔案
             config_file = self.storage_path / f"{config_name}.json"
-            with open(config_file, "w", encoding="utf-8") as f:
+            with config_file.open("w", encoding="utf-8") as f:
                 json.dump(encrypted_config, f, indent=2, ensure_ascii=False)
 
-            # 設定檔案權限 (僅限Unix系統)
-            try:
-                config_file.chmod(0o600)
-            except (AttributeError, OSError):
-                # Windows系統或權限設定失敗
-                pass
+            with contextlib.suppress(AttributeError, OSError):
+                config_file.chmod(FILE_PERMISSION_MODE)
 
             self.logger.info(f"安全配置已存儲: {config_name}")
 
         except Exception as e:
             self.logger.error(f"存儲安全配置失敗: {e}")
-            raise ConfigurationError(f"存儲安全配置失敗: {e}")
+            raise ConfigurationError(f"存儲安全配置失敗: {e}") from e
 
     async def load_secure_config(self, config_name: str) -> dict[str, Any]:
         """載入安全配置
@@ -1979,7 +1952,7 @@ class SecureConfigStorage:
             return {}
 
         try:
-            with open(config_file, encoding="utf-8") as f:
+            with config_file.open(encoding="utf-8") as f:
                 encrypted_config = json.load(f)
 
             # 解密敏感欄位
@@ -1992,13 +1965,11 @@ class SecureConfigStorage:
 
         except Exception as e:
             self.logger.error(f"載入安全配置失敗: {e}")
-            raise ConfigurationError(f"載入安全配置失敗: {e}")
-
+            raise ConfigurationError(f"載入安全配置失敗: {e}") from e
 
 # =====================================================
 # 統一配置管理器 (Configuration Manager)
 # =====================================================
-
 
 class ConfigurationManager:
     """統一配置管理器
@@ -2030,16 +2001,14 @@ class ConfigurationManager:
         self._register_default_listeners()
 
     @property
-    def logger(self):
+    def logger(self) -> "BotLogger":
         """延遲載入logger"""
         if self._logger is None:
             try:
-                from src.core.logger import get_logger
+                from src.core.logger import get_logger  # noqa: PLC0415
 
                 self._logger = get_logger("config_manager")
             except ImportError:
-                import logging
-
                 self._logger = logging.getLogger("config_manager")
         return self._logger
 
@@ -2067,7 +2036,7 @@ class ConfigurationManager:
         # Discord Token驗證
         self.validator.add_validation_rule(
             "token",
-            lambda x: isinstance(x, str) and len(x) > 50,
+            lambda x: isinstance(x, str) and len(x) > MIN_DISCORD_TOKEN_LENGTH,
             "Discord token必須是有效字符串",
         )
 
@@ -2162,7 +2131,7 @@ class ConfigurationManager:
         # 驗證配置
         validation_errors = self.validator.validate_config(decrypted_config)
         if validation_errors:
-            raise ConfigurationError(f"配置驗證失敗: {validation_errors}")
+            raise ConfigurationError(f"配置驗證失敗: {validation_errors}") from e
 
         # 創建Settings對象
         try:
@@ -2170,7 +2139,7 @@ class ConfigurationManager:
             self.logger.info("配置載入完成")
             return settings
         except Exception as e:
-            raise ConfigurationError(f"創建配置對象失敗: {e}")
+            raise ConfigurationError(f"創建配置對象失敗: {e}") from e
 
     async def reload_configuration(self) -> Settings:
         """重新載入配置
@@ -2262,23 +2231,25 @@ class ConfigurationManager:
 
         # 實作配置持久化邏輯
         try:
-            # 將變更記錄到配置變更日誌中，供後續處理
+            # 將變更記錄到配置變更日誌中, 供後續處理
             change_record = {
                 "timestamp": datetime.now().isoformat(),
                 "key_path": key_path,
                 "value": value,
-                "change_type": "manual_update"
+                "change_type": "manual_update",
             }
 
-            # 如果有配置檔案路徑，考慮寫入檔案
-            # 這裡使用保守的方法，避免直接修改配置檔案
+            # 如果有配置檔案路徑, 考慮寫入檔案
+            # 這裡使用保守的方法, 避免直接修改配置檔案
             # 實際實作中可能需要根據配置來源選擇不同的持久化策略
+            # 暫時記錄變更信息用於後續處理
+            self.logger.debug(f"變更記錄: {change_record}")
 
             self.logger.info(f"配置變更已記錄: {key_path}")
 
         except Exception as e:
             self.logger.warning(f"配置持久化失敗: {e}")
-            # 不拋出異常，避免影響正常運行
+            # 不拋出異常, 避免影響正常運行
 
     def _get_nested_value(self, config: dict[str, Any], key_path: str) -> Any:
         """獲取嵌套配置值"""
@@ -2315,11 +2286,9 @@ class ConfigurationManager:
         except Exception as e:
             self.logger.error(f"停止熱重載監控失敗: {e}")
 
-
 # =====================================================
 # 增強的Settings系統 (Enhanced Settings)
 # =====================================================
-
 
 class EnhancedSettings(Settings):
     """增強的配置系統
@@ -2387,7 +2356,6 @@ class EnhancedSettings(Settings):
         else:
             setattr(self, field_name, value)
 
-
 class SettingsFactory:
     """配置工廠
 
@@ -2440,7 +2408,7 @@ class SettingsFactory:
             "cli": {"type": "cli"},
         }
 
-    def _create_loader(self, name: str, config: dict[str, Any]) -> ConfigLoader:
+    def _create_loader(self, _name: str, config: dict[str, Any]) -> ConfigLoader:
         """創建配置載入器
 
         Args:
@@ -2481,7 +2449,6 @@ class SettingsFactory:
         else:
             raise ValueError(f"不支援的載入器類型: {loader_type}")
 
-
 # =====================================================
 # 全域配置管理實例 (Global Configuration Instances)
 # =====================================================
@@ -2489,7 +2456,6 @@ class SettingsFactory:
 _config_manager: ConfigurationManager | None = None
 _settings: EnhancedSettings | None = None
 _factory: SettingsFactory | None = None
-
 
 async def initialize_config_system(
     config_sources: dict[str, Any] | None = None, enable_hot_reload: bool = True
@@ -2503,14 +2469,13 @@ async def initialize_config_system(
     Returns:
         EnhancedSettings實例
     """
-    global _config_manager, _settings, _factory
+    global _config_manager, _settings, _factory  # noqa: PLW0603
 
     _factory = SettingsFactory()
     _settings = await _factory.create_settings(config_sources, enable_hot_reload)
     _config_manager = _factory.config_manager
 
     return _settings
-
 
 def get_enhanced_settings() -> EnhancedSettings:
     """獲取增強配置實例
@@ -2525,7 +2490,6 @@ def get_enhanced_settings() -> EnhancedSettings:
         raise RuntimeError("配置系統未初始化,請先調用 initialize_config_system()")
     return _settings
 
-
 def get_config_manager() -> ConfigurationManager:
     """獲取配置管理器
 
@@ -2539,10 +2503,9 @@ def get_config_manager() -> ConfigurationManager:
         raise RuntimeError("配置系統未初始化")
     return _config_manager
 
-
 async def shutdown_config_system():
     """關閉配置系統"""
-    global _config_manager, _settings, _factory
+    global _config_manager, _settings, _factory  # noqa: PLW0603
 
     if _config_manager:
         await _config_manager.shutdown()
@@ -2550,7 +2513,6 @@ async def shutdown_config_system():
 
     _settings = None
     _factory = None
-
 
 # Export for convenient imports
 __all__ = [

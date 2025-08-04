@@ -1,6 +1,6 @@
 """成就解鎖流程整合測試.
 
-此模組測試成就系統的核心解鎖流程，包括：
+此模組測試成就系統的核心解鎖流程,包括:
 - 進度追蹤到解鎖的完整流程
 - 通知系統整合
 - 面板顯示更新
@@ -60,7 +60,7 @@ class TestAchievementUnlockFlow:
         self.achievement_service.unlock_achievement.return_value = {
             "success": True,
             "achievement": achievement,
-            "unlocked_at": "2024-01-01T12:00:00Z"
+            "unlocked_at": "2024-01-01T12:00:00Z",
         }
 
         # 執行解鎖流程
@@ -78,7 +78,7 @@ class TestAchievementUnlockFlow:
 
     @pytest.mark.asyncio
     async def test_partial_progress_update(self):
-        """測試部分進度更新（未解鎖）."""
+        """測試部分進度更新(未解鎖)."""
         user = quick_user()
         achievement = quick_achievement(target=100)
 
@@ -87,13 +87,13 @@ class TestAchievementUnlockFlow:
         self.achievement_service.update_progress.return_value = {
             "current_progress": 50,
             "target_value": 100,
-            "percentage": 50.0
+            "percentage": 50.0,
         }
 
         # 執行進度更新
         result = await self._simulate_progress_update(user, achievement, 50)
 
-        # 驗證只更新進度，不解鎖成就
+        # 驗證只更新進度,不解鎖成就
         assert result["progress_updated"] is True
         assert result["achievement_unlocked"] is False
         assert result["notification_sent"] is False
@@ -108,7 +108,7 @@ class TestAchievementUnlockFlow:
         achievements = [
             quick_achievement(name="成就1", target=10),
             quick_achievement(name="成就2", target=10),
-            quick_achievement(name="成就3", target=10)
+            quick_achievement(name="成就3", target=10),
         ]
 
         # 設置所有成就都符合解鎖條件
@@ -118,7 +118,9 @@ class TestAchievementUnlockFlow:
         # 模擬同時觸發多個成就
         tasks = []
         for achievement in achievements:
-            task = self._simulate_unlock_flow(user, achievement, {"type": "bulk_unlock"})
+            task = self._simulate_unlock_flow(
+                user, achievement, {"type": "bulk_unlock"}
+            )
             tasks.append(task)
 
         results = await asyncio.gather(*tasks)
@@ -139,7 +141,9 @@ class TestAchievementUnlockFlow:
 
         # 模擬解鎖過程中的錯誤
         self.progress_tracker.check_achievement_completion.return_value = True
-        self.achievement_service.unlock_achievement.side_effect = Exception("資料庫錯誤")
+        self.achievement_service.unlock_achievement.side_effect = Exception(
+            "資料庫錯誤"
+        )
 
         # 執行解鎖流程
         result = await self._simulate_unlock_flow_with_error_handling(user, achievement)
@@ -164,15 +168,14 @@ class TestAchievementUnlockFlow:
             {"type": "message_sent", "value": 1},
             {"type": "message_sent", "value": 1},
             {"type": "voice_join", "value": 10},
-            {"type": "reaction_add", "value": 1}
+            {"type": "reaction_add", "value": 1},
         ]
 
         self.progress_tracker.track_event.return_value = {"success": True}
 
         # 並發處理事件
         tasks = [
-            self._simulate_event_tracking(user, achievement, event)
-            for event in events
+            self._simulate_event_tracking(user, achievement, event) for event in events
         ]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -189,7 +192,7 @@ class TestAchievementUnlockFlow:
         result = {
             "progress_tracked": False,
             "achievement_unlocked": False,
-            "notification_sent": False
+            "notification_sent": False,
         }
 
         try:
@@ -197,21 +200,19 @@ class TestAchievementUnlockFlow:
             await self.progress_tracker.track_event(
                 user_id=user.id,
                 event_type=trigger_event["type"],
-                data=trigger_event["data"]
+                data=trigger_event["data"],
             )
             result["progress_tracked"] = True
 
             # 步驟2: 檢查是否達成解鎖條件
             should_unlock = await self.progress_tracker.check_achievement_completion(
-                user_id=user.id,
-                achievement_id=achievement["id"]
+                user_id=user.id, achievement_id=achievement["id"]
             )
 
             if should_unlock:
                 # 步驟3: 解鎖成就
                 unlock_result = await self.achievement_service.unlock_achievement(
-                    user_id=user.id,
-                    achievement_id=achievement["id"]
+                    user_id=user.id, achievement_id=achievement["id"]
                 )
 
                 if unlock_result.get("success"):
@@ -219,8 +220,7 @@ class TestAchievementUnlockFlow:
 
                     # 步驟4: 發送通知
                     await self.notifier.send_achievement_notification(
-                        user_id=user.id,
-                        achievement=achievement
+                        user_id=user.id, achievement=achievement
                     )
                     result["notification_sent"] = True
 
@@ -234,14 +234,14 @@ class TestAchievementUnlockFlow:
         result = {
             "progress_updated": False,
             "achievement_unlocked": False,
-            "notification_sent": False
+            "notification_sent": False,
         }
 
         # 更新進度
         progress_result = await self.achievement_service.update_progress(
             user_id=user.id,
             achievement_id=achievement["id"],
-            new_progress=progress_value
+            new_progress=progress_value,
         )
 
         if progress_result:
@@ -249,8 +249,7 @@ class TestAchievementUnlockFlow:
 
             # 檢查是否達到解鎖條件
             should_unlock = await self.progress_tracker.check_achievement_completion(
-                user_id=user.id,
-                achievement_id=achievement["id"]
+                user_id=user.id, achievement_id=achievement["id"]
             )
 
             if should_unlock:
@@ -265,14 +264,13 @@ class TestAchievementUnlockFlow:
             "error_occurred": False,
             "achievement_unlocked": False,
             "error_message": "",
-            "rollback_performed": False
+            "rollback_performed": False,
         }
 
         try:
             # 嘗試解鎖
             await self.achievement_service.unlock_achievement(
-                user_id=user.id,
-                achievement_id=achievement["id"]
+                user_id=user.id, achievement_id=achievement["id"]
             )
             result["achievement_unlocked"] = True
 
@@ -288,9 +286,7 @@ class TestAchievementUnlockFlow:
     async def _simulate_event_tracking(self, user, achievement, event):
         """模擬事件追蹤."""
         return await self.progress_tracker.track_event(
-            user_id=user.id,
-            event_type=event["type"],
-            value=event["value"]
+            user_id=user.id, event_type=event["type"], value=event["value"]
         )
 
 
@@ -316,7 +312,7 @@ class TestAchievementNotificationIntegration:
         # 設置模擬回應
         self.notifier.send_achievement_notification.return_value = {
             "message_sent": True,
-            "embed_created": True
+            "embed_created": True,
         }
 
         # 執行通知流程
@@ -337,8 +333,7 @@ class TestAchievementNotificationIntegration:
         # 模擬批量通知
         tasks = [
             self.notifier.send_achievement_notification(
-                user_id=user.id,
-                achievement=achievement
+                user_id=user.id, achievement=achievement
             )
             for user in users
         ]
@@ -350,15 +345,11 @@ class TestAchievementNotificationIntegration:
 
     async def _simulate_notification_flow(self, user, achievement, interaction):
         """模擬通知流程."""
-        result = {
-            "notification_sent": False,
-            "panel_updated": False
-        }
+        result = {"notification_sent": False, "panel_updated": False}
 
         # 發送成就通知
         notification_result = await self.notifier.send_achievement_notification(
-            user_id=user.id,
-            achievement=achievement
+            user_id=user.id, achievement=achievement
         )
 
         if notification_result.get("message_sent"):
@@ -366,8 +357,7 @@ class TestAchievementNotificationIntegration:
 
             # 更新用戶面板
             await self.panel_manager.update_user_panel(
-                user_id=user.id,
-                panel_type="achievements"
+                user_id=user.id, panel_type="achievements"
             )
             result["panel_updated"] = True
 
@@ -409,7 +399,7 @@ class TestAchievementPanelIntegration:
         unlock_event = {
             "user_id": user.id,
             "achievement_id": achievement["id"],
-            "timestamp": "2024-01-01T12:00:00Z"
+            "timestamp": "2024-01-01T12:00:00Z",
         }
 
         # 模擬面板監聽更新事件
@@ -434,7 +424,12 @@ class TestAchievementPanelIntegration:
             "total_achievements": total_count,
             "completion_rate": completion_rate,
             "categories": ["活動", "社交", "時間"],
-            "components": ["category_selector", "refresh_button", "close_button", "progress_bar"]
+            "components": [
+                "category_selector",
+                "refresh_button",
+                "close_button",
+                "progress_bar",
+            ],
         }
 
     async def _simulate_real_time_update(self, unlock_event):
@@ -449,7 +444,7 @@ class TestAchievementPanelIntegration:
             "user_id": user_id,
             "new_achievement_id": achievement_id,
             "new_achievement_count": 1,
-            "timestamp": unlock_event["timestamp"]
+            "timestamp": unlock_event["timestamp"],
         }
 
 
@@ -469,7 +464,9 @@ class TestFullAchievementSystemIntegration:
         events = [{"type": "message_sent", "value": 1} for _ in range(5)]
 
         # 執行完整流程
-        flow_result = await self._execute_end_to_end_flow(user, guild, achievement, events)
+        flow_result = await self._execute_end_to_end_flow(
+            user, guild, achievement, events
+        )
 
         # 驗證端到端結果
         assert flow_result["events_processed"] == 5
@@ -483,7 +480,7 @@ class TestFullAchievementSystemIntegration:
             "events_processed": 0,
             "achievement_unlocked": False,
             "notification_sent": False,
-            "panel_updated": False
+            "panel_updated": False,
         }
 
         current_progress = 0

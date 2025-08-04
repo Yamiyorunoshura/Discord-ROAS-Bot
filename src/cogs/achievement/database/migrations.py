@@ -1,12 +1,12 @@
 """成就系統資料庫遷移管理模組.
 
-此模組包含成就系統所需的所有資料庫遷移腳本，負責建立和管理：
-- achievements 資料表：儲存成就定義
-- achievement_categories 資料表：成就分類管理
-- user_achievements 資料表：用戶已獲得的成就記錄
-- achievement_progress 資料表：用戶成就進度追蹤
+此模組包含成就系統所需的所有資料庫遷移腳本, 負責建立和管理:
+- achievements 資料表: 儲存成就定義
+- achievement_categories 資料表: 成就分類管理
+- user_achievements 資料表: 用戶已獲得的成就記錄
+- achievement_progress 資料表: 用戶成就進度追蹤
 
-遵循現有的資料庫管理模式，使用 SQLite 並支援適當的索引和觸發器。
+遵循現有的資料庫管理模式, 使用 SQLite 並支援適當的索引和觸發器.
 """
 
 from __future__ import annotations
@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from src.core.database import DatabaseConnection, DatabasePool
 
 logger = logging.getLogger(__name__)
-
 
 class AchievementMigrations:
     """成就系統資料庫遷移管理器."""
@@ -35,7 +34,7 @@ class AchievementMigrations:
     async def run_all_migrations(self) -> None:
         """執行所有遷移腳本.
 
-        按順序執行所有必要的資料庫遷移，確保資料庫結構正確建立。
+        按順序執行所有必要的資料庫遷移, 確保資料庫結構正確建立.
         """
         migrations = [
             self._create_achievement_categories_table,
@@ -63,7 +62,9 @@ class AchievementMigrations:
 
         self.logger.info("成就系統資料庫遷移完成")
 
-    async def _create_achievement_categories_table(self, conn: DatabaseConnection) -> None:
+    async def _create_achievement_categories_table(
+        self, conn: DatabaseConnection
+    ) -> None:
         """建立成就分類資料表."""
         sql = """
         CREATE TABLE IF NOT EXISTS achievement_categories (
@@ -94,7 +95,7 @@ class AchievementMigrations:
                 (name, description, display_order, icon_emoji)
                 VALUES (?, ?, ?, ?)
                 """,
-                category_data
+                category_data,
             )
         await conn.commit()
 
@@ -137,7 +138,9 @@ class AchievementMigrations:
         await conn.execute(sql)
         await conn.commit()
 
-    async def _create_achievement_progress_table(self, conn: DatabaseConnection) -> None:
+    async def _create_achievement_progress_table(
+        self, conn: DatabaseConnection
+    ) -> None:
         """建立成就進度追蹤資料表."""
         sql = """
         CREATE TABLE IF NOT EXISTS achievement_progress (
@@ -174,7 +177,9 @@ class AchievementMigrations:
         await conn.execute(sql)
         await conn.commit()
 
-    async def _create_notification_preferences_table(self, conn: DatabaseConnection) -> None:
+    async def _create_notification_preferences_table(
+        self, conn: DatabaseConnection
+    ) -> None:
         """建立用戶通知偏好資料表."""
         sql = """
         CREATE TABLE IF NOT EXISTS notification_preferences (
@@ -192,7 +197,9 @@ class AchievementMigrations:
         await conn.execute(sql)
         await conn.commit()
 
-    async def _create_global_notification_settings_table(self, conn: DatabaseConnection) -> None:
+    async def _create_global_notification_settings_table(
+        self, conn: DatabaseConnection
+    ) -> None:
         """建立全域通知設定資料表."""
         sql = """
         CREATE TABLE IF NOT EXISTS global_notification_settings (
@@ -235,21 +242,17 @@ class AchievementMigrations:
             "CREATE INDEX IF NOT EXISTS idx_achievements_category ON achievements(category_id)",
             "CREATE INDEX IF NOT EXISTS idx_achievements_active ON achievements(is_active)",
             "CREATE INDEX IF NOT EXISTS idx_achievements_type ON achievements(type)",
-
             # user_achievements 表索引
             "CREATE INDEX IF NOT EXISTS idx_user_achievements_user ON user_achievements(user_id)",
             "CREATE INDEX IF NOT EXISTS idx_user_achievements_achievement ON user_achievements(achievement_id)",
             "CREATE INDEX IF NOT EXISTS idx_user_achievements_earned ON user_achievements(earned_at)",
             "CREATE INDEX IF NOT EXISTS idx_user_achievements_notified ON user_achievements(notified)",
-
             # achievement_progress 表索引
             "CREATE INDEX IF NOT EXISTS idx_achievement_progress_user ON achievement_progress(user_id)",
             "CREATE INDEX IF NOT EXISTS idx_achievement_progress_achievement ON achievement_progress(achievement_id)",
             "CREATE INDEX IF NOT EXISTS idx_achievement_progress_updated ON achievement_progress(last_updated)",
-
             # achievement_categories 表索引
             "CREATE INDEX IF NOT EXISTS idx_achievement_categories_order ON achievement_categories(display_order)",
-
             # achievement_events 表索引
             "CREATE INDEX IF NOT EXISTS idx_achievement_events_user ON achievement_events(user_id)",
             "CREATE INDEX IF NOT EXISTS idx_achievement_events_guild ON achievement_events(guild_id)",
@@ -259,21 +262,17 @@ class AchievementMigrations:
             "CREATE INDEX IF NOT EXISTS idx_achievement_events_user_type ON achievement_events(user_id, event_type)",
             "CREATE INDEX IF NOT EXISTS idx_achievement_events_guild_timestamp ON achievement_events(guild_id, timestamp)",
             "CREATE INDEX IF NOT EXISTS idx_achievement_events_correlation ON achievement_events(correlation_id)",
-
             # 通知偏好表索引
             "CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_guild ON notification_preferences(user_id, guild_id)",
             "CREATE INDEX IF NOT EXISTS idx_notification_preferences_guild ON notification_preferences(guild_id)",
-
             # 全域通知設定表索引
             "CREATE INDEX IF NOT EXISTS idx_global_notification_settings_guild ON global_notification_settings(guild_id)",
-
             # 通知事件表索引
             "CREATE INDEX IF NOT EXISTS idx_notification_events_user_guild ON notification_events(user_id, guild_id)",
             "CREATE INDEX IF NOT EXISTS idx_notification_events_achievement ON notification_events(achievement_id)",
             "CREATE INDEX IF NOT EXISTS idx_notification_events_sent_at ON notification_events(sent_at)",
             "CREATE INDEX IF NOT EXISTS idx_notification_events_delivery_status ON notification_events(delivery_status)",
             "CREATE INDEX IF NOT EXISTS idx_notification_events_user_sent_at ON notification_events(user_id, sent_at)",
-
             # Story 5.1 效能優化複合索引
             "CREATE INDEX IF NOT EXISTS idx_user_achievements_user_earned ON user_achievements(user_id, earned_at)",
             "CREATE INDEX IF NOT EXISTS idx_achievement_progress_user_updated ON achievement_progress(user_id, last_updated)",
@@ -301,7 +300,6 @@ class AchievementMigrations:
                 UPDATE achievements SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END
             """,
-
             # achievement_categories 表更新觸發器
             """
             CREATE TRIGGER IF NOT EXISTS trg_achievement_categories_updated_at
@@ -311,7 +309,6 @@ class AchievementMigrations:
                 UPDATE achievement_categories SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END
             """,
-
             # achievement_progress 表更新觸發器
             """
             CREATE TRIGGER IF NOT EXISTS trg_achievement_progress_updated_at
@@ -321,7 +318,6 @@ class AchievementMigrations:
                 UPDATE achievement_progress SET last_updated = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END
             """,
-
             # notification_preferences 表更新觸發器
             """
             CREATE TRIGGER IF NOT EXISTS trg_notification_preferences_updated_at
@@ -331,7 +327,6 @@ class AchievementMigrations:
                 UPDATE notification_preferences SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END
             """,
-
             # global_notification_settings 表更新觸發器
             """
             CREATE TRIGGER IF NOT EXISTS trg_global_notification_settings_updated_at
@@ -352,7 +347,7 @@ class AchievementMigrations:
         """驗證資料庫 Schema 是否正確建立.
 
         Returns:
-            True 如果所有表格和索引都正確建立，否則 False
+            True 如果所有表格和索引都正確建立, 否則 False
         """
         expected_tables = [
             "achievement_categories",
@@ -362,7 +357,7 @@ class AchievementMigrations:
             "achievement_events",
             "notification_preferences",
             "global_notification_settings",
-            "notification_events"
+            "notification_events",
         ]
 
         async with self.pool.get_connection() as conn:
@@ -370,7 +365,7 @@ class AchievementMigrations:
             for table in expected_tables:
                 cursor = await conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-                    (table,)
+                    (table,),
                 )
                 result = await cursor.fetchone()
                 if not result:
@@ -378,9 +373,7 @@ class AchievementMigrations:
                     return False
 
             # 檢查是否有預設分類資料
-            cursor = await conn.execute(
-                "SELECT COUNT(*) FROM achievement_categories"
-            )
+            cursor = await conn.execute("SELECT COUNT(*) FROM achievement_categories")
             result = await cursor.fetchone()
             if not result or result[0] == 0:
                 self.logger.error("achievement_categories 表格沒有預設資料")
@@ -390,9 +383,9 @@ class AchievementMigrations:
         return True
 
     async def drop_all_tables(self) -> None:
-        """刪除所有成就相關表格（用於測試或重置）.
+        """刪除所有成就相關表格(用於測試或重置).
 
-        WARNING: 這會刪除所有成就資料，僅用於開發和測試環境。
+        WARNING: 這會刪除所有成就資料, 僅用於開發和測試環境.
         """
         tables = [
             "notification_events",
@@ -402,7 +395,7 @@ class AchievementMigrations:
             "achievement_progress",
             "user_achievements",
             "achievements",
-            "achievement_categories"
+            "achievement_categories",
         ]
 
         async with self.pool.get_connection() as conn:
@@ -419,7 +412,6 @@ class AchievementMigrations:
 
         self.logger.info("所有成就相關表格已刪除")
 
-
 async def initialize_achievement_database(pool: DatabasePool) -> None:
     """初始化成就系統資料庫.
 
@@ -432,7 +424,6 @@ async def initialize_achievement_database(pool: DatabasePool) -> None:
     # 驗證 Schema
     if not await migrations.verify_schema():
         raise RuntimeError("成就資料庫 Schema 驗證失敗")
-
 
 __all__ = [
     "AchievementMigrations",

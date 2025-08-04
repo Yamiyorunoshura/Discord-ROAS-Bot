@@ -18,7 +18,6 @@ from .renderer import ActivityRenderer
 
 logger = logging.getLogger("logic_apis")
 
-
 @dataclass
 class APIResponse:
     """API響應數據結構"""
@@ -32,7 +31,6 @@ class APIResponse:
     def __post_init__(self):
         if not self.timestamp:
             self.timestamp = datetime.now().isoformat()
-
 
 class LogicAPIs:
     """

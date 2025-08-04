@@ -1,13 +1,13 @@
 """成就觸發檢查引擎.
 
-此模組實作成就觸發檢查系統，提供：
+此模組實作成就觸發檢查系統,提供:
 - 成就條件檢查邏輯
 - 自動觸發機制
 - 條件評估引擎
 - 觸發事件處理
 - 成就解鎖邏輯
 
-觸發引擎遵循以下設計原則：
+觸發引擎遵循以下設計原則:
 - 支援多種成就類型的條件檢查
 - 提供靈活的條件評估框架
 - 整合進度追蹤和自動成就頒發
@@ -32,11 +32,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class TriggerEngine:
     """成就觸發檢查引擎.
 
-    提供成就觸發檢查和自動頒發的核心功能，包含：
+    提供成就觸發檢查和自動頒發的核心功能,包含:
     - 條件檢查和評估邏輯
     - 自動成就觸發機制
     - 複雜條件組合處理
@@ -44,9 +43,7 @@ class TriggerEngine:
     """
 
     def __init__(
-        self,
-        repository: AchievementRepository,
-        progress_tracker: ProgressTracker
+        self, repository: AchievementRepository, progress_tracker: ProgressTracker
     ):
         """初始化觸發引擎.
 
@@ -72,10 +69,7 @@ class TriggerEngine:
     # =============================================================================
 
     async def check_achievement_trigger(
-        self,
-        user_id: int,
-        achievement_id: int,
-        trigger_context: dict[str, Any]
+        self, user_id: int, achievement_id: int, trigger_context: dict[str, Any]
     ) -> tuple[bool, str | None]:
         """檢查特定成就是否應該被觸發.
 
@@ -110,7 +104,7 @@ class TriggerEngine:
             should_trigger, reason = await self._check_type_specific_trigger(
                 user_id=user_id,
                 achievement=achievement,
-                trigger_context=trigger_context
+                trigger_context=trigger_context,
             )
 
             if should_trigger:
@@ -120,8 +114,8 @@ class TriggerEngine:
                         "user_id": user_id,
                         "achievement_id": achievement_id,
                         "achievement_name": achievement.name,
-                        "trigger_reason": reason
-                    }
+                        "trigger_reason": reason,
+                    },
                 )
 
             return should_trigger, reason
@@ -132,17 +126,14 @@ class TriggerEngine:
                 extra={
                     "user_id": user_id,
                     "achievement_id": achievement_id,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
     async def _check_type_specific_trigger(
-        self,
-        user_id: int,
-        achievement: Achievement,
-        trigger_context: dict[str, Any]
+        self, user_id: int, achievement: Achievement, trigger_context: dict[str, Any]
     ) -> tuple[bool, str | None]:
         """根據成就類型檢查特定的觸發條件.
 
@@ -176,16 +167,16 @@ class TriggerEngine:
         else:
             return False, f"不支援的成就類型: {achievement_type}"
 
-    async def _check_counter_trigger(
+    async def _check_counter_trigger(  # noqa: PLR0911
         self,
         user_id: int,
         achievement: Achievement,
         criteria: dict[str, Any],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> tuple[bool, str | None]:
         """檢查計數型成就觸發條件.
 
-        支援複雜計數條件包含：
+        支援複雜計數條件包含:
         - 基本目標值檢查
         - 時間窗口限制
         - 累積和增量模式
@@ -194,7 +185,9 @@ class TriggerEngine:
         target_value = criteria.get("target_value", 0)
         counter_field = criteria.get("counter_field")
         time_window = criteria.get("time_window")
-        increment_mode = criteria.get("increment_mode", "cumulative")  # cumulative 或 incremental
+        increment_mode = criteria.get(
+            "increment_mode", "cumulative"
+        )  # cumulative 或 incremental
 
         if not counter_field:
             return False, "計數型成就缺少 counter_field"
@@ -211,15 +204,22 @@ class TriggerEngine:
             )
 
             if increment_mode == "incremental":
-                # 增量模式：檢查當前事件是否使計數達到目標
                 event_increment = trigger_context.get(counter_field, 0)
                 if windowed_value + event_increment >= target_value:
-                    return True, f"時間窗口內計數達到目標值 {target_value} (窗口: {time_window})"
-            # 累積模式：檢查窗口內總計數
+                    return (
+                        True,
+                        f"時間窗口內計數達到目標值 {target_value} (窗口: {time_window})",
+                    )
             elif windowed_value >= target_value:
-                return True, f"時間窗口內計數達到目標值 {target_value} (窗口: {time_window})"
+                return (
+                    True,
+                    f"時間窗口內計數達到目標值 {target_value} (窗口: {time_window})",
+                )
 
-            return False, f"時間窗口內計數尚未達到目標值 ({windowed_value}/{target_value}, 窗口: {time_window})"
+            return (
+                False,
+                f"時間窗口內計數尚未達到目標值 ({windowed_value}/{target_value}, 窗口: {time_window})",
+            )
 
         # 處理複合條件
         if "conditions" in criteria:
@@ -227,13 +227,13 @@ class TriggerEngine:
                 user_id, achievement, criteria["conditions"], trigger_context
             )
 
-        # 基本目標值檢查
         if increment_mode == "incremental":
-            # 增量模式：檢查當前事件是否使計數達到目標
             event_increment = trigger_context.get(counter_field, 0)
             if current_value + event_increment >= target_value:
-                return True, f"計數達到目標值 {target_value} (當前: {current_value}, 增量: {event_increment})"
-        # 累積模式：檢查總計數
+                return (
+                    True,
+                    f"計數達到目標值 {target_value} (當前: {current_value}, 增量: {event_increment})",
+                )
         elif current_value >= target_value:
             return True, f"計數達到目標值 {target_value}"
 
@@ -244,11 +244,11 @@ class TriggerEngine:
         user_id: int,
         achievement: Achievement,
         criteria: dict[str, Any],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> tuple[bool, str | None]:
         """檢查里程碑型成就觸發條件.
 
-        支援多階段里程碑檢查：
+        支援多階段里程碑檢查:
         - 基本里程碑達成
         - 多條件組合里程碑
         - 依賴關係檢查
@@ -282,19 +282,27 @@ class TriggerEngine:
 
         # 支援不同的比較方式
         operator = criteria.get("operator", ">=")
-        condition_met = self._evaluate_numeric_condition(current_value, operator, target_value)
+        condition_met = self._evaluate_numeric_condition(
+            current_value, operator, target_value
+        )
 
         if condition_met:
-            return True, f"里程碑達到 {milestone_type}: {current_value} {operator} {target_value}"
+            return (
+                True,
+                f"里程碑達到 {milestone_type}: {current_value} {operator} {target_value}",
+            )
         else:
-            return False, f"里程碑未達到 {milestone_type}: {current_value} 不滿足 {operator} {target_value}"
+            return (
+                False,
+                f"里程碑未達到 {milestone_type}: {current_value} 不滿足 {operator} {target_value}",
+            )
 
     async def _check_time_based_trigger(
         self,
         user_id: int,
         achievement: Achievement,
         criteria: dict[str, Any],
-        _trigger_context: dict[str, Any]  # 重命名未使用參數
+        _trigger_context: dict[str, Any],  # 重命名未使用參數
     ) -> tuple[bool, str | None]:
         """檢查時間型成就觸發條件."""
         target_value = criteria.get("target_value", 0)
@@ -316,7 +324,7 @@ class TriggerEngine:
         return False, f"不支援的時間單位: {time_unit}"
 
     def _calculate_consecutive_days(self, streak_dates: list[str]) -> int:
-        """計算連續天數（與 ProgressTracker 中的邏輯一致）."""
+        """計算連續天數(與 ProgressTracker 中的邏輯一致)."""
         if not streak_dates:
             return 0
 
@@ -342,7 +350,7 @@ class TriggerEngine:
         user_id: int,
         _achievement: Achievement,  # 重命名未使用參數
         criteria: dict[str, Any],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> tuple[bool, str | None]:
         """檢查條件型成就觸發條件."""
         conditions = criteria.get("conditions", [])
@@ -377,10 +385,7 @@ class TriggerEngine:
             return False, f"未滿足任何條件: {', '.join(failed_conditions)}"
 
     async def _evaluate_single_condition(
-        self,
-        user_id: int,
-        condition: dict[str, Any],
-        trigger_context: dict[str, Any]
+        self, user_id: int, condition: dict[str, Any], trigger_context: dict[str, Any]
     ) -> tuple[bool, str]:
         """評估單一條件.
 
@@ -397,16 +402,16 @@ class TriggerEngine:
         if condition_type == "metric_threshold":
             return self._evaluate_metric_threshold_condition(condition, trigger_context)
         elif condition_type == "achievement_dependency":
-            return await self._evaluate_achievement_dependency_condition(user_id, condition)
+            return await self._evaluate_achievement_dependency_condition(
+                user_id, condition
+            )
         elif condition_type == "time_range":
             return self._evaluate_time_range_condition(condition)
         else:
             return False, f"不支援的條件類型: {condition_type}"
 
     def _evaluate_metric_threshold_condition(
-        self,
-        condition: dict[str, Any],
-        trigger_context: dict[str, Any]
+        self, condition: dict[str, Any], trigger_context: dict[str, Any]
     ) -> tuple[bool, str]:
         """評估指標閾值條件."""
         metric_name = condition.get("metric")
@@ -431,12 +436,13 @@ class TriggerEngine:
         if satisfied:
             return True, f"{metric_name} {operator} {threshold} (實際: {metric_value})"
         else:
-            return False, f"{metric_name} 不滿足 {operator} {threshold} (實際: {metric_value})"
+            return (
+                False,
+                f"{metric_name} 不滿足 {operator} {threshold} (實際: {metric_value})",
+            )
 
     async def _evaluate_achievement_dependency_condition(
-        self,
-        user_id: int,
-        condition: dict[str, Any]
+        self, user_id: int, condition: dict[str, Any]
     ) -> tuple[bool, str]:
         """評估成就依賴條件."""
         required_achievement_id = condition.get("achievement_id")
@@ -452,7 +458,9 @@ class TriggerEngine:
         else:
             return False, f"尚未獲得依賴成就 {required_achievement_id}"
 
-    def _evaluate_time_range_condition(self, condition: dict[str, Any]) -> tuple[bool, str]:
+    def _evaluate_time_range_condition(
+        self, condition: dict[str, Any]
+    ) -> tuple[bool, str]:
         """評估時間範圍條件."""
         start_time = condition.get("start_time")
         end_time = condition.get("end_time")
@@ -474,10 +482,7 @@ class TriggerEngine:
     # =============================================================================
 
     async def process_automatic_triggers(
-        self,
-        user_id: int,
-        trigger_event: str,
-        event_data: dict[str, Any]
+        self, user_id: int, trigger_event: str, event_data: dict[str, Any]
     ) -> list[UserAchievement]:
         """處理自動觸發檢查並頒發符合條件的成就.
 
@@ -508,7 +513,7 @@ class TriggerEngine:
                     should_trigger, reason = await self.check_achievement_trigger(
                         user_id=user_id,
                         achievement_id=achievement.id,
-                        trigger_context=event_data
+                        trigger_context=event_data,
                     )
 
                     if should_trigger:
@@ -525,8 +530,8 @@ class TriggerEngine:
                                 "achievement_id": achievement.id,
                                 "achievement_name": achievement.name,
                                 "trigger_event": trigger_event,
-                                "trigger_reason": reason
-                            }
+                                "trigger_reason": reason,
+                            },
                         )
 
                 except Exception as e:
@@ -536,9 +541,9 @@ class TriggerEngine:
                             "user_id": user_id,
                             "achievement_id": achievement.id,
                             "trigger_event": trigger_event,
-                            "error": str(e)
+                            "error": str(e),
                         },
-                        exc_info=True
+                        exc_info=True,
                     )
                     continue
 
@@ -548,8 +553,8 @@ class TriggerEngine:
                     "user_id": user_id,
                     "trigger_event": trigger_event,
                     "checked_achievements": len(relevant_achievements),
-                    "newly_earned": len(newly_earned_achievements)
-                }
+                    "newly_earned": len(newly_earned_achievements),
+                },
             )
 
             return newly_earned_achievements
@@ -560,16 +565,14 @@ class TriggerEngine:
                 extra={
                     "user_id": user_id,
                     "trigger_event": trigger_event,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
     def _filter_achievements_by_event(
-        self,
-        achievements: list[Achievement],
-        trigger_event: str
+        self, achievements: list[Achievement], trigger_event: str
     ) -> list[Achievement]:
         """根據觸發事件過濾相關的成就.
 
@@ -592,11 +595,12 @@ class TriggerEngine:
 
         relevant_types = event_type_mapping.get(trigger_event, [])
         if not relevant_types:
-            # 如果沒有定義對應關係，返回所有成就
+            # 如果沒有定義對應關係,返回所有成就
             return achievements
 
         return [
-            achievement for achievement in achievements
+            achievement
+            for achievement in achievements
             if achievement.type in relevant_types
         ]
 
@@ -605,10 +609,7 @@ class TriggerEngine:
     # =============================================================================
 
     async def batch_check_triggers_for_users(
-        self,
-        user_ids: list[int],
-        trigger_event: str,
-        event_data: dict[str, Any]
+        self, user_ids: list[int], trigger_event: str, event_data: dict[str, Any]
     ) -> dict[int, list[UserAchievement]]:
         """批量檢查多個用戶的成就觸發.
 
@@ -626,9 +627,7 @@ class TriggerEngine:
         for user_id in user_ids:
             try:
                 newly_earned = await self.process_automatic_triggers(
-                    user_id=user_id,
-                    trigger_event=trigger_event,
-                    event_data=event_data
+                    user_id=user_id, trigger_event=trigger_event, event_data=event_data
                 )
                 results[user_id] = newly_earned
             except Exception as e:
@@ -641,8 +640,8 @@ class TriggerEngine:
                 extra={
                     "total_users": len(user_ids),
                     "success_users": len([r for r in results.values() if r]),
-                    "errors": errors
-                }
+                    "errors": errors,
+                },
             )
 
         logger.info(
@@ -650,8 +649,8 @@ class TriggerEngine:
             extra={
                 "total_users": len(user_ids),
                 "processed_users": len(results),
-                "failed_users": len(errors)
-            }
+                "failed_users": len(errors),
+            },
         )
 
         return results
@@ -661,9 +660,7 @@ class TriggerEngine:
     # =============================================================================
 
     async def handle_trigger_event(
-        self,
-        event_type: str,
-        event_data: dict[str, Any]
+        self, event_type: str, event_data: dict[str, Any]
     ) -> None:
         """處理觸發事件.
 
@@ -676,7 +673,7 @@ class TriggerEngine:
             if not user_id:
                 logger.warning(
                     "觸發事件缺少 user_id",
-                    extra={"event_type": event_type, "event_data": event_data}
+                    extra={"event_type": event_type, "event_data": event_data},
                 )
                 return
 
@@ -685,9 +682,7 @@ class TriggerEngine:
 
             # 檢查自動觸發
             newly_earned = await self.process_automatic_triggers(
-                user_id=user_id,
-                trigger_event=event_type,
-                event_data=event_data
+                user_id=user_id, trigger_event=event_type, event_data=event_data
             )
 
             if newly_earned:
@@ -697,8 +692,8 @@ class TriggerEngine:
                         "user_id": user_id,
                         "event_type": event_type,
                         "newly_earned_count": len(newly_earned),
-                        "achievement_ids": [ua.achievement_id for ua in newly_earned]
-                    }
+                        "achievement_ids": [ua.achievement_id for ua in newly_earned],
+                    },
                 )
 
         except Exception as e:
@@ -707,17 +702,14 @@ class TriggerEngine:
                 extra={
                     "event_type": event_type,
                     "event_data": event_data,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
     async def _update_progress_from_event(
-        self,
-        user_id: int,
-        event_type: str,
-        event_data: dict[str, Any]
+        self, user_id: int, event_type: str, event_data: dict[str, Any]
     ) -> None:
         """根據事件更新相關的成就進度.
 
@@ -741,7 +733,7 @@ class TriggerEngine:
                     user_id=user_id,
                     achievement=achievement,
                     event_type=event_type,
-                    event_data=event_data
+                    event_data=event_data,
                 )
             except Exception as e:
                 logger.error(
@@ -750,9 +742,9 @@ class TriggerEngine:
                         "user_id": user_id,
                         "achievement_id": achievement.id,
                         "event_type": event_type,
-                        "error": str(e)
+                        "error": str(e),
                     },
-                    exc_info=True
+                    exc_info=True,
                 )
                 continue
 
@@ -761,7 +753,7 @@ class TriggerEngine:
         user_id: int,
         achievement: Achievement,
         event_type: str,
-        event_data: dict[str, Any]
+        event_data: dict[str, Any],
     ) -> None:
         """根據事件更新特定成就的進度.
 
@@ -788,14 +780,14 @@ class TriggerEngine:
                 user_id=user_id,
                 achievement_id=achievement.id,
                 increment_value=increment_value,
-                progress_data={"last_event": event_type, "event_timestamp": datetime.now().isoformat()}
+                progress_data={
+                    "last_event": event_type,
+                    "event_timestamp": datetime.now().isoformat(),
+                },
             )
 
     def _calculate_progress_increment(
-        self,
-        achievement: Achievement,
-        event_type: str,
-        event_data: dict[str, Any]
+        self, achievement: Achievement, event_type: str, event_data: dict[str, Any]
     ) -> float:
         """計算事件對成就進度的增量.
 
@@ -835,7 +827,7 @@ class TriggerEngine:
         achievement_id: int,
         counter_field: str,
         time_window: str,
-        trigger_context: dict[str, Any]
+        _trigger_context: dict[str, Any],
     ) -> float:
         """取得時間窗口內的計數值.
 
@@ -843,8 +835,8 @@ class TriggerEngine:
             user_id: 用戶 ID
             achievement_id: 成就 ID
             counter_field: 計數字段
-            time_window: 時間窗口（如 "7d", "30d", "1h"）
-            trigger_context: 觸發上下文
+            time_window: 時間窗口(如 "7d", "30d", "1h")
+            _trigger_context: 觸發上下文(未使用)
 
         Returns:
             時間窗口內的計數值
@@ -881,8 +873,8 @@ class TriggerEngine:
                     "achievement_id": achievement_id,
                     "counter_field": counter_field,
                     "time_window": time_window,
-                    "error": str(e)
-                }
+                    "error": str(e),
+                },
             )
             return 0.0
 
@@ -891,7 +883,7 @@ class TriggerEngine:
         user_id: int,
         achievement: Achievement,
         conditions: list[dict[str, Any]],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> tuple[bool, str | None]:
         """檢查複合計數條件.
 
@@ -919,11 +911,16 @@ class TriggerEngine:
             # 取得當前計數值
             if "time_window" in condition:
                 current_value = await self._get_windowed_counter_value(
-                    user_id, achievement.id, counter_field,
-                    condition["time_window"], trigger_context
+                    user_id,
+                    achievement.id,
+                    counter_field,
+                    condition["time_window"],
+                    trigger_context,
                 )
             else:
-                progress = await self._repository.get_user_progress(user_id, achievement.id)
+                progress = await self._repository.get_user_progress(
+                    user_id, achievement.id
+                )
                 current_value = progress.current_value if progress else 0.0
 
             # 評估條件
@@ -931,7 +928,9 @@ class TriggerEngine:
                 current_value, operator, target_value
             )
 
-            condition_desc = f"{counter_field} {operator} {target_value} (實際: {current_value})"
+            condition_desc = (
+                f"{counter_field} {operator} {target_value} (實際: {current_value})"
+            )
 
             if condition_met:
                 satisfied_conditions.append(condition_desc)
@@ -955,7 +954,7 @@ class TriggerEngine:
         """解析時間窗口字符串為秒數.
 
         Args:
-            time_window: 時間窗口字符串（如 "7d", "24h", "30m"）
+            time_window: 時間窗口字符串(如 "7d", "24h", "30m")
 
         Returns:
             秒數
@@ -969,11 +968,11 @@ class TriggerEngine:
             value = int(time_window[:-1])
 
             unit_multipliers = {
-                's': 1,          # 秒
-                'm': 60,         # 分鐘
-                'h': 3600,       # 小時
-                'd': 86400,      # 天
-                'w': 604800,     # 週
+                "s": 1,  # 秒
+                "m": 60,  # 分鐘
+                "h": 3600,  # 小時
+                "d": 86400,  # 天
+                "w": 604800,  # 週
             }
 
             multiplier = unit_multipliers.get(unit, 0)
@@ -984,10 +983,7 @@ class TriggerEngine:
             return 0
 
     def _evaluate_numeric_condition(
-        self,
-        current_value: float,
-        operator: str,
-        target_value: float
+        self, current_value: float, operator: str, target_value: float
     ) -> bool:
         """評估數值條件.
 
@@ -1024,11 +1020,11 @@ class TriggerEngine:
         user_id: int,
         achievement: Achievement,
         criteria: dict[str, Any],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> tuple[bool, str | None]:
         """檢查多階段里程碑成就.
 
-        支援階段性里程碑，每個階段有不同的要求。
+        支援階段性里程碑,每個階段有不同的要求.
         """
         stages = criteria.get("stages", [])
         if not stages:
@@ -1062,7 +1058,10 @@ class TriggerEngine:
             else:
                 # 更新階段進度但不觸發成就
                 await self._update_stage_progress(user_id, achievement.id, new_stage)
-                return False, f"完成階段 {current_stage + 1}/{len(stages)}，進入下一階段"
+                return (
+                    False,
+                    f"完成階段 {current_stage + 1}/{len(stages)},進入下一階段",
+                )
 
         return False, f"階段 {current_stage + 1}/{len(stages)} 尚未完成"
 
@@ -1071,11 +1070,11 @@ class TriggerEngine:
         user_id: int,
         achievement: Achievement,
         criteria: dict[str, Any],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> tuple[bool, str | None]:
         """檢查事件觸發里程碑成就.
 
-        基於特定事件序列或組合觸發的里程碑。
+        基於特定事件序列或組合觸發的里程碑.
         """
         required_events = criteria.get("required_events", [])
         event_sequence = criteria.get("event_sequence", False)  # 是否需要按順序發生
@@ -1094,26 +1093,29 @@ class TriggerEngine:
         current_event = {
             "event_type": trigger_context.get("event_type"),
             "timestamp": datetime.now().isoformat(),
-            "data": trigger_context
+            "data": trigger_context,
         }
 
         if event_sequence:
             # 檢查事件序列
-            return self._check_event_sequence(required_events, [*event_history, current_event])
+            return self._check_event_sequence(
+                required_events, [*event_history, current_event]
+            )
         else:
-            # 檢查事件組合（不考慮順序）
-            return self._check_event_combination(required_events, [*event_history, current_event])
+            return self._check_event_combination(
+                required_events, [*event_history, current_event]
+            )
 
     async def _check_conditional_milestone(
         self,
         user_id: int,
-        achievement: Achievement,
+        _achievement: Achievement,
         criteria: dict[str, Any],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> tuple[bool, str | None]:
         """檢查條件組合里程碑成就.
 
-        基於多個條件組合的複雜里程碑。
+        基於多個條件組合的複雜里程碑.
         """
         required_conditions = criteria.get("required_conditions", {})
         condition_logic = criteria.get("condition_logic", "AND")
@@ -1144,10 +1146,7 @@ class TriggerEngine:
             return False, f"未滿足任何里程碑條件: {', '.join(failed_conditions)}"
 
     async def _evaluate_stage_condition(
-        self,
-        user_id: int,
-        condition: dict[str, Any],
-        trigger_context: dict[str, Any]
+        self, user_id: int, condition: dict[str, Any], trigger_context: dict[str, Any]
     ) -> bool:
         """評估階段條件.
 
@@ -1175,15 +1174,14 @@ class TriggerEngine:
 
         elif condition_type == "achievement":
             required_achievement_id = condition.get("achievement_id")
-            return await self._repository.has_user_achievement(user_id, required_achievement_id)
+            return await self._repository.has_user_achievement(
+                user_id, required_achievement_id
+            )
 
         return False
 
     async def _update_stage_progress(
-        self,
-        user_id: int,
-        achievement_id: int,
-        new_stage: int
+        self, user_id: int, achievement_id: int, new_stage: int
     ) -> None:
         """更新階段進度.
 
@@ -1192,44 +1190,51 @@ class TriggerEngine:
             achievement_id: 成就 ID
             new_stage: 新的階段編號
         """
-        progress_data = {"current_stage": new_stage, "stage_updated_at": datetime.now().isoformat()}
+        progress_data = {
+            "current_stage": new_stage,
+            "stage_updated_at": datetime.now().isoformat(),
+        }
 
         await self._progress_tracker.update_user_progress(
             user_id=user_id,
             achievement_id=achievement_id,
             increment_value=0,  # 階段更新不改變數值
-            progress_data=progress_data
+            progress_data=progress_data,
         )
 
     def _check_event_sequence(
-        self,
-        required_events: list[str],
-        event_history: list[dict[str, Any]]
+        self, required_events: list[str], event_history: list[dict[str, Any]]
     ) -> tuple[bool, str | None]:
         """檢查事件序列.
 
-        檢查事件是否按照要求的順序發生。
+        檢查事件是否按照要求的順序發生.
         """
         if len(event_history) < len(required_events):
-            return False, f"事件序列不完整 ({len(event_history)}/{len(required_events)})"
+            return (
+                False,
+                f"事件序列不完整 ({len(event_history)}/{len(required_events)})",
+            )
 
         # 檢查最近的事件是否符合序列
-        recent_events = event_history[-len(required_events):]
+        recent_events = event_history[-len(required_events) :]
 
-        for i, (expected_event, actual_event) in enumerate(zip(required_events, recent_events, strict=False)):
+        for i, (expected_event, actual_event) in enumerate(
+            zip(required_events, recent_events, strict=False)
+        ):
             if actual_event.get("event_type") != expected_event:
-                return False, f"事件序列不匹配，位置 {i + 1}: 期望 {expected_event}, 實際 {actual_event.get('event_type')}"
+                return (
+                    False,
+                    f"事件序列不匹配,位置 {i + 1}: 期望 {expected_event}, 實際 {actual_event.get('event_type')}",
+                )
 
         return True, f"事件序列完成: {', '.join(required_events)}"
 
     def _check_event_combination(
-        self,
-        required_events: list[str],
-        event_history: list[dict[str, Any]]
+        self, required_events: list[str], event_history: list[dict[str, Any]]
     ) -> tuple[bool, str | None]:
         """檢查事件組合.
 
-        檢查是否發生了所有要求的事件（不考慮順序）。
+        檢查是否發生了所有要求的事件(不考慮順序).
         """
         occurred_events = {event.get("event_type") for event in event_history}
         missing_events = set(required_events) - occurred_events
@@ -1241,10 +1246,10 @@ class TriggerEngine:
 
     async def _evaluate_milestone_condition(
         self,
-        user_id: int,
-        condition_name: str,
+        user_id: int,  # noqa: ARG002
+        condition_name: str,  # noqa: ARG002
         condition_def: dict[str, Any],
-        trigger_context: dict[str, Any]
+        trigger_context: dict[str, Any],
     ) -> bool:
         """評估里程碑條件.
 
@@ -1284,7 +1289,6 @@ class TriggerEngine:
                 return start <= current_time <= end
 
         return False
-
 
 __all__ = [
     "TriggerEngine",

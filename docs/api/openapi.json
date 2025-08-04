@@ -3,7 +3,7 @@
   "info": {
     "title": "Discord ROAS Bot API",
     "version": "2.1.0",
-    "description": "Discord ROAS Bot API 文档 - 成就系統核心 API",
+    "description": "Discord ROAS Bot API 文档 - 成就系統核心 API\n\n## 架構說明\n\n### Currency System (內部服務)\n貨幣系統採用內部服務架構，不對外暴露 REST API，僅透過 Discord 應用程式指令提供服務：\n- **服務層**: CurrencyService 負責業務邏輯和事件發布\n- **資料層**: CurrencyRepository 處理 PostgreSQL 資料存取\n- **指令層**: Currency Cog 提供 Discord slash commands\n- **事件驅動**: 透過 InternalEventBus 發布交易和餘額變更事件\n\n### 支援的貨幣功能\n- 使用者餘額查詢 (`/currency balance`)\n- 用戶間轉帳 (`/currency transfer`)\n- 伺服器排行榜 (`/currency top`)\n- 個人排名查詢 (`/currency rank`)\n- 管理員貨幣操作 (`/admin-currency add/remove/stats`)\n\n所有操作均支援原子性交易、併發控制和防重放攻擊機制。",
     "contact": {
       "name": "愛琴海民主共和國科技部",
       "email": "laitszkin1206@gmail.com",

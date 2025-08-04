@@ -14,7 +14,6 @@ from typing import Any
 
 logger = logging.getLogger("activity_cache")
 
-
 class CacheEntry:
     """緩存條目"""
 
@@ -46,7 +45,6 @@ class CacheEntry:
     def get_age(self) -> float:
         """獲取年齡(秒)"""
         return time.time() - self.created_at
-
 
 class ActivityCache:
     """
@@ -105,7 +103,6 @@ class ActivityCache:
         entry.access()
         self.hits += 1
 
-        # 移動到末尾(LRU)
         self.cache.move_to_end(key)
 
         return entry.value

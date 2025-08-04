@@ -13,6 +13,7 @@ class AITestResultChecker:
         self.memory_bank_path = memory_bank_path
         self.result_file_path = f"{memory_bank_path}/result.md"
         from .ai_test_result_archiver import AITestResultArchiver
+
         self.archiver = AITestResultArchiver(memory_bank_path)
 
     def check_existing_test_result(self) -> dict:
@@ -25,14 +26,14 @@ class AITestResultChecker:
             return {
                 "exists": True,
                 "file_path": latest_result["file_path"],
-                "will_be_overwritten": True
+                "will_be_overwritten": True,
             }
         else:
-            print("📝 AI Agent 未發現現有測試結果，將創建新的結果文檔")
+            print("📝 AI Agent 未發現現有測試結果,將創建新的結果文檔")
             return {
                 "exists": False,
                 "file_path": self.result_file_path,
-                "will_be_overwritten": False
+                "will_be_overwritten": False,
             }
 
     def get_test_result_summary(self) -> dict:
@@ -40,10 +41,7 @@ class AITestResultChecker:
         latest_result = self.archiver.get_latest_test_result()
 
         if not latest_result["exists"]:
-            return {
-                "has_result": False,
-                "message": "暫無測試結果"
-            }
+            return {"has_result": False, "message": "暫無測試結果"}
 
         # 解析現有結果內容
         content = latest_result["content"]
@@ -55,7 +53,7 @@ class AITestResultChecker:
             "last_updated": self._extract_timestamp(content),
             "overall_status": self._extract_overall_status(content),
             "coverage_percentage": self._extract_coverage_percentage(content),
-            "acceptance_pass_rate": self._extract_acceptance_pass_rate(content)
+            "acceptance_pass_rate": self._extract_acceptance_pass_rate(content),
         }
 
         return summary
@@ -92,6 +90,7 @@ class AITestResultQuery:
         self.memory_bank_path = memory_bank_path
         self.result_checker = AITestResultChecker(memory_bank_path)
         from .ai_test_result_archiver import AITestResultArchiver
+
         self.archiver = AITestResultArchiver(memory_bank_path)
 
     def get_latest_test_result(self) -> dict:
@@ -107,7 +106,7 @@ class AITestResultQuery:
         history = self.get_test_history()
 
         if len(history) < 2:
-            return {"message": "測試歷史不足，無法分析趨勢"}
+            return {"message": "測試歷史不足,無法分析趨勢"}
 
         # 分析覆蓋率趨勢
         coverage_trend = self._analyze_coverage_trend(history)
@@ -122,7 +121,9 @@ class AITestResultQuery:
             "coverage_trend": coverage_trend,
             "acceptance_trend": acceptance_trend,
             "quality_trend": quality_trend,
-            "overall_trend": self._calculate_overall_trend(coverage_trend, acceptance_trend, quality_trend)
+            "overall_trend": self._calculate_overall_trend(
+                coverage_trend, acceptance_trend, quality_trend
+            ),
         }
 
     def _analyze_coverage_trend(self, history: list[dict]) -> str:
@@ -170,10 +171,20 @@ class AITestResultQuery:
         else:
             return "stable"
 
-    def _calculate_overall_trend(self, coverage_trend: str, acceptance_trend: str, quality_trend: str) -> str:
+    def _calculate_overall_trend(
+        self, coverage_trend: str, acceptance_trend: str, quality_trend: str
+    ) -> str:
         """AI Agent 計算整體趨勢"""
-        improving_count = sum(1 for trend in [coverage_trend, acceptance_trend, quality_trend] if trend == "improving")
-        declining_count = sum(1 for trend in [coverage_trend, acceptance_trend, quality_trend] if trend == "declining")
+        improving_count = sum(
+            1
+            for trend in [coverage_trend, acceptance_trend, quality_trend]
+            if trend == "improving"
+        )
+        declining_count = sum(
+            1
+            for trend in [coverage_trend, acceptance_trend, quality_trend]
+            if trend == "declining"
+        )
 
         if improving_count > declining_count:
             return "improving"

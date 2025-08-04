@@ -11,9 +11,17 @@ __description__ = (
 )
 
 # Version info tuple for programmatic access - handle non-standard versions
-try:
-    VERSION_INFO = tuple(map(int, __version__.split(".")))
-except ValueError:
-    VERSION_INFO = tuple(__version__.split("."))
+def _parse_version(version_str: str) -> tuple:
+    """Parse version string into tuple of integers and strings."""
+    parts = version_str.split(".")
+    result = []
+    for part in parts:
+        try:
+            result.append(int(part))
+        except ValueError:
+            result.append(part)
+    return tuple(result)
+
+VERSION_INFO = _parse_version(__version__)
 
 __all__ = ["VERSION_INFO", "ADRBot", "Settings", "__version__"]

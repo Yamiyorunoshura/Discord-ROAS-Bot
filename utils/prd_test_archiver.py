@@ -26,17 +26,20 @@ try:
         PRDTestValidator,
     )
 except ImportError:
-    # 如果相對導入失敗，嘗試直接導入
+    # 如果相對導入失敗,嘗試直接導入
     from prd_test_validator import PRDRequirementStatus, PRDTestReport, PRDTestValidator
+
 
 @dataclass
 class PRDTestArchive:
     """PRD測試存檔數據結構"""
+
     archive_id: str
     timestamp: datetime
     test_report: PRDTestReport
     archive_path: str
     summary: dict[str, Any]
+
 
 class PRDTestArchiver:
     """PRD測試結果存檔器"""
@@ -67,7 +70,7 @@ class PRDTestArchiver:
             timestamp=datetime.now(),
             test_report=test_report,
             archive_path=archive_path,
-            summary=archive_summary
+            summary=archive_summary,
         )
 
         # 5. 更新測試記憶
@@ -89,7 +92,7 @@ class PRDTestArchiver:
             "pass_rate": test_report.pass_rate,
             "overall_status": test_report.overall_status,
             "timestamp": test_report.timestamp.isoformat(),
-            "report_id": test_report.report_id
+            "report_id": test_report.report_id,
         }
 
     def _save_test_report_json(self, test_report: PRDTestReport) -> str:
@@ -116,18 +119,18 @@ class PRDTestArchiver:
                     "status": req.status.value,
                     "implementation_details": req.implementation_details,
                     "test_results": req.test_results,
-                    "last_updated": req.last_updated
+                    "last_updated": req.last_updated,
                 }
                 for req in test_report.requirements
             ],
             "test_summary": test_report.test_summary,
             "coverage_percentage": test_report.coverage_percentage,
             "pass_rate": test_report.pass_rate,
-            "overall_status": test_report.overall_status
+            "overall_status": test_report.overall_status,
         }
 
         # 保存到JSON文件
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(report_data, f, ensure_ascii=False, indent=2)
 
         print(f"✅ 測試報告已保存: {filepath}")
@@ -143,7 +146,7 @@ class PRDTestArchiver:
 
         # 讀取現有記憶或創建新的
         if os.path.exists(memory_file):
-            with open(memory_file, encoding='utf-8') as f:
+            with open(memory_file, encoding="utf-8") as f:
                 memory_content = f.read()
         else:
             memory_content = self._create_memory_template()
@@ -152,7 +155,7 @@ class PRDTestArchiver:
         updated_memory = self._update_memory_content(memory_content, archive)
 
         # 保存更新後的記憶
-        with open(memory_file, 'w', encoding='utf-8') as f:
+        with open(memory_file, "w", encoding="utf-8") as f:
             f.write(updated_memory)
 
         print(f"✅ 測試記憶已更新: {memory_file}")
@@ -169,7 +172,9 @@ class PRDTestArchiver:
 
 """
 
-    def _update_memory_content(self, memory_content: str, archive: PRDTestArchive) -> str:
+    def _update_memory_content(
+        self, memory_content: str, archive: PRDTestArchive
+    ) -> str:
         """更新記憶內容"""
         timestamp = archive.timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -191,8 +196,16 @@ class PRDTestArchiver:
 
         # 添加需求詳細狀況
         for req in archive.test_report.requirements:
-            status_emoji = "✅" if req.status == PRDRequirementStatus.VERIFIED else "❌" if req.status == PRDRequirementStatus.NOT_IMPLEMENTED else "🟡"
-            new_record += f"- {status_emoji} {req.requirement_id}: {req.requirement_name}\n"
+            status_emoji = (
+                "✅"
+                if req.status == PRDRequirementStatus.VERIFIED
+                else "❌"
+                if req.status == PRDRequirementStatus.NOT_IMPLEMENTED
+                else "🟡"
+            )
+            new_record += (
+                f"- {status_emoji} {req.requirement_id}: {req.requirement_name}\n"
+            )
 
         # 更新記憶內容
         updated_content = memory_content + new_record
@@ -201,9 +214,9 @@ class PRDTestArchiver:
 
     def _generate_archive_report(self, archive: PRDTestArchive):
         """生成存檔報告"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("📦 PRD測試結果存檔報告")
-        print("="*60)
+        print("=" * 60)
         print(f"存檔ID: {archive.archive_id}")
         print(f"存檔時間: {archive.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"測試報告ID: {archive.test_report.report_id}")
@@ -215,12 +228,18 @@ class PRDTestArchiver:
         print(f"需求覆蓋率: {archive.test_report.coverage_percentage:.1f}%")
         print(f"測試通過率: {archive.test_report.pass_rate:.1f}%")
         print(f"整體狀態: {archive.test_report.overall_status}")
-        print("="*60)
+        print("=" * 60)
 
         # 輸出詳細需求狀況
         print("\n📋 需求實現狀況:")
         for req in archive.test_report.requirements:
-            status_emoji = "✅" if req.status == PRDRequirementStatus.VERIFIED else "❌" if req.status == PRDRequirementStatus.NOT_IMPLEMENTED else "🟡"
+            status_emoji = (
+                "✅"
+                if req.status == PRDRequirementStatus.VERIFIED
+                else "❌"
+                if req.status == PRDRequirementStatus.NOT_IMPLEMENTED
+                else "🟡"
+            )
             print(f"{status_emoji} {req.requirement_id}: {req.requirement_name}")
 
         print("\n🎯 改進建議:")
@@ -231,26 +250,40 @@ class PRDTestArchiver:
         suggestions = []
 
         # 分析未實現的需求
-        not_implemented = [req for req in test_report.requirements if req.status == PRDRequirementStatus.NOT_IMPLEMENTED]
+        not_implemented = [
+            req
+            for req in test_report.requirements
+            if req.status == PRDRequirementStatus.NOT_IMPLEMENTED
+        ]
         if not_implemented:
             suggestions.append(f"🔧 優先實現 {len(not_implemented)} 個未實現的核心需求")
             for req in not_implemented:
                 suggestions.append(f"   - {req.requirement_id}: {req.requirement_name}")
 
         # 分析需要測試的需求
-        implemented_not_tested = [req for req in test_report.requirements if req.status == PRDRequirementStatus.IMPLEMENTED]
+        implemented_not_tested = [
+            req
+            for req in test_report.requirements
+            if req.status == PRDRequirementStatus.IMPLEMENTED
+        ]
         if implemented_not_tested:
-            suggestions.append(f"🧪 為 {len(implemented_not_tested)} 個已實現需求添加測試")
+            suggestions.append(
+                f"🧪 為 {len(implemented_not_tested)} 個已實現需求添加測試"
+            )
             for req in implemented_not_tested:
                 suggestions.append(f"   - {req.requirement_id}: {req.requirement_name}")
 
         # 分析覆蓋率
         if test_report.coverage_percentage < 80:
-            suggestions.append(f"📊 提高需求覆蓋率 (當前: {test_report.coverage_percentage:.1f}%, 目標: 80%+)")
+            suggestions.append(
+                f"📊 提高需求覆蓋率 (當前: {test_report.coverage_percentage:.1f}%, 目標: 80%+)"
+            )
 
         # 分析通過率
         if test_report.pass_rate < 90:
-            suggestions.append(f"✅ 提高測試通過率 (當前: {test_report.pass_rate:.1f}%, 目標: 90%+)")
+            suggestions.append(
+                f"✅ 提高測試通過率 (當前: {test_report.pass_rate:.1f}%, 目標: 90%+)"
+            )
 
         # 輸出建議
         for suggestion in suggestions:
@@ -259,6 +292,7 @@ class PRDTestArchiver:
     async def close(self):
         """關閉存檔器"""
         await self.validator.close()
+
 
 async def main():
     """主函數"""
@@ -277,6 +311,7 @@ async def main():
 
     finally:
         await archiver.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

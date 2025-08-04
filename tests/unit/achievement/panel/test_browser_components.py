@@ -1,6 +1,6 @@
 """成就瀏覽組件單元測試.
 
-此模組測試成就瀏覽相關的 UI 組件：
+此模組測試成就瀏覽相關的 UI 組件:
 - BrowserCategorySelector
 - BrowserPaginationButton
 - AchievementBrowserDetailButton
@@ -61,7 +61,9 @@ class TestBrowserCategorySelector:
         assert first_category.description == "共 15 個成就"
 
     @pytest.mark.asyncio
-    async def test_callback_select_all(self, mock_panel: MagicMock, mock_categories: list[dict[str, Any]]):
+    async def test_callback_select_all(
+        self, mock_panel: MagicMock, mock_categories: list[dict[str, Any]]
+    ):
         """測試選擇全部分類."""
         selector = BrowserCategorySelector(mock_panel, mock_categories)
         selector.values = ["all"]
@@ -80,7 +82,9 @@ class TestBrowserCategorySelector:
         mock_panel.refresh_callback.assert_called_with(mock_interaction)
 
     @pytest.mark.asyncio
-    async def test_callback_select_category(self, mock_panel: MagicMock, mock_categories: list[dict[str, Any]]):
+    async def test_callback_select_category(
+        self, mock_panel: MagicMock, mock_categories: list[dict[str, Any]]
+    ):
         """測試選擇特定分類."""
         selector = BrowserCategorySelector(mock_panel, mock_categories)
         selector.values = ["2"]  # 選擇社交成就
@@ -98,7 +102,9 @@ class TestBrowserCategorySelector:
         mock_panel.refresh_callback.assert_called_with(mock_interaction)
 
     @pytest.mark.asyncio
-    async def test_callback_error_handling(self, mock_panel: MagicMock, mock_categories: list[dict[str, Any]]):
+    async def test_callback_error_handling(
+        self, mock_panel: MagicMock, mock_categories: list[dict[str, Any]]
+    ):
         """測試回調錯誤處理."""
         selector = BrowserCategorySelector(mock_panel, mock_categories)
         selector.values = ["1"]
@@ -130,11 +136,7 @@ class TestBrowserPaginationButton:
     def test_init(self, mock_panel: MagicMock):
         """測試初始化."""
         button = BrowserPaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️",
-            disabled=False
+            mock_panel, direction="next", label="下一頁", emoji="▶️", disabled=False
         )
 
         assert button.panel == mock_panel
@@ -147,10 +149,7 @@ class TestBrowserPaginationButton:
     async def test_callback_next_page(self, mock_panel: MagicMock):
         """測試下一頁按鈕."""
         button = BrowserPaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         mock_browser_view = MagicMock()
@@ -171,10 +170,7 @@ class TestBrowserPaginationButton:
     async def test_callback_prev_page(self, mock_panel: MagicMock):
         """測試上一頁按鈕."""
         button = BrowserPaginationButton(
-            mock_panel,
-            direction="prev",
-            label="上一頁",
-            emoji="◀️"
+            mock_panel, direction="prev", label="上一頁", emoji="◀️"
         )
 
         mock_browser_view = MagicMock()
@@ -195,10 +191,7 @@ class TestBrowserPaginationButton:
     async def test_callback_first_page(self, mock_panel: MagicMock):
         """測試首頁按鈕."""
         button = BrowserPaginationButton(
-            mock_panel,
-            direction="first",
-            label="首頁",
-            emoji="⏮️"
+            mock_panel, direction="first", label="首頁", emoji="⏮️"
         )
 
         mock_browser_view = MagicMock()
@@ -218,10 +211,7 @@ class TestBrowserPaginationButton:
     async def test_callback_last_page(self, mock_panel: MagicMock):
         """測試末頁按鈕."""
         button = BrowserPaginationButton(
-            mock_panel,
-            direction="last",
-            label="末頁",
-            emoji="⏭️"
+            mock_panel, direction="last", label="末頁", emoji="⏭️"
         )
 
         mock_browser_view = MagicMock()
@@ -241,10 +231,7 @@ class TestBrowserPaginationButton:
     async def test_callback_no_next_page(self, mock_panel: MagicMock):
         """測試沒有下一頁時的行為."""
         button = BrowserPaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         mock_browser_view = MagicMock()
@@ -281,7 +268,7 @@ class TestAchievementBrowserDetailButton:
             "points": 100,
             "criteria": {"target_value": 50},
             "role_reward": None,
-            "is_hidden": False
+            "is_hidden": False,
         }
 
     def test_init(self, mock_panel: MagicMock, mock_achievement_data: dict[str, Any]):
@@ -290,18 +277,24 @@ class TestAchievementBrowserDetailButton:
 
         assert button.panel == mock_panel
         assert button.achievement_data == mock_achievement_data
-        assert button.label == "測試成就名稱很長可能會被截斷"[:20] + "..."  # 標籤會被截斷
+        assert (
+            button.label == "測試成就名稱很長可能會被截斷"[:20] + "..."
+        )  # 標籤會被截斷
         assert button.emoji.name == "ℹ️"
 
     @pytest.mark.asyncio
-    async def test_callback_success(self, mock_panel: MagicMock, mock_achievement_data: dict[str, Any]):
+    async def test_callback_success(
+        self, mock_panel: MagicMock, mock_achievement_data: dict[str, Any]
+    ):
         """測試成功顯示詳情."""
         button = AchievementBrowserDetailButton(mock_panel, mock_achievement_data)
 
         mock_interaction = AsyncMock()
         mock_modal = MagicMock()
 
-        with patch('src.cogs.achievement.panel.components.ComponentFactory.create_achievement_detail_modal') as mock_create_modal:
+        with patch(
+            "src.cogs.achievement.panel.components.ComponentFactory.create_achievement_detail_modal"
+        ) as mock_create_modal:
             mock_create_modal.return_value = mock_modal
 
             # 執行回調
@@ -312,14 +305,18 @@ class TestAchievementBrowserDetailButton:
             mock_interaction.response.send_modal.assert_called_with(mock_modal)
 
     @pytest.mark.asyncio
-    async def test_callback_error_handling(self, mock_panel: MagicMock, mock_achievement_data: dict[str, Any]):
+    async def test_callback_error_handling(
+        self, mock_panel: MagicMock, mock_achievement_data: dict[str, Any]
+    ):
         """測試錯誤處理."""
         button = AchievementBrowserDetailButton(mock_panel, mock_achievement_data)
 
         mock_interaction = AsyncMock()
         mock_interaction.response.send_modal.side_effect = Exception("測試錯誤")
 
-        with patch('src.cogs.achievement.panel.components.ComponentFactory.create_achievement_detail_modal'):
+        with patch(
+            "src.cogs.achievement.panel.components.ComponentFactory.create_achievement_detail_modal"
+        ):
             # 執行回調
             await button.callback(mock_interaction)
 
@@ -340,10 +337,12 @@ class TestAchievementProgressIndicatorView:
             "points": 100,
             "criteria": {"count": 50},
             "role_reward": None,
-            "is_hidden": False
+            "is_hidden": False,
         }
 
-    def test_create_progress_embed_field_no_progress(self, mock_achievement: dict[str, Any]):
+    def test_create_progress_embed_field_no_progress(
+        self, mock_achievement: dict[str, Any]
+    ):
         """測試無進度的欄位創建."""
         field = AchievementProgressIndicatorView.create_progress_embed_field(
             mock_achievement, None
@@ -353,13 +352,11 @@ class TestAchievementProgressIndicatorView:
         assert "這是一個測試成就" in field["value"]
         assert "50 點" in field["value"]
 
-    def test_create_progress_embed_field_with_progress(self, mock_achievement: dict[str, Any]):
+    def test_create_progress_embed_field_with_progress(
+        self, mock_achievement: dict[str, Any]
+    ):
         """測試有進度的欄位創建."""
-        progress = {
-            "current": 30,
-            "target": 100,
-            "percentage": 30
-        }
+        progress = {"current": 30, "target": 100, "percentage": 30}
 
         field = AchievementProgressIndicatorView.create_progress_embed_field(
             mock_achievement, progress
@@ -374,7 +371,7 @@ class TestAchievementProgressIndicatorView:
         """測試視覺化進度條創建."""
         # 測試 50% 進度
         bar = AchievementProgressIndicatorView._create_visual_progress_bar(50, 100, 10)
-        assert len(bar) == 12  # [進度條] 格式，所以是 10 + 2
+        assert len(bar) == 12  # [進度條] 格式,所以是 10 + 2
         assert "█" in bar
         assert "░" in bar
 
@@ -405,7 +402,9 @@ class TestComponentFactory:
         """測試創建瀏覽分類選擇器."""
         categories = [{"id": 1, "name": "測試分類", "count": 5}]
 
-        selector = ComponentFactory.create_browser_category_selector(mock_panel, categories)
+        selector = ComponentFactory.create_browser_category_selector(
+            mock_panel, categories
+        )
 
         assert isinstance(selector, BrowserCategorySelector)
         assert selector.panel == mock_panel
@@ -430,7 +429,9 @@ class TestComponentFactory:
         """測試創建成就詳情按鈕."""
         achievement_data = {"name": "測試成就", "description": "描述"}
 
-        button = ComponentFactory.create_achievement_detail_button(mock_panel, achievement_data)
+        button = ComponentFactory.create_achievement_detail_button(
+            mock_panel, achievement_data
+        )
 
         assert isinstance(button, AchievementBrowserDetailButton)
         assert button.panel == mock_panel

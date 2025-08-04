@@ -11,15 +11,14 @@ from typing import Any
 # 使用統一配置系統獲取路徑
 from src.core.config import get_settings
 
+from ...core.database_pool import get_global_pool
+from ..config.config import DEFAULT_SETTINGS
+
 # 獲取配置實例
 _settings = get_settings()
 WELCOME_DB_PATH = str(_settings.get_database_path("welcome"))
 
-from ...core.database_pool import get_global_pool
-from ..config.config import DEFAULT_SETTINGS
-
 logger = logging.getLogger("welcome")
-
 
 class WelcomeDB:
     """歡迎訊息資料庫管理類別"""
@@ -62,9 +61,9 @@ class WelcomeDB:
                     )
                 """)
                 await conn.commit()
-                logger.info("【歡迎系統】資料庫表結構初始化完成")
+                logger.info("[歡迎系統]資料庫表結構初始化完成")
         except Exception as exc:
-            logger.error(f"【歡迎系統】資料庫初始化失敗: {exc}", exc_info=True)
+            logger.error(f"[歡迎系統]資料庫初始化失敗: {exc}", exc_info=True)
             raise
 
     async def exists(self, guild_id: int) -> bool:
@@ -261,4 +260,4 @@ class WelcomeDB:
     async def close(self):
         """關閉資料庫連接(現在由全局連接池管理)"""
         # 連接池由全局管理器處理,這裡不需要手動關閉
-        logger.info("【歡迎系統】資料庫連接已由全局連接池管理")
+        logger.info("[歡迎系統]資料庫連接已由全局連接池管理")

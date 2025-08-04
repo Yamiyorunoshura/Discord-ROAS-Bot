@@ -1,6 +1,6 @@
 """成就通知系統核心實作.
 
-此模組實作成就通知系統的核心功能，提供：
+此模組實作成就通知系統的核心功能,提供:
 - 私訊通知發送
 - 伺服器公告發送
 - 通知偏好管理
@@ -8,7 +8,7 @@
 - 錯誤處理和重試機制
 - 通知統計和監控
 
-通知系統遵循以下設計原則：
+通知系統遵循以下設計原則:
 - 異步處理避免阻塞成就觸發流程
 - 支援批量通知處理提升效能
 - 實作適當的頻率限制和錯誤處理
@@ -36,22 +36,21 @@ from ..database.models import (
 )
 
 if TYPE_CHECKING:
-
     from discord.ext import commands
 
     from ..database.repository import AchievementRepository
 
 logger = logging.getLogger(__name__)
 
+# 通知限制常數
+MAX_NOTIFICATIONS_PER_MINUTE = 5  # 每分鐘最大通知數
 
 # =============================================================================
 # 通知處理器橋接函數
 # =============================================================================
 
-async def create_notification_handler(
-    notifier: AchievementNotifier
-) -> callable:
-    """建立通知處理器函數，用於與 AchievementAwarder 整合.
+async def create_notification_handler(notifier: AchievementNotifier) -> callable:
+    """建立通知處理器函數,用於與 AchievementAwarder 整合.
 
     Args:
         notifier: AchievementNotifier 實例
@@ -75,7 +74,7 @@ async def create_notification_handler(
                 user_achievement=notification_data["user_achievement"],
                 notification_type=NotificationType.BOTH,
                 trigger_reason=notification_data.get("trigger_reason", "成就條件達成"),
-                source_event=notification_data.get("source_event")
+                source_event=notification_data.get("source_event"),
             )
 
         except Exception as e:
@@ -83,35 +82,36 @@ async def create_notification_handler(
                 "通知處理器橋接失敗",
                 extra={
                     "user_id": notification_data.get("user_id"),
-                    "achievement_id": notification_data.get("achievement", {}).get("id"),
-                    "error": str(e)
+                    "achievement_id": notification_data.get("achievement", {}).get(
+                        "id"
+                    ),
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
 
     return notification_handler
 
-
 class NotificationType(str, Enum):
     """通知類型列舉."""
+
     DIRECT_MESSAGE = "dm"
     SERVER_ANNOUNCEMENT = "announcement"
     BOTH = "both"
 
-
 class NotificationStatus(str, Enum):
     """通知狀態列舉."""
+
     PENDING = "pending"
     SENT = "sent"
     FAILED = "failed"
     RETRY = "retry"
 
-
 @dataclass
 class NotificationData:
     """通知資料封裝.
 
-    封裝單一成就通知的完整資訊。
+    封裝單一成就通知的完整資訊.
     """
 
     user_id: int
@@ -141,12 +141,11 @@ class NotificationData:
     retry_count: int = 0
     """重試次數"""
 
-
 @dataclass
 class NotificationResult:
     """通知發送結果.
 
-    封裝通知發送的完整結果資訊。
+    封裝通知發送的完整結果資訊.
     """
 
     notification_data: NotificationData
@@ -165,16 +164,15 @@ class NotificationResult:
     """公告發送錯誤訊息"""
 
     processing_time: float = 0.0
-    """處理時間（毫秒）"""
+    """處理時間(毫秒)"""
 
     sent_at: datetime = field(default_factory=datetime.now)
     """發送時間"""
 
-
 class AchievementNotifier:
     """成就通知系統核心類別.
 
-    負責處理成就通知的發送、管理和監控，提供：
+    負責處理成就通知的發送、管理和監控,提供:
     - 私訊和伺服器公告通知
     - 通知偏好檢查和管理
     - 頻率限制和去重機制
@@ -189,7 +187,7 @@ class AchievementNotifier:
         max_concurrent_notifications: int = 10,
         notification_timeout: float = 15.0,
         default_retry_limit: int = 3,
-        rate_limit_window: int = 60
+        rate_limit_window: int = 60,
     ):
         """初始化成就通知器.
 
@@ -197,9 +195,9 @@ class AchievementNotifier:
             bot: Discord 機器人實例
             repository: 成就資料存取庫
             max_concurrent_notifications: 最大並發通知數
-            notification_timeout: 通知發送超時時間（秒）
+            notification_timeout: 通知發送超時時間(秒)
             default_retry_limit: 預設重試次數限制
-            rate_limit_window: 頻率限制時間窗口（秒）
+            rate_limit_window: 頻率限制時間窗口(秒)
         """
         self._bot = bot
         self._repository = repository
@@ -228,7 +226,7 @@ class AchievementNotifier:
             "rate_limited": 0,
             "duplicate_filtered": 0,
             "average_processing_time": 0.0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
 
         # 通知模板緩存
@@ -240,8 +238,8 @@ class AchievementNotifier:
                 "max_concurrent": max_concurrent_notifications,
                 "timeout": notification_timeout,
                 "retry_limit": default_retry_limit,
-                "rate_limit_window": rate_limit_window
-            }
+                "rate_limit_window": rate_limit_window,
+            },
         )
 
     async def __aenter__(self) -> AchievementNotifier:
@@ -307,7 +305,7 @@ class AchievementNotifier:
         user_achievement: UserAchievement,
         notification_type: NotificationType = NotificationType.BOTH,
         trigger_reason: str = "成就條件達成",
-        source_event: str | None = None
+        source_event: str | None = None,
     ) -> NotificationResult:
         """發送單一成就通知.
 
@@ -330,7 +328,7 @@ class AchievementNotifier:
             user_achievement=user_achievement,
             notification_type=notification_type,
             trigger_reason=trigger_reason,
-            source_event=source_event
+            source_event=source_event,
         )
 
         return await self._process_single_notification(notification_data)
@@ -342,7 +340,7 @@ class AchievementNotifier:
         achievement: Achievement,
         user_achievement: UserAchievement,
         notification_type: NotificationType = NotificationType.BOTH,
-        priority: int = 0
+        priority: int = 0,
     ) -> None:
         """將通知加入處理隊列.
 
@@ -360,7 +358,7 @@ class AchievementNotifier:
             achievement=achievement,
             user_achievement=user_achievement,
             notification_type=notification_type,
-            priority=priority
+            priority=priority,
         )
 
         await self._notification_queue.put(notification_data)
@@ -371,13 +369,12 @@ class AchievementNotifier:
                 "user_id": user_id,
                 "achievement_id": achievement.id,
                 "notification_type": notification_type.value,
-                "priority": priority
-            }
+                "priority": priority,
+            },
         )
 
     async def batch_notify_achievements(
-        self,
-        notifications: list[NotificationData]
+        self, notifications: list[NotificationData]
     ) -> list[NotificationResult]:
         """批量發送成就通知.
 
@@ -397,8 +394,7 @@ class AchievementNotifier:
     # =============================================================================
 
     async def _process_single_notification(
-        self,
-        notification_data: NotificationData
+        self, notification_data: NotificationData
     ) -> NotificationResult:
         """處理單一通知發送.
 
@@ -409,7 +405,9 @@ class AchievementNotifier:
             通知發送結果
         """
         start_time = datetime.now()
-        notification_key = f"{notification_data.user_id}:{notification_data.achievement.id}"
+        notification_key = (
+            f"{notification_data.user_id}:{notification_data.achievement.id}"
+        )
 
         try:
             # 檢查是否正在處理中
@@ -418,7 +416,7 @@ class AchievementNotifier:
                 return NotificationResult(
                     notification_data=notification_data,
                     dm_status=NotificationStatus.FAILED,
-                    dm_error="通知正在處理中"
+                    dm_error="通知正在處理中",
                 )
 
             # 標記為處理中
@@ -430,11 +428,13 @@ class AchievementNotifier:
                     # 執行通知發送邏輯
                     result = await asyncio.wait_for(
                         self._execute_notification_logic(notification_data),
-                        timeout=self._timeout
+                        timeout=self._timeout,
                     )
 
                     # 計算處理時間
-                    processing_time = (datetime.now() - start_time).total_seconds() * 1000
+                    processing_time = (
+                        datetime.now() - start_time
+                    ).total_seconds() * 1000
                     result.processing_time = processing_time
 
                     # 更新統計
@@ -450,7 +450,7 @@ class AchievementNotifier:
             return NotificationResult(
                 notification_data=notification_data,
                 dm_status=NotificationStatus.FAILED,
-                dm_error=f"通知發送超時（{self._timeout}s）"
+                dm_error=f"通知發送超時({self._timeout}s)",
             )
         except Exception as e:
             logger.error(
@@ -458,19 +458,18 @@ class AchievementNotifier:
                 extra={
                     "user_id": notification_data.user_id,
                     "achievement_id": notification_data.achievement.id,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             return NotificationResult(
                 notification_data=notification_data,
                 dm_status=NotificationStatus.FAILED,
-                dm_error=str(e)
+                dm_error=str(e),
             )
 
     async def _execute_notification_logic(
-        self,
-        notification_data: NotificationData
+        self, notification_data: NotificationData
     ) -> NotificationResult:
         """執行通知發送邏輯.
 
@@ -502,8 +501,11 @@ class AchievementNotifier:
             return result
 
         # 4. 根據偏好和類型發送通知
-        if (notification_data.notification_type in [NotificationType.DIRECT_MESSAGE, NotificationType.BOTH] and
-            user_preferences.dm_notifications):
+        if (
+            notification_data.notification_type
+            in [NotificationType.DIRECT_MESSAGE, NotificationType.BOTH]
+            and user_preferences.dm_notifications
+        ):
             try:
                 await self._send_direct_message_notification(notification_data)
                 result.dm_status = NotificationStatus.SENT
@@ -511,8 +513,11 @@ class AchievementNotifier:
                 result.dm_status = NotificationStatus.FAILED
                 result.dm_error = str(e)
 
-        if (notification_data.notification_type in [NotificationType.SERVER_ANNOUNCEMENT, NotificationType.BOTH] and
-            user_preferences.server_announcements):
+        if (
+            notification_data.notification_type
+            in [NotificationType.SERVER_ANNOUNCEMENT, NotificationType.BOTH]
+            and user_preferences.server_announcements
+        ):
             try:
                 await self._send_server_announcement_notification(notification_data)
                 result.announcement_status = NotificationStatus.SENT
@@ -532,8 +537,7 @@ class AchievementNotifier:
         return result
 
     async def _send_direct_message_notification(
-        self,
-        notification_data: NotificationData
+        self, notification_data: NotificationData
     ) -> None:
         """發送私訊通知.
 
@@ -544,8 +548,8 @@ class AchievementNotifier:
         if not user:
             try:
                 user = await self._bot.fetch_user(notification_data.user_id)
-            except discord.NotFound:
-                raise Exception("用戶不存在")
+            except discord.NotFound as e:
+                raise Exception("用戶不存在") from e
 
         # 建立通知 embed
         embed = await self._create_achievement_embed(notification_data)
@@ -558,18 +562,17 @@ class AchievementNotifier:
                 "私訊通知發送成功",
                 extra={
                     "user_id": notification_data.user_id,
-                    "achievement_id": notification_data.achievement.id
-                }
+                    "achievement_id": notification_data.achievement.id,
+                },
             )
 
-        except discord.Forbidden:
-            raise Exception("無法向用戶發送私訊")
+        except discord.Forbidden as e:
+            raise Exception("無法向用戶發送私訊") from e
         except discord.HTTPException as e:
-            raise Exception(f"Discord API 錯誤: {e}")
+            raise Exception(f"Discord API 錯誤: {e}") from e
 
     async def _send_server_announcement_notification(
-        self,
-        notification_data: NotificationData
+        self, notification_data: NotificationData
     ) -> None:
         """發送伺服器公告通知.
 
@@ -581,16 +584,21 @@ class AchievementNotifier:
             notification_data.guild_id
         )
 
-        if not guild_settings.announcement_enabled or not guild_settings.announcement_channel_id:
+        if (
+            not guild_settings.announcement_enabled
+            or not guild_settings.announcement_channel_id
+        ):
             raise Exception("伺服器公告功能未啟用或未設定頻道")
 
         # 取得公告頻道
         channel = self._bot.get_channel(guild_settings.announcement_channel_id)
         if not channel:
             try:
-                channel = await self._bot.fetch_channel(guild_settings.announcement_channel_id)
-            except discord.NotFound:
-                raise Exception("公告頻道不存在")
+                channel = await self._bot.fetch_channel(
+                    guild_settings.announcement_channel_id
+                )
+            except discord.NotFound as e:
+                raise Exception("公告頻道不存在") from e
 
         # 建立公告 embed
         embed = await self._create_announcement_embed(notification_data)
@@ -599,7 +607,9 @@ class AchievementNotifier:
         user = self._bot.get_user(notification_data.user_id)
         user_mention = user.mention if user else f"<@{notification_data.user_id}>"
 
-        content = f"🎉 {user_mention} 獲得了成就 **{notification_data.achievement.name}**！"
+        content = (
+            f"🎉 {user_mention} 獲得了成就 **{notification_data.achievement.name}**!"
+        )
 
         try:
             await channel.send(content=content, embed=embed)
@@ -610,22 +620,21 @@ class AchievementNotifier:
                 extra={
                     "user_id": notification_data.user_id,
                     "achievement_id": notification_data.achievement.id,
-                    "channel_id": channel.id
-                }
+                    "channel_id": channel.id,
+                },
             )
 
-        except discord.Forbidden:
-            raise Exception("無權在公告頻道發送訊息")
+        except discord.Forbidden as e:
+            raise Exception("無權在公告頻道發送訊息") from e
         except discord.HTTPException as e:
-            raise Exception(f"Discord API 錯誤: {e}")
+            raise Exception(f"Discord API 錯誤: {e}") from e
 
     # =============================================================================
     # 通知內容生成
     # =============================================================================
 
     async def _create_achievement_embed(
-        self,
-        notification_data: NotificationData
+        self, notification_data: NotificationData
     ) -> discord.Embed:
         """建立成就通知 embed.
 
@@ -638,35 +647,25 @@ class AchievementNotifier:
         achievement = notification_data.achievement
 
         embed = discord.Embed(
-            title="🎉 成就解鎖！",
-            description=f"恭喜獲得成就：**{achievement.name}**",
-            color=0x00ff00,  # 綠色
-            timestamp=notification_data.user_achievement.earned_at
+            title="🎉 成就解鎖!",
+            description=f"恭喜獲得成就:**{achievement.name}**",
+            color=0x00FF00,  # 綠色
+            timestamp=notification_data.user_achievement.earned_at,
         )
 
-        embed.add_field(
-            name="成就描述",
-            value=achievement.description,
-            inline=False
-        )
+        embed.add_field(name="成就描述", value=achievement.description, inline=False)
 
-        embed.add_field(
-            name="成就點數",
-            value=f"+{achievement.points} 點",
-            inline=True
-        )
+        embed.add_field(name="成就點數", value=f"+{achievement.points} 點", inline=True)
 
         embed.add_field(
             name="獲得時間",
             value=f"<t:{int(notification_data.user_achievement.earned_at.timestamp())}:F>",
-            inline=True
+            inline=True,
         )
 
         if notification_data.trigger_reason:
             embed.add_field(
-                name="觸發原因",
-                value=notification_data.trigger_reason,
-                inline=False
+                name="觸發原因", value=notification_data.trigger_reason, inline=False
             )
 
         # 添加成就徽章縮圖
@@ -678,8 +677,7 @@ class AchievementNotifier:
         return embed
 
     async def _create_announcement_embed(
-        self,
-        notification_data: NotificationData
+        self, notification_data: NotificationData
     ) -> discord.Embed:
         """建立伺服器公告 embed.
 
@@ -693,15 +691,13 @@ class AchievementNotifier:
 
         embed = discord.Embed(
             description=achievement.description,
-            color=0xffd700,  # 金色
-            timestamp=notification_data.user_achievement.earned_at
+            color=0xFFD700,  # 金色
+            timestamp=notification_data.user_achievement.earned_at,
         )
 
         if achievement.points > 0:
             embed.add_field(
-                name="獎勵點數",
-                value=f"{achievement.points} 點",
-                inline=True
+                name="獎勵點數", value=f"{achievement.points} 點", inline=True
             )
 
         # 添加成就徽章縮圖
@@ -715,9 +711,7 @@ class AchievementNotifier:
     # =============================================================================
 
     async def _get_user_notification_preferences(
-        self,
-        user_id: int,
-        guild_id: int
+        self, user_id: int, guild_id: int
     ) -> NotificationPreference:
         """取得用戶通知偏好.
 
@@ -729,7 +723,9 @@ class AchievementNotifier:
             用戶通知偏好
         """
         try:
-            preferences = await self._repository.get_notification_preferences(user_id, guild_id)
+            preferences = await self._repository.get_notification_preferences(
+                user_id, guild_id
+            )
             if preferences:
                 return preferences
         except Exception as e:
@@ -741,12 +737,11 @@ class AchievementNotifier:
             guild_id=guild_id,
             dm_notifications=True,
             server_announcements=True,
-            notification_types=[]
+            notification_types=[],
         )
 
     async def _get_guild_notification_settings(
-        self,
-        guild_id: int
+        self, guild_id: int
     ) -> GlobalNotificationSettings:
         """取得伺服器通知設定.
 
@@ -765,9 +760,7 @@ class AchievementNotifier:
 
         # 返回預設設定
         return GlobalNotificationSettings(
-            guild_id=guild_id,
-            announcement_enabled=False,
-            rate_limit_seconds=60
+            guild_id=guild_id, announcement_enabled=False, rate_limit_seconds=60
         )
 
     async def _is_rate_limited(self, user_id: int) -> bool:
@@ -785,15 +778,16 @@ class AchievementNotifier:
         # 清理過期記錄
         if user_id in self._rate_limit_tracker:
             self._rate_limit_tracker[user_id] = [
-                timestamp for timestamp in self._rate_limit_tracker[user_id]
+                timestamp
+                for timestamp in self._rate_limit_tracker[user_id]
                 if timestamp > cutoff_time
             ]
         else:
             self._rate_limit_tracker[user_id] = []
 
-        # 檢查頻率限制（每分鐘最多 5 個通知）
+        # 檢查頻率限制(每分鐘最多 5 個通知)
         recent_notifications = len(self._rate_limit_tracker[user_id])
-        if recent_notifications >= 5:
+        if recent_notifications >= MAX_NOTIFICATIONS_PER_MINUTE:
             return True
 
         # 記錄本次通知時間
@@ -801,8 +795,7 @@ class AchievementNotifier:
         return False
 
     async def _is_duplicate_notification(
-        self,
-        notification_data: NotificationData
+        self, notification_data: NotificationData
     ) -> bool:
         """檢查是否為重複通知.
 
@@ -812,14 +805,13 @@ class AchievementNotifier:
         Returns:
             是否為重複通知
         """
-        # 檢查最近是否已發送相同通知（簡單實作）
-        notification_key = f"{notification_data.user_id}:{notification_data.achievement.id}"
+        notification_key = (
+            f"{notification_data.user_id}:{notification_data.achievement.id}"
+        )
         return notification_key in self._active_notifications
 
     async def _record_notification_event(
-        self,
-        notification_data: NotificationData,
-        result: NotificationResult
+        self, notification_data: NotificationData, result: NotificationResult
     ) -> None:
         """記錄通知事件.
 
@@ -834,9 +826,11 @@ class AchievementNotifier:
                 achievement_id=notification_data.achievement.id,
                 notification_type=notification_data.notification_type.value,
                 sent_at=result.sent_at,
-                delivery_status=result.dm_status.value if result.dm_status == NotificationStatus.SENT else result.announcement_status.value,
+                delivery_status=result.dm_status.value
+                if result.dm_status == NotificationStatus.SENT
+                else result.announcement_status.value,
                 error_message=result.dm_error or result.announcement_error,
-                retry_count=notification_data.retry_count
+                retry_count=notification_data.retry_count,
             )
 
             await self._repository.create_notification_event(notification_event)
@@ -855,12 +849,14 @@ class AchievementNotifier:
                 batch = []
                 deadline = asyncio.get_event_loop().time() + batch_timeout
 
-                while len(batch) < batch_size and asyncio.get_event_loop().time() < deadline:
+                while (
+                    len(batch) < batch_size
+                    and asyncio.get_event_loop().time() < deadline
+                ):
                     try:
                         timeout = max(0.1, deadline - asyncio.get_event_loop().time())
                         notification = await asyncio.wait_for(
-                            self._notification_queue.get(),
-                            timeout=timeout
+                            self._notification_queue.get(), timeout=timeout
                         )
                         batch.append(notification)
                     except TimeoutError:
@@ -875,8 +871,7 @@ class AchievementNotifier:
                 await asyncio.sleep(1)  # 錯誤後暫停一秒
 
     async def _process_notification_batch(
-        self,
-        notifications: list[NotificationData]
+        self, notifications: list[NotificationData]
     ) -> list[NotificationResult]:
         """處理通知批次.
 
@@ -891,9 +886,7 @@ class AchievementNotifier:
 
         # 按優先級排序
         sorted_notifications = sorted(
-            notifications,
-            key=lambda n: n.priority,
-            reverse=True
+            notifications, key=lambda n: n.priority, reverse=True
         )
 
         # 並發處理通知
@@ -912,7 +905,7 @@ class AchievementNotifier:
                 error_result = NotificationResult(
                     notification_data=sorted_notifications[i],
                     dm_status=NotificationStatus.FAILED,
-                    dm_error=str(result)
+                    dm_error=str(result),
                 )
                 notification_results.append(error_result)
             else:
@@ -922,9 +915,23 @@ class AchievementNotifier:
             "批次通知處理完成",
             extra={
                 "total_notifications": len(notifications),
-                "successful": len([r for r in notification_results if NotificationStatus.SENT in (r.dm_status, r.announcement_status)]),
-                "failed": len([r for r in notification_results if r.dm_status == NotificationStatus.FAILED and r.announcement_status == NotificationStatus.FAILED])
-            }
+                "successful": len(
+                    [
+                        r
+                        for r in notification_results
+                        if NotificationStatus.SENT
+                        in (r.dm_status, r.announcement_status)
+                    ]
+                ),
+                "failed": len(
+                    [
+                        r
+                        for r in notification_results
+                        if r.dm_status == NotificationStatus.FAILED
+                        and r.announcement_status == NotificationStatus.FAILED
+                    ]
+                ),
+            },
         )
 
         return notification_results
@@ -951,8 +958,8 @@ class AchievementNotifier:
         total = self._stats["total_notifications"]
         current_avg = self._stats["average_processing_time"]
         self._stats["average_processing_time"] = (
-            (current_avg * (total - 1) + result.processing_time) / total
-        )
+            current_avg * (total - 1) + result.processing_time
+        ) / total
 
     def get_notification_stats(self) -> dict[str, Any]:
         """取得通知統計資訊.
@@ -969,11 +976,15 @@ class AchievementNotifier:
             "queue_size": self._notification_queue.qsize(),
             "is_processing": self._is_processing,
             "uptime_seconds": uptime,
-            "notifications_per_second": self._stats["total_notifications"] / uptime if uptime > 0 else 0,
+            "notifications_per_second": self._stats["total_notifications"] / uptime
+            if uptime > 0
+            else 0,
             "success_rate": (
-                (self._stats["successful_dm"] + self._stats["successful_announcements"]) /
-                (self._stats["total_notifications"] * 2) if self._stats["total_notifications"] > 0 else 0
-            )
+                (self._stats["successful_dm"] + self._stats["successful_announcements"])
+                / (self._stats["total_notifications"] * 2)
+                if self._stats["total_notifications"] > 0
+                else 0
+            ),
         }
 
     def reset_stats(self) -> None:
@@ -987,10 +998,9 @@ class AchievementNotifier:
             "rate_limited": 0,
             "duplicate_filtered": 0,
             "average_processing_time": 0.0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
         logger.info("通知統計已重置")
-
 
 __all__ = [
     "AchievementNotifier",

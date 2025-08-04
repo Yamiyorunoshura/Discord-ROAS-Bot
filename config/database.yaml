@@ -1,0 +1,89 @@
+# Discord ROAS Bot v2.0 資料庫配置
+database:
+  # 資料庫類型 (postgresql/sqlite)
+  type: "postgresql"
+  
+  # PostgreSQL 配置
+  postgresql:
+    host: "localhost"
+    port: 5432
+    database: "discord_roas_bot"
+    username: "postgres"
+    password: ""  # 從環境變數 DATABASE_PASSWORD 讀取
+    
+    # 連接池設定
+    pool:
+      size: 10                    # 基本連接池大小
+      max_overflow: 20            # 最大溢出連接數
+      timeout: 30                 # 連接超時時間（秒）
+      recycle: 3600               # 連接回收時間（秒）
+      pre_ping: true              # 連接前 ping 檢查
+      
+    # 查詢設定
+    query:
+      timeout: 30                 # 查詢超時時間（秒）
+      echo: false                 # 是否輸出 SQL 語句
+      
+    # SSL 設定
+    ssl:
+      enabled: false              # 是否啟用 SSL
+      ca_file: ""                 # CA 證書文件路徑
+      cert_file: ""               # 客戶端證書文件路徑
+      key_file: ""                # 客戶端私鑰文件路徑
+      
+  # SQLite 配置（向後相容）
+  sqlite:
+    database_path: "dbs"          # SQLite 資料庫目錄
+    wal_mode: true                # 是否啟用 WAL 模式
+    foreign_keys: true            # 是否啟用外鍵約束
+    
+  # Alembic 遷移配置
+  migrations:
+    location: "src/core/database/migrations"  # 遷移腳本位置
+    auto_upgrade: false           # 是否自動執行遷移
+    backup_before_migrate: true   # 遷移前是否備份
+    
+  # 健康檢查設定
+  health_check:
+    enabled: true                 # 是否啟用健康檢查
+    interval: 300                 # 檢查間隔（秒）
+    retry_attempts: 3             # 重試次數
+    
+  # 效能監控
+  monitoring:
+    slow_query_threshold: 1.0     # 慢查詢閾值（秒）
+    enable_query_logging: false   # 是否記錄查詢日誌
+    enable_pool_monitoring: true  # 是否監控連接池狀態
+    
+  # 備份設定
+  backup:
+    enabled: true                 # 是否啟用自動備份
+    schedule: "0 2 * * *"         # 備份時間（cron 格式）
+    retention_days: 30            # 備份保留天數
+    compression: true             # 是否壓縮備份文件
+    
+# 模組特定的資料庫配置
+modules:
+  # 貨幣系統
+  currency:
+    table_prefix: "currency_"
+    cache_duration: 600           # 快取持續時間（秒）
+    batch_update_size: 100        # 批量更新大小
+    
+  # 成就系統
+  achievement:
+    table_prefix: "achievement_"
+    cache_duration: 1800          # 快取持續時間（秒）
+    progress_update_interval: 60  # 進度更新間隔（秒）
+    
+  # 部門系統
+  department:
+    table_prefix: "department_"
+    cache_duration: 3600          # 快取持續時間（秒）
+    max_departments_per_guild: 50 # 每個伺服器最大部門數
+    
+  # 伺服器配置
+  guild_config:
+    table_prefix: "guild_"
+    cache_duration: 1800          # 快取持續時間（秒）
+    auto_create_config: true      # 是否自動建立配置

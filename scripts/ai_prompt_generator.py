@@ -32,15 +32,21 @@ class AIPromptGenerator:
             "database": None,
             "has_tests": False,
             "has_docs": False,
-            "files": []
+            "files": [],
         }
 
         try:
             # 使用 Desktop Commander 列出目錄
-            result = subprocess.run([
-                "mcp_Desktop_Commander_list_directory",
-                "--path", str(self.project_path)
-            ], check=False, capture_output=True, text=True)
+            result = subprocess.run(
+                [
+                    "mcp_Desktop_Commander_list_directory",
+                    "--path",
+                    str(self.project_path),
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
 
             if result.returncode == 0:
                 # 解析目錄內容
@@ -73,20 +79,22 @@ class AIPromptGenerator:
 
     def search_tech_stack_with_tools(self) -> dict[str, Any]:
         """使用 Desktop Commander 工具搜索技術棧"""
-        tech_stack = {
-            "frameworks": [],
-            "libraries": [],
-            "databases": [],
-            "tools": []
-        }
+        tech_stack = {"frameworks": [], "libraries": [], "databases": [], "tools": []}
 
         try:
             # 搜索 package.json
-            result = subprocess.run([
-                "mcp_Desktop_Commander_search_files",
-                "--path", str(self.project_path),
-                "--pattern", "package.json"
-            ], check=False, capture_output=True, text=True)
+            result = subprocess.run(
+                [
+                    "mcp_Desktop_Commander_search_files",
+                    "--path",
+                    str(self.project_path),
+                    "--pattern",
+                    "package.json",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
 
             if result.returncode == 0 and result.stdout.strip():
                 # 讀取 package.json
@@ -102,7 +110,11 @@ class AIPromptGenerator:
 
                         # 分類技術棧
                         for dep, version in all_deps.items():
-                            if dep in ["react", "vue", "angular", "svelte"] or dep in ["express", "fastify", "koa"]:
+                            if dep in ["react", "vue", "angular", "svelte"] or dep in [
+                                "express",
+                                "fastify",
+                                "koa",
+                            ]:
                                 tech_stack["frameworks"].append(f"{dep}@{version}")
                             elif dep in ["mysql", "postgresql", "mongodb", "redis"]:
                                 tech_stack["databases"].append(f"{dep}@{version}")
@@ -121,16 +133,23 @@ class AIPromptGenerator:
             "technical_requirements": [],
             "performance_requirements": [],
             "security_requirements": [],
-            "user_scenarios": []
+            "user_scenarios": [],
         }
 
         try:
             # 搜索 README 文件
-            result = subprocess.run([
-                "mcp_Desktop_Commander_search_files",
-                "--path", str(self.project_path),
-                "--pattern", "README"
-            ], check=False, capture_output=True, text=True)
+            result = subprocess.run(
+                [
+                    "mcp_Desktop_Commander_search_files",
+                    "--path",
+                    str(self.project_path),
+                    "--pattern",
+                    "README",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
 
             if result.returncode == 0 and result.stdout.strip():
                 # 讀取 README 文件
@@ -139,10 +158,16 @@ class AIPromptGenerator:
                     readme_path = self.project_path / readme_file
                     if readme_path.exists():
                         # 使用 Desktop Commander 讀取文件
-                        result = subprocess.run([
-                            "mcp_Desktop_Commander_read_file",
-                            "--path", str(readme_path)
-                        ], check=False, capture_output=True, text=True)
+                        result = subprocess.run(
+                            [
+                                "mcp_Desktop_Commander_read_file",
+                                "--path",
+                                str(readme_path),
+                            ],
+                            check=False,
+                            capture_output=True,
+                            text=True,
+                        )
 
                         if result.returncode == 0:
                             content = result.stdout
@@ -151,15 +176,18 @@ class AIPromptGenerator:
                             feature_patterns = [
                                 r"## Features\n(.*?)(?=\n##|\n#|\Z)",
                                 r"## 功能\n(.*?)(?=\n##|\n#|\Z)",
-                                r"## 特性\n(.*?)(?=\n##|\n#|\Z)"
+                                r"## 特性\n(.*?)(?=\n##|\n#|\Z)",
                             ]
 
                             for pattern in feature_patterns:
-                                matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
+                                matches = re.findall(
+                                    pattern, content, re.DOTALL | re.IGNORECASE
+                                )
                                 if matches:
                                     features = matches[0].strip().split("\n")
                                     requirements["core_features"] = [
-                                        f.strip("- ").strip() for f in features
+                                        f.strip("- ").strip()
+                                        for f in features
                                         if f.strip().startswith("-")
                                     ]
                                     break
@@ -167,15 +195,18 @@ class AIPromptGenerator:
                             # 提取技術要求
                             tech_patterns = [
                                 r"## 技術要求\n(.*?)(?=\n##|\n#|\Z)",
-                                r"## Technical Requirements\n(.*?)(?=\n##|\n#|\Z)"
+                                r"## Technical Requirements\n(.*?)(?=\n##|\n#|\Z)",
                             ]
 
                             for pattern in tech_patterns:
-                                matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
+                                matches = re.findall(
+                                    pattern, content, re.DOTALL | re.IGNORECASE
+                                )
                                 if matches:
                                     tech_reqs = matches[0].strip().split("\n")
                                     requirements["technical_requirements"] = [
-                                        req.strip("- ").strip() for req in tech_reqs
+                                        req.strip("- ").strip()
+                                        for req in tech_reqs
                                         if req.strip().startswith("-")
                                     ]
                                     break
@@ -193,15 +224,17 @@ class AIPromptGenerator:
             "library": library_name,
             "docs": "",
             "best_practices": [],
-            "api_reference": ""
+            "api_reference": "",
         }
 
         try:
             # 使用 Context7 解析庫 ID
-            result = subprocess.run([
-                "mcp_Context7_resolve-library-id",
-                "--libraryName", library_name
-            ], check=False, capture_output=True, text=True)
+            result = subprocess.run(
+                ["mcp_Context7_resolve-library-id", "--libraryName", library_name],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
 
             if result.returncode == 0:
                 # 解析結果獲取庫 ID
@@ -209,12 +242,20 @@ class AIPromptGenerator:
                 library_id = f"/{library_name}/{library_name}"  # 示例格式
 
                 # 獲取庫文檔
-                result = subprocess.run([
-                    "mcp_Context7_get-library-docs",
-                    "--context7CompatibleLibraryID", library_id,
-                    "--topic", "getting-started",
-                    "--tokens", "3000"
-                ], check=False, capture_output=True, text=True)
+                result = subprocess.run(
+                    [
+                        "mcp_Context7_get-library-docs",
+                        "--context7CompatibleLibraryID",
+                        library_id,
+                        "--topic",
+                        "getting-started",
+                        "--tokens",
+                        "3000",
+                    ],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
 
                 if result.returncode == 0:
                     docs["docs"] = result.stdout
@@ -243,38 +284,38 @@ class AIPromptGenerator:
 
 ## 📋 技術要求
 ### 功能規格
-- **主要功能**：[核心功能點]
-- **次要功能**：[輔助功能點]
-- **可選功能**：[擴展功能點]
+- **主要功能**:[核心功能點]
+- **次要功能**:[輔助功能點]
+- **可選功能**:[擴展功能點]
 
 ### 技術規格
-- **前端框架**：{framework}
-- **狀態管理**：[Redux/Vuex/NgRx]
-- **路由**：[React Router/Vue Router]
-- **樣式**：[CSS/SCSS/Styled Components]
-- **構建工具**：[Webpack/Vite]
-- **測試框架**：[Jest/Vitest]
+- **前端框架**:{framework}
+- **狀態管理**:[Redux/Vuex/NgRx]
+- **路由**:[React Router/Vue Router]
+- **樣式**:[CSS/SCSS/Styled Components]
+- **構建工具**:[Webpack/Vite]
+- **測試框架**:[Jest/Vitest]
 
 ### 性能要求
-- **響應時間**：[預期響應時間]
-- **並發處理**：[並發用戶數]
-- **資源使用**：[內存、CPU 限制]
-- **SEO 優化**：[SEO 要求]
+- **響應時間**:[預期響應時間]
+- **並發處理**:[並發用戶數]
+- **資源使用**:[內存、CPU 限制]
+- **SEO 優化**:[SEO 要求]
 
 ## 🔧 實現指導
-### 階段 1：基礎架構搭建
+### 階段 1:基礎架構搭建
 - 初始化項目結構
 - 配置開發環境
 - 設置構建工具
 - 配置測試框架
 
-### 階段 2：核心功能開發
+### 階段 2:核心功能開發
 - 實現主要功能模組
 - 開發用戶界面
 - 實現狀態管理
 - 配置路由系統
 
-### 階段 3：優化與測試
+### 階段 3:優化與測試
 - 性能優化
 - 代碼測試
 - 用戶體驗優化
@@ -301,8 +342,8 @@ class AIPromptGenerator:
 
 ## 🧪 測試要求
 ### 單元測試
-- 組件測試覆蓋率：80%+
-- 工具函數測試覆蓋率：90%+
+- 組件測試覆蓋率:80%+
+- 工具函數測試覆蓋率:90%+
 - 使用 Jest 和 React Testing Library
 
 ### 整合測試
@@ -312,18 +353,18 @@ class AIPromptGenerator:
 
 ### 性能測試
 - 使用 Lighthouse 進行性能測試
-- 目標分數：90+
+- 目標分數:90+
 - 測試加載時間和交互響應
 
 ## 🚨 風險控制
 ### 技術風險
-- **框架版本兼容性** - 使用穩定版本，避免 beta 版本
-- **第三方依賴風險** - 定期更新依賴，監控安全漏洞
-- **瀏覽器兼容性** - 測試主流瀏覽器，提供 polyfill
+- **框架版本兼容性** - 使用穩定版本,避免 beta 版本
+- **第三方依賴風險** - 定期更新依賴,監控安全漏洞
+- **瀏覽器兼容性** - 測試主流瀏覽器,提供 polyfill
 
 ### 依賴風險
-- **API 服務依賴** - 實現降級方案，監控服務狀態
-- **CDN 依賴** - 提供本地備份，監控 CDN 可用性
+- **API 服務依賴** - 實現降級方案,監控服務狀態
+- **CDN 依賴** - 提供本地備份,監控 CDN 可用性
 
 ## 📝 文檔要求
 ### 代碼文檔
@@ -338,10 +379,10 @@ class AIPromptGenerator:
 
 ## 🔧 開發工具
 ### 推薦工具
-- **IDE**：VS Code 或 WebStorm
-- **調試工具**：React Developer Tools
-- **性能監控**：Lighthouse CI
-- **代碼質量**：ESLint + Prettier
+- **IDE**:VS Code 或 WebStorm
+- **調試工具**:React Developer Tools
+- **性能監控**:Lighthouse CI
+- **代碼質量**:ESLint + Prettier
 
 ### 最佳實踐
 - 使用 TypeScript 進行類型檢查
@@ -372,38 +413,38 @@ class AIPromptGenerator:
 
 ## 📋 技術要求
 ### 功能規格
-- **主要功能**：[核心 API 功能]
-- **次要功能**：[輔助 API 功能]
-- **可選功能**：[擴展 API 功能]
+- **主要功能**:[核心 API 功能]
+- **次要功能**:[輔助 API 功能]
+- **可選功能**:[擴展 API 功能]
 
 ### 技術規格
-- **框架**：{framework}
-- **數據庫**：[MySQL/PostgreSQL/MongoDB]
-- **緩存**：[Redis/Memcached]
-- **消息隊列**：[RabbitMQ/Apache Kafka]
-- **認證**：[JWT/OAuth2]
-- **文檔**：[Swagger/OpenAPI]
+- **框架**:{framework}
+- **數據庫**:[MySQL/PostgreSQL/MongoDB]
+- **緩存**:[Redis/Memcached]
+- **消息隊列**:[RabbitMQ/Apache Kafka]
+- **認證**:[JWT/OAuth2]
+- **文檔**:[Swagger/OpenAPI]
 
 ### 性能要求
-- **響應時間**：平均 < 200ms
-- **並發處理**：支持 1000+ QPS
-- **可用性**：99.9%+
-- **擴展性**：水平擴展支持
+- **響應時間**:平均 < 200ms
+- **並發處理**:支持 1000+ QPS
+- **可用性**:99.9%+
+- **擴展性**:水平擴展支持
 
 ## 🔧 實現指導
-### 階段 1：基礎架構
+### 階段 1:基礎架構
 - 初始化項目結構
 - 配置數據庫連接
 - 設置認證系統
 - 配置日誌系統
 
-### 階段 2：核心 API 開發
+### 階段 2:核心 API 開發
 - 實現 RESTful API
 - 開發業務邏輯
 - 實現數據驗證
 - 配置錯誤處理
 
-### 階段 3：優化與部署
+### 階段 3:優化與部署
 - 性能優化
 - 安全加固
 - 監控配置
@@ -430,8 +471,8 @@ class AIPromptGenerator:
 
 ## 🧪 測試要求
 ### 單元測試
-- API 端點測試覆蓋率：90%+
-- 業務邏輯測試覆蓋率：95%+
+- API 端點測試覆蓋率:90%+
+- 業務邏輯測試覆蓋率:95%+
 - 使用 Jest 或 pytest
 
 ### 整合測試
@@ -446,7 +487,7 @@ class AIPromptGenerator:
 
 ## 🚨 風險控制
 ### 技術風險
-- **數據庫性能** - 優化查詢，添加索引
+- **數據庫性能** - 優化查詢,添加索引
 - **第三方服務依賴** - 實現降級方案
 - **安全漏洞** - 定期安全審計
 
@@ -467,10 +508,10 @@ class AIPromptGenerator:
 
 ## 🔧 開發工具
 ### 推薦工具
-- **IDE**：VS Code 或 IntelliJ IDEA
-- **API 測試**：Postman 或 Insomnia
-- **性能監控**：Prometheus + Grafana
-- **日誌管理**：ELK Stack
+- **IDE**:VS Code 或 IntelliJ IDEA
+- **API 測試**:Postman 或 Insomnia
+- **性能監控**:Prometheus + Grafana
+- **日誌管理**:ELK Stack
 
 ### 最佳實踐
 - 使用環境變量管理配置
@@ -501,38 +542,38 @@ class AIPromptGenerator:
 
 ## 📋 技術要求
 ### 功能規格
-- **主要功能**：[核心應用功能]
-- **次要功能**：[輔助應用功能]
-- **可選功能**：[擴展應用功能]
+- **主要功能**:[核心應用功能]
+- **次要功能**:[輔助應用功能]
+- **可選功能**:[擴展應用功能]
 
 ### 技術規格
-- **框架**：{framework}
-- **狀態管理**：[Redux/MobX/Zustand]
-- **導航**：[React Navigation]
-- **存儲**：[AsyncStorage/Realm]
-- **推送通知**：[Firebase/OneSignal]
-- **分析**：[Analytics SDK]
+- **框架**:{framework}
+- **狀態管理**:[Redux/MobX/Zustand]
+- **導航**:[React Navigation]
+- **存儲**:[AsyncStorage/Realm]
+- **推送通知**:[Firebase/OneSignal]
+- **分析**:[Analytics SDK]
 
 ### 性能要求
-- **啟動時間**：< 3秒
-- **內存使用**：< 100MB
-- **電池消耗**：優化電池使用
-- **網絡優化**：離線功能支持
+- **啟動時間**:< 3秒
+- **內存使用**:< 100MB
+- **電池消耗**:優化電池使用
+- **網絡優化**:離線功能支持
 
 ## 🔧 實現指導
-### 階段 1：基礎架構
+### 階段 1:基礎架構
 - 初始化項目結構
 - 配置開發環境
 - 設置導航系統
 - 配置狀態管理
 
-### 階段 2：核心功能開發
+### 階段 2:核心功能開發
 - 實現主要功能模組
 - 開發用戶界面
 - 實現數據存儲
 - 配置網絡請求
 
-### 階段 3：優化與測試
+### 階段 3:優化與測試
 - 性能優化
 - 平台適配
 - 用戶體驗優化
@@ -559,8 +600,8 @@ class AIPromptGenerator:
 
 ## 🧪 測試要求
 ### 單元測試
-- 組件測試覆蓋率：80%+
-- 工具函數測試覆蓋率：90%+
+- 組件測試覆蓋率:80%+
+- 工具函數測試覆蓋率:90%+
 - 使用 Jest 和 React Native Testing Library
 
 ### 整合測試
@@ -596,10 +637,10 @@ class AIPromptGenerator:
 
 ## 🔧 開發工具
 ### 推薦工具
-- **IDE**：VS Code 或 Android Studio
-- **調試工具**：Flipper
-- **性能監控**：Firebase Performance
-- **代碼質量**：ESLint + Prettier
+- **IDE**:VS Code 或 Android Studio
+- **調試工具**:Flipper
+- **性能監控**:Firebase Performance
+- **代碼質量**:ESLint + Prettier
 
 ### 最佳實踐
 - 使用 TypeScript 進行類型檢查
@@ -631,9 +672,9 @@ class AIPromptGenerator:
     def fill_template(self, template: str) -> str:
         """填充模板內容"""
         # 填充核心功能
-        core_features = "\n".join([
-            f"- {feature}" for feature in self.requirements.get("core_features", [])
-        ])
+        core_features = "\n".join(
+            [f"- {feature}" for feature in self.requirements.get("core_features", [])]
+        )
         template = template.replace("{core_features}", core_features)
 
         # 填充技術棧
@@ -680,17 +721,26 @@ class AIPromptGenerator:
 
         return filled_template
 
-    def save_prompt_with_tools(self, prompt_content: str, output_path: str = "prompt.md"):
+    def save_prompt_with_tools(
+        self, prompt_content: str, output_path: str = "prompt.md"
+    ):
         """使用 Desktop Commander 工具保存提示詞"""
         output_file = self.project_path / output_path
 
         try:
             # 使用 Desktop Commander 寫入文件
-            result = subprocess.run([
-                "mcp_Desktop_Commander_write_file",
-                "--path", str(output_file),
-                "--content", prompt_content
-            ], check=False, capture_output=True, text=True)
+            result = subprocess.run(
+                [
+                    "mcp_Desktop_Commander_write_file",
+                    "--path",
+                    str(output_file),
+                    "--content",
+                    prompt_content,
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
 
             if result.returncode == 0:
                 print(f"✅ 提示詞已生成: {output_file}")
@@ -724,7 +774,7 @@ def main():
     # 使用工具保存文件
     generator.save_prompt_with_tools(prompt_content, output_file)
 
-    print("🎉 AI 提示詞生成完成！")
+    print("🎉 AI 提示詞生成完成!")
 
 
 if __name__ == "__main__":

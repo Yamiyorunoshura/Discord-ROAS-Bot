@@ -1,15 +1,14 @@
 """成就系統 Repository 單元測試.
 
-測試 AchievementRepository 的所有資料存取功能，包括：
+測試 AchievementRepository 的所有資料存取功能,包括:
 - CRUD 操作
 - 複雜查詢
 - 成就進度管理
 - 統計功能
 - 錯誤處理
 
-使用記憶體內 SQLite 進行快速測試執行。
+使用記憶體內 SQLite 進行快速測試執行.
 """
-
 
 import pytest
 import pytest_asyncio
@@ -39,10 +38,11 @@ async def test_settings():
 @pytest_asyncio.fixture
 async def test_pool(test_settings):
     """測試用資料庫連線池."""
-    # 使用臨時檔案而非記憶體資料庫，因為需要 Path 物件
+    # 使用臨時檔案而非記憶體資料庫,因為需要 Path 物件
     import tempfile
     from pathlib import Path
-    temp_file = Path(tempfile.mktemp(suffix='.db'))
+
+    temp_file = Path(tempfile.mktemp(suffix=".db"))
 
     pool = DatabasePool(temp_file, test_settings)
     await pool.initialize()
@@ -70,10 +70,7 @@ async def repository(test_pool):
 async def sample_category(repository):
     """建立範例分類."""
     category = AchievementCategory(
-        name="test_social",
-        description="測試社交分類",
-        display_order=1,
-        icon_emoji="👥"
+        name="test_social", description="測試社交分類", display_order=1, icon_emoji="👥"
     )
     return await repository.create_category(category)
 
@@ -89,7 +86,7 @@ async def sample_achievement(repository, sample_category):
         criteria={"target_value": 100, "counter_field": "interactions"},
         points=500,
         role_reward=None,
-        is_hidden=False
+        is_hidden=False,
     )
     return await repository.create_achievement(achievement)
 
@@ -104,7 +101,7 @@ class TestAchievementCategoryOperations:
             name="test_social",  # 使用不同的名稱避免與預設分類衝突
             description="社交成就分類",
             display_order=10,  # 使用不同的順序避免衝突
-            icon_emoji="👥"
+            icon_emoji="👥",
         )
 
         created = await repository.create_category(category)
@@ -142,39 +139,33 @@ class TestAchievementCategoryOperations:
     @pytest.mark.asyncio
     async def test_list_categories(self, repository):
         """測試列出所有分類."""
-        # 建立多個分類（使用不與預設資料衝突的名稱）
+        # 建立多個分類(使用不與預設資料衝突的名稱)
         categories_data = [
             ("test_social", "社交", 10, "👥"),
             ("test_activity", "活躍", 11, "⚡"),
-            ("test_special", "特殊", 12, "🌟")
+            ("test_special", "特殊", 12, "🌟"),
         ]
 
         for name, desc, order, emoji in categories_data:
             category = AchievementCategory(
-                name=name,
-                description=desc,
-                display_order=order,
-                icon_emoji=emoji
+                name=name, description=desc, display_order=order, icon_emoji=emoji
             )
             await repository.create_category(category)
 
         # 取得列表
         categories = await repository.list_categories()
 
-        # 驗證結果（包含預設的 4 個分類 + 新建的 3 個）
+        # 驗證結果(包含預設的 4 個分類 + 新建的 3 個)
         assert len(categories) >= 3
 
-        # 驗證排序（按 display_order）
+        # 驗證排序(按 display_order)
         orders = [cat.display_order for cat in categories]
         assert orders == sorted(orders)
 
     @pytest.mark.asyncio
     async def test_update_category(self, repository, sample_category):
         """測試更新分類."""
-        updates = {
-            "description": "更新後的描述",
-            "display_order": 99
-        }
+        updates = {"description": "更新後的描述", "display_order": 99}
 
         success = await repository.update_category(sample_category.id, updates)
         assert success is True
@@ -210,7 +201,7 @@ class TestAchievementOperations:
             points=500,
             badge_url="https://example.com/badge.png",
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
 
         created = await repository.create_achievement(achievement)
@@ -247,9 +238,21 @@ class TestAchievementOperations:
         """測試帶篩選條件的成就列表查詢."""
         # 建立不同類型的成就
         achievements_data = [
-            ("計數器成就", AchievementType.COUNTER, {"target_value": 100, "counter_field": "test"}),
-            ("里程碑成就", AchievementType.MILESTONE, {"target_value": 50, "milestone_type": "level"}),
-            ("時間成就", AchievementType.TIME_BASED, {"target_value": 7, "time_unit": "days"}),
+            (
+                "計數器成就",
+                AchievementType.COUNTER,
+                {"target_value": 100, "counter_field": "test"},
+            ),
+            (
+                "里程碑成就",
+                AchievementType.MILESTONE,
+                {"target_value": 50, "milestone_type": "level"},
+            ),
+            (
+                "時間成就",
+                AchievementType.TIME_BASED,
+                {"target_value": 7, "time_unit": "days"},
+            ),
         ]
 
         created_achievements = []
@@ -262,13 +265,15 @@ class TestAchievementOperations:
                 criteria=criteria,
                 points=100,
                 role_reward=None,
-                is_hidden=False
+                is_hidden=False,
             )
             created = await repository.create_achievement(achievement)
             created_achievements.append(created)
 
         # 按分類篩選
-        category_achievements = await repository.list_achievements(category_id=sample_category.id)
+        category_achievements = await repository.list_achievements(
+            category_id=sample_category.id
+        )
         assert len(category_achievements) >= 3
         assert all(a.category_id == sample_category.id for a in category_achievements)
 
@@ -286,11 +291,7 @@ class TestAchievementOperations:
     @pytest.mark.asyncio
     async def test_update_achievement(self, repository, sample_achievement):
         """測試更新成就."""
-        updates = {
-            "name": "更新後的成就名稱",
-            "points": 1000,
-            "is_active": False
-        }
+        updates = {"name": "更新後的成就名稱", "points": 1000, "is_active": False}
 
         success = await repository.update_achievement(sample_achievement.id, updates)
         assert success is True
@@ -320,7 +321,9 @@ class TestUserAchievementOperations:
         """測試頒發成就."""
         user_id = 123456789
 
-        user_achievement = await repository.award_achievement(user_id, sample_achievement.id)
+        user_achievement = await repository.award_achievement(
+            user_id, sample_achievement.id
+        )
 
         assert user_achievement.id is not None
         assert user_achievement.user_id == user_id
@@ -330,7 +333,7 @@ class TestUserAchievementOperations:
 
     @pytest.mark.asyncio
     async def test_award_achievement_duplicate(self, repository, sample_achievement):
-        """測試重複頒發成就（應該失敗）."""
+        """測試重複頒發成就(應該失敗)."""
         user_id = 123456789
 
         # 第一次頒發
@@ -346,11 +349,17 @@ class TestUserAchievementOperations:
         user_id = 123456789
 
         # 初始狀態
-        assert await repository.has_user_achievement(user_id, sample_achievement.id) is False
+        assert (
+            await repository.has_user_achievement(user_id, sample_achievement.id)
+            is False
+        )
 
         # 頒發成就後
         await repository.award_achievement(user_id, sample_achievement.id)
-        assert await repository.has_user_achievement(user_id, sample_achievement.id) is True
+        assert (
+            await repository.has_user_achievement(user_id, sample_achievement.id)
+            is True
+        )
 
     @pytest.mark.asyncio
     async def test_get_user_achievements(self, repository, sample_category):
@@ -361,12 +370,12 @@ class TestUserAchievementOperations:
         achievements = []
         for i in range(3):
             achievement = Achievement(
-                name=f"成就 {i+1}",
-                description=f"測試成就 {i+1}",
+                name=f"成就 {i + 1}",
+                description=f"測試成就 {i + 1}",
                 category_id=sample_category.id,
                 type=AchievementType.COUNTER,
-                criteria={"target_value": (i+1) * 10, "counter_field": "test"},
-                points=(i+1) * 100
+                criteria={"target_value": (i + 1) * 10, "counter_field": "test"},
+                points=(i + 1) * 100,
             )
             created = await repository.create_achievement(achievement)
             achievements.append(created)
@@ -391,10 +400,14 @@ class TestUserAchievementOperations:
         user_id = 123456789
 
         # 頒發成就
-        user_achievement = await repository.award_achievement(user_id, sample_achievement.id)
+        user_achievement = await repository.award_achievement(
+            user_id, sample_achievement.id
+        )
 
         # 標記為已通知 - 使用 user_id 和 achievement_id
-        success = await repository.mark_achievement_notified(user_id, sample_achievement.id)
+        success = await repository.mark_achievement_notified(
+            user_id, sample_achievement.id
+        )
         assert success is True
 
         # 驗證狀態
@@ -414,12 +427,12 @@ class TestUserAchievementOperations:
             total_points += points
 
             achievement = Achievement(
-                name=f"成就 {i+1}",
-                description=f"測試成就 {i+1}",
+                name=f"成就 {i + 1}",
+                description=f"測試成就 {i + 1}",
                 category_id=sample_category.id,
                 type=AchievementType.COUNTER,
                 criteria={"target_value": 10, "counter_field": "test"},
-                points=points
+                points=points,
             )
             created = await repository.create_achievement(achievement)
             await repository.award_achievement(user_id, created.id)
@@ -437,16 +450,13 @@ class TestAchievementProgressOperations:
 
     @pytest.mark.asyncio
     async def test_update_progress_new_record(self, repository, sample_achievement):
-        """測試更新進度（建立新記錄）."""
+        """測試更新進度(建立新記錄)."""
         user_id = 123456789
         current_value = 50.0
         progress_data = {"daily_count": [5, 10, 15]}
 
         progress = await repository.update_progress(
-            user_id,
-            sample_achievement.id,
-            current_value,
-            progress_data
+            user_id, sample_achievement.id, current_value, progress_data
         )
 
         assert progress.user_id == user_id
@@ -456,8 +466,10 @@ class TestAchievementProgressOperations:
         assert progress.progress_data == progress_data
 
     @pytest.mark.asyncio
-    async def test_update_progress_existing_record(self, repository, sample_achievement):
-        """測試更新進度（更新現有記錄）."""
+    async def test_update_progress_existing_record(
+        self, repository, sample_achievement
+    ):
+        """測試更新進度(更新現有記錄)."""
         user_id = 123456789
 
         # 第一次更新
@@ -466,17 +478,16 @@ class TestAchievementProgressOperations:
         # 第二次更新
         new_progress_data = {"streak": 5}
         progress = await repository.update_progress(
-            user_id,
-            sample_achievement.id,
-            75.0,
-            new_progress_data
+            user_id, sample_achievement.id, 75.0, new_progress_data
         )
 
         assert progress.current_value == 75.0
         assert progress.progress_data == new_progress_data
 
     @pytest.mark.asyncio
-    async def test_update_progress_auto_award_achievement(self, repository, sample_achievement):
+    async def test_update_progress_auto_award_achievement(
+        self, repository, sample_achievement
+    ):
         """測試進度達到目標時自動頒發成就."""
         user_id = 123456789
 
@@ -484,7 +495,9 @@ class TestAchievementProgressOperations:
         await repository.update_progress(user_id, sample_achievement.id, 100.0)
 
         # 檢查是否自動獲得成就
-        has_achievement = await repository.has_user_achievement(user_id, sample_achievement.id)
+        has_achievement = await repository.has_user_achievement(
+            user_id, sample_achievement.id
+        )
         assert has_achievement is True
 
     @pytest.mark.asyncio
@@ -511,12 +524,12 @@ class TestAchievementProgressOperations:
         # 建立多個成就和進度
         for i in range(3):
             achievement = Achievement(
-                name=f"進度成就 {i+1}",
-                description=f"測試進度成就 {i+1}",
+                name=f"進度成就 {i + 1}",
+                description=f"測試進度成就 {i + 1}",
                 category_id=sample_category.id,
                 type=AchievementType.COUNTER,
                 criteria={"target_value": 100, "counter_field": "test"},
-                points=100
+                points=100,
             )
             created = await repository.create_achievement(achievement)
             await repository.update_progress(user_id, created.id, (i + 1) * 20.0)
@@ -557,18 +570,18 @@ class TestStatisticsAndReports:
 
         for i in range(3):
             achievement = Achievement(
-                name=f"統計成就 {i+1}",
-                description=f"統計測試成就 {i+1}",
+                name=f"統計成就 {i + 1}",
+                description=f"統計測試成就 {i + 1}",
                 category_id=sample_category.id,
                 type=AchievementType.COUNTER,
                 criteria={"target_value": 100, "counter_field": "test"},
                 points=100,
-                is_active=(i < 2)  # 前兩個啟用，第三個不啟用
+                is_active=(i < 2),  # 前兩個啟用,第三個不啟用
             )
             created = await repository.create_achievement(achievement)
 
             # 為不同用戶頒發成就
-            for user_id in user_ids[:i+1]:  # 遞增的獲得人數
+            for user_id in user_ids[: i + 1]:  # 遞增的獲得人數
                 await repository.award_achievement(user_id, created.id)
 
         # 取得統計
@@ -597,7 +610,7 @@ class TestStatisticsAndReports:
                 category_id=sample_category.id,
                 type=AchievementType.COUNTER,
                 criteria={"target_value": 100, "counter_field": "test"},
-                points=100
+                points=100,
             )
             created = await repository.create_achievement(achievement)
             created_achievements.append(created)
@@ -611,7 +624,7 @@ class TestStatisticsAndReports:
 
         assert len(popular) >= 3
 
-        # 驗證排序（按獲得人數降序）
+        # 驗證排序(按獲得人數降序)
         earned_counts = [count for _, count in popular]
         assert earned_counts == sorted(earned_counts, reverse=True)
 
@@ -640,7 +653,7 @@ class TestErrorHandling:
         nonexistent_achievement_id = 99999
 
         # 這個測試需要檢查資料庫外鍵約束
-        # 由於使用 SQLite，外鍵約束會阻止插入無效的 achievement_id
+        # 由於使用 SQLite,外鍵約束會阻止插入無效的 achievement_id
         with pytest.raises(Exception):  # 可能是 DatabaseError 或其他資料庫相關錯誤
             await repository.award_achievement(user_id, nonexistent_achievement_id)
 

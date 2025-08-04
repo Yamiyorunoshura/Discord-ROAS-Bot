@@ -1,9 +1,9 @@
 """成就系統快取服務.
 
-此模組實作成就系統的快取管理功能，整合 AchievementCacheStrategy 和 cachetools，
-提供高效能的資料快取和智慧無效化機制。
+此模組實作成就系統的快取管理功能,整合 AchievementCacheStrategy 和 cachetools,
+提供高效能的資料快取和智慧無效化機制.
 
-功能包含：
+功能包含:
 - 多層快取架構管理
 - 智慧快取無效化
 - 效能監控和優化
@@ -17,6 +17,7 @@ from typing import Any, TypeVar
 
 from cachetools import TTLCache
 
+from ..constants import CRITICAL_USAGE_RATE, WARNING_USAGE_RATE
 from .cache_config_manager import CacheConfigManager, CacheConfigUpdate
 from .cache_strategy import (
     AchievementCacheStrategy,
@@ -26,13 +27,12 @@ from .cache_strategy import (
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
-
+T = TypeVar("T")
 
 class AchievementCacheService:
     """成就系統快取服務.
 
-    整合 AchievementCacheStrategy 提供完整的快取管理功能。
+    整合 AchievementCacheStrategy 提供完整的快取管理功能.
     """
 
     def __init__(self):
@@ -59,7 +59,7 @@ class AchievementCacheService:
             "user_achievements",
             "user_progress",
             "global_stats",
-            "leaderboard"
+            "leaderboard",
         ]
 
         initialized_count = 0
@@ -70,33 +70,29 @@ class AchievementCacheService:
                 config = self._strategy.get_config(cache_type)
                 if config.enabled:
                     self._caches[cache_type] = TTLCache(
-                        maxsize=config.maxsize,
-                        ttl=config.ttl
+                        maxsize=config.maxsize, ttl=config.ttl
                     )
                     initialized_count += 1
                     logger.debug(
                         f"快取初始化完成: {cache_type}",
-                        extra={
-                            "maxsize": config.maxsize,
-                            "ttl": config.ttl
-                        }
+                        extra={"maxsize": config.maxsize, "ttl": config.ttl},
                     )
                 else:
-                    logger.debug(f"快取已禁用，跳過初始化: {cache_type}")
+                    logger.debug(f"快取已禁用,跳過初始化: {cache_type}")
             except Exception as e:
                 failed_count += 1
                 logger.error(
                     f"快取初始化失敗: {cache_type}",
                     extra={"error": str(e)},
-                    exc_info=True
+                    exc_info=True,
                 )
 
         logger.info(
             f"快取初始化完成 - 成功: {initialized_count}, 失敗: {failed_count}",
             extra={
                 "initialized_caches": list(self._caches.keys()),
-                "total_types": len(cache_types)
-            }
+                "total_types": len(cache_types),
+            },
         )
 
     def reinitialize_cache(self, cache_type: str) -> bool:
@@ -117,20 +113,19 @@ class AchievementCacheService:
             config = self._strategy.get_config(cache_type)
             if config.enabled:
                 self._caches[cache_type] = TTLCache(
-                    maxsize=config.maxsize,
-                    ttl=config.ttl
+                    maxsize=config.maxsize, ttl=config.ttl
                 )
                 logger.info(f"快取重新初始化成功: {cache_type}")
                 return True
             else:
-                logger.info(f"快取已禁用，無法重新初始化: {cache_type}")
+                logger.info(f"快取已禁用,無法重新初始化: {cache_type}")
                 return False
 
         except Exception as e:
             logger.error(
                 f"快取重新初始化失敗: {cache_type}",
                 extra={"error": str(e)},
-                exc_info=True
+                exc_info=True,
             )
             return False
 
@@ -152,10 +147,10 @@ class AchievementCacheService:
                 status = "healthy"
                 issues = []
 
-                if usage_rate > 95:
+                if usage_rate > CRITICAL_USAGE_RATE:
                     status = "critical"
                     issues.append("快取使用率過高")
-                elif usage_rate > 80:
+                elif usage_rate > WARNING_USAGE_RATE:
                     status = "warning"
                     issues.append("快取使用率偏高")
 
@@ -176,19 +171,21 @@ class AchievementCacheService:
                     "usage_rate": round(usage_rate, 2),
                     "ttl": config.ttl,
                     "enabled": config.enabled,
-                    "issues": issues
+                    "issues": issues,
                 }
 
             except Exception as e:
                 health_status[cache_type] = {
                     "status": "error",
                     "error": str(e),
-                    "enabled": False
+                    "enabled": False,
                 }
 
         return health_status
 
-    def _on_config_changed(self, cache_type: str, config_updates: dict[str, Any]) -> None:
+    def _on_config_changed(
+        self, cache_type: str, config_updates: dict[str, Any]
+    ) -> None:
         """配置變更事件處理器.
 
         Args:
@@ -202,7 +199,7 @@ class AchievementCacheService:
             logger.error(
                 f"配置變更應用失敗: {cache_type}",
                 extra={"error": str(e), "config_updates": config_updates},
-                exc_info=True
+                exc_info=True,
             )
 
     def get_cache_key(self, cache_type: str, *args: Any) -> str:
@@ -251,7 +248,7 @@ class AchievementCacheService:
             value: 要快取的資料
 
         Returns:
-            True 如果設定成功，False 如果快取類型不存在
+            True 如果設定成功,False 如果快取類型不存在
         """
         cache = self._caches.get(cache_type)
         if cache is not None:
@@ -286,8 +283,8 @@ class AchievementCacheService:
             extra={
                 "patterns": patterns,
                 "total_removed": total_removed,
-                "kwargs": kwargs
-            }
+                "kwargs": kwargs,
+            },
         )
 
         return total_removed
@@ -345,7 +342,7 @@ class AchievementCacheService:
                 "max_size": config.maxsize,
                 "ttl": config.ttl,
                 "usage_rate": round(len(cache) / config.maxsize * 100, 2),
-                "enabled": config.enabled
+                "enabled": config.enabled,
             }
 
         return stats
@@ -363,14 +360,16 @@ class AchievementCacheService:
         for cache_type, stat in stats.items():
             usage_rate = stat.get("usage_rate", 0)
 
-            if usage_rate > 95:
-                suggestions.append({
-                    "cache_type": cache_type,
-                    "issue": "high_usage_rate",
-                    "current_usage_rate": usage_rate,
-                    "suggestion": f"{cache_type} 快取使用率過高 ({usage_rate}%)，建議增加快取大小",
-                    "priority": "medium"
-                })
+            if usage_rate > CRITICAL_USAGE_RATE:
+                suggestions.append(
+                    {
+                        "cache_type": cache_type,
+                        "issue": "high_usage_rate",
+                        "current_usage_rate": usage_rate,
+                        "suggestion": f"{cache_type} 快取使用率過高 ({usage_rate}%),建議增加快取大小",
+                        "priority": "medium",
+                    }
+                )
 
         return suggestions
 
@@ -421,20 +420,14 @@ class AchievementCacheService:
             elif cache_type in self._caches:
                 del self._caches[cache_type]
 
-            logger.info(
-                f"快取配置更新成功: {cache_type}",
-                extra=config_updates
-            )
+            logger.info(f"快取配置更新成功: {cache_type}", extra=config_updates)
             return True
 
         except Exception as e:
             logger.error(
                 f"快取配置更新失敗: {cache_type}",
-                extra={
-                    "error": str(e),
-                    "config_updates": config_updates
-                },
-                exc_info=True
+                extra={"error": str(e), "config_updates": config_updates},
+                exc_info=True,
             )
             return False
 
@@ -471,12 +464,14 @@ class AchievementCacheService:
                 logger.error(
                     f"產生配置建議失敗: {cache_type}",
                     extra={"error": str(e)},
-                    exc_info=True
+                    exc_info=True,
                 )
 
         return recommendations
 
-    def auto_optimize_all_caches(self, apply_immediately: bool = False) -> dict[str, tuple[bool, str]]:
+    def auto_optimize_all_caches(
+        self, apply_immediately: bool = False
+    ) -> dict[str, tuple[bool, str]]:
         """自動優化所有快取配置.
 
         Args:
@@ -498,7 +493,7 @@ class AchievementCacheService:
                 if success and not apply_immediately:
                     logger.info(
                         f"配置優化建議: {cache_type}",
-                        extra={"update": update.to_dict()}
+                        extra={"update": update.to_dict()},
                     )
 
             except Exception as e:
@@ -507,7 +502,7 @@ class AchievementCacheService:
                 logger.error(
                     f"自動優化配置失敗: {cache_type}",
                     extra={"error": str(e)},
-                    exc_info=True
+                    exc_info=True,
                 )
 
         return results
@@ -523,7 +518,9 @@ class AchievementCacheService:
         try:
             # 記錄清理前的狀態
             cache_stats = self.get_cache_statistics()
-            total_items = sum(stat.get("current_size", 0) for stat in cache_stats.values())
+            total_items = sum(
+                stat.get("current_size", 0) for stat in cache_stats.values()
+            )
 
             # 清理快取
             self.clear_all_caches()
@@ -535,7 +532,7 @@ class AchievementCacheService:
             self._invalidation_manager.clear_invalidation_history()
 
             # 移除配置監聽器
-            if hasattr(self, '_config_manager'):
+            if hasattr(self, "_config_manager"):
                 try:
                     self._config_manager.remove_config_listener(self._on_config_changed)
                 except Exception as e:
@@ -546,15 +543,15 @@ class AchievementCacheService:
                 extra={
                     "cleared_cache_types": len(cache_stats),
                     "cleared_items": total_items,
-                    "exception_occurred": exc_type is not None
-                }
+                    "exception_occurred": exc_type is not None,
+                },
             )
 
         except Exception as cleanup_error:
             logger.error(
                 "快取服務清理過程中發生錯誤",
                 extra={"error": str(cleanup_error)},
-                exc_info=True
+                exc_info=True,
             )
 
     def graceful_shutdown(self) -> dict[str, Any]:
@@ -569,19 +566,23 @@ class AchievementCacheService:
         shutdown_stats = {
             "cache_statistics": self.get_cache_statistics(),
             "performance_stats": self._performance_optimizer.get_cache_statistics(),
-            "invalidation_history": self._invalidation_manager.get_invalidation_history(10),
-            "health_status": self.get_cache_health_status()
+            "invalidation_history": self._invalidation_manager.get_invalidation_history(
+                10
+            ),
+            "health_status": self.get_cache_health_status(),
         }
 
-        # 儲存重要資料（如果需要的話）
+        # Store critical data if needed
         critical_issues = []
         for cache_type, health in shutdown_stats["health_status"].items():
             if health.get("status") in ["critical", "error"]:
-                critical_issues.append({
-                    "cache_type": cache_type,
-                    "status": health.get("status"),
-                    "issues": health.get("issues", [])
-                })
+                critical_issues.append(
+                    {
+                        "cache_type": cache_type,
+                        "status": health.get("status"),
+                        "issues": health.get("issues", []),
+                    }
+                )
 
         shutdown_stats["critical_issues"] = critical_issues
 
@@ -600,7 +601,6 @@ class AchievementCacheService:
             logger.error(f"快取服務關閉清理失敗: {e}", exc_info=True)
 
         return shutdown_stats
-
 
 __all__ = [
     "AchievementCacheService",

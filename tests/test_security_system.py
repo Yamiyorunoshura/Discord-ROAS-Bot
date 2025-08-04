@@ -1,6 +1,6 @@
 """成就系統安全組件測試.
 
-測試安全系統的核心功能，包含：
+測試安全系統的核心功能,包含:
 - 審計日誌記錄和查詢
 - 權限驗證和管理
 - 操作歷史追蹤
@@ -45,7 +45,7 @@ class TestAuditLogger(AsyncTestCase):
 
         self.audit_logger = AuditLogger(
             database_service=self.mock_database_service,
-            cache_service=self.mock_cache_service
+            cache_service=self.mock_cache_service,
         )
 
     @pytest.mark.asyncio
@@ -63,7 +63,7 @@ class TestAuditLogger(AsyncTestCase):
         context = AuditContext(
             user_id=self.test_user.id,
             guild_id=self.test_guild.id,
-            interaction_id="test_interaction"
+            interaction_id="test_interaction",
         )
 
         event = await self.audit_logger.log_event(
@@ -74,7 +74,7 @@ class TestAuditLogger(AsyncTestCase):
             target_id=self.test_user.id,
             old_values={},
             new_values={"achievement_id": 1},
-            metadata={"test": True}
+            metadata={"test": True},
         )
 
         # 檢查事件屬性
@@ -92,16 +92,13 @@ class TestAuditLogger(AsyncTestCase):
     @pytest.mark.asyncio
     async def test_risk_assessment(self):
         """測試風險評估."""
-        context = AuditContext(
-            user_id=self.test_user.id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=self.test_user.id, guild_id=self.test_guild.id)
 
         # 測試低風險操作
         low_risk_event = await self.audit_logger.log_event(
             event_type=AuditEventType.ACHIEVEMENT_GRANTED,
             context=context,
-            operation_name="grant_single_achievement"
+            operation_name="grant_single_achievement",
         )
         assert low_risk_event.risk_level == "low"
         assert low_risk_event.requires_approval is False
@@ -110,7 +107,7 @@ class TestAuditLogger(AsyncTestCase):
         high_risk_event = await self.audit_logger.log_event(
             event_type=AuditEventType.USER_DATA_RESET,
             context=context,
-            operation_name="reset_user_data"
+            operation_name="reset_user_data",
         )
         assert high_risk_event.risk_level == "critical"
         assert high_risk_event.requires_approval is True
@@ -118,32 +115,27 @@ class TestAuditLogger(AsyncTestCase):
     @pytest.mark.asyncio
     async def test_query_events(self):
         """測試查詢審計事件."""
-        context = AuditContext(
-            user_id=self.test_user.id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=self.test_user.id, guild_id=self.test_guild.id)
 
         # 創建多個測試事件
         await self.audit_logger.log_event(
             event_type=AuditEventType.ACHIEVEMENT_GRANTED,
             context=context,
-            operation_name="grant_1"
+            operation_name="grant_1",
         )
         await self.audit_logger.log_event(
             event_type=AuditEventType.ACHIEVEMENT_REVOKED,
             context=context,
-            operation_name="revoke_1"
+            operation_name="revoke_1",
         )
         await self.audit_logger.log_event(
             event_type=AuditEventType.PROGRESS_UPDATED,
             context=context,
-            operation_name="progress_1"
+            operation_name="progress_1",
         )
 
         # 查詢所有事件
-        all_events = await self.audit_logger.query_events(
-            AuditQuery(limit=10)
-        )
+        all_events = await self.audit_logger.query_events(AuditQuery(limit=10))
         assert len(all_events) == 3
 
         # 按事件類型查詢
@@ -162,10 +154,7 @@ class TestAuditLogger(AsyncTestCase):
     @pytest.mark.asyncio
     async def test_generate_report(self):
         """測試生成審計報告."""
-        context = AuditContext(
-            user_id=self.test_user.id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=self.test_user.id, guild_id=self.test_guild.id)
 
         # 創建測試事件
         for i in range(5):
@@ -173,14 +162,14 @@ class TestAuditLogger(AsyncTestCase):
                 event_type=AuditEventType.ACHIEVEMENT_GRANTED,
                 context=context,
                 operation_name=f"grant_{i}",
-                success=i % 2 == 0  # 一半成功，一半失敗
+                success=i % 2 == 0,  # 一半成功,一半失敗
             )
 
         # 生成報告
         report = await self.audit_logger.generate_report(
             report_type="test_report",
             query=AuditQuery(limit=10),
-            generated_by=self.test_user.id
+            generated_by=self.test_user.id,
         )
 
         # 檢查報告
@@ -198,10 +187,7 @@ class TestAuditLogger(AsyncTestCase):
     @pytest.mark.asyncio
     async def test_buffer_management(self):
         """測試緩衝區管理."""
-        context = AuditContext(
-            user_id=self.test_user.id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=self.test_user.id, guild_id=self.test_guild.id)
 
         # 填滿緩衝區
         initial_buffer_size = self.audit_logger._buffer_size
@@ -212,7 +198,7 @@ class TestAuditLogger(AsyncTestCase):
             await self.audit_logger.log_event(
                 event_type=AuditEventType.ACHIEVEMENT_GRANTED,
                 context=context,
-                operation_name=f"test_{i}"
+                operation_name=f"test_{i}",
             )
 
         # 檢查緩衝區是否被刷新
@@ -251,7 +237,7 @@ class TestSecurityValidator(AsyncTestCase):
             user_id=user_id,
             permission_level=PermissionLevel.ADMIN,
             granted_by=11111,
-            expires_in_hours=24
+            expires_in_hours=24,
         )
 
         assert grant.user_id == user_id
@@ -265,9 +251,7 @@ class TestSecurityValidator(AsyncTestCase):
 
         # 撤銷權限
         success = await self.security_validator.revoke_permission(
-            grant_id=grant.grant_id,
-            revoked_by=11111,
-            reason="測試撤銷"
+            grant_id=grant.grant_id, revoked_by=11111, reason="測試撤銷"
         )
         assert success is True
 
@@ -282,16 +266,14 @@ class TestSecurityValidator(AsyncTestCase):
 
         # 授予管理員權限
         await self.security_validator.grant_permission(
-            user_id=user_id,
-            permission_level=PermissionLevel.ADMIN,
-            granted_by=11111
+            user_id=user_id, permission_level=PermissionLevel.ADMIN, granted_by=11111
         )
 
         # 檢查高權限操作
         result = await self.security_validator.check_permission(
             user_id=user_id,
             operation_type="grant_achievement",
-            context={"guild_id": self.test_guild.id}
+            context={"guild_id": self.test_guild.id},
         )
 
         assert result["allowed"] is True
@@ -301,7 +283,7 @@ class TestSecurityValidator(AsyncTestCase):
         result = await self.security_validator.check_permission(
             user_id=user_id,
             operation_type="bulk_reset",
-            context={"guild_id": self.test_guild.id}
+            context={"guild_id": self.test_guild.id},
         )
 
         assert result["allowed"] is False
@@ -315,9 +297,7 @@ class TestSecurityValidator(AsyncTestCase):
 
         # 生成安全令牌
         token = await self.security_validator.generate_security_token(
-            user_id=user_id,
-            operation_type=operation_type,
-            expires_in_minutes=15
+            user_id=user_id, operation_type=operation_type, expires_in_minutes=15
         )
 
         assert token.user_id == user_id
@@ -329,7 +309,7 @@ class TestSecurityValidator(AsyncTestCase):
         validation_result = await self.security_validator.validate_security_token(
             token_value=token.token_value,
             user_id=user_id,
-            operation_type=operation_type
+            operation_type=operation_type,
         )
 
         assert validation_result["valid"] is True
@@ -340,7 +320,7 @@ class TestSecurityValidator(AsyncTestCase):
         validation_result = await self.security_validator.validate_security_token(
             token_value=token.token_value,
             user_id=user_id,
-            operation_type=operation_type
+            operation_type=operation_type,
         )
 
         assert validation_result["valid"] is False
@@ -356,7 +336,7 @@ class TestSecurityValidator(AsyncTestCase):
         challenge = await self.security_validator.create_security_challenge(
             user_id=user_id,
             operation_type=operation_type,
-            challenge_type=AuthenticationMethod.TOKEN
+            challenge_type=AuthenticationMethod.TOKEN,
         )
 
         assert challenge.user_id == user_id
@@ -365,14 +345,14 @@ class TestSecurityValidator(AsyncTestCase):
         assert challenge.attempts == 0
         assert challenge.solved is False
 
-        # 從挑戰數據中提取正確答案（這是測試環境的簡化）
+        # 從挑戰數據中提取正確答案(這是測試環境的簡化)
         challenge_code = challenge.challenge_data.split(": ")[1]
 
         # 解決挑戰
         result = await self.security_validator.solve_security_challenge(
             challenge_id=challenge.challenge_id,
             response=challenge_code,
-            user_id=user_id
+            user_id=user_id,
         )
 
         assert result["success"] is True
@@ -390,7 +370,7 @@ class TestSecurityValidator(AsyncTestCase):
         await self.security_validator.grant_permission(
             user_id=approver_id,
             permission_level=PermissionLevel.ADMIN,
-            granted_by=approver_id
+            granted_by=approver_id,
         )
 
         # 請求操作審批
@@ -398,7 +378,7 @@ class TestSecurityValidator(AsyncTestCase):
             requested_by=user_id,
             operation_type="user_data_reset",
             operation_details={"user_id": user_id},
-            context={"guild_id": self.test_guild.id}
+            context={"guild_id": self.test_guild.id},
         )
 
         assert approval.requested_by == user_id
@@ -408,9 +388,7 @@ class TestSecurityValidator(AsyncTestCase):
 
         # 審批操作
         approval_result = await self.security_validator.approve_operation(
-            approval_id=approval.approval_id,
-            approver_id=approver_id,
-            notes="測試審批"
+            approval_id=approval.approval_id, approver_id=approver_id, notes="測試審批"
         )
 
         assert approval_result["success"] is True
@@ -448,7 +426,7 @@ class TestHistoryManager(AsyncTestCase):
 
         self.history_manager = HistoryManager(
             database_service=self.mock_database_service,
-            cache_service=self.mock_cache_service
+            cache_service=self.mock_cache_service,
         )
 
     @pytest.mark.asyncio
@@ -476,7 +454,7 @@ class TestHistoryManager(AsyncTestCase):
             affected_users=[12346],
             affected_achievements=[1],
             success=True,
-            risk_level="low"
+            risk_level="low",
         )
 
         # 檢查記錄屬性
@@ -501,27 +479,25 @@ class TestHistoryManager(AsyncTestCase):
             category=HistoryCategory.USER_ACHIEVEMENT,
             operation_name="grant_1",
             executor_id=self.test_user.id,
-            success=True
+            success=True,
         )
         await self.history_manager.record_operation(
             action=HistoryAction.REVOKE,
             category=HistoryCategory.USER_ACHIEVEMENT,
             operation_name="revoke_1",
             executor_id=self.test_user.id,
-            success=False
+            success=False,
         )
         await self.history_manager.record_operation(
             action=HistoryAction.RESET,
             category=HistoryCategory.USER_DATA,
             operation_name="reset_1",
             executor_id=11111,
-            success=True
+            success=True,
         )
 
         # 查詢所有記錄
-        all_records = await self.history_manager.query_history(
-            HistoryQuery(limit=10)
-        )
+        all_records = await self.history_manager.query_history(HistoryQuery(limit=10))
         assert len(all_records) == 3
 
         # 按動作查詢
@@ -561,13 +537,11 @@ class TestHistoryManager(AsyncTestCase):
                 executor_id=self.test_user.id if i < 7 else 11111,
                 affected_users=[12346 + i],
                 success=i % 3 != 0,  # 約2/3成功率
-                duration_ms=100 + i * 10
+                duration_ms=100 + i * 10,
             )
 
         # 分析歷史
-        analysis = await self.history_manager.analyze_history(
-            HistoryQuery(limit=20)
-        )
+        analysis = await self.history_manager.analyze_history(HistoryQuery(limit=20))
 
         # 檢查分析結果
         assert analysis.total_records == 10
@@ -600,14 +574,12 @@ class TestHistoryManager(AsyncTestCase):
                 action=HistoryAction.GRANT,
                 category=HistoryCategory.USER_ACHIEVEMENT,
                 operation_name=f"export_test_{i}",
-                executor_id=self.test_user.id
+                executor_id=self.test_user.id,
             )
 
         # 導出歷史資料
         export_data = await self.history_manager.export_history(
-            query=HistoryQuery(limit=10),
-            format="json",
-            include_analysis=True
+            query=HistoryQuery(limit=10), format="json", include_analysis=True
         )
 
         # 檢查導出資料
@@ -633,7 +605,7 @@ class TestHistoryManager(AsyncTestCase):
                 action=HistoryAction.GRANT,
                 category=HistoryCategory.USER_ACHIEVEMENT,
                 operation_name=f"buffer_test_{i}",
-                executor_id=self.test_user.id
+                executor_id=self.test_user.id,
             )
 
         # 檢查緩衝區是否被刷新
@@ -653,39 +625,32 @@ class TestSecurityIntegration(AsyncTestCase):
 
         self.audit_logger = AuditLogger(
             database_service=self.mock_database_service,
-            cache_service=self.mock_cache_service
+            cache_service=self.mock_cache_service,
         )
 
-        self.security_validator = SecurityValidator(
-            audit_logger=self.audit_logger
-        )
+        self.security_validator = SecurityValidator(audit_logger=self.audit_logger)
 
         self.history_manager = HistoryManager(
             database_service=self.mock_database_service,
-            cache_service=self.mock_cache_service
+            cache_service=self.mock_cache_service,
         )
 
     @pytest.mark.asyncio
     async def test_complete_security_workflow(self):
         """測試完整的安全工作流程."""
         user_id = self.test_user.id
-        context = AuditContext(
-            user_id=user_id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=user_id, guild_id=self.test_guild.id)
 
         # 1. 授予用戶權限
         await self.security_validator.grant_permission(
-            user_id=user_id,
-            permission_level=PermissionLevel.ELEVATED,
-            granted_by=11111
+            user_id=user_id, permission_level=PermissionLevel.ELEVATED, granted_by=11111
         )
 
         # 2. 檢查權限
         permission_result = await self.security_validator.check_permission(
             user_id=user_id,
             operation_type="revoke_achievement",
-            context={"guild_id": self.test_guild.id}
+            context={"guild_id": self.test_guild.id},
         )
         assert permission_result["allowed"] is True
 
@@ -696,7 +661,7 @@ class TestSecurityIntegration(AsyncTestCase):
             operation_name="revoke_achievement_secure",
             target_type="user",
             target_id=12346,
-            metadata={"security_validated": True}
+            metadata={"security_validated": True},
         )
         assert audit_event.success is True
 
@@ -709,7 +674,7 @@ class TestSecurityIntegration(AsyncTestCase):
             target_type="user",
             target_id=12346,
             success=True,
-            risk_level="medium"
+            risk_level="medium",
         )
         assert history_record.success is True
 
@@ -731,16 +696,13 @@ class TestSecurityIntegration(AsyncTestCase):
     async def test_security_violation_handling(self):
         """測試安全違規處理."""
         user_id = self.test_user.id
-        context = AuditContext(
-            user_id=user_id,
-            guild_id=self.test_guild.id
-        )
+        context = AuditContext(user_id=user_id, guild_id=self.test_guild.id)
 
         # 嘗試未授權操作
         permission_result = await self.security_validator.check_permission(
             user_id=user_id,
             operation_type="bulk_reset",
-            context={"guild_id": self.test_guild.id}
+            context={"guild_id": self.test_guild.id},
         )
         assert permission_result["allowed"] is False
 
@@ -752,7 +714,7 @@ class TestSecurityIntegration(AsyncTestCase):
             severity=AuditSeverity.WARNING,
             success=False,
             error_message="權限不足",
-            risk_level="high"
+            risk_level="high",
         )
 
         assert violation_event.event_type == AuditEventType.SECURITY_VIOLATION

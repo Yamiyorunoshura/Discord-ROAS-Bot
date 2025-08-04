@@ -17,6 +17,7 @@ import asyncio
 import json
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from src.core.container import Container
@@ -95,7 +96,9 @@ class MigrationManager:
             migration_result = await self._migration_tool.migrate_all(
                 dry_run=dry_run, backup=backup
             )
-            plan_result["phases"]["migration"] = migration_result
+            phases_dict = plan_result["phases"]
+            if isinstance(phases_dict, dict):
+                phases_dict["migration"] = migration_result
 
             if not migration_result.get("overall_success", False) and not dry_run:
                 self._logger.error("遷移失敗,停止後續階段")
@@ -105,7 +108,9 @@ class MigrationManager:
                     rollback_result = await self._migration_tool.rollback_migration(
                         migration_result["migration_id"]
                     )
-                    plan_result["phases"]["rollback"] = rollback_result
+                    phases_dict = plan_result["phases"]
+                    if isinstance(phases_dict, dict):
+                        phases_dict["rollback"] = rollback_result
 
                 return plan_result
 
@@ -113,7 +118,9 @@ class MigrationManager:
             if validate and not dry_run:
                 self._logger.info("階段 2: 驗證遷移結果")
                 validation_result = await self._validator.validate_full_migration()
-                plan_result["phases"]["validation"] = validation_result
+                phases_dict = plan_result["phases"]
+                if isinstance(phases_dict, dict):
+                    phases_dict["validation"] = validation_result
 
                 if validation_result.get("overall_status") == "failed":
                     self._logger.error("驗證失敗")
@@ -123,14 +130,18 @@ class MigrationManager:
                         rollback_result = await self._migration_tool.rollback_migration(
                             migration_result["migration_id"]
                         )
-                        plan_result["phases"]["rollback"] = rollback_result
+                        phases_dict = plan_result["phases"]
+                        if isinstance(phases_dict, dict):
+                            phases_dict["rollback"] = rollback_result
 
                     return plan_result
 
             # 計算整體成功狀態
-            plan_result["overall_success"] = self._calculate_plan_success(
-                plan_result["phases"]
-            )
+            phases = plan_result["phases"]
+            if isinstance(phases, dict):
+                plan_result["overall_success"] = self._calculate_plan_success(phases)
+            else:
+                plan_result["overall_success"] = False
 
             end_time = datetime.now()
             plan_result["duration"] = (end_time - start_time).total_seconds()
@@ -142,11 +153,13 @@ class MigrationManager:
         except Exception as e:
             self._logger.error(f"遷移計劃執行失敗: {e}", exc_info=True)
 
-            plan_result["phases"]["error"] = {
-                "type": "execution_error",
-                "message": str(e),
-                "timestamp": datetime.now().isoformat(),
-            }
+            phases_dict = plan_result["phases"]
+            if isinstance(phases_dict, dict):
+                phases_dict["error"] = {
+                    "type": "execution_error",
+                    "message": str(e),
+                    "timestamp": datetime.now().isoformat(),
+                }
 
             return plan_result
 
@@ -215,20 +228,11 @@ class MigrationManager:
             ]
             return migration_success and validation_success
 
-        return migration_success
+        return bool(migration_success)
 
-    async def generate_migration_report(self, plan_result: dict[str, Any]) -> str:
-        """生成遷移報告
-
-        Args:
-            plan_result: 遷移計劃結果
-
-        Returns:
-            報告文本
-        """
-        report_lines = []
-
-        # 標題
+    def _generate_report_header(self, plan_result: dict[str, Any]) -> list[str]:
+        """生成報告標題部分"""
+        report_lines: list[str] = []
         report_lines.append("=" * 60)
         report_lines.append("數據遷移執行報告")
         report_lines.append("=" * 60)
@@ -252,110 +256,153 @@ class MigrationManager:
         report_lines.append(f"  - 自動回滾: {params.get('auto_rollback')}")
         report_lines.append("")
 
-        # 各階段結果
-        phases = plan_result.get("phases", {})
+        return report_lines
 
-        # 遷移階段
-        if "migration" in phases:
-            migration = phases["migration"]
-            report_lines.append("遷移階段結果:")
+    def _generate_migration_phase_report(self, phases: dict[str, Any]) -> list[str]:
+        """生成遷移階段報告部分"""
+        report_lines: list[str] = []
+
+        if "migration" not in phases:
+            return report_lines
+
+        migration = phases["migration"]
+        report_lines.append("遷移階段結果:")
+        report_lines.append(
+            f"  - 狀態: {'✅ 成功' if migration.get('overall_success') else '❌ 失敗'}"
+        )
+
+        stats = migration.get("statistics", {})
+        report_lines.append(f"  - 遷移伺服器數: {stats.get('guilds_migrated', 0)}")
+        report_lines.append(f"  - 遷移設定數: {stats.get('settings_migrated', 0)}")
+        report_lines.append(
+            f"  - 遷移背景圖片數: {stats.get('backgrounds_migrated', 0)}"
+        )
+        report_lines.append(f"  - 錯誤數: {stats.get('errors', 0)}")
+        report_lines.append("")
+
+        # 詳細結果
+        results = migration.get("results", {})
+        if "settings" in results:
+            settings_result = results["settings"]
+            report_lines.append("  設定遷移:")
             report_lines.append(
-                f"  - 狀態: {'✅ 成功' if migration.get('overall_success') else '❌ 失敗'}"
+                f"    - 成功: {settings_result.get('migrated_count', 0)}"
+            )
+            report_lines.append(f"    - 錯誤: {len(settings_result.get('errors', []))}")
+            report_lines.append(
+                f"    - 警告: {len(settings_result.get('warnings', []))}"
             )
 
-            stats = migration.get("statistics", {})
-            report_lines.append(f"  - 遷移伺服器數: {stats.get('guilds_migrated', 0)}")
-            report_lines.append(f"  - 遷移設定數: {stats.get('settings_migrated', 0)}")
-            report_lines.append(
-                f"  - 遷移背景圖片數: {stats.get('backgrounds_migrated', 0)}"
-            )
-            report_lines.append(f"  - 錯誤數: {stats.get('errors', 0)}")
+        if "backgrounds" in results:
+            bg_result = results["backgrounds"]
+            report_lines.append("  背景圖片遷移:")
+            report_lines.append(f"    - 成功: {bg_result.get('migrated_count', 0)}")
+            report_lines.append(f"    - 錯誤: {len(bg_result.get('errors', []))}")
+            report_lines.append(f"    - 警告: {len(bg_result.get('warnings', []))}")
+
+        report_lines.append("")
+        return report_lines
+
+    def _generate_validation_phase_report(self, phases: dict[str, Any]) -> list[str]:
+        """生成驗證階段報告部分"""
+        report_lines: list[str] = []
+
+        if "validation" not in phases:
+            return report_lines
+
+        validation = phases["validation"]
+        report_lines.append("驗證階段結果:")
+        report_lines.append(f"  - 狀態: {validation.get('overall_status', 'unknown')}")
+
+        stats = validation.get("statistics", {})
+        report_lines.append(f"  - 總檢查數: {stats.get('total_checks', 0)}")
+        report_lines.append(f"  - 通過檢查: {stats.get('passed_checks', 0)}")
+        report_lines.append(f"  - 失敗檢查: {stats.get('failed_checks', 0)}")
+        report_lines.append(f"  - 警告數: {stats.get('warnings', 0)}")
+        report_lines.append("")
+
+        # 建議
+        recommendations = validation.get("recommendations", [])
+        if recommendations:
+            report_lines.append("改進建議:")
+            for i, rec in enumerate(recommendations, 1):
+                report_lines.append(f"  {i}. {rec}")
             report_lines.append("")
 
-            # 詳細結果
-            results = migration.get("results", {})
-            if "settings" in results:
-                settings_result = results["settings"]
-                report_lines.append("  設定遷移:")
-                report_lines.append(
-                    f"    - 成功: {settings_result.get('migrated_count', 0)}"
-                )
-                report_lines.append(
-                    f"    - 錯誤: {len(settings_result.get('errors', []))}"
-                )
-                report_lines.append(
-                    f"    - 警告: {len(settings_result.get('warnings', []))}"
-                )
+        return report_lines
 
-            if "backgrounds" in results:
-                bg_result = results["backgrounds"]
-                report_lines.append("  背景圖片遷移:")
-                report_lines.append(f"    - 成功: {bg_result.get('migrated_count', 0)}")
-                report_lines.append(f"    - 錯誤: {len(bg_result.get('errors', []))}")
-                report_lines.append(f"    - 警告: {len(bg_result.get('warnings', []))}")
+    def _generate_rollback_phase_report(self, phases: dict[str, Any]) -> list[str]:
+        """生成回滾階段報告部分"""
+        report_lines: list[str] = []
 
-            report_lines.append("")
+        if "rollback" not in phases:
+            return report_lines
 
-        # 驗證階段
-        if "validation" in phases:
-            validation = phases["validation"]
-            report_lines.append("驗證階段結果:")
-            report_lines.append(
-                f"  - 狀態: {validation.get('overall_status', 'unknown')}"
-            )
+        rollback = phases["rollback"]
+        report_lines.append("回滾階段結果:")
+        report_lines.append(
+            f"  - 狀態: {'✅ 成功' if rollback.get('success') else '❌ 失敗'}"
+        )
+        report_lines.append(
+            f"  - 回滾項目: {', '.join(rollback.get('rolled_back', []))}"
+        )
 
-            stats = validation.get("statistics", {})
-            report_lines.append(f"  - 總檢查數: {stats.get('total_checks', 0)}")
-            report_lines.append(f"  - 通過檢查: {stats.get('passed_checks', 0)}")
-            report_lines.append(f"  - 失敗檢查: {stats.get('failed_checks', 0)}")
-            report_lines.append(f"  - 警告數: {stats.get('warnings', 0)}")
-            report_lines.append("")
+        if rollback.get("errors"):
+            report_lines.append("  - 錯誤:")
+            for error in rollback["errors"]:
+                report_lines.append(f"    • {error}")
 
-            # 建議
-            recommendations = validation.get("recommendations", [])
-            if recommendations:
-                report_lines.append("改進建議:")
-                for i, rec in enumerate(recommendations, 1):
-                    report_lines.append(f"  {i}. {rec}")
-                report_lines.append("")
+        report_lines.append("")
+        return report_lines
 
-        # 回滾階段
-        if "rollback" in phases:
-            rollback = phases["rollback"]
-            report_lines.append("回滾階段結果:")
-            report_lines.append(
-                f"  - 狀態: {'✅ 成功' if rollback.get('success') else '❌ 失敗'}"
-            )
-            report_lines.append(
-                f"  - 回滾項目: {', '.join(rollback.get('rolled_back', []))}"
-            )
+    def _generate_error_phase_report(self, phases: dict[str, Any]) -> list[str]:
+        """生成錯誤階段報告部分"""
+        report_lines: list[str] = []
 
-            if rollback.get("errors"):
-                report_lines.append("  - 錯誤:")
-                for error in rollback["errors"]:
-                    report_lines.append(f"    • {error}")
+        if "error" not in phases:
+            return report_lines
 
-            report_lines.append("")
+        error = phases["error"]
+        report_lines.append("執行錯誤:")
+        report_lines.append(f"  - 類型: {error.get('type')}")
+        report_lines.append(f"  - 訊息: {error.get('message')}")
+        report_lines.append(f"  - 時間: {error.get('timestamp')}")
+        report_lines.append("")
 
-        # 錯誤信息
-        if "error" in phases:
-            error = phases["error"]
-            report_lines.append("執行錯誤:")
-            report_lines.append(f"  - 類型: {error.get('type')}")
-            report_lines.append(f"  - 訊息: {error.get('message')}")
-            report_lines.append(f"  - 時間: {error.get('timestamp')}")
-            report_lines.append("")
+        return report_lines
 
-        # 結尾
+    def _generate_report_footer(self) -> list[str]:
+        """生成報告結尾部分"""
+        report_lines: list[str] = []
         report_lines.append("=" * 60)
         report_lines.append(f"報告生成時間: {datetime.now().isoformat()}")
         report_lines.append("=" * 60)
+        return report_lines
+
+    async def generate_migration_report(self, plan_result: dict[str, Any]) -> str:
+        """生成遷移報告
+
+        Args:
+            plan_result: 遷移計劃結果
+
+        Returns:
+            報告文本
+        """
+        report_lines: list[str] = []
+        phases = plan_result.get("phases", {})
+
+        # 生成各個部分
+        report_lines.extend(self._generate_report_header(plan_result))
+        report_lines.extend(self._generate_migration_phase_report(phases))
+        report_lines.extend(self._generate_validation_phase_report(phases))
+        report_lines.extend(self._generate_rollback_phase_report(phases))
+        report_lines.extend(self._generate_error_phase_report(phases))
+        report_lines.extend(self._generate_report_footer())
 
         return "\n".join(report_lines)
 
-
-async def main():
-    """主函數 - 命令行界面"""
+def _create_argument_parser() -> argparse.ArgumentParser:
+    """創建命令行參數解析器"""
     parser = argparse.ArgumentParser(description="Discord ROAS Bot 數據遷移管理器")
 
     parser.add_argument(
@@ -378,84 +425,101 @@ async def main():
 
     parser.add_argument("--output", type=str, help="輸出報告文件路徑")
 
+    return parser
+
+def _save_output(
+    data: str | dict[str, Any], output_path: str | None, success_msg: str
+) -> None:
+    """保存輸出結果到檔案或列印到控制台"""
+    if output_path:
+        path = Path(output_path)
+        with path.open("w", encoding="utf-8") as f:
+            if isinstance(data, str):
+                f.write(data)
+            else:
+                json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+        print(success_msg)
+    elif isinstance(data, str):
+        print(data)
+    else:
+        print(json.dumps(data, ensure_ascii=False, indent=2, default=str))
+
+async def _handle_migrate_action(
+    manager: MigrationManager, args: argparse.Namespace
+) -> None:
+    """處理遷移操作"""
+    print("執行數據遷移...")
+    result = await manager.execute_migration_plan(
+        dry_run=args.dry_run,
+        backup=not args.no_backup,
+        validate=not args.no_validate,
+        auto_rollback=args.auto_rollback,
+    )
+
+    # 生成報告
+    report = await manager.generate_migration_report(result)
+    _save_output(report, args.output, f"報告已保存至: {args.output}")
+
+async def _handle_validate_action(
+    manager: MigrationManager, args: argparse.Namespace
+) -> None:
+    """處理驗證操作"""
+    print("執行遷移驗證...")
+    result = await manager.validate_migration_only()
+    _save_output(result, args.output, f"驗證結果已保存至: {args.output}")
+
+async def _handle_rollback_action(
+    manager: MigrationManager, args: argparse.Namespace
+) -> None:
+    """處理回滾操作"""
+    if not args.migration_id:
+        print("錯誤: 回滾操作需要指定 --migration-id")
+        sys.exit(1)
+
+    print(f"執行遷移回滾 - ID: {args.migration_id}")
+    result = await manager.rollback_migration(args.migration_id)
+    _save_output(result, args.output, f"回滾結果已保存至: {args.output}")
+
+def _handle_plan_action(args: argparse.Namespace) -> None:
+    """處理計劃顯示操作"""
+    print("顯示遷移計劃...")
+    print("遷移將執行以下步驟:")
+    print("1. 檢查舊系統數據")
+    print("2. 創建備份(如果啟用)")
+    print("3. 遷移設定數據")
+    print("4. 遷移背景圖片")
+    print("5. 驗證遷移結果(如果啟用)")
+    print("6. 生成遷移報告")
+    print("")
+    print("參數設定:")
+    print(f"  - 試運行: {args.dry_run}")
+    print(f"  - 創建備份: {not args.no_backup}")
+    print(f"  - 執行驗證: {not args.no_validate}")
+    print(f"  - 自動回滾: {args.auto_rollback}")
+
+async def main() -> None:
+    """主函數 - 命令行界面"""
+    parser = _create_argument_parser()
     args = parser.parse_args()
 
     try:
         # 初始化容器
         container = Container()
-
-        # 創建遷移管理器
         manager = MigrationManager(container)
 
         # 執行指定操作
         if args.action == "migrate":
-            print("執行數據遷移...")
-            result = await manager.execute_migration_plan(
-                dry_run=args.dry_run,
-                backup=not args.no_backup,
-                validate=not args.no_validate,
-                auto_rollback=args.auto_rollback,
-            )
-
-            # 生成報告
-            report = await manager.generate_migration_report(result)
-
-            # 輸出結果
-            if args.output:
-                with open(args.output, "w", encoding="utf-8") as f:
-                    f.write(report)
-                print(f"報告已保存至: {args.output}")
-            else:
-                print(report)
-
+            await _handle_migrate_action(manager, args)
         elif args.action == "validate":
-            print("執行遷移驗證...")
-            result = await manager.validate_migration_only()
-
-            # 輸出結果
-            if args.output:
-                with open(args.output, "w", encoding="utf-8") as f:
-                    json.dump(result, f, ensure_ascii=False, indent=2, default=str)
-                print(f"驗證結果已保存至: {args.output}")
-            else:
-                print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
-
+            await _handle_validate_action(manager, args)
         elif args.action == "rollback":
-            if not args.migration_id:
-                print("錯誤: 回滾操作需要指定 --migration-id")
-                sys.exit(1)
-
-            print(f"執行遷移回滾 - ID: {args.migration_id}")
-            result = await manager.rollback_migration(args.migration_id)
-
-            # 輸出結果
-            if args.output:
-                with open(args.output, "w", encoding="utf-8") as f:
-                    json.dump(result, f, ensure_ascii=False, indent=2, default=str)
-                print(f"回滾結果已保存至: {args.output}")
-            else:
-                print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
-
+            await _handle_rollback_action(manager, args)
         elif args.action == "plan":
-            print("顯示遷移計劃...")
-            print("遷移將執行以下步驟:")
-            print("1. 檢查舊系統數據")
-            print("2. 創建備份(如果啟用)")
-            print("3. 遷移設定數據")
-            print("4. 遷移背景圖片")
-            print("5. 驗證遷移結果(如果啟用)")
-            print("6. 生成遷移報告")
-            print("")
-            print("參數設定:")
-            print(f"  - 試運行: {args.dry_run}")
-            print(f"  - 創建備份: {not args.no_backup}")
-            print(f"  - 執行驗證: {not args.no_validate}")
-            print(f"  - 自動回滾: {args.auto_rollback}")
+            _handle_plan_action(args)
 
     except Exception as e:
         print(f"執行失敗: {e}")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     asyncio.run(main())

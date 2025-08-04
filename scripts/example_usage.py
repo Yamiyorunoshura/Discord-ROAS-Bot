@@ -56,7 +56,9 @@ def example_api_service_analysis():
     prompt_content = generator.generate_prompt_with_tools()
 
     # 保存提示詞
-    output_file = generator.save_prompt_with_tools(prompt_content, "api-service-prompt.md")
+    output_file = generator.save_prompt_with_tools(
+        prompt_content, "api-service-prompt.md"
+    )
 
     print(f"✅ API 服務提示詞已生成: {output_file}")
     return output_file
@@ -80,7 +82,9 @@ def example_mobile_app_analysis():
     prompt_content = generator.generate_prompt_with_tools()
 
     # 保存提示詞
-    output_file = generator.save_prompt_with_tools(prompt_content, "mobile-app-prompt.md")
+    output_file = generator.save_prompt_with_tools(
+        prompt_content, "mobile-app-prompt.md"
+    )
 
     print(f"✅ 移動應用提示詞已生成: {output_file}")
     return output_file
@@ -101,7 +105,7 @@ def create_example_react_project(project_path: str):
             "start": "react-scripts start",
             "build": "react-scripts build",
             "test": "react-scripts test",
-            "eject": "react-scripts eject"
+            "eject": "react-scripts eject",
         },
         "dependencies": {
             "react": "^18.2.0",
@@ -109,19 +113,20 @@ def create_example_react_project(project_path: str):
             "react-router-dom": "^6.8.0",
             "@reduxjs/toolkit": "^1.9.0",
             "react-redux": "^8.0.0",
-            "axios": "^1.3.0"
+            "axios": "^1.3.0",
         },
         "devDependencies": {
             "react-scripts": "5.0.1",
             "@testing-library/react": "^13.4.0",
             "@testing-library/jest-dom": "^5.16.5",
             "eslint": "^8.35.0",
-            "prettier": "^2.8.0"
-        }
+            "prettier": "^2.8.0",
+        },
     }
 
     with open(project_dir / "package.json", "w") as f:
         import json
+
         json.dump(package_json, f, indent=2)
 
     # 創建 README.md
@@ -246,7 +251,7 @@ def create_example_express_project(project_path: str):
             "start": "node server.js",
             "dev": "nodemon server.js",
             "test": "jest",
-            "lint": "eslint ."
+            "lint": "eslint .",
         },
         "dependencies": {
             "express": "^4.18.2",
@@ -257,18 +262,19 @@ def create_example_express_project(project_path: str):
             "jsonwebtoken": "^9.0.0",
             "bcryptjs": "^2.4.3",
             "mongoose": "^7.0.0",
-            "joi": "^17.9.0"
+            "joi": "^17.9.0",
         },
         "devDependencies": {
             "nodemon": "^2.0.20",
             "jest": "^29.4.0",
             "supertest": "^6.3.0",
-            "eslint": "^8.35.0"
-        }
+            "eslint": "^8.35.0",
+        },
     }
 
     with open(project_dir / "package.json", "w") as f:
         import json
+
         json.dump(package_json, f, indent=2)
 
     # 創建 README.md
@@ -405,7 +411,7 @@ def create_example_react_native_project(project_path: str):
             "ios": "react-native run-ios",
             "start": "react-native start",
             "test": "jest",
-            "lint": "eslint ."
+            "lint": "eslint .",
         },
         "dependencies": {
             "react": "18.2.0",
@@ -415,7 +421,7 @@ def create_example_react_native_project(project_path: str):
             "@reduxjs/toolkit": "^1.9.0",
             "react-redux": "^8.0.0",
             "@react-native-async-storage/async-storage": "^1.18.0",
-            "react-native-vector-icons": "^9.2.0"
+            "react-native-vector-icons": "^9.2.0",
         },
         "devDependencies": {
             "@babel/core": "^7.20.0",
@@ -432,12 +438,13 @@ def create_example_react_native_project(project_path: str):
             "metro-react-native-babel-preset": "0.76.0",
             "prettier": "^2.4.1",
             "react-test-renderer": "18.2.0",
-            "typescript": "4.8.4"
-        }
+            "typescript": "4.8.4",
+        },
     }
 
     with open(project_dir / "package.json", "w") as f:
         import json
+
         json.dump(package_json, f, indent=2)
 
     # 創建 README.md
@@ -588,16 +595,17 @@ def main():
         mobile_app_file = example_mobile_app_analysis()
 
         print("\n" + "=" * 60)
-        print("🎉 所有示例運行完成！")
+        print("🎉 所有示例運行完成!")
         print("📄 生成的文件:")
         print(f"   - Web 應用提示詞: {web_app_file}")
         print(f"   - API 服務提示詞: {api_service_file}")
         print(f"   - 移動應用提示詞: {mobile_app_file}")
-        print("\n💡 提示：這些示例展示了如何使用工具驅動的系統生成不同類型的提示詞")
+        print("\n💡 提示:這些示例展示了如何使用工具驅動的系統生成不同類型的提示詞")
 
     except Exception as e:
         print(f"❌ 運行示例時出錯: {e}")
         import traceback
+
         traceback.print_exc()
 
 

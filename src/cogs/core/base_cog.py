@@ -21,7 +21,11 @@ from typing import Any, TypeVar
 import discord
 from discord.ext import commands
 
-from .dependency_container import DependencyContainer, get_global_container
+from .dependency_container import (
+    DependencyContainer,
+    ServiceLifetime,
+    get_global_container,
+)
 from .error_handler import error_handler
 
 # 設置日誌
@@ -29,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 # 類型變量
 T = TypeVar("T")
-
 
 class BaseCog(commands.Cog):
     """
@@ -64,10 +67,10 @@ class BaseCog(commands.Cog):
             await self.initialize()
 
             self._initialized = True
-            logger.info(f"【{self.__class__.__name__}】Cog 初始化完成")
+            logger.info(f"[{self.__class__.__name__}]Cog 初始化完成")
 
         except Exception as e:
-            logger.error(f"【{self.__class__.__name__}】Cog 初始化失敗: {e}")
+            logger.error(f"[{self.__class__.__name__}]Cog 初始化失敗: {e}")
             raise
 
     @abstractmethod
@@ -96,7 +99,7 @@ class BaseCog(commands.Cog):
             T: 服務實例
         """
         if not self._container:
-            raise RuntimeError(f"【{self.__class__.__name__}】依賴容器未初始化")
+            raise RuntimeError(f"[{self.__class__.__name__}]依賴容器未初始化")
 
         # 檢查緩存
         cache_key = f"{service_type.__name__}_{scope or 'default'}"
@@ -106,7 +109,7 @@ class BaseCog(commands.Cog):
         # 解析服務
         service = await self._container.resolve(service_type, scope)
 
-        # 緩存服務(僅對單例和作用域服務)
+        # 對單例和作用域服務進行緩存
         descriptor = self._container._services.get(service_type)
         if descriptor and descriptor.lifetime.value in ["singleton", "scoped"]:
             self._services[cache_key] = service
@@ -131,7 +134,7 @@ class BaseCog(commands.Cog):
             BaseCog: 支持鏈式調用
         """
         if not self._container:
-            raise RuntimeError(f"【{self.__class__.__name__}】依賴容器未初始化")
+            raise RuntimeError(f"[{self.__class__.__name__}]依賴容器未初始化")
 
         if lifetime == "singleton":
             self._container.register_singleton(service_type, implementation_type)
@@ -141,7 +144,7 @@ class BaseCog(commands.Cog):
             self._container.register_transient(service_type, implementation_type)
 
         logger.debug(
-            f"【{self.__class__.__name__}】註冊服務: {service_type.__name__} ({lifetime})"
+            f"[{self.__class__.__name__}]註冊服務: {service_type.__name__} ({lifetime})"
         )
         return self
 
@@ -160,15 +163,13 @@ class BaseCog(commands.Cog):
             BaseCog: 支持鏈式調用
         """
         if not self._container:
-            raise RuntimeError(f"【{self.__class__.__name__}】依賴容器未初始化")
-
-        from .dependency_container import ServiceLifetime
+            raise RuntimeError(f"[{self.__class__.__name__}]依賴容器未初始化")
 
         lifetime_enum = ServiceLifetime(lifetime)
         self._container.register_factory(service_type, factory, lifetime_enum)
 
         logger.debug(
-            f"【{self.__class__.__name__}】註冊工廠服務: {service_type.__name__} ({lifetime})"
+            f"[{self.__class__.__name__}]註冊工廠服務: {service_type.__name__} ({lifetime})"
         )
         return self
 
@@ -184,11 +185,11 @@ class BaseCog(commands.Cog):
             BaseCog: 支持鏈式調用
         """
         if not self._container:
-            raise RuntimeError(f"【{self.__class__.__name__}】依賴容器未初始化")
+            raise RuntimeError(f"[{self.__class__.__name__}]依賴容器未初始化")
 
         self._container.register_instance(service_type, instance)
         logger.debug(
-            f"【{self.__class__.__name__}】註冊實例服務: {service_type.__name__}"
+            f"[{self.__class__.__name__}]註冊實例服務: {service_type.__name__}"
         )
         return self
 
@@ -203,7 +204,7 @@ class BaseCog(commands.Cog):
             AsyncContextManager: 作用域上下文管理器
         """
         if not self._container:
-            raise RuntimeError(f"【{self.__class__.__name__}】依賴容器未初始化")
+            raise RuntimeError(f"[{self.__class__.__name__}]依賴容器未初始化")
 
         return self._container.create_scope(scope_name)
 
@@ -227,9 +228,9 @@ class BaseCog(commands.Cog):
         """Cog卸載時的清理工作"""
         try:
             await self.cleanup()
-            logger.info(f"【{self.__class__.__name__}】Cog 卸載完成")
+            logger.info(f"[{self.__class__.__name__}]Cog 卸載完成")
         except Exception as e:
-            logger.error(f"【{self.__class__.__name__}】Cog 卸載失敗: {e}")
+            logger.error(f"[{self.__class__.__name__}]Cog 卸載失敗: {e}")
 
     async def cleanup(self):
         """
@@ -263,7 +264,6 @@ class BaseCog(commands.Cog):
             "cached_services": len(self._services),
             "service_names": list(self._services.keys()),
         }
-
 
 class ServiceMixin:
     """
@@ -302,7 +302,7 @@ class ServiceMixin:
         # 解析服務
         service = await self._container.resolve(service_type, scope)
 
-        # 緩存服務(僅對單例和作用域服務)
+        # 對單例和作用域服務進行緩存
         descriptor = self._container._services.get(service_type)
         if descriptor and descriptor.lifetime.value in ["singleton", "scoped"]:
             self._services[cache_key] = service
@@ -312,7 +312,6 @@ class ServiceMixin:
     def clear_service_cache(self):
         """清理服務緩存"""
         self._services.clear()
-
 
 async def inject_service[T](service_type: type[T], scope: str | None = None) -> T:
     """
@@ -327,7 +326,6 @@ async def inject_service[T](service_type: type[T], scope: str | None = None) -> 
     """
     container = await get_global_container()
     return await container.resolve(service_type, scope)
-
 
 def requires_service[T](service_type: type[T], scope: str | None = None):
     """
@@ -349,7 +347,6 @@ def requires_service[T](service_type: type[T], scope: str | None = None):
         return wrapper
 
     return decorator
-
 
 class BasePanelView(discord.ui.View, ABC):
     """
@@ -402,7 +399,7 @@ class BasePanelView(discord.ui.View, ABC):
             "success": "✅",
             "error": "❌",
             "warning": "⚠️",
-            "info": "ℹ️",
+            "info": "📝",
             "loading": "🔄",
             "close": "❌",
         }
@@ -427,15 +424,16 @@ class BasePanelView(discord.ui.View, ABC):
                 return False
 
             # 檢查版主權限
-            if self.moderator_only:
-                if not hasattr(interaction.user, "guild_permissions") or not (
+            if self.moderator_only and (
+                not hasattr(interaction.user, "guild_permissions") or not (
                     interaction.user.guild_permissions.manage_messages
                     or interaction.user.guild_permissions.administrator
-                ):
-                    await self._send_error_response(
-                        interaction, "只有版主或管理員可以使用此功能"
-                    )
-                    return False
+                )
+            ):
+                await self._send_error_response(
+                    interaction, "只有版主或管理員可以使用此功能"
+                )
+                return False
 
             # 檢查特定權限
             if self.required_permissions:
@@ -471,7 +469,7 @@ class BasePanelView(discord.ui.View, ABC):
                 if hasattr(item, "disabled"):
                     item.disabled = True
 
-            # 更新消息(如果可能)
+            # 更新訊息內容顯示超時狀態
             if hasattr(self, "message") and self.message:
                 try:
                     embed = discord.Embed(
@@ -487,7 +485,7 @@ class BasePanelView(discord.ui.View, ABC):
             self.logger.error(f"超時處理失敗: {e}")
 
     async def on_error(
-        self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item
+        self, interaction: discord.Interaction, error: Exception, _item: discord.ui.Item
     ) -> None:
         """標準化錯誤處理"""
         self.logger.error(f"面板錯誤: {error}", exc_info=True)
@@ -575,7 +573,7 @@ class BasePanelView(discord.ui.View, ABC):
         emoji: str | None = None,
         disabled: bool = False,
         custom_id: str | None = None,
-        callback: Callable | None = None,
+        _callback: Callable | None = None,
     ) -> discord.ui.Button:
         """
         創建標準化按鈕
@@ -663,7 +661,6 @@ class BasePanelView(discord.ui.View, ABC):
             interaction: Discord 交互對象
         """
         pass
-
 
 class StandardPanelView(BasePanelView):
     """
@@ -1013,7 +1010,6 @@ class StandardPanelView(BasePanelView):
         """實現抽象方法"""
         await self.refresh_callback(interaction)
 
-
 class StandardEmbedBuilder:
     """
     標準化嵌入消息構建器
@@ -1025,7 +1021,7 @@ class StandardEmbedBuilder:
     def create_info_embed(title: str, description: str, **kwargs) -> discord.Embed:
         """創建信息嵌入"""
         embed = discord.Embed(
-            title=f"ℹ️ {title}",
+            title=f"📝 {title}",
             description=description,
             color=kwargs.get("color", discord.Color.blue()),
         )

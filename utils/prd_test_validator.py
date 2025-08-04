@@ -38,17 +38,21 @@ except ImportError as e:
     print("請確保在項目根目錄下運行此腳本")
     sys.exit(1)
 
+
 class PRDRequirementStatus(Enum):
     """PRD需求狀態枚舉"""
+
     NOT_IMPLEMENTED = "not_implemented"
     IN_PROGRESS = "in_progress"
     IMPLEMENTED = "implemented"
     TESTED = "tested"
     VERIFIED = "verified"
 
+
 @dataclass
 class PRDRequirement:
     """PRD需求數據結構"""
+
     requirement_id: str
     requirement_name: str
     description: str
@@ -59,9 +63,11 @@ class PRDRequirement:
     test_results: dict[str, Any] | None = None
     last_updated: str | None = None
 
+
 @dataclass
 class PRDTestReport:
     """PRD測試報告數據結構"""
+
     report_id: str
     timestamp: datetime
     total_requirements: int
@@ -73,6 +79,7 @@ class PRDTestReport:
     coverage_percentage: float
     pass_rate: float
     overall_status: str
+
 
 class PRDTestValidator:
     """PRD需求驗證測試執行器"""
@@ -141,7 +148,7 @@ class PRDTestValidator:
             test_summary={"error": error_message},
             coverage_percentage=0.0,
             pass_rate=0.0,
-            overall_status="錯誤"
+            overall_status="錯誤",
         )
 
     async def _parse_prd_requirements(self):
@@ -156,7 +163,7 @@ class PRDTestValidator:
                 description="建立直接調用實際程式邏輯的測試框架",
                 category="core",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-002",
@@ -164,7 +171,7 @@ class PRDTestValidator:
                 description="設計統一的活躍度API接口",
                 category="core",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-003",
@@ -172,7 +179,7 @@ class PRDTestValidator:
                 description="為每個程式邏輯功能設計獨立的API",
                 category="core",
                 priority="medium",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-004",
@@ -180,7 +187,7 @@ class PRDTestValidator:
                 description="活躍度測試模塊的完整實現",
                 category="functional",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-005",
@@ -188,7 +195,7 @@ class PRDTestValidator:
                 description="活躍度模塊統一API整合層實現",
                 category="functional",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-006",
@@ -196,7 +203,7 @@ class PRDTestValidator:
                 description="各個程式邏輯的個別API實現",
                 category="functional",
                 priority="medium",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-007",
@@ -204,7 +211,7 @@ class PRDTestValidator:
                 description="系統管理員、開發者、測試者、普通用戶權限設計",
                 category="permission",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-008",
@@ -212,7 +219,7 @@ class PRDTestValidator:
                 description="不同操作類型的權限檢查機制",
                 category="permission",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-009",
@@ -220,7 +227,7 @@ class PRDTestValidator:
                 description="測試層、業務邏輯層、實現層的分離架構",
                 category="technical",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
             ),
             PRDRequirement(
                 requirement_id="REQ-010",
@@ -228,8 +235,8 @@ class PRDTestValidator:
                 description="直接調用實際程式邏輯的測試架構",
                 category="technical",
                 priority="high",
-                status=PRDRequirementStatus.NOT_IMPLEMENTED
-            )
+                status=PRDRequirementStatus.NOT_IMPLEMENTED,
+            ),
         ]
 
     async def _validate_core_requirements(self):
@@ -283,44 +290,78 @@ class PRDTestValidator:
             if requirement.requirement_id == "REQ-004":
                 # 驗證ActivityTestModule實現
                 result = await self._validate_activity_test_module()
-                requirement.status = PRDRequirementStatus.IMPLEMENTED if result else PRDRequirementStatus.NOT_IMPLEMENTED
+                requirement.status = (
+                    PRDRequirementStatus.IMPLEMENTED
+                    if result
+                    else PRDRequirementStatus.NOT_IMPLEMENTED
+                )
                 requirement.implementation_details = {"test_module_exists": result}
 
             elif requirement.requirement_id == "REQ-005":
                 # 驗證ActivityModule實現
                 result = await self._validate_activity_module()
-                requirement.status = PRDRequirementStatus.IMPLEMENTED if result else PRDRequirementStatus.NOT_IMPLEMENTED
+                requirement.status = (
+                    PRDRequirementStatus.IMPLEMENTED
+                    if result
+                    else PRDRequirementStatus.NOT_IMPLEMENTED
+                )
                 requirement.implementation_details = {"activity_module_exists": result}
 
             elif requirement.requirement_id == "REQ-006":
                 # 驗證程式邏輯層API實現
                 result = await self._validate_logic_apis()
-                requirement.status = PRDRequirementStatus.IMPLEMENTED if result else PRDRequirementStatus.NOT_IMPLEMENTED
+                requirement.status = (
+                    PRDRequirementStatus.IMPLEMENTED
+                    if result
+                    else PRDRequirementStatus.NOT_IMPLEMENTED
+                )
                 requirement.implementation_details = {"logic_apis_exist": result}
 
             elif requirement.requirement_id == "REQ-007":
                 # 驗證權限分層架構
                 result = await self._validate_permission_hierarchy()
-                requirement.status = PRDRequirementStatus.IMPLEMENTED if result else PRDRequirementStatus.NOT_IMPLEMENTED
-                requirement.implementation_details = {"permission_hierarchy_exists": result}
+                requirement.status = (
+                    PRDRequirementStatus.IMPLEMENTED
+                    if result
+                    else PRDRequirementStatus.NOT_IMPLEMENTED
+                )
+                requirement.implementation_details = {
+                    "permission_hierarchy_exists": result
+                }
 
             elif requirement.requirement_id == "REQ-008":
                 # 驗證權限檢查邏輯
                 result = await self._validate_permission_logic()
-                requirement.status = PRDRequirementStatus.IMPLEMENTED if result else PRDRequirementStatus.NOT_IMPLEMENTED
+                requirement.status = (
+                    PRDRequirementStatus.IMPLEMENTED
+                    if result
+                    else PRDRequirementStatus.NOT_IMPLEMENTED
+                )
                 requirement.implementation_details = {"permission_logic_exists": result}
 
             elif requirement.requirement_id == "REQ-009":
                 # 驗證三層架構實現
                 result = await self._validate_three_layer_architecture()
-                requirement.status = PRDRequirementStatus.IMPLEMENTED if result else PRDRequirementStatus.NOT_IMPLEMENTED
-                requirement.implementation_details = {"three_layer_architecture_exists": result}
+                requirement.status = (
+                    PRDRequirementStatus.IMPLEMENTED
+                    if result
+                    else PRDRequirementStatus.NOT_IMPLEMENTED
+                )
+                requirement.implementation_details = {
+                    "three_layer_architecture_exists": result
+                }
 
             elif requirement.requirement_id == "REQ-010":
                 # 驗證真實邏輯測試架構
                 result = await self._validate_real_logic_testing()
-                requirement.status = PRDRequirementStatus.IMPLEMENTED if result else PRDRequirementStatus.NOT_IMPLEMENTED
-                requirement.implementation_details = {"real_logic_testing_exists": result}
+                requirement.status = (
+                    PRDRequirementStatus.IMPLEMENTED
+                    if result
+                    else PRDRequirementStatus.NOT_IMPLEMENTED
+                )
+                requirement.implementation_details = {
+                    "real_logic_testing_exists": result
+                }
 
             requirement.last_updated = datetime.now().isoformat()
 
@@ -333,9 +374,15 @@ class PRDTestValidator:
         """驗證ActivityTestModule實現"""
         try:
             # 檢查ActivityTestModule類是否存在
-            assert hasattr(self.activity_test_module, 'test_real_logic'), "缺少test_real_logic方法"
-            assert hasattr(self.activity_test_module, 'generate_test_report'), "缺少generate_test_report方法"
-            assert hasattr(self.activity_test_module, 'analyze_test_coverage'), "缺少analyze_test_coverage方法"
+            assert hasattr(self.activity_test_module, "test_real_logic"), (
+                "缺少test_real_logic方法"
+            )
+            assert hasattr(self.activity_test_module, "generate_test_report"), (
+                "缺少generate_test_report方法"
+            )
+            assert hasattr(self.activity_test_module, "analyze_test_coverage"), (
+                "缺少analyze_test_coverage方法"
+            )
 
             print("✅ ActivityTestModule實現驗證通過")
             return True
@@ -348,11 +395,21 @@ class PRDTestValidator:
         """驗證ActivityModule實現"""
         try:
             # 檢查ActivityModule類是否存在
-            assert hasattr(self.activity_module, 'get_unified_activity_api'), "缺少get_unified_activity_api方法"
-            assert hasattr(self.activity_module, 'integrate_renderer_api'), "缺少integrate_renderer_api方法"
-            assert hasattr(self.activity_module, 'integrate_settings_api'), "缺少integrate_settings_api方法"
-            assert hasattr(self.activity_module, 'integrate_panel_api'), "缺少integrate_panel_api方法"
-            assert hasattr(self.activity_module, 'calculate_activity_score'), "缺少calculate_activity_score方法"
+            assert hasattr(self.activity_module, "get_unified_activity_api"), (
+                "缺少get_unified_activity_api方法"
+            )
+            assert hasattr(self.activity_module, "integrate_renderer_api"), (
+                "缺少integrate_renderer_api方法"
+            )
+            assert hasattr(self.activity_module, "integrate_settings_api"), (
+                "缺少integrate_settings_api方法"
+            )
+            assert hasattr(self.activity_module, "integrate_panel_api"), (
+                "缺少integrate_panel_api方法"
+            )
+            assert hasattr(self.activity_module, "calculate_activity_score"), (
+                "缺少calculate_activity_score方法"
+            )
 
             print("✅ ActivityModule實現驗證通過")
             return True
@@ -372,20 +429,26 @@ class PRDTestValidator:
             calculation_api = CalculationLogicAPI()
 
             # 檢查渲染API
-            assert hasattr(renderer_api, 'render_data'), "渲染API缺少render_data方法"
+            assert hasattr(renderer_api, "render_data"), "渲染API缺少render_data方法"
 
             # 檢查設定API
-            assert hasattr(settings_api, 'get_settings'), "設定API缺少get_settings方法"
-            assert hasattr(settings_api, 'save_settings'), "設定API缺少save_settings方法"
+            assert hasattr(settings_api, "get_settings"), "設定API缺少get_settings方法"
+            assert hasattr(settings_api, "save_settings"), (
+                "設定API缺少save_settings方法"
+            )
 
             # 檢查面板API
-            assert hasattr(panel_api, 'open_panel'), "面板API缺少open_panel方法"
+            assert hasattr(panel_api, "open_panel"), "面板API缺少open_panel方法"
 
             # 檢查數據庫API
-            assert hasattr(database_api, 'execute_query'), "數據庫API缺少execute_query方法"
+            assert hasattr(database_api, "execute_query"), (
+                "數據庫API缺少execute_query方法"
+            )
 
             # 檢查計算API
-            assert hasattr(calculation_api, 'calculate_activity_score'), "計算API缺少calculate_activity_score方法"
+            assert hasattr(calculation_api, "calculate_activity_score"), (
+                "計算API缺少calculate_activity_score方法"
+            )
 
             print("✅ 程式邏輯層API實現驗證通過")
             return True
@@ -405,8 +468,12 @@ class PRDTestValidator:
             permission_manager = PermissionManager()
 
             # 檢查權限檢查方法
-            assert hasattr(permission_manager, 'can_manage_settings'), "缺少can_manage_settings方法"
-            assert hasattr(permission_manager, 'can_view_stats'), "缺少can_view_stats方法"
+            assert hasattr(permission_manager, "can_manage_settings"), (
+                "缺少can_manage_settings方法"
+            )
+            assert hasattr(permission_manager, "can_view_stats"), (
+                "缺少can_view_stats方法"
+            )
 
             print("✅ 權限分層架構驗證通過")
             return True
@@ -452,14 +519,18 @@ class PRDTestValidator:
         try:
             # 檢查三層架構的實現
             # 1. 測試層 (ActivityTestModule)
-            assert hasattr(self.activity_test_module, 'test_real_logic'), "測試層缺少test_real_logic方法"
+            assert hasattr(self.activity_test_module, "test_real_logic"), (
+                "測試層缺少test_real_logic方法"
+            )
 
             # 2. 業務邏輯層 (ActivityModule)
-            assert hasattr(self.activity_module, 'get_unified_activity_api'), "業務邏輯層缺少統一API"
+            assert hasattr(self.activity_module, "get_unified_activity_api"), (
+                "業務邏輯層缺少統一API"
+            )
 
             # 3. 實現層 (Logic APIs)
             renderer_api = RendererLogicAPI()
-            assert hasattr(renderer_api, 'render_data'), "實現層缺少渲染API"
+            assert hasattr(renderer_api, "render_data"), "實現層缺少渲染API"
 
             print("✅ 三層架構實現驗證通過")
             return True
@@ -480,9 +551,9 @@ class PRDTestValidator:
                         "test_name": "真實邏輯測試",
                         "test_type": "real_logic",
                         "parameters": {"user_id": 123, "guild_id": 456},
-                        "expected_result": {"status": "success"}
+                        "expected_result": {"status": "success"},
                     }
-                ]
+                ],
             }
 
             # 執行真實邏輯測試
@@ -510,9 +581,9 @@ class PRDTestValidator:
                         "test_name": "功能驗收測試",
                         "test_type": "functional",
                         "parameters": {"user_id": 123, "guild_id": 456},
-                        "expected_result": {"status": "success"}
+                        "expected_result": {"status": "success"},
                     }
-                ]
+                ],
             }
 
             test_report = await self.activity_test_module.test_real_logic(test_config)
@@ -531,7 +602,7 @@ class PRDTestValidator:
                 "guild_id": 123,
                 "user_id": 456,
                 "request_type": "get_activity_score",
-                "parameters": {"user_id": 456}
+                "parameters": {"user_id": 456},
             }
 
             response = await self.activity_module.get_unified_activity_api(request_data)
@@ -552,15 +623,18 @@ class PRDTestValidator:
 
         try:
             # 檢查API接口可用性
-            assert hasattr(self.activity_module, 'get_unified_activity_api'), "統一API接口不可用"
+            assert hasattr(self.activity_module, "get_unified_activity_api"), (
+                "統一API接口不可用"
+            )
 
             # 檢查日誌記錄
-            assert hasattr(self.activity_test_module, 'logger'), "測試模塊缺少日誌記錄"
+            assert hasattr(self.activity_test_module, "logger"), "測試模塊缺少日誌記錄"
 
             # 檢查數據存儲
             from cogs.activity_meter.database.database import ActivityDatabase
+
             db = ActivityDatabase()
-            assert hasattr(db, 'get_connection'), "數據庫接口不可用"
+            assert hasattr(db, "get_connection"), "數據庫接口不可用"
 
             print("✅ 後端系統驗收標準通過")
 
@@ -573,13 +647,31 @@ class PRDTestValidator:
 
         # 統計需求實現狀況
         total_requirements = len(self.requirements)
-        implemented_requirements = len([r for r in self.requirements if r.status == PRDRequirementStatus.IMPLEMENTED])
-        tested_requirements = len([r for r in self.requirements if r.status == PRDRequirementStatus.TESTED])
-        verified_requirements = len([r for r in self.requirements if r.status == PRDRequirementStatus.VERIFIED])
+        implemented_requirements = len(
+            [
+                r
+                for r in self.requirements
+                if r.status == PRDRequirementStatus.IMPLEMENTED
+            ]
+        )
+        tested_requirements = len(
+            [r for r in self.requirements if r.status == PRDRequirementStatus.TESTED]
+        )
+        verified_requirements = len(
+            [r for r in self.requirements if r.status == PRDRequirementStatus.VERIFIED]
+        )
 
         # 計算覆蓋率和通過率
-        coverage_percentage = (implemented_requirements / total_requirements) * 100 if total_requirements > 0 else 0
-        pass_rate = (verified_requirements / total_requirements) * 100 if total_requirements > 0 else 0
+        coverage_percentage = (
+            (implemented_requirements / total_requirements) * 100
+            if total_requirements > 0
+            else 0
+        )
+        pass_rate = (
+            (verified_requirements / total_requirements) * 100
+            if total_requirements > 0
+            else 0
+        )
 
         # 確定整體狀態
         if coverage_percentage >= 90 and pass_rate >= 95:
@@ -599,7 +691,7 @@ class PRDTestValidator:
             "verified_requirements": verified_requirements,
             "coverage_percentage": coverage_percentage,
             "pass_rate": pass_rate,
-            "overall_status": overall_status
+            "overall_status": overall_status,
         }
 
         return PRDTestReport(
@@ -613,7 +705,7 @@ class PRDTestValidator:
             test_summary=test_summary,
             coverage_percentage=coverage_percentage,
             pass_rate=pass_rate,
-            overall_status=overall_status
+            overall_status=overall_status,
         )
 
     async def _update_prd_document(self, prd_report: PRDTestReport):
@@ -623,7 +715,7 @@ class PRDTestValidator:
         try:
             # 讀取現有PRD文檔
             if os.path.exists(self.prd_file_path):
-                with open(self.prd_file_path, encoding='utf-8') as f:
+                with open(self.prd_file_path, encoding="utf-8") as f:
                     prd_content = f.read()
             else:
                 prd_content = self._create_default_prd_template()
@@ -633,7 +725,7 @@ class PRDTestValidator:
 
             # 保存更新後的PRD文檔
             os.makedirs(os.path.dirname(self.prd_file_path), exist_ok=True)
-            with open(self.prd_file_path, 'w', encoding='utf-8') as f:
+            with open(self.prd_file_path, "w", encoding="utf-8") as f:
                 f.write(updated_content)
 
             print(f"✅ PRD文檔已更新: {self.prd_file_path}")
@@ -693,18 +785,22 @@ class PRDTestValidator:
 
         # 更新需求實現狀態表格
         functional_requirements = self._generate_requirements_table(
-            [r for r in prd_report.requirements if r.category in ["core", "functional"]],
-            "功能需求"
+            [
+                r
+                for r in prd_report.requirements
+                if r.category in ["core", "functional"]
+            ],
+            "功能需求",
         )
 
         performance_requirements = self._generate_requirements_table(
             [r for r in prd_report.requirements if r.category == "performance"],
-            "性能需求"
+            "性能需求",
         )
 
         security_requirements = self._generate_requirements_table(
             [r for r in prd_report.requirements if r.category == "permission"],
-            "安全需求"
+            "安全需求",
         )
 
         # 生成詳細測試結果
@@ -754,7 +850,9 @@ class PRDTestValidator:
 
         return updated_content
 
-    def _generate_requirements_table(self, requirements: list[PRDRequirement], requirement_type: str) -> str:
+    def _generate_requirements_table(
+        self, requirements: list[PRDRequirement], requirement_type: str
+    ) -> str:
         """生成需求表格"""
         if not requirements:
             return f"""| 需求ID | 需求描述 | 實現狀態 | 測試狀態 | 最後更新 |
@@ -765,8 +863,20 @@ class PRDTestValidator:
 |-----|----|----|----|----|"""
 
         for req in requirements:
-            status_emoji = "✅" if req.status == PRDRequirementStatus.IMPLEMENTED else "❌" if req.status == PRDRequirementStatus.NOT_IMPLEMENTED else "🟡"
-            test_emoji = "✅" if req.status == PRDRequirementStatus.VERIFIED else "❌" if req.status == PRDRequirementStatus.NOT_IMPLEMENTED else "🟡"
+            status_emoji = (
+                "✅"
+                if req.status == PRDRequirementStatus.IMPLEMENTED
+                else "❌"
+                if req.status == PRDRequirementStatus.NOT_IMPLEMENTED
+                else "🟡"
+            )
+            test_emoji = (
+                "✅"
+                if req.status == PRDRequirementStatus.VERIFIED
+                else "❌"
+                if req.status == PRDRequirementStatus.NOT_IMPLEMENTED
+                else "🟡"
+            )
 
             table_content += f"\n| {req.requirement_id} | {req.requirement_name} | {status_emoji} | {test_emoji} | {req.last_updated or 'N/A'} |"
 
@@ -788,13 +898,21 @@ class PRDTestValidator:
                 "core": "核心需求",
                 "functional": "功能需求",
                 "permission": "權限需求",
-                "technical": "技術需求"
+                "technical": "技術需求",
             }.get(category, category)
 
             results.append(f"### {category_name}")
             for req in reqs:
-                status_emoji = "✅" if req.status == PRDRequirementStatus.VERIFIED else "❌" if req.status == PRDRequirementStatus.NOT_IMPLEMENTED else "🟡"
-                results.append(f"- {status_emoji} {req.requirement_id}: {req.requirement_name} - {req.description}")
+                status_emoji = (
+                    "✅"
+                    if req.status == PRDRequirementStatus.VERIFIED
+                    else "❌"
+                    if req.status == PRDRequirementStatus.NOT_IMPLEMENTED
+                    else "🟡"
+                )
+                results.append(
+                    f"- {status_emoji} {req.requirement_id}: {req.requirement_name} - {req.description}"
+                )
             results.append("")
 
         return "\n".join(results)
@@ -844,6 +962,7 @@ class PRDTestValidator:
         if self.activity_module:
             await self.activity_module.close()
 
+
 async def main():
     """主函數"""
     validator = PRDTestValidator()
@@ -853,9 +972,9 @@ async def main():
         prd_report = await validator.run_prd_validation_tests()
 
         # 輸出測試結果摘要
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("📊 PRD需求驗證測試結果摘要")
-        print("="*50)
+        print("=" * 50)
         print(f"總需求數: {prd_report.total_requirements}")
         print(f"已實現需求: {prd_report.implemented_requirements}")
         print(f"已測試需求: {prd_report.tested_requirements}")
@@ -863,12 +982,18 @@ async def main():
         print(f"需求覆蓋率: {prd_report.coverage_percentage:.1f}%")
         print(f"測試通過率: {prd_report.pass_rate:.1f}%")
         print(f"整體狀態: {prd_report.overall_status}")
-        print("="*50)
+        print("=" * 50)
 
         # 輸出詳細結果
         print("\n📋 詳細需求實現狀況:")
         for req in prd_report.requirements:
-            status_emoji = "✅" if req.status == PRDRequirementStatus.VERIFIED else "❌" if req.status == PRDRequirementStatus.NOT_IMPLEMENTED else "🟡"
+            status_emoji = (
+                "✅"
+                if req.status == PRDRequirementStatus.VERIFIED
+                else "❌"
+                if req.status == PRDRequirementStatus.NOT_IMPLEMENTED
+                else "🟡"
+            )
             print(f"{status_emoji} {req.requirement_id}: {req.requirement_name}")
 
     except Exception as e:
@@ -876,6 +1001,7 @@ async def main():
 
     finally:
         await validator.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -11,9 +11,8 @@ import discord
 if TYPE_CHECKING:
     from ...main import WelcomeCog
 
-
 async def build_settings_embed(
-    cog: "WelcomeCog", guild: discord.Guild, settings: dict[str, Any]
+    _cog: "WelcomeCog", guild: discord.Guild, settings: dict[str, Any]
 ) -> discord.Embed:
     """
     建立設定面板 Embed

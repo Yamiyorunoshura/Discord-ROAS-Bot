@@ -20,7 +20,6 @@ from ..database.database import ISyncDataDatabase
 logger = setup_module_logger("sync_data.service")
 error_handler = create_error_handler("sync_data.service", logger)
 
-
 # ────────────────────────────
 # 服務接口定義
 # ────────────────────────────
@@ -44,7 +43,6 @@ class ISyncDataService(Protocol):
     async def validate_sync_permissions(self, guild: discord.Guild) -> bool:
         """驗證同步權限"""
         ...
-
 
 class SyncDataService:
     """資料同步核心服務實現"""
@@ -110,7 +108,7 @@ class SyncDataService:
         async with sync_lock:
             try:
                 logger.info(
-                    f"【資料同步】開始同步伺服器 {guild.id} ({guild.name}),類型:{self._config.get_sync_type_name(sync_type)}"
+                    f"[資料同步]開始同步伺服器 {guild.id} ({guild.name}),類型:{self._config.get_sync_type_name(sync_type)}"
                 )
 
                 # 標記為同步中
@@ -165,7 +163,7 @@ class SyncDataService:
                 )
 
                 logger.info(
-                    f"【資料同步】伺服器 {guild.id} 同步完成:"
+                    f"[資料同步]伺服器 {guild.id} 同步完成:"
                     f"角色({result['roles_added']}+/{result['roles_updated']}~/{result['roles_deleted']}-) "
                     f"頻道({result['channels_added']}+/{result['channels_updated']}~/{result['channels_deleted']}-) "
                     f"耗時 {result['duration']:.2f}秒"
@@ -234,10 +232,10 @@ class SyncDataService:
                     await self._db.insert_or_replace_role(role)
                     if db_role:
                         updated += 1
-                        logger.debug(f"【資料同步】更新角色:{role.name} ({role.id})")
+                        logger.debug(f"[資料同步]更新角色:{role.name} ({role.id})")
                     else:
                         added += 1
-                        logger.debug(f"【資料同步】新增角色:{role.name} ({role.id})")
+                        logger.debug(f"[資料同步]新增角色:{role.name} ({role.id})")
 
             # 處理已刪除的角色
             current_role_ids = {role.id for role in guild.roles}
@@ -246,11 +244,11 @@ class SyncDataService:
                     await self._db.delete_role(db_role_id)
                     deleted += 1
                     logger.debug(
-                        f"【資料同步】刪除角色:{db_roles_dict[db_role_id]['name']} ({db_role_id})"
+                        f"[資料同步]刪除角色:{db_roles_dict[db_role_id]['name']} ({db_role_id})"
                     )
 
         except Exception as exc:
-            logger.error(f"【資料同步】角色同步失敗: {exc}")
+            logger.error(f"[資料同步]角色同步失敗: {exc}")
             raise
 
         return added, updated, deleted
@@ -292,12 +290,12 @@ class SyncDataService:
                     if db_channel:
                         updated += 1
                         logger.debug(
-                            f"【資料同步】更新頻道:{channel.name} ({channel.id})"
+                            f"[資料同步]更新頻道:{channel.name} ({channel.id})"
                         )
                     else:
                         added += 1
                         logger.debug(
-                            f"【資料同步】新增頻道:{channel.name} ({channel.id})"
+                            f"[資料同步]新增頻道:{channel.name} ({channel.id})"
                         )
 
             # 處理已刪除的頻道
@@ -307,11 +305,11 @@ class SyncDataService:
                     await self._db.delete_channel(db_channel_id)
                     deleted += 1
                     logger.debug(
-                        f"【資料同步】刪除頻道:{db_channels_dict[db_channel_id]['name']} ({db_channel_id})"
+                        f"[資料同步]刪除頻道:{db_channels_dict[db_channel_id]['name']} ({db_channel_id})"
                     )
 
         except Exception as exc:
-            logger.error(f"【資料同步】頻道同步失敗: {exc}")
+            logger.error(f"[資料同步]頻道同步失敗: {exc}")
             raise
 
         return added, updated, deleted
@@ -451,7 +449,7 @@ class SyncDataService:
             permissions = bot_member.guild_permissions
             for perm in required_permissions:
                 if not getattr(permissions, perm, False):
-                    logger.warning(f"【資料同步】伺服器 {guild.id} 缺少權限:{perm}")
+                    logger.warning(f"[資料同步]伺服器 {guild.id} 缺少權限:{perm}")
                     return False
 
             return True

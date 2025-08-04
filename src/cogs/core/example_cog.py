@@ -19,12 +19,14 @@ from discord import app_commands
 
 from .base_cog import BaseCog
 
+# 常數定義
+MAX_SERVICES_DISPLAY = 5
+
 if TYPE_CHECKING:
     from .database_pool import DatabaseConnectionPool
 
 # 設置日誌
 logger = logging.getLogger(__name__)
-
 
 # 示例服務類別
 class ExampleService:
@@ -37,12 +39,11 @@ class ExampleService:
     async def initialize(self):
         """異步初始化"""
         self.initialized = True
-        logger.info("【ExampleService】服務初始化完成")
+        logger.info("[ExampleService]服務初始化完成")
 
     def get_message(self) -> str:
         """獲取示例訊息"""
         return f"Hello from {self.name}! Initialized: {self.initialized}"
-
 
 class DatabaseService:
     """資料庫服務類別"""
@@ -52,10 +53,10 @@ class DatabaseService:
 
     async def initialize(self):
         """初始化資料庫連接"""
-        from .database_pool import get_global_pool
+        from .database_pool import get_global_pool  # noqa: PLC0415
 
         self.pool = await get_global_pool()
-        logger.info("【DatabaseService】資料庫服務初始化完成")
+        logger.info("[DatabaseService]資料庫服務初始化完成")
 
     async def get_connection_info(self) -> dict:
         """獲取連接池信息"""
@@ -70,7 +71,6 @@ class DatabaseService:
             "available_connections": status.get("available_connections", 0),
         }
 
-
 class ExampleCog(BaseCog):
     """
     示例Cog - 展示依賴注入的使用方式
@@ -78,7 +78,7 @@ class ExampleCog(BaseCog):
 
     async def initialize(self):
         """初始化示例Cog"""
-        logger.info("【ExampleCog】開始初始化...")
+        logger.info("[ExampleCog]開始初始化...")
 
         # 註冊服務
         self.register_service(ExampleService, lifetime="singleton")
@@ -88,11 +88,11 @@ class ExampleCog(BaseCog):
         await self.resolve_service(ExampleService)
         await self.resolve_service(DatabaseService)
 
-        logger.info("【ExampleCog】初始化完成")
+        logger.info("[ExampleCog]初始化完成")
 
     async def cleanup(self):
         """清理資源"""
-        logger.info("【ExampleCog】清理完成")
+        logger.info("[ExampleCog]清理完成")
 
     @app_commands.command(name="示例服務", description="測試依賴注入服務")
     async def example_service_command(self, interaction: discord.Interaction):
@@ -122,7 +122,7 @@ class ExampleCog(BaseCog):
             await interaction.followup.send(embed=embed)
 
         except Exception as e:
-            logger.error(f"【ExampleCog】示例服務指令失敗: {e}")
+            logger.error(f"[ExampleCog]示例服務指令失敗: {e}")
             await interaction.followup.send(f"❌ 執行失敗: {e}")
 
     @app_commands.command(name="資料庫狀態", description="查看資料庫連接池狀態")
@@ -167,7 +167,7 @@ class ExampleCog(BaseCog):
             await interaction.followup.send(embed=embed)
 
         except Exception as e:
-            logger.error(f"【ExampleCog】資料庫狀態指令失敗: {e}")
+            logger.error(f"[ExampleCog]資料庫狀態指令失敗: {e}")
             await interaction.followup.send(f"❌ 執行失敗: {e}")
 
     @app_commands.command(name="服務信息", description="查看依賴注入容器信息")
@@ -221,19 +221,19 @@ class ExampleCog(BaseCog):
                 services = container_info.get("services", [])
                 if services:
                     service_names = [
-                        s.get("service_type", "未知") for s in services[:5]
-                    ]  # 只顯示前5個
+                        s.get("service_type", "未知") for s in services[:MAX_SERVICES_DISPLAY]
+                    ]  # 只顯示前幾個
                     embed.add_field(
                         name="註冊的服務",
                         value="\n".join(service_names)
-                        + ("..." if len(services) > 5 else ""),
+                        + ("..." if len(services) > MAX_SERVICES_DISPLAY else ""),
                         inline=False,
                     )
 
             await interaction.followup.send(embed=embed)
 
         except Exception as e:
-            logger.error(f"【ExampleCog】服務信息指令失敗: {e}")
+            logger.error(f"[ExampleCog]服務信息指令失敗: {e}")
             await interaction.followup.send(f"❌ 執行失敗: {e}")
 
     @app_commands.command(name="作用域測試", description="測試服務作用域功能")
@@ -299,9 +299,8 @@ class ExampleCog(BaseCog):
             await interaction.followup.send(embed=embed)
 
         except Exception as e:
-            logger.error(f"【ExampleCog】作用域測試指令失敗: {e}")
+            logger.error(f"[ExampleCog]作用域測試指令失敗: {e}")
             await interaction.followup.send(f"❌ 執行失敗: {e}")
-
 
 # 設置函數
 async def setup(bot):

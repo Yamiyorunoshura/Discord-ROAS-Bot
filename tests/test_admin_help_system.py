@@ -1,6 +1,6 @@
 """測試管理面板幫助系統.
 
-此模組測試 AdminHelpSystem 的所有功能：
+此模組測試 AdminHelpSystem 的所有功能:
 - 幫助概覽顯示
 - 各種幫助視圖
 - 導航功能
@@ -17,7 +17,7 @@ from src.cogs.achievement.panel.admin_help_system import (
     QuickStartView,
     BestPracticesView,
     FAQView,
-    SecurityGuideView
+    SecurityGuideView,
 )
 
 
@@ -52,23 +52,23 @@ class TestAdminHelpSystem:
         """測試成功顯示幫助概覽."""
         # 執行測試
         await help_system.show_help_overview(mock_interaction)
-        
+
         # 驗證結果
         mock_interaction.response.send_message.assert_called_once()
         call_args = mock_interaction.response.send_message.call_args
-        assert call_args.kwargs['ephemeral'] is True
+        assert call_args.kwargs["ephemeral"] is True
 
     @pytest.mark.asyncio
     async def test_show_help_overview_error(self, help_system, mock_interaction):
         """測試顯示幫助概覽時發生錯誤."""
         # 設置模擬拋出異常
         mock_interaction.response.send_message.side_effect = Exception("Discord error")
-        
+
         # 執行測試
         await help_system.show_help_overview(mock_interaction)
-        
+
         # 驗證結果
-        # 由於異常被捕獲，應該會發送錯誤訊息
+        # 由於異常被捕獲,應該會發送錯誤訊息
         assert mock_interaction.response.send_message.call_count >= 1
 
     @pytest.mark.asyncio
@@ -76,7 +76,7 @@ class TestAdminHelpSystem:
         """測試創建幫助概覽 Embed."""
         # 執行測試
         embed = await help_system._create_help_overview_embed()
-        
+
         # 驗證結果
         assert embed.title == "📚 管理面板使用指南"
         assert "Discord ROAS Bot" in embed.description
@@ -87,10 +87,10 @@ class TestAdminHelpSystem:
         """測試創建快速開始 Embed."""
         # 創建 HelpOverviewView 實例來測試其方法
         view = HelpOverviewView(help_system)
-        
+
         # 執行測試
         embed = await view._create_quick_start_embed()
-        
+
         # 驗證結果
         assert embed.title == "🚀 快速開始指南"
         assert "歡迎使用成就系統管理面板" in embed.description
@@ -101,10 +101,10 @@ class TestAdminHelpSystem:
         """測試創建功能詳解 Embed."""
         # 創建 HelpOverviewView 實例來測試其方法
         view = HelpOverviewView(help_system)
-        
+
         # 執行測試
         embed = await view._create_feature_guide_embed()
-        
+
         # 驗證結果
         assert embed.title == "📋 功能詳解"
         assert "詳細介紹管理面板的各項功能" in embed.description
@@ -115,10 +115,10 @@ class TestAdminHelpSystem:
         """測試創建最佳實踐 Embed."""
         # 創建 HelpOverviewView 實例來測試其方法
         view = HelpOverviewView(help_system)
-        
+
         # 執行測試
         embed = await view._create_best_practices_embed()
-        
+
         # 驗證結果
         assert embed.title == "💡 最佳實踐建議"
         assert "遵循這些建議可以更好地使用管理面板" in embed.description
@@ -129,10 +129,10 @@ class TestAdminHelpSystem:
         """測試創建常見問題 Embed."""
         # 創建 HelpOverviewView 實例來測試其方法
         view = HelpOverviewView(help_system)
-        
+
         # 執行測試
         embed = await view._create_faq_embed()
-        
+
         # 驗證結果
         assert embed.title == "❓ 常見問題解答"
         assert "以下是使用管理面板時的常見問題" in embed.description
@@ -143,10 +143,10 @@ class TestAdminHelpSystem:
         """測試創建安全須知 Embed."""
         # 創建 HelpOverviewView 實例來測試其方法
         view = HelpOverviewView(help_system)
-        
+
         # 執行測試
         embed = await view._create_security_guide_embed()
-        
+
         # 驗證結果
         assert embed.title == "🔒 安全須知"
         assert "使用管理面板時請注意以下安全事項" in embed.description
@@ -166,7 +166,7 @@ class TestHelpOverviewView:
         """測試快速開始指南按鈕."""
         # 執行測試
         await help_overview_view.quick_start_guide(mock_interaction, MagicMock())
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -175,7 +175,7 @@ class TestHelpOverviewView:
         """測試功能詳解按鈕."""
         # 執行測試
         await help_overview_view.feature_guide(mock_interaction, MagicMock())
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -184,7 +184,7 @@ class TestHelpOverviewView:
         """測試最佳實踐按鈕."""
         # 執行測試
         await help_overview_view.best_practices(mock_interaction, MagicMock())
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -193,7 +193,7 @@ class TestHelpOverviewView:
         """測試常見問題按鈕."""
         # 執行測試
         await help_overview_view.faq(mock_interaction, MagicMock())
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -202,7 +202,7 @@ class TestHelpOverviewView:
         """測試安全須知按鈕."""
         # 執行測試
         await help_overview_view.security_guide(mock_interaction, MagicMock())
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -216,15 +216,17 @@ class TestFeatureGuideView:
         return FeatureGuideView(help_system)
 
     @pytest.mark.asyncio
-    async def test_feature_select_achievements(self, feature_guide_view, mock_interaction):
+    async def test_feature_select_achievements(
+        self, feature_guide_view, mock_interaction
+    ):
         """測試選擇成就管理功能."""
         # 設置模擬選擇
         mock_select = MagicMock()
         mock_select.values = ["achievements"]
-        
+
         # 執行測試
         await feature_guide_view.feature_select(mock_interaction, mock_select)
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -234,10 +236,10 @@ class TestFeatureGuideView:
         # 設置模擬選擇
         mock_select = MagicMock()
         mock_select.values = ["users"]
-        
+
         # 執行測試
         await feature_guide_view.feature_select(mock_interaction, mock_select)
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -247,10 +249,10 @@ class TestFeatureGuideView:
         # 設置模擬選擇
         mock_select = MagicMock()
         mock_select.values = ["criteria"]
-        
+
         # 執行測試
         await feature_guide_view.feature_select(mock_interaction, mock_select)
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 
@@ -259,7 +261,7 @@ class TestFeatureGuideView:
         """測試創建成就管理詳細說明 Embed."""
         # 執行測試
         embed = await feature_guide_view._create_feature_detail_embed("achievements")
-        
+
         # 驗證結果
         assert embed.title == "🏆 成就管理詳解"
         assert "創建成就" in embed.description
@@ -271,7 +273,7 @@ class TestFeatureGuideView:
         """測試創建用戶管理詳細說明 Embed."""
         # 執行測試
         embed = await feature_guide_view._create_feature_detail_embed("users")
-        
+
         # 驗證結果
         assert embed.title == "👥 用戶管理詳解"
         assert "搜尋用戶" in embed.description
@@ -283,7 +285,7 @@ class TestFeatureGuideView:
         """測試創建條件設置詳細說明 Embed."""
         # 執行測試
         embed = await feature_guide_view._create_feature_detail_embed("criteria")
-        
+
         # 驗證結果
         assert embed.title == "🎯 條件設置詳解"
         assert "訊息數量條件" in embed.description
@@ -296,7 +298,7 @@ class TestFeatureGuideView:
         """測試返回概覽按鈕."""
         # 執行測試
         await feature_guide_view.back_to_overview(mock_interaction, MagicMock())
-        
+
         # 驗證結果
         mock_interaction.response.edit_message.assert_called_once()
 

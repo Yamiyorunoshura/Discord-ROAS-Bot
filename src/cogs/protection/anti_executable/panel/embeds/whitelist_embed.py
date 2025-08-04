@@ -81,7 +81,7 @@ class WhitelistEmbed:
 
             # 操作說明
             embed.add_field(
-                name="ℹ️ 操作說明",
+                name="i️ 操作說明",
                 value="• 點擊「新增項目」按鈕添加新的白名單項目\n• 點擊「移除項目」按鈕移除指定項目\n• 點擊「清空白名單」按鈕清空所有項目",
                 inline=False,
             )

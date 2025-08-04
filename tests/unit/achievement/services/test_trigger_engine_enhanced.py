@@ -1,12 +1,12 @@
 """TriggerEngine 增強功能測試.
 
-此模組測試 TriggerEngine 的增強功能，包含：
+此模組測試 TriggerEngine 的增強功能,包含:
 - 複雜計數型成就觸發邏輯測試
 - 多階段里程碑成就測試
 - 事件驅動觸發系統測試
 - 效能優化功能測試
 
-測試遵循 AAA 模式和現代測試最佳實踐。
+測試遵循 AAA 模式和現代測試最佳實踐.
 """
 
 from datetime import datetime, timedelta
@@ -38,7 +38,9 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_counter_trigger_with_time_window(self, mock_repository, mock_progress_tracker):
+    async def test_counter_trigger_with_time_window(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試帶時間窗口的計數型成就觸發."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -49,9 +51,9 @@ class TestTriggerEngineEnhanced:
             criteria={
                 "target_value": 10,
                 "counter_field": "message_count",
-                "time_window": "7d"
+                "time_window": "7d",
             },
-            name="Test Counter Achievement"
+            name="Test Counter Achievement",
         )
 
         # 模擬時間窗口內的進度資料
@@ -59,7 +61,10 @@ class TestTriggerEngineEnhanced:
         mock_progress.progress_data = {
             "windowed_events": [
                 {"timestamp": datetime.now().isoformat(), "message_count": 5},
-                {"timestamp": (datetime.now() - timedelta(days=2)).isoformat(), "message_count": 6}
+                {
+                    "timestamp": (datetime.now() - timedelta(days=2)).isoformat(),
+                    "message_count": 6,
+                },
             ]
         }
         mock_repository.get_user_progress.return_value = mock_progress
@@ -72,7 +77,7 @@ class TestTriggerEngineEnhanced:
             user_id=123,
             achievement=achievement,
             criteria=achievement.criteria,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -81,7 +86,9 @@ class TestTriggerEngineEnhanced:
         mock_repository.get_user_progress.assert_called_once_with(123, 1)
 
     @pytest.mark.asyncio
-    async def test_counter_trigger_compound_conditions(self, mock_repository, mock_progress_tracker):
+    async def test_counter_trigger_compound_conditions(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試複合條件計數型成就觸發."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -92,12 +99,12 @@ class TestTriggerEngineEnhanced:
             criteria={
                 "conditions": [
                     {"field": "message_count", "target_value": 50, "operator": ">="},
-                    {"field": "reaction_count", "target_value": 20, "operator": ">="}
+                    {"field": "reaction_count", "target_value": 20, "operator": ">="},
                 ],
                 "logic_operator": "AND",
-                "target_value": 1  # 添加必要的 target_value
+                "target_value": 1,  # 添加必要的 target_value
             },
-            name="Complex Counter Achievement"
+            name="Complex Counter Achievement",
         )
 
         # 模擬進度資料
@@ -109,7 +116,7 @@ class TestTriggerEngineEnhanced:
         trigger_context = {
             "message_count": 60,
             "reaction_count": 25,
-            "event_type": "message_sent"
+            "event_type": "message_sent",
         }
 
         # Act
@@ -117,7 +124,7 @@ class TestTriggerEngineEnhanced:
             user_id=123,
             achievement=achievement,
             criteria=achievement.criteria,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -141,7 +148,9 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_multi_stage_milestone_trigger(self, mock_repository, mock_progress_tracker):
+    async def test_multi_stage_milestone_trigger(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試多階段里程碑成就觸發."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -152,16 +161,34 @@ class TestTriggerEngineEnhanced:
             criteria={
                 "milestone_type": "multi_stage",
                 "stages": [
-                    {"condition": {"type": "metric", "metric": "level", "threshold": 5}},
-                    {"condition": {"type": "metric", "metric": "level", "threshold": 10}},
-                    {"condition": {"type": "metric", "metric": "level", "threshold": 20}}
+                    {
+                        "condition": {
+                            "type": "metric",
+                            "metric": "level",
+                            "threshold": 5,
+                        }
+                    },
+                    {
+                        "condition": {
+                            "type": "metric",
+                            "metric": "level",
+                            "threshold": 10,
+                        }
+                    },
+                    {
+                        "condition": {
+                            "type": "metric",
+                            "metric": "level",
+                            "threshold": 20,
+                        }
+                    },
                 ],
-                "target_value": 3  # 三個階段
+                "target_value": 3,  # 三個階段
             },
-            name="Multi-Stage Milestone"
+            name="Multi-Stage Milestone",
         )
 
-        # 模擬當前階段為 2（最後階段）
+        # 模擬當前階段為 2(最後階段)
         mock_progress = Mock()
         mock_progress.progress_data = {"current_stage": 2}
         mock_repository.get_user_progress.return_value = mock_progress
@@ -174,7 +201,7 @@ class TestTriggerEngineEnhanced:
             user_id=123,
             achievement=achievement,
             criteria=achievement.criteria,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -182,7 +209,9 @@ class TestTriggerEngineEnhanced:
         assert "完成最終階段" in reason
 
     @pytest.mark.asyncio
-    async def test_event_triggered_milestone(self, mock_repository, mock_progress_tracker):
+    async def test_event_triggered_milestone(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試事件觸發里程碑成就."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -194,9 +223,9 @@ class TestTriggerEngineEnhanced:
                 "milestone_type": "event_triggered",
                 "required_events": ["message_sent", "reaction_added", "voice_joined"],
                 "event_sequence": True,
-                "target_value": 3  # 三個事件
+                "target_value": 3,  # 三個事件
             },
-            name="Event Sequence Milestone"
+            name="Event Sequence Milestone",
         )
 
         # 模擬事件歷史
@@ -204,7 +233,7 @@ class TestTriggerEngineEnhanced:
         mock_progress.progress_data = {
             "event_history": [
                 {"event_type": "message_sent", "timestamp": "2023-01-01T10:00:00"},
-                {"event_type": "reaction_added", "timestamp": "2023-01-01T10:01:00"}
+                {"event_type": "reaction_added", "timestamp": "2023-01-01T10:01:00"},
             ]
         }
         mock_repository.get_user_progress.return_value = mock_progress
@@ -217,7 +246,7 @@ class TestTriggerEngineEnhanced:
             user_id=123,
             achievement=achievement,
             criteria=achievement.criteria,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -229,7 +258,9 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_time_based_trigger_enhanced(self, mock_repository, mock_progress_tracker):
+    async def test_time_based_trigger_enhanced(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試增強的時間型成就觸發."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -237,18 +268,14 @@ class TestTriggerEngineEnhanced:
         achievement = create_test_achievement(
             achievement_id=5,
             achievement_type=AchievementType.TIME_BASED,
-            criteria={
-                "target_value": 7,
-                "time_unit": "days"
-            },
-            name="Consecutive Days Achievement"
+            criteria={"target_value": 7, "time_unit": "days"},
+            name="Consecutive Days Achievement",
         )
 
         # 模擬7天連續活動的進度資料
         today = datetime.now()
         streak_dates = [
-            (today - timedelta(days=i)).date().isoformat()
-            for i in range(7)
+            (today - timedelta(days=i)).date().isoformat() for i in range(7)
         ]
 
         mock_progress = Mock()
@@ -263,7 +290,7 @@ class TestTriggerEngineEnhanced:
             user_id=123,
             achievement=achievement,
             criteria=achievement.criteria,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -275,7 +302,9 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_conditional_trigger_enhanced(self, mock_repository, mock_progress_tracker):
+    async def test_conditional_trigger_enhanced(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試增強的條件型成就觸發."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -289,34 +318,30 @@ class TestTriggerEngineEnhanced:
                         "type": "metric_threshold",
                         "metric": "message_count",
                         "threshold": 100,
-                        "operator": ">="
+                        "operator": ">=",
                     },
-                    {
-                        "type": "achievement_dependency",
-                        "achievement_id": 1
-                    },
+                    {"type": "achievement_dependency", "achievement_id": 1},
                     {
                         "type": "time_range",
                         "start_time": "2023-01-01T00:00:00",
-                        "end_time": "2023-12-31T23:59:59"
-                    }
+                        "end_time": "2023-12-31T23:59:59",
+                    },
                 ],
                 "require_all": True,
-                "target_value": 1  # 條件型成就的目標
+                "target_value": 1,  # 條件型成就的目標
             },
-            name="Complex Conditional Achievement"
+            name="Complex Conditional Achievement",
         )
 
         # 模擬滿足所有條件
         mock_repository.has_user_achievement.return_value = True  # 有依賴成就
 
-        trigger_context = {
-            "message_count": 150,
-            "event_type": "message_sent"
-        }
+        trigger_context = {"message_count": 150, "event_type": "message_sent"}
 
         # Mock 時間範圍條件
-        with patch('src.cogs.achievement.services.trigger_engine.datetime') as mock_datetime:
+        with patch(
+            "src.cogs.achievement.services.trigger_engine.datetime"
+        ) as mock_datetime:
             mock_datetime.now.return_value = datetime(2023, 6, 15, 12, 0, 0)
             mock_datetime.fromisoformat = datetime.fromisoformat
 
@@ -325,7 +350,7 @@ class TestTriggerEngineEnhanced:
                 user_id=123,
                 achievement=achievement,
                 criteria=achievement.criteria,
-                trigger_context=trigger_context
+                trigger_context=trigger_context,
             )
 
         # Assert
@@ -337,7 +362,9 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_process_automatic_triggers(self, mock_repository, mock_progress_tracker):
+    async def test_process_automatic_triggers(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試自動觸發處理機制."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -348,14 +375,14 @@ class TestTriggerEngineEnhanced:
                 achievement_id=1,
                 achievement_type=AchievementType.COUNTER,
                 criteria={"target_value": 1, "counter_field": "message_count"},
-                name="Message Achievement"
+                name="Message Achievement",
             ),
             create_test_achievement(
                 achievement_id=2,
                 achievement_type=AchievementType.COUNTER,
                 criteria={"target_value": 1, "counter_field": "reaction_count"},
-                name="Reaction Achievement"
-            )
+                name="Reaction Achievement",
+            ),
         ]
 
         mock_repository.list_achievements.return_value = test_achievements
@@ -368,24 +395,15 @@ class TestTriggerEngineEnhanced:
 
         # 模擬成就頒發
         mock_user_achievement = UserAchievement(
-            id=1,
-            user_id=123,
-            achievement_id=1,
-            earned_at=datetime.now()
+            id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
         )
         mock_repository.award_achievement.return_value = mock_user_achievement
 
-        event_data = {
-            "message_count": 1,
-            "user_id": 123,
-            "event_type": "message_sent"
-        }
+        event_data = {"message_count": 1, "user_id": 123, "event_type": "message_sent"}
 
         # Act
         newly_earned = await engine.process_automatic_triggers(
-            user_id=123,
-            trigger_event="message_sent",
-            event_data=event_data
+            user_id=123, trigger_event="message_sent", event_data=event_data
         )
 
         # Assert
@@ -398,27 +416,26 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_batch_check_triggers_for_users(self, mock_repository, mock_progress_tracker):
+    async def test_batch_check_triggers_for_users(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試批量用戶觸發檢查."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
 
         # 模擬批量處理返回值
         mock_user_achievement = UserAchievement(
-            id=1,
-            user_id=123,
-            achievement_id=1,
-            earned_at=datetime.now()
+            id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
         )
 
-        with patch.object(engine, 'process_automatic_triggers') as mock_process:
+        with patch.object(engine, "process_automatic_triggers") as mock_process:
             mock_process.return_value = [mock_user_achievement]
 
             # Act
             results = await engine.batch_check_triggers_for_users(
                 user_ids=[123, 456, 789],
                 trigger_event="message_sent",
-                event_data={"message_count": 1}
+                event_data={"message_count": 1},
             )
 
         # Assert
@@ -432,7 +449,9 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_trigger_check_with_invalid_achievement(self, mock_repository, mock_progress_tracker):
+    async def test_trigger_check_with_invalid_achievement(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試無效成就的觸發檢查錯誤處理."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -443,13 +462,13 @@ class TestTriggerEngineEnhanced:
         # Act & Assert
         with pytest.raises(ValueError, match="成就 999 不存在"):
             await engine.check_achievement_trigger(
-                user_id=123,
-                achievement_id=999,
-                trigger_context=trigger_context
+                user_id=123, achievement_id=999, trigger_context=trigger_context
             )
 
     @pytest.mark.asyncio
-    async def test_trigger_check_with_inactive_achievement(self, mock_repository, mock_progress_tracker):
+    async def test_trigger_check_with_inactive_achievement(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試未啟用成就的觸發檢查."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -459,7 +478,7 @@ class TestTriggerEngineEnhanced:
             achievement_type=AchievementType.COUNTER,
             criteria={"target_value": 10},
             is_active=False,
-            name="Inactive Achievement"
+            name="Inactive Achievement",
         )
 
         mock_repository.has_user_achievement.return_value = False
@@ -469,9 +488,7 @@ class TestTriggerEngineEnhanced:
 
         # Act
         result, reason = await engine.check_achievement_trigger(
-            user_id=123,
-            achievement_id=1,
-            trigger_context=trigger_context
+            user_id=123, achievement_id=1, trigger_context=trigger_context
         )
 
         # Assert
@@ -483,7 +500,9 @@ class TestTriggerEngineEnhanced:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_trigger_check_performance(self, mock_repository, mock_progress_tracker):
+    async def test_trigger_check_performance(
+        self, mock_repository, mock_progress_tracker
+    ):
         """測試觸發檢查效能."""
         # Arrange
         engine = TriggerEngine(mock_repository, mock_progress_tracker)
@@ -492,7 +511,7 @@ class TestTriggerEngineEnhanced:
             achievement_id=1,
             achievement_type=AchievementType.COUNTER,
             criteria={"target_value": 1, "counter_field": "message_count"},
-            name="Performance Test Achievement"
+            name="Performance Test Achievement",
         )
 
         mock_repository.has_user_achievement.return_value = False
@@ -510,9 +529,7 @@ class TestTriggerEngineEnhanced:
         # 執行多次觸發檢查
         for _ in range(100):
             await engine.check_achievement_trigger(
-                user_id=123,
-                achievement_id=1,
-                trigger_context=trigger_context
+                user_id=123, achievement_id=1, trigger_context=trigger_context
             )
 
         end_time = datetime.now()
@@ -533,7 +550,7 @@ class TestTriggerConditions:
         condition = TriggerCondition(
             condition_type="metric_threshold",
             parameters={"metric": "message_count", "threshold": 100},
-            description="發送100則訊息"
+            description="發送100則訊息",
         )
 
         # Assert
@@ -546,16 +563,12 @@ class TestTriggerConditions:
         # Arrange
         valid_condition = TriggerCondition(
             condition_type="metric_threshold",
-            parameters={
-                "metric": "message_count",
-                "threshold": 100,
-                "operator": ">="
-            }
+            parameters={"metric": "message_count", "threshold": 100, "operator": ">="},
         )
 
         invalid_condition = TriggerCondition(
             condition_type="metric_threshold",
-            parameters={"threshold": 100}  # 缺少 metric
+            parameters={"threshold": 100},  # 缺少 metric
         )
 
         # Act
@@ -572,19 +585,19 @@ class TestTriggerConditions:
         # Arrange
         condition = TriggerCondition(
             condition_type="metric_threshold",
-            parameters={"metric": "message_count", "threshold": 100, "operator": ">="}
+            parameters={"metric": "message_count", "threshold": 100, "operator": ">="},
         )
 
         valid_config = AchievementTriggerConfig(
             achievement_type=AchievementType.COUNTER,
             conditions=[condition],
-            logic_operator="AND"
+            logic_operator="AND",
         )
 
         invalid_config = AchievementTriggerConfig(
             achievement_type=AchievementType.COUNTER,
             conditions=[],  # 空條件列表
-            logic_operator="INVALID"  # 無效邏輯運算子
+            logic_operator="INVALID",  # 無效邏輯運算子
         )
 
         # Act
@@ -601,6 +614,7 @@ class TestTriggerConditions:
 # ==========================================================================
 # 測試輔助函數和 Fixtures
 # ==========================================================================
+
 
 @pytest.fixture
 def mock_repository():
@@ -624,7 +638,7 @@ def create_test_achievement(
     achievement_type: AchievementType,
     criteria: dict[str, Any],
     is_active: bool = True,
-    name: str | None = None
+    name: str | None = None,
 ) -> Achievement:
     """創建測試用成就物件."""
     # 確保 criteria 包含必要的 target_value
@@ -639,7 +653,7 @@ def create_test_achievement(
         type=achievement_type,
         criteria=criteria,
         is_active=is_active,
-        points=100
+        points=100,
     )
 
 
@@ -647,7 +661,7 @@ def create_test_progress(
     user_id: int,
     achievement_id: int,
     current_value: float = 0.0,
-    progress_data: dict[str, Any] | None = None
+    progress_data: dict[str, Any] | None = None,
 ) -> AchievementProgress:
     """創建測試用進度物件."""
     return AchievementProgress(
@@ -656,5 +670,5 @@ def create_test_progress(
         achievement_id=achievement_id,
         current_value=current_value,
         progress_data=progress_data or {},
-        last_updated=datetime.now()
+        last_updated=datetime.now(),
     )

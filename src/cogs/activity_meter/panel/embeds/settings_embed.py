@@ -4,7 +4,13 @@
 - 支援PRD v1.71的新設定選項
 """
 
+import logging
+
 import discord
+
+from ...main.embed_optimizer import optimize_embed, validate_embed
+
+logger = logging.getLogger("activity_meter")
 
 
 async def create_settings_embed(
@@ -90,5 +96,12 @@ async def create_settings_embed(
     )
 
     embed.set_footer(text="活躍度系統 • 設定面板 v1.71")
+
+    # 驗證和優化 embed
+    validation_result = validate_embed(embed)
+    if not validation_result["is_valid"]:
+        logger.warning(f"Settings embed 驗證失敗: {validation_result['issues']}")
+        embed = optimize_embed(embed)
+        logger.info(f"Settings embed 已優化, 字符數: {validation_result['char_count']}")
 
     return embed

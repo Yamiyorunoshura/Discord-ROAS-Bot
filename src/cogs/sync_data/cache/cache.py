@@ -45,7 +45,6 @@ class ISyncDataCache(Protocol):
         """清除所有快取"""
         ...
 
-
 class SyncDataCacheService:
     """資料同步快取服務實現"""
 

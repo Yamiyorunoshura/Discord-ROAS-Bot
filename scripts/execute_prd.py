@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 PRD-1.64.1 執行腳本
-簡化的執行器，按照優化後的PRD進行品質改進
+簡化的執行器,按照優化後的PRD進行品質改進
 """
 
 import os
@@ -24,9 +24,9 @@ class PRDExecutor:
 
     def print_header(self, title: str):
         """打印標題"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print(f"  {title}")
-        print("="*60)
+        print("=" * 60)
 
     def print_step(self, step: str):
         """打印步驟"""
@@ -39,7 +39,9 @@ class PRDExecutor:
         print(f"   執行: {cmd}")
 
         try:
-            result = subprocess.run(cmd, check=False, shell=True, capture_output=True, text=True)
+            result = subprocess.run(
+                cmd, check=False, shell=True, capture_output=True, text=True
+            )
             if result.returncode == 0:
                 print("   ✅ 成功")
                 return True
@@ -105,8 +107,8 @@ safety>=2.3.0
         self.run_command("pre-commit install", "安裝pre-commit hooks")
 
     def day_1_security_emergency(self):
-        """第1天：緊急安全修復"""
-        self.print_header("第1天：緊急安全修復")
+        """第1天:緊急安全修復"""
+        self.print_header("第1天:緊急安全修復")
 
         # 創建修復分支
         self.print_step("創建修復分支")
@@ -114,16 +116,23 @@ safety>=2.3.0
 
         # 執行安全掃描
         self.print_step("執行安全掃描")
-        self.run_command("bandit -r cogs/ -f json -o reports/baseline_security.json", "執行Bandit安全掃描")
+        self.run_command(
+            "bandit -r cogs/ -f json -o reports/baseline_security.json",
+            "執行Bandit安全掃描",
+        )
 
         # 使用工具包修復
         self.print_step("執行自動修復")
-        self.run_command("python scripts/quality_improvement_toolkit.py stage1", "執行階段1修復")
+        self.run_command(
+            "python scripts/quality_improvement_toolkit.py stage1", "執行階段1修復"
+        )
 
         # 提交修復
         self.print_step("提交修復")
         self.run_command("git add .", "添加修復文件")
-        self.run_command('git commit -m "fix: 修復高風險安全問題 - MD5替換為SHA256"', "提交安全修復")
+        self.run_command(
+            'git commit -m "fix: 修復高風險安全問題 - MD5替換為SHA256"', "提交安全修復"
+        )
 
         print("\n✅ 第1天任務完成")
         print("   - 已修復MD5使用問題")
@@ -131,22 +140,25 @@ safety>=2.3.0
         print("   - 已提交修復到分支")
 
     def day_2_security_complete(self):
-        """第2天：完善安全修復"""
-        self.print_header("第2天：完善安全修復")
+        """第2天:完善安全修復"""
+        self.print_header("第2天:完善安全修復")
 
         # 繼續安全修復
         self.print_step("檢查剩餘安全問題")
         self.run_command("bandit -r cogs/ -ll", "檢查高風險安全問題")
 
         # 手動修復提醒
-        print("\n⚠️  請手動檢查並修復以下問題：")
+        print("\n⚠️  請手動檢查並修復以下問題:")
         print("   1. SQL注入風險 - 使用參數化查詢")
         print("   2. 硬編碼敏感資訊 - 移至環境變數")
         print("   3. 弱密碼演算法 - 使用強加密算法")
 
         # 最終安全驗證
         self.print_step("最終安全驗證")
-        self.run_command("python scripts/quality_improvement_toolkit.py assessment", "執行完整安全評估")
+        self.run_command(
+            "python scripts/quality_improvement_toolkit.py assessment",
+            "執行完整安全評估",
+        )
 
         # 合併到develop
         self.print_step("合併修復")
@@ -158,8 +170,8 @@ safety>=2.3.0
         print("   - 已合併到develop分支")
 
     def day_3_type_core(self):
-        """第3天：核心類型修復"""
-        self.print_header("第3天：核心類型修復")
+        """第3天:核心類型修復"""
+        self.print_header("第3天:核心類型修復")
 
         # 創建類型修復分支
         self.print_step("創建類型修復分支")
@@ -173,17 +185,17 @@ safety>=2.3.0
         priority_files = [
             "cogs/core/logger.py",
             "cogs/core/base_cog.py",
-            "cogs/core/health_checker.py"
+            "cogs/core/health_checker.py",
         ]
 
-        print("\n📝 需要手動修復的檔案：")
+        print("\n📝 需要手動修復的檔案:")
         for file in priority_files:
             if os.path.exists(file):
                 print(f"   - {file}")
                 # 顯示該文件的類型錯誤
                 self.run_command(f"mypy {file} --strict", f"檢查 {file}")
 
-        print("\n⚠️  請使用以下模式修復類型錯誤：")
+        print("\n⚠️  請使用以下模式修復類型錯誤:")
         print("   1. Union類型: 使用 if x is not None 檢查")
         print("   2. 返回類型: 明確標註返回類型")
         print("   3. 異步函數: 使用 -> Awaitable[T] 或 -> T")
@@ -199,8 +211,8 @@ safety>=2.3.0
         print("   - 請確保所有核心模組類型錯誤已修復")
 
     def day_4_type_modules(self):
-        """第4天：模組類型修復"""
-        self.print_header("第4天：模組類型修復")
+        """第4天:模組類型修復"""
+        self.print_header("第4天:模組類型修復")
 
         # 檢查其他模組
         modules = [
@@ -208,7 +220,7 @@ safety>=2.3.0
             "cogs/protection/",
             "cogs/message_listener/",
             "cogs/sync_data/",
-            "cogs/welcome/"
+            "cogs/welcome/",
         ]
 
         self.print_step("檢查所有模組類型")
@@ -231,8 +243,8 @@ safety>=2.3.0
         print("   - 已提交類型修復")
 
     def day_5_test_setup(self):
-        """第5天：測試環境建立"""
-        self.print_header("第5天：測試環境建立")
+        """第5天:測試環境建立"""
+        self.print_header("第5天:測試環境建立")
 
         # 創建測試分支
         self.print_step("創建測試分支")
@@ -240,7 +252,9 @@ safety>=2.3.0
 
         # 建立測試基礎設施
         self.print_step("建立測試基礎設施")
-        self.run_command("python scripts/quality_improvement_toolkit.py stage3", "建立測試基礎設施")
+        self.run_command(
+            "python scripts/quality_improvement_toolkit.py stage3", "建立測試基礎設施"
+        )
 
         # 檢查測試狀態
         self.print_step("檢查測試狀態")
@@ -256,12 +270,15 @@ safety>=2.3.0
         print("   - 已創建測試夾具")
 
     def day_6_test_coverage(self):
-        """第6天：測試覆蓋率"""
-        self.print_header("第6天：測試覆蓋率")
+        """第6天:測試覆蓋率"""
+        self.print_header("第6天:測試覆蓋率")
 
         # 執行覆蓋率測試
         self.print_step("執行覆蓋率測試")
-        self.run_command("pytest --cov=cogs --cov-report=html --cov-report=term-missing", "執行覆蓋率測試")
+        self.run_command(
+            "pytest --cov=cogs --cov-report=html --cov-report=term-missing",
+            "執行覆蓋率測試",
+        )
 
         # 顯示覆蓋率報告
         self.print_step("生成覆蓋率報告")
@@ -271,7 +288,9 @@ safety>=2.3.0
         # 提交測試改進
         self.print_step("提交測試改進")
         self.run_command("git add .", "添加測試改進")
-        self.run_command('git commit -m "feat: 建立完整測試基礎設施和覆蓋率監控"', "提交測試改進")
+        self.run_command(
+            'git commit -m "feat: 建立完整測試基礎設施和覆蓋率監控"', "提交測試改進"
+        )
 
         # 合併測試分支
         self.print_step("合併測試分支")
@@ -284,8 +303,8 @@ safety>=2.3.0
         print("   - 已合併測試改進")
 
     def day_7_performance(self):
-        """第7天：性能優化"""
-        self.print_header("第7天：性能優化")
+        """第7天:性能優化"""
+        self.print_header("第7天:性能優化")
 
         # 創建性能優化分支
         self.print_step("創建性能優化分支")
@@ -294,7 +313,7 @@ safety>=2.3.0
         # 執行性能基準測試
         self.print_step("執行性能基準測試")
 
-        print("\n📊 性能優化重點：")
+        print("\n📊 性能優化重點:")
         print("   1. 資料庫查詢優化 - 使用批量查詢")
         print("   2. 快取機制 - 實施智能快取")
         print("   3. 記憶體使用 - 優化物件生命週期")
@@ -303,7 +322,7 @@ safety>=2.3.0
         # 檢查資料庫檔案
         db_files = list(Path("cogs").glob("**/database/*.py"))
         if db_files:
-            print("\n📁 需要優化的資料庫檔案：")
+            print("\n📁 需要優化的資料庫檔案:")
             for db_file in db_files:
                 print(f"   - {db_file}")
 
@@ -312,8 +331,8 @@ safety>=2.3.0
         print("   - 請手動實施性能優化")
 
     def day_8_performance_complete(self):
-        """第8天：完成性能優化"""
-        self.print_header("第8天：完成性能優化")
+        """第8天:完成性能優化"""
+        self.print_header("第8天:完成性能優化")
 
         # 執行性能驗證
         self.print_step("執行性能驗證")
@@ -321,7 +340,9 @@ safety>=2.3.0
         # 提交性能改進
         self.print_step("提交性能改進")
         self.run_command("git add .", "添加性能改進")
-        self.run_command('git commit -m "perf: 實施資料庫查詢優化和快取機制"', "提交性能改進")
+        self.run_command(
+            'git commit -m "perf: 實施資料庫查詢優化和快取機制"', "提交性能改進"
+        )
 
         # 合併到develop
         self.print_step("合併性能改進")
@@ -333,8 +354,8 @@ safety>=2.3.0
         print("   - 已合併到develop分支")
 
     def day_9_toolchain(self):
-        """第9天：工具鏈建立"""
-        self.print_header("第9天：工具鏈建立")
+        """第9天:工具鏈建立"""
+        self.print_header("第9天:工具鏈建立")
 
         # 創建工具鏈分支
         self.print_step("創建工具鏈分支")
@@ -382,21 +403,28 @@ repos:
         print("   - 已配置pre-commit hooks")
 
     def day_10_final_validation(self):
-        """第10天：最終驗證"""
-        self.print_header("第10天：最終驗證")
+        """第10天:最終驗證"""
+        self.print_header("第10天:最終驗證")
 
         # 執行完整評估
         self.print_step("執行完整品質評估")
-        self.run_command("python scripts/quality_improvement_toolkit.py assessment", "執行完整評估")
+        self.run_command(
+            "python scripts/quality_improvement_toolkit.py assessment", "執行完整評估"
+        )
 
         # 執行所有測試
         self.print_step("執行所有測試")
-        self.run_command("pytest --cov=cogs --cov-report=html --cov-report=term-missing", "執行完整測試")
+        self.run_command(
+            "pytest --cov=cogs --cov-report=html --cov-report=term-missing",
+            "執行完整測試",
+        )
 
         # 最終提交
         self.print_step("最終提交")
         self.run_command("git add .", "添加所有改進")
-        self.run_command('git commit -m "feat: 完成代碼品質改進計劃 - 達到A-級品質"', "最終提交")
+        self.run_command(
+            'git commit -m "feat: 完成代碼品質改進計劃 - 達到A-級品質"', "最終提交"
+        )
 
         # 合併到develop
         self.print_step("合併最終改進")
@@ -405,29 +433,31 @@ repos:
 
         # 創建版本標籤
         self.print_step("創建版本標籤")
-        self.run_command("git tag -a v1.64.1 -m 'Release v1.64.1: 代碼品質改進'", "創建版本標籤")
+        self.run_command(
+            "git tag -a v1.64.1 -m 'Release v1.64.1: 代碼品質改進'", "創建版本標籤"
+        )
 
         print("\n🎉 第10天任務完成")
         print("   - 已完成所有品質改進")
         print("   - 已創建版本標籤")
-        print("   - 品質改進計劃全部完成！")
+        print("   - 品質改進計劃全部完成!")
 
     def show_menu(self):
         """顯示菜單"""
         self.print_header("PRD-1.64.1 執行器")
 
-        print("選擇要執行的任務：")
+        print("選擇要執行的任務:")
         print("  0  - 檢查先決條件")
-        print("  1  - 第1天：緊急安全修復")
-        print("  2  - 第2天：完善安全修復")
-        print("  3  - 第3天：核心類型修復")
-        print("  4  - 第4天：模組類型修復")
-        print("  5  - 第5天：測試環境建立")
-        print("  6  - 第6天：測試覆蓋率")
-        print("  7  - 第7天：性能優化")
-        print("  8  - 第8天：完成性能優化")
-        print("  9  - 第9天：工具鏈建立")
-        print("  10 - 第10天：最終驗證")
+        print("  1  - 第1天:緊急安全修復")
+        print("  2  - 第2天:完善安全修復")
+        print("  3  - 第3天:核心類型修復")
+        print("  4  - 第4天:模組類型修復")
+        print("  5  - 第5天:測試環境建立")
+        print("  6  - 第6天:測試覆蓋率")
+        print("  7  - 第7天:性能優化")
+        print("  8  - 第8天:完成性能優化")
+        print("  9  - 第9天:工具鏈建立")
+        print("  10 - 第10天:最終驗證")
         print("  a  - 執行完整評估")
         print("  q  - 退出")
 
@@ -457,9 +487,12 @@ repos:
         elif choice == "10":
             self.day_10_final_validation()
         elif choice == "a":
-            self.run_command("python scripts/quality_improvement_toolkit.py assessment", "執行完整評估")
+            self.run_command(
+                "python scripts/quality_improvement_toolkit.py assessment",
+                "執行完整評估",
+            )
         elif choice == "q":
-            print("👋 再見！")
+            print("👋 再見!")
             sys.exit(0)
         else:
             print("❌ 無效選擇")
@@ -480,7 +513,10 @@ def main():
         elif day == "day2":
             executor.day_2_security_complete()
         elif day == "assessment":
-            executor.run_command("python scripts/quality_improvement_toolkit.py assessment", "執行完整評估")
+            executor.run_command(
+                "python scripts/quality_improvement_toolkit.py assessment",
+                "執行完整評估",
+            )
         else:
             print(f"未知命令: {day}")
     else:

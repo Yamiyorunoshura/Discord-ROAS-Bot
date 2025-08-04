@@ -1,12 +1,12 @@
 """成就系統事務協調器.
 
-此模組提供成就系統的統一事務協調功能，整合：
+此模組提供成就系統的統一事務協調功能,整合:
 - 事務管理器
 - 快取同步管理器
 - 資料完整性驗證器
 - 統計資料更新器
 
-提供完整的 ACID 事務保證和資料一致性管理。
+提供完整的 ACID 事務保證和資料一致性管理.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from .cache_sync_manager import CacheEvent, CacheEventType, CacheSyncManager
 from .data_integrity_validator import (
@@ -35,19 +36,19 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class CoordinatorStatus(Enum):
     """協調器狀態枚舉."""
+
     INITIALIZING = "initializing"
     READY = "ready"
     BUSY = "busy"
     ERROR = "error"
     SHUTDOWN = "shutdown"
 
-
 @dataclass
 class CoordinatedOperation:
     """協調操作記錄."""
+
     operation_id: str
     operation_type: OperationType
     user_ids: list[int] = field(default_factory=list)
@@ -61,11 +62,10 @@ class CoordinatedOperation:
     success: bool = False
     error_message: str | None = None
 
-
 class TransactionCoordinator:
     """事務協調器.
 
-    統一協調事務管理、快取同步和資料驗證。
+    統一協調事務管理、快取同步和資料驗證.
     """
 
     def __init__(
@@ -73,7 +73,7 @@ class TransactionCoordinator:
         achievement_service=None,
         cache_service=None,
         enable_validation: bool = True,
-        validation_level: ValidationLevel = ValidationLevel.STANDARD
+        validation_level: ValidationLevel = ValidationLevel.STANDARD,
     ):
         """初始化事務協調器.
 
@@ -90,18 +90,18 @@ class TransactionCoordinator:
 
         # 初始化子管理器
         self.transaction_manager = TransactionManager(
-            cache_service=cache_service,
-            achievement_service=achievement_service
+            cache_service=cache_service, achievement_service=achievement_service
         )
 
-        self.cache_sync_manager = CacheSyncManager(
-            cache_service=cache_service
-        )
+        self.cache_sync_manager = CacheSyncManager(cache_service=cache_service)
 
-        self.data_validator = DataIntegrityValidator(
-            achievement_service=achievement_service,
-            cache_service=cache_service
-        ) if enable_validation else None
+        self.data_validator = (
+            DataIntegrityValidator(
+                achievement_service=achievement_service, cache_service=cache_service
+            )
+            if enable_validation
+            else None
+        )
 
         # 狀態管理
         self.status = CoordinatorStatus.READY
@@ -125,7 +125,7 @@ class TransactionCoordinator:
         achievement_ids: list[int] | None = None,
         pre_validation: bool = False,
         post_validation: bool = True,
-        **metadata
+        **metadata,
     ) -> AsyncGenerator[CoordinatedOperation, None]:
         """協調操作上下文管理器.
 
@@ -140,11 +140,9 @@ class TransactionCoordinator:
         Yields:
             CoordinatedOperation: 協調操作實例
         """
-        from uuid import uuid4
-
         # 檢查協調器狀態
         if self.status != CoordinatorStatus.READY:
-            raise RuntimeError(f"事務協調器不可用，當前狀態: {self.status.value}")
+            raise RuntimeError(f"事務協調器不可用,當前狀態: {self.status.value}")
 
         self.status = CoordinatorStatus.BUSY
 
@@ -153,19 +151,19 @@ class TransactionCoordinator:
             operation_type=operation_type,
             user_ids=user_ids or [],
             achievement_ids=achievement_ids or [],
-            metadata=metadata
+            metadata=metadata,
         )
 
         self._stats["operations_coordinated"] += 1
 
         logger.info(
-            f"【事務協調器】開始協調操作 {coordinated_op.operation_id}",
+            f"[事務協調器]開始協調操作 {coordinated_op.operation_id}",
             extra={
                 "operation_type": operation_type.value,
                 "user_ids": user_ids,
                 "achievement_ids": achievement_ids,
-                "metadata": metadata
-            }
+                "metadata": metadata,
+            },
         )
 
         try:
@@ -175,9 +173,7 @@ class TransactionCoordinator:
 
             # 開始事務
             async with self.transaction_manager.transaction(
-                operation_type,
-                user_ids,
-                **metadata
+                operation_type, user_ids, **metadata
             ) as transaction:
                 coordinated_op.transaction = transaction
 
@@ -195,11 +191,14 @@ class TransactionCoordinator:
             self._stats["successful_operations"] += 1
 
             logger.info(
-                f"【事務協調器】操作協調完成 {coordinated_op.operation_id}",
+                f"[事務協調器]操作協調完成 {coordinated_op.operation_id}",
                 extra={
                     "success": True,
-                    "duration_ms": (coordinated_op.completed_at - coordinated_op.started_at).total_seconds() * 1000
-                }
+                    "duration_ms": (
+                        coordinated_op.completed_at - coordinated_op.started_at
+                    ).total_seconds()
+                    * 1000,
+                },
             )
 
         except Exception as e:
@@ -209,8 +208,8 @@ class TransactionCoordinator:
             self._stats["failed_operations"] += 1
 
             logger.error(
-                f"【事務協調器】操作協調失敗 {coordinated_op.operation_id}: {e}",
-                exc_info=True
+                f"[事務協調器]操作協調失敗 {coordinated_op.operation_id}: {e}",
+                exc_info=True,
             )
             raise
 
@@ -218,11 +217,7 @@ class TransactionCoordinator:
             self.status = CoordinatorStatus.READY
 
     async def grant_achievement_coordinated(
-        self,
-        user_id: int,
-        achievement_id: int,
-        notify: bool = True,
-        **metadata
+        self, user_id: int, achievement_id: int, notify: bool = True, **metadata
     ) -> dict[str, Any]:
         """協調式成就授予.
 
@@ -240,21 +235,24 @@ class TransactionCoordinator:
             user_ids=[user_id],
             achievement_ids=[achievement_id],
             notify=notify,
-            **metadata
+            **metadata,
         ) as coord_op:
-
             # 檢查用戶是否已經擁有該成就
             if self.achievement_service:
-                existing_achievements = await self.achievement_service.get_user_achievements(user_id)
-                if any(ua.achievement_id == achievement_id for ua in existing_achievements):
+                existing_achievements = (
+                    await self.achievement_service.get_user_achievements(user_id)
+                )
+                if any(
+                    ua.achievement_id == achievement_id for ua in existing_achievements
+                ):
                     raise ValueError(f"用戶 {user_id} 已經擁有成就 {achievement_id}")
 
             # 執行授予操作
             if self.achievement_service:
-                user_achievement = await self.achievement_service.grant_user_achievement(
-                    user_id,
-                    achievement_id,
-                    notify=notify
+                user_achievement = (
+                    await self.achievement_service.grant_user_achievement(
+                        user_id, achievement_id, notify=notify
+                    )
                 )
 
                 # 記錄操作到事務
@@ -266,14 +264,14 @@ class TransactionCoordinator:
                     old_value=None,
                     new_value=user_achievement,
                     notify=notify,
-                    **metadata
+                    **metadata,
                 )
 
                 # 添加快取失效
                 await self.transaction_manager.add_cache_invalidation(
                     coord_op.transaction,
                     "user_achievements",
-                    {f"user_achievements:{user_id}", "global_stats:*"}
+                    {f"user_achievements:{user_id}", "global_stats:*"},
                 )
 
                 # 添加完整性檢查
@@ -281,23 +279,19 @@ class TransactionCoordinator:
                     coord_op.transaction,
                     "user_achievement_count",
                     user_id,
-                    {"count": {"min": len(existing_achievements) + 1}}
+                    {"count": {"min": len(existing_achievements) + 1}},
                 )
 
                 return {
                     "success": True,
                     "user_achievement": user_achievement,
-                    "operation_id": coord_op.operation_id
+                    "operation_id": coord_op.operation_id,
                 }
 
             return {"success": False, "error": "成就服務不可用"}
 
     async def revoke_achievement_coordinated(
-        self,
-        user_id: int,
-        achievement_id: int,
-        reason: str = "管理員撤銷",
-        **metadata
+        self, user_id: int, achievement_id: int, reason: str = "管理員撤銷", **metadata
     ) -> dict[str, Any]:
         """協調式成就撤銷.
 
@@ -315,15 +309,20 @@ class TransactionCoordinator:
             user_ids=[user_id],
             achievement_ids=[achievement_id],
             reason=reason,
-            **metadata
+            **metadata,
         ) as coord_op:
-
             # 檢查用戶是否擁有該成就
             if self.achievement_service:
-                existing_achievements = await self.achievement_service.get_user_achievements(user_id)
+                existing_achievements = (
+                    await self.achievement_service.get_user_achievements(user_id)
+                )
                 user_achievement = next(
-                    (ua for ua in existing_achievements if ua.achievement_id == achievement_id),
-                    None
+                    (
+                        ua
+                        for ua in existing_achievements
+                        if ua.achievement_id == achievement_id
+                    ),
+                    None,
                 )
 
                 if not user_achievement:
@@ -331,8 +330,7 @@ class TransactionCoordinator:
 
                 # 執行撤銷操作
                 success = await self.achievement_service.revoke_user_achievement(
-                    user_id,
-                    achievement_id
+                    user_id, achievement_id
                 )
 
                 if success:
@@ -345,14 +343,14 @@ class TransactionCoordinator:
                         old_value=user_achievement,
                         new_value=None,
                         reason=reason,
-                        **metadata
+                        **metadata,
                     )
 
                     # 添加快取失效
                     await self.transaction_manager.add_cache_invalidation(
                         coord_op.transaction,
                         "user_achievements",
-                        {f"user_achievements:{user_id}", "global_stats:*"}
+                        {f"user_achievements:{user_id}", "global_stats:*"},
                     )
 
                     # 添加完整性檢查
@@ -360,13 +358,13 @@ class TransactionCoordinator:
                         coord_op.transaction,
                         "user_achievement_count",
                         user_id,
-                        {"count": {"max": len(existing_achievements) - 1}}
+                        {"count": {"max": len(existing_achievements) - 1}},
                     )
 
                     return {
                         "success": True,
                         "revoked_achievement": user_achievement,
-                        "operation_id": coord_op.operation_id
+                        "operation_id": coord_op.operation_id,
                     }
 
                 return {"success": False, "error": "撤銷操作失敗"}
@@ -374,11 +372,7 @@ class TransactionCoordinator:
             return {"success": False, "error": "成就服務不可用"}
 
     async def adjust_progress_coordinated(
-        self,
-        user_id: int,
-        achievement_id: int,
-        new_value: float,
-        **metadata
+        self, user_id: int, achievement_id: int, new_value: float, **metadata
     ) -> dict[str, Any]:
         """協調式進度調整.
 
@@ -396,22 +390,21 @@ class TransactionCoordinator:
             user_ids=[user_id],
             achievement_ids=[achievement_id],
             new_value=new_value,
-            **metadata
+            **metadata,
         ) as coord_op:
-
             if self.achievement_service:
                 # 獲取當前進度
-                current_progress = await self.achievement_service.get_user_progress_for_achievement(
-                    user_id, achievement_id
+                current_progress = (
+                    await self.achievement_service.get_user_progress_for_achievement(
+                        user_id, achievement_id
+                    )
                 )
 
                 old_value = current_progress.current_value if current_progress else 0
 
                 # 執行進度調整
                 updated_progress = await self.achievement_service.update_user_progress(
-                    user_id,
-                    achievement_id,
-                    new_value
+                    user_id, achievement_id, new_value
                 )
 
                 # 記錄操作到事務
@@ -422,29 +415,42 @@ class TransactionCoordinator:
                     achievement_id,
                     old_value=old_value,
                     new_value=new_value,
-                    **metadata
+                    **metadata,
                 )
 
                 # 添加快取失效
                 await self.transaction_manager.add_cache_invalidation(
                     coord_op.transaction,
                     "user_progress",
-                    {f"user_progress:{user_id}", f"user_progress:{user_id}:{achievement_id}"}
+                    {
+                        f"user_progress:{user_id}",
+                        f"user_progress:{user_id}:{achievement_id}",
+                    },
                 )
 
                 # 檢查是否完成成就
-                if updated_progress and updated_progress.current_value >= updated_progress.target_value:
+                if (
+                    updated_progress
+                    and updated_progress.current_value >= updated_progress.target_value
+                ):
                     # 可能需要授予成就
-                    existing_achievements = await self.achievement_service.get_user_achievements(user_id)
-                    if not any(ua.achievement_id == achievement_id for ua in existing_achievements):
+                    existing_achievements = (
+                        await self.achievement_service.get_user_achievements(user_id)
+                    )
+                    if not any(
+                        ua.achievement_id == achievement_id
+                        for ua in existing_achievements
+                    ):
                         # 自動授予成就
-                        await self.achievement_service.grant_user_achievement(user_id, achievement_id)
+                        await self.achievement_service.grant_user_achievement(
+                            user_id, achievement_id
+                        )
 
                         # 添加成就授予的快取失效
                         await self.transaction_manager.add_cache_invalidation(
                             coord_op.transaction,
                             "user_achievements",
-                            {f"user_achievements:{user_id}"}
+                            {f"user_achievements:{user_id}"},
                         )
 
                 return {
@@ -452,16 +458,13 @@ class TransactionCoordinator:
                     "updated_progress": updated_progress,
                     "old_value": old_value,
                     "new_value": new_value,
-                    "operation_id": coord_op.operation_id
+                    "operation_id": coord_op.operation_id,
                 }
 
             return {"success": False, "error": "成就服務不可用"}
 
     async def reset_user_data_coordinated(
-        self,
-        user_id: int,
-        backup_data: bool = True,
-        **metadata
+        self, user_id: int, backup_data: bool = True, **metadata
     ) -> dict[str, Any]:
         """協調式用戶資料重置.
 
@@ -477,9 +480,8 @@ class TransactionCoordinator:
             OperationType.RESET_USER_DATA,
             user_ids=[user_id],
             backup_data=backup_data,
-            **metadata
+            **metadata,
         ) as coord_op:
-
             if self.achievement_service:
                 # 備份用戶資料
                 backup = None
@@ -498,21 +500,25 @@ class TransactionCoordinator:
                     old_value=backup,
                     new_value=reset_result,
                     backup_data=backup_data,
-                    **metadata
+                    **metadata,
                 )
 
                 # 添加快取失效
                 await self.transaction_manager.add_cache_invalidation(
                     coord_op.transaction,
                     "user_achievements",
-                    {f"user_achievements:{user_id}", f"user_progress:{user_id}", "global_stats:*"}
+                    {
+                        f"user_achievements:{user_id}",
+                        f"user_progress:{user_id}",
+                        "global_stats:*",
+                    },
                 )
 
                 return {
                     "success": True,
                     "reset_result": reset_result,
                     "backup": backup,
-                    "operation_id": coord_op.operation_id
+                    "operation_id": coord_op.operation_id,
                 }
 
             return {"success": False, "error": "成就服務不可用"}
@@ -522,14 +528,14 @@ class TransactionCoordinator:
         operation_type: OperationType,
         user_ids: list[int],
         achievement_id: int | None = None,
-        **metadata
+        **metadata,
     ) -> dict[str, Any]:
         """協調式批量操作.
 
         Args:
             operation_type: 操作類型
             user_ids: 用戶ID列表
-            achievement_id: 成就ID（用於批量授予/撤銷）
+            achievement_id: 成就ID(用於批量授予/撤銷)
             **metadata: 額外元數據
 
         Returns:
@@ -539,9 +545,8 @@ class TransactionCoordinator:
             operation_type,
             user_ids=user_ids,
             achievement_ids=[achievement_id] if achievement_id else None,
-            **metadata
+            **metadata,
         ) as coord_op:
-
             results = []
             successful_operations = 0
             failed_operations = 0
@@ -549,18 +554,22 @@ class TransactionCoordinator:
             for user_id in user_ids:
                 try:
                     if operation_type == OperationType.BULK_GRANT:
-                        result = await self._execute_single_grant(user_id, achievement_id, coord_op)
+                        result = await self._execute_single_grant(
+                            user_id, achievement_id, coord_op
+                        )
                     elif operation_type == OperationType.BULK_REVOKE:
-                        result = await self._execute_single_revoke(user_id, achievement_id, coord_op)
+                        result = await self._execute_single_revoke(
+                            user_id, achievement_id, coord_op
+                        )
                     elif operation_type == OperationType.BULK_RESET:
                         result = await self._execute_single_reset(user_id, coord_op)
                     else:
-                        result = {"success": False, "error": f"不支援的批量操作類型: {operation_type}"}
+                        result = {
+                            "success": False,
+                            "error": f"不支援的批量操作類型: {operation_type}",
+                        }
 
-                    results.append({
-                        "user_id": user_id,
-                        **result
-                    })
+                    results.append({"user_id": user_id, **result})
 
                     if result.get("success"):
                         successful_operations += 1
@@ -568,12 +577,10 @@ class TransactionCoordinator:
                         failed_operations += 1
 
                 except Exception as e:
-                    logger.error(f"【事務協調器】批量操作失敗 用戶 {user_id}: {e}")
-                    results.append({
-                        "user_id": user_id,
-                        "success": False,
-                        "error": str(e)
-                    })
+                    logger.error(f"[事務協調器]批量操作失敗 用戶 {user_id}: {e}")
+                    results.append(
+                        {"user_id": user_id, "success": False, "error": str(e)}
+                    )
                     failed_operations += 1
 
             # 添加批量快取失效
@@ -584,9 +591,7 @@ class TransactionCoordinator:
             cache_keys.add("global_stats:*")
 
             await self.transaction_manager.add_cache_invalidation(
-                coord_op.transaction,
-                "bulk_operation",
-                cache_keys
+                coord_op.transaction, "bulk_operation", cache_keys
             )
 
             return {
@@ -595,10 +600,12 @@ class TransactionCoordinator:
                 "successful_operations": successful_operations,
                 "failed_operations": failed_operations,
                 "total_operations": len(user_ids),
-                "operation_id": coord_op.operation_id
+                "operation_id": coord_op.operation_id,
             }
 
-    async def _perform_pre_validation(self, coordinated_op: CoordinatedOperation) -> None:
+    async def _perform_pre_validation(
+        self, coordinated_op: CoordinatedOperation
+    ) -> None:
         """執行預驗證.
 
         Args:
@@ -612,26 +619,31 @@ class TransactionCoordinator:
             for user_id in coordinated_op.user_ids:
                 report = await self.data_validator.validate_user_data(
                     user_id,
-                    ValidationLevel.BASIC  # 預驗證使用基本級別
+                    ValidationLevel.BASIC,  # 預驗證使用基本級別
                 )
                 coordinated_op.validation_reports.append(report)
 
                 # 檢查嚴重問題
                 critical_issues = [
-                    issue for issue in report.issues
+                    issue
+                    for issue in report.issues
                     if issue.severity.value in ["failed", "error"]
                 ]
 
                 if critical_issues:
-                    raise ValueError(f"用戶 {user_id} 資料驗證失敗: {len(critical_issues)} 個嚴重問題")
+                    raise ValueError(
+                        f"用戶 {user_id} 資料驗證失敗: {len(critical_issues)} 個嚴重問題"
+                    )
 
             self._stats["validations_performed"] += len(coordinated_op.user_ids)
 
         except Exception as e:
-            logger.error(f"【事務協調器】預驗證失敗: {e}")
+            logger.error(f"[事務協調器]預驗證失敗: {e}")
             raise
 
-    async def _perform_post_validation(self, coordinated_op: CoordinatedOperation) -> None:
+    async def _perform_post_validation(
+        self, coordinated_op: CoordinatedOperation
+    ) -> None:
         """執行後驗證.
 
         Args:
@@ -644,18 +656,19 @@ class TransactionCoordinator:
             # 驗證操作後的資料狀態
             for user_id in coordinated_op.user_ids:
                 report = await self.data_validator.validate_user_data(
-                    user_id,
-                    self.validation_level
+                    user_id, self.validation_level
                 )
                 coordinated_op.validation_reports.append(report)
 
             self._stats["validations_performed"] += len(coordinated_op.user_ids)
 
         except Exception as e:
-            logger.warning(f"【事務協調器】後驗證失敗: {e}")
+            logger.warning(f"[事務協調器]後驗證失敗: {e}")
             # 後驗證失敗不應該中斷事務
 
-    async def _post_operation_processing(self, coordinated_op: CoordinatedOperation) -> None:
+    async def _post_operation_processing(
+        self, coordinated_op: CoordinatedOperation
+    ) -> None:
         """操作後處理.
 
         Args:
@@ -670,10 +683,12 @@ class TransactionCoordinator:
                 self._stats["cache_events_processed"] += 1
 
         except Exception as e:
-            logger.error(f"【事務協調器】操作後處理失敗: {e}")
+            logger.error(f"[事務協調器]操作後處理失敗: {e}")
             # 不中斷主要流程
 
-    async def _create_cache_event(self, coordinated_op: CoordinatedOperation) -> CacheEvent | None:
+    async def _create_cache_event(
+        self, coordinated_op: CoordinatedOperation
+    ) -> CacheEvent | None:
         """創建快取事件.
 
         Args:
@@ -703,11 +718,11 @@ class TransactionCoordinator:
                 user_ids=coordinated_op.user_ids,
                 achievement_ids=coordinated_op.achievement_ids,
                 operation_id=coordinated_op.operation_id,
-                **coordinated_op.metadata
+                **coordinated_op.metadata,
             )
 
         except Exception as e:
-            logger.error(f"【事務協調器】創建快取事件失敗: {e}")
+            logger.error(f"[事務協調器]創建快取事件失敗: {e}")
             return None
 
     async def _create_user_backup(self, user_id: int) -> dict[str, Any]:
@@ -724,30 +739,36 @@ class TransactionCoordinator:
                 "user_id": user_id,
                 "backup_time": datetime.utcnow().isoformat(),
                 "achievements": [],
-                "progress": []
+                "progress": [],
             }
 
             if self.achievement_service:
                 # 備份成就
-                user_achievements = await self.achievement_service.get_user_achievements(user_id)
+                user_achievements = (
+                    await self.achievement_service.get_user_achievements(user_id)
+                )
                 backup["achievements"] = [
                     {
                         "achievement_id": ua.achievement_id,
                         "earned_at": ua.earned_at.isoformat() if ua.earned_at else None,
-                        "notified": getattr(ua, 'notified', True)
+                        "notified": getattr(ua, "notified", True),
                     }
                     for ua in user_achievements
                 ]
 
                 # 備份進度
-                user_progress = await self.achievement_service.get_user_progress(user_id)
+                user_progress = await self.achievement_service.get_user_progress(
+                    user_id
+                )
                 backup["progress"] = [
                     {
                         "achievement_id": up.achievement_id,
                         "current_value": up.current_value,
                         "target_value": up.target_value,
-                        "progress_data": getattr(up, 'progress_data', {}),
-                        "last_updated": up.last_updated.isoformat() if up.last_updated else None
+                        "progress_data": getattr(up, "progress_data", {}),
+                        "last_updated": up.last_updated.isoformat()
+                        if up.last_updated
+                        else None,
                     }
                     for up in user_progress
                 ]
@@ -755,14 +776,11 @@ class TransactionCoordinator:
             return backup
 
         except Exception as e:
-            logger.error(f"【事務協調器】創建用戶備份失敗 {user_id}: {e}")
+            logger.error(f"[事務協調器]創建用戶備份失敗 {user_id}: {e}")
             return {}
 
     async def _execute_single_grant(
-        self,
-        user_id: int,
-        achievement_id: int,
-        coord_op: CoordinatedOperation
+        self, user_id: int, achievement_id: int, coord_op: CoordinatedOperation
     ) -> dict[str, Any]:
         """執行單個授予操作."""
         try:
@@ -779,7 +797,7 @@ class TransactionCoordinator:
                 OperationType.BULK_GRANT,
                 user_id,
                 achievement_id,
-                new_value=user_achievement
+                new_value=user_achievement,
             )
 
             return {"success": True, "user_achievement": user_achievement}
@@ -788,10 +806,7 @@ class TransactionCoordinator:
             return {"success": False, "error": str(e)}
 
     async def _execute_single_revoke(
-        self,
-        user_id: int,
-        achievement_id: int,
-        coord_op: CoordinatedOperation
+        self, user_id: int, achievement_id: int, coord_op: CoordinatedOperation
     ) -> dict[str, Any]:
         """執行單個撤銷操作."""
         try:
@@ -809,7 +824,7 @@ class TransactionCoordinator:
                 user_id,
                 achievement_id,
                 old_value=True,
-                new_value=None
+                new_value=None,
             )
 
             return {"success": success}
@@ -818,9 +833,7 @@ class TransactionCoordinator:
             return {"success": False, "error": str(e)}
 
     async def _execute_single_reset(
-        self,
-        user_id: int,
-        coord_op: CoordinatedOperation
+        self, user_id: int, coord_op: CoordinatedOperation
     ) -> dict[str, Any]:
         """執行單個重置操作."""
         try:
@@ -840,7 +853,7 @@ class TransactionCoordinator:
                 user_id,
                 None,
                 old_value=backup,
-                new_value=reset_result
+                new_value=reset_result,
             )
 
             return {"success": True, "reset_result": reset_result, "backup": backup}
@@ -858,12 +871,16 @@ class TransactionCoordinator:
             "coordinator": self._stats,
             "status": self.status.value,
             "validation_enabled": self.enable_validation,
-            "validation_level": self.validation_level.value if self.enable_validation else None
+            "validation_level": self.validation_level.value
+            if self.enable_validation
+            else None,
         }
 
         # 添加子管理器統計
         if self.transaction_manager:
-            stats["transaction_manager"] = self.transaction_manager.get_transaction_stats()
+            stats["transaction_manager"] = (
+                self.transaction_manager.get_transaction_stats()
+            )
 
         if self.cache_sync_manager:
             stats["cache_sync_manager"] = self.cache_sync_manager.get_cache_stats()
@@ -886,13 +903,15 @@ class TransactionCoordinator:
                 "cache_service": self.cache_service is not None,
                 "transaction_manager": self.transaction_manager is not None,
                 "cache_sync_manager": self.cache_sync_manager is not None,
-                "data_validator": self.data_validator is not None
+                "data_validator": self.data_validator is not None,
             },
             "configuration": {
                 "validation_enabled": self.enable_validation,
-                "validation_level": self.validation_level.value if self.enable_validation else None
+                "validation_level": self.validation_level.value
+                if self.enable_validation
+                else None,
             },
-            "statistics": self.get_coordinator_stats()
+            "statistics": self.get_coordinator_stats(),
         }
 
         # 獲取快取健康狀態

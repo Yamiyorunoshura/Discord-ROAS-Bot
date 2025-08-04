@@ -17,7 +17,6 @@ from src.core.config import get_settings
 if TYPE_CHECKING:
     from ..main.main import AntiLink
 
-
 class AntiLinkDatabase:
     """
     反惡意連結資料庫管理器
@@ -115,10 +114,10 @@ class AntiLinkDatabase:
                 )
 
                 await db.commit()
-                self.logger.info("【反惡意連結】資料庫初始化完成")
+                self.logger.info("[反惡意連結]資料庫初始化完成")
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】資料庫初始化失敗: {exc}")
+            self.logger.error(f"[反惡意連結]資料庫初始化失敗: {exc}")
             raise
 
     # ───────── 配置管理 ─────────
@@ -137,16 +136,15 @@ class AntiLinkDatabase:
             str | None: 配置值
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db:
-                async with db.execute(
-                    "SELECT value FROM config WHERE guild_id = ? AND key = ?",
-                    (guild_id, key),
-                ) as cursor:
-                    row = await cursor.fetchone()
-                    return row[0] if row else default
+            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
+                "SELECT value FROM config WHERE guild_id = ? AND key = ?",
+                (guild_id, key),
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else default
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】取得配置失敗 {guild_id}.{key}: {exc}")
+            self.logger.error(f"[反惡意連結]取得配置失敗 {guild_id}.{key}: {exc}")
             return default
 
     async def set_config(self, guild_id: int, key: str, value: str):
@@ -170,7 +168,7 @@ class AntiLinkDatabase:
                 await db.commit()
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】設定配置失敗 {guild_id}.{key}: {exc}")
+            self.logger.error(f"[反惡意連結]設定配置失敗 {guild_id}.{key}: {exc}")
             raise
 
     async def get_all_config(self, guild_id: int) -> dict[str, str]:
@@ -184,15 +182,14 @@ class AntiLinkDatabase:
             Dict[str, str]: 配置字典
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db:
-                async with db.execute(
-                    "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
-                ) as cursor:
-                    rows = await cursor.fetchall()
-                    return {row[0]: row[1] for row in rows}
+            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
+                "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return {row[0]: row[1] for row in rows}
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】取得所有配置失敗 {guild_id}: {exc}")
+            self.logger.error(f"[反惡意連結]取得所有配置失敗 {guild_id}: {exc}")
             return {}
 
     # ───────── 黑名單管理 ─────────
@@ -223,11 +220,11 @@ class AntiLinkDatabase:
 
                 await db.commit()
                 self.logger.info(
-                    f"【反惡意連結】更新黑名單快取: {len(domains)} 個網域來自 {source}"
+                    f"[反惡意連結]更新黑名單快取: {len(domains)} 個網域來自 {source}"
                 )
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】更新黑名單快取失敗: {exc}")
+            self.logger.error(f"[反惡意連結]更新黑名單快取失敗: {exc}")
             raise
 
     async def get_blacklist_cache(self, source: str | None = None) -> set[str]:
@@ -256,7 +253,7 @@ class AntiLinkDatabase:
                 return {row[0] for row in rows}
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】取得黑名單快取失敗: {exc}")
+            self.logger.error(f"[反惡意連結]取得黑名單快取失敗: {exc}")
             return set()
 
     async def cleanup_blacklist_cache(self, days: int = 30):
@@ -276,11 +273,11 @@ class AntiLinkDatabase:
 
                 await db.commit()
                 self.logger.info(
-                    f"【反惡意連結】清理黑名單快取: 刪除 {result.rowcount} 個過期項目"
+                    f"[反惡意連結]清理黑名單快取: 刪除 {result.rowcount} 個過期項目"
                 )
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】清理黑名單快取失敗: {exc}")
+            self.logger.error(f"[反惡意連結]清理黑名單快取失敗: {exc}")
 
     # ───────── 統計管理 ─────────
     async def add_stat(self, guild_id: int, stat_type: str, count: int = 1):
@@ -314,7 +311,7 @@ class AntiLinkDatabase:
                 await db.commit()
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】添加統計失敗: {exc}")
+            self.logger.error(f"[反惡意連結]添加統計失敗: {exc}")
 
     async def get_stats(self, guild_id: int) -> dict[str, int]:
         """
@@ -327,15 +324,14 @@ class AntiLinkDatabase:
             Dict[str, int]: 統計資料字典
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db:
-                async with db.execute(
-                    "SELECT stat_type, count FROM stats WHERE guild_id = ?", (guild_id,)
-                ) as cursor:
-                    rows = await cursor.fetchall()
-                    return {row[0]: row[1] for row in rows}
+            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
+                "SELECT stat_type, count FROM stats WHERE guild_id = ?", (guild_id,)
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return {row[0]: row[1] for row in rows}
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】取得統計失敗: {exc}")
+            self.logger.error(f"[反惡意連結]取得統計失敗: {exc}")
             return {}
 
     async def reset_stats(self, guild_id: int):
@@ -351,7 +347,7 @@ class AntiLinkDatabase:
                 await db.commit()
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】重置統計失敗: {exc}")
+            self.logger.error(f"[反惡意連結]重置統計失敗: {exc}")
 
     # ───────── 操作日誌 ─────────
     async def add_action_log(
@@ -379,7 +375,7 @@ class AntiLinkDatabase:
                 await db.commit()
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】添加操作日誌失敗: {exc}")
+            self.logger.error(f"[反惡意連結]添加操作日誌失敗: {exc}")
 
     async def get_action_logs(
         self, guild_id: int, limit: int = 50
@@ -395,22 +391,21 @@ class AntiLinkDatabase:
             List[Dict[str, Any]]: 操作日誌列表
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db:
-                async with db.execute(
-                    """
-                    SELECT user_id, action, details, timestamp
-                    FROM action_logs
-                    WHERE guild_id = ?
-                    ORDER BY timestamp DESC
-                    LIMIT ?
-                """,
-                    (guild_id, limit),
-                ) as cursor:
-                    rows = await cursor.fetchall()
+            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
+                """
+                SELECT user_id, action, details, timestamp
+                FROM action_logs
+                WHERE guild_id = ?
+                ORDER BY timestamp DESC
+                LIMIT ?
+            """,
+                (guild_id, limit),
+            ) as cursor:
+                rows = await cursor.fetchall()
 
-                    logs = []
-                    for row in rows:
-                        logs.append(
+                logs = []
+                for row in rows:
+                    logs.append(
                             {
                                 "user_id": row[0],
                                 "action": row[1],
@@ -422,7 +417,7 @@ class AntiLinkDatabase:
                     return logs
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】取得操作日誌失敗: {exc}")
+            self.logger.error(f"[反惡意連結]取得操作日誌失敗: {exc}")
             return []
 
     async def cleanup_action_logs(self, guild_id: int, days: int = 30):
@@ -444,8 +439,8 @@ class AntiLinkDatabase:
 
                 await db.commit()
                 self.logger.info(
-                    f"【反惡意連結】清理操作日誌: 刪除 {result.rowcount} 個過期項目"
+                    f"[反惡意連結]清理操作日誌: 刪除 {result.rowcount} 個過期項目"
                 )
 
         except Exception as exc:
-            self.logger.error(f"【反惡意連結】清理操作日誌失敗: {exc}")
+            self.logger.error(f"[反惡意連結]清理操作日誌失敗: {exc}")

@@ -1,20 +1,20 @@
 """成就系統事務和資料一致性管理器.
 
-此模組提供成就系統的事務管理和資料一致性保證功能，包含：
+此模組提供成就系統的事務管理和資料一致性保證功能,包含:
 - 資料庫事務管理
 - 快取同步機制
 - 資料完整性驗證
 - 操作回滾機制
 - 統計資料即時更新
 
-確保所有用戶成就管理操作的原子性、一致性、隔離性和持久性（ACID）。
+確保所有用戶成就管理操作的原子性、一致性、隔離性和持久性(ACID).
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -26,9 +26,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class TransactionStatus(Enum):
     """事務狀態枚舉."""
+
     PENDING = "pending"
     ACTIVE = "active"
     COMMITTING = "committing"
@@ -37,9 +37,9 @@ class TransactionStatus(Enum):
     ROLLED_BACK = "rolled_back"
     FAILED = "failed"
 
-
 class OperationType(Enum):
     """操作類型枚舉."""
+
     GRANT_ACHIEVEMENT = "grant_achievement"
     REVOKE_ACHIEVEMENT = "revoke_achievement"
     ADJUST_PROGRESS = "adjust_progress"
@@ -48,10 +48,10 @@ class OperationType(Enum):
     BULK_REVOKE = "bulk_revoke"
     BULK_RESET = "bulk_reset"
 
-
 @dataclass
 class TransactionOperation:
     """事務操作記錄."""
+
     operation_id: str = field(default_factory=lambda: str(uuid4()))
     operation_type: OperationType = OperationType.GRANT_ACHIEVEMENT
     user_id: int = 0
@@ -62,18 +62,18 @@ class TransactionOperation:
     executed_at: datetime | None = None
     rollback_executed: bool = False
 
-
 @dataclass
 class CacheInvalidation:
     """快取失效記錄."""
+
     cache_type: str
     cache_keys: set[str] = field(default_factory=set)
     invalidated: bool = False
 
-
 @dataclass
 class DataIntegrityCheck:
     """資料完整性檢查."""
+
     check_id: str = field(default_factory=lambda: str(uuid4()))
     check_type: str = ""
     target_id: int = 0
@@ -82,10 +82,10 @@ class DataIntegrityCheck:
     passed: bool = False
     error_message: str | None = None
 
-
 @dataclass
 class Transaction:
     """事務記錄."""
+
     transaction_id: str = field(default_factory=lambda: str(uuid4()))
     status: TransactionStatus = TransactionStatus.PENDING
     operations: list[TransactionOperation] = field(default_factory=list)
@@ -97,11 +97,10 @@ class Transaction:
     error_message: str | None = None
     rollback_reason: str | None = None
 
-
 class TransactionManager:
     """事務管理器.
 
-    提供資料庫事務管理、快取同步、資料完整性驗證等功能。
+    提供資料庫事務管理、快取同步、資料完整性驗證等功能.
     """
 
     def __init__(self, cache_service=None, achievement_service=None):
@@ -117,7 +116,7 @@ class TransactionManager:
         # 活動事務追蹤
         self._active_transactions: dict[str, Transaction] = {}
 
-        # 事務鎖，防止並發衝突
+        # 事務鎖,防止並發衝突
         self._transaction_locks: dict[str, asyncio.Lock] = {}
 
         # 統計資料
@@ -138,7 +137,7 @@ class TransactionManager:
         self,
         operation_type: OperationType,
         user_ids: list[int] | None = None,
-        **metadata
+        **metadata,
     ) -> AsyncGenerator[Transaction, None]:
         """創建事務上下文管理器.
 
@@ -166,13 +165,13 @@ class TransactionManager:
                     self._transaction_locks[lock_key] = asyncio.Lock()
 
         logger.info(
-            f"【事務管理器】開始事務 {transaction.transaction_id}",
+            f"[事務管理器]開始事務 {transaction.transaction_id}",
             extra={
                 "transaction_id": transaction.transaction_id,
                 "operation_type": operation_type.value,
                 "user_ids": user_ids,
-                "metadata": metadata
-            }
+                "metadata": metadata,
+            },
         )
 
         try:
@@ -192,8 +191,8 @@ class TransactionManager:
 
         except Exception as e:
             logger.error(
-                f"【事務管理器】事務執行失敗 {transaction.transaction_id}: {e}",
-                exc_info=True
+                f"[事務管理器]事務執行失敗 {transaction.transaction_id}: {e}",
+                exc_info=True,
             )
             transaction.error_message = str(e)
             await self._rollback_transaction(transaction, f"執行錯誤: {e}")
@@ -202,10 +201,8 @@ class TransactionManager:
         finally:
             # 釋放鎖
             for lock in acquired_locks:
-                try:
+                with suppress(RuntimeError):
                     lock.release()
-                except RuntimeError:
-                    pass  # 鎖可能已被釋放
 
             # 從活動事務中移除
             self._active_transactions.pop(transaction.transaction_id, None)
@@ -221,7 +218,7 @@ class TransactionManager:
         achievement_id: int | None = None,
         old_value: Any | None = None,
         new_value: Any | None = None,
-        **metadata
+        **metadata,
     ) -> TransactionOperation:
         """添加操作到事務.
 
@@ -244,29 +241,26 @@ class TransactionManager:
             old_value=old_value,
             new_value=new_value,
             metadata=metadata,
-            executed_at=datetime.utcnow()
+            executed_at=datetime.utcnow(),
         )
 
         transaction.operations.append(operation)
         self._stats["operations_executed"] += 1
 
         logger.debug(
-            f"【事務管理器】添加操作到事務 {transaction.transaction_id}",
+            f"[事務管理器]添加操作到事務 {transaction.transaction_id}",
             extra={
                 "operation_id": operation.operation_id,
                 "operation_type": operation_type.value,
                 "user_id": user_id,
-                "achievement_id": achievement_id
-            }
+                "achievement_id": achievement_id,
+            },
         )
 
         return operation
 
     async def add_cache_invalidation(
-        self,
-        transaction: Transaction,
-        cache_type: str,
-        cache_keys: set[str]
+        self, transaction: Transaction, cache_type: str, cache_keys: set[str]
     ) -> CacheInvalidation:
         """添加快取失效記錄.
 
@@ -278,19 +272,13 @@ class TransactionManager:
         Returns:
             CacheInvalidation: 快取失效記錄
         """
-        invalidation = CacheInvalidation(
-            cache_type=cache_type,
-            cache_keys=cache_keys
-        )
+        invalidation = CacheInvalidation(cache_type=cache_type, cache_keys=cache_keys)
 
         transaction.cache_invalidations.append(invalidation)
 
         logger.debug(
-            f"【事務管理器】添加快取失效到事務 {transaction.transaction_id}",
-            extra={
-                "cache_type": cache_type,
-                "cache_keys_count": len(cache_keys)
-            }
+            f"[事務管理器]添加快取失效到事務 {transaction.transaction_id}",
+            extra={"cache_type": cache_type, "cache_keys_count": len(cache_keys)},
         )
 
         return invalidation
@@ -301,7 +289,7 @@ class TransactionManager:
         check_type: str,
         target_id: int,
         expected_state: dict[str, Any],
-        validation_func: Callable | None = None
+        validation_func: Callable | None = None,
     ) -> DataIntegrityCheck:
         """添加資料完整性檢查.
 
@@ -316,9 +304,7 @@ class TransactionManager:
             DataIntegrityCheck: 完整性檢查記錄
         """
         check = DataIntegrityCheck(
-            check_type=check_type,
-            target_id=target_id,
-            expected_state=expected_state
+            check_type=check_type, target_id=target_id, expected_state=expected_state
         )
 
         # 執行檢查
@@ -332,7 +318,9 @@ class TransactionManager:
             check.passed = self._validate_state(expected_state, actual_state)
 
             if not check.passed:
-                check.error_message = f"狀態不匹配: 期望 {expected_state}, 實際 {actual_state}"
+                check.error_message = (
+                    f"狀態不匹配: 期望 {expected_state}, 實際 {actual_state}"
+                )
                 self._stats["integrity_checks_failed"] += 1
             else:
                 self._stats["integrity_checks_passed"] += 1
@@ -341,18 +329,18 @@ class TransactionManager:
             check.passed = False
             check.error_message = f"檢查執行失敗: {e}"
             self._stats["integrity_checks_failed"] += 1
-            logger.error(f"【事務管理器】完整性檢查失敗: {e}", exc_info=True)
+            logger.error(f"[事務管理器]完整性檢查失敗: {e}", exc_info=True)
 
         transaction.integrity_checks.append(check)
 
         logger.debug(
-            f"【事務管理器】添加完整性檢查到事務 {transaction.transaction_id}",
+            f"[事務管理器]添加完整性檢查到事務 {transaction.transaction_id}",
             extra={
                 "check_id": check.check_id,
                 "check_type": check_type,
                 "target_id": target_id,
-                "passed": check.passed
-            }
+                "passed": check.passed,
+            },
         )
 
         return check
@@ -367,7 +355,9 @@ class TransactionManager:
 
         try:
             # 執行完整性檢查
-            failed_checks = [check for check in transaction.integrity_checks if not check.passed]
+            failed_checks = [
+                check for check in transaction.integrity_checks if not check.passed
+            ]
             if failed_checks:
                 raise ValueError(f"完整性檢查失敗: {len(failed_checks)} 個檢查未通過")
 
@@ -382,22 +372,30 @@ class TransactionManager:
             self._stats["transactions_committed"] += 1
 
             logger.info(
-                f"【事務管理器】事務提交成功 {transaction.transaction_id}",
+                f"[事務管理器]事務提交成功 {transaction.transaction_id}",
                 extra={
                     "operations_count": len(transaction.operations),
                     "cache_invalidations_count": len(transaction.cache_invalidations),
                     "integrity_checks_count": len(transaction.integrity_checks),
-                    "duration_ms": (transaction.completed_at - transaction.started_at).total_seconds() * 1000
-                }
+                    "duration_ms": (
+                        transaction.completed_at - transaction.started_at
+                    ).total_seconds()
+                    * 1000,
+                },
             )
 
         except Exception as e:
-            logger.error(f"【事務管理器】事務提交失敗 {transaction.transaction_id}: {e}", exc_info=True)
+            logger.error(
+                f"[事務管理器]事務提交失敗 {transaction.transaction_id}: {e}",
+                exc_info=True,
+            )
             transaction.status = TransactionStatus.FAILED
             transaction.error_message = str(e)
             raise
 
-    async def _rollback_transaction(self, transaction: Transaction, reason: str) -> None:
+    async def _rollback_transaction(
+        self, transaction: Transaction, reason: str
+    ) -> None:
         """回滾事務.
 
         Args:
@@ -408,7 +406,6 @@ class TransactionManager:
         transaction.rollback_reason = reason
 
         try:
-            # 回滾操作（按逆序執行）
             rollback_count = 0
             for operation in reversed(transaction.operations):
                 if not operation.rollback_executed:
@@ -421,16 +418,19 @@ class TransactionManager:
             self._stats["transactions_rolled_back"] += 1
 
             logger.warning(
-                f"【事務管理器】事務回滾完成 {transaction.transaction_id}",
+                f"[事務管理器]事務回滾完成 {transaction.transaction_id}",
                 extra={
                     "reason": reason,
                     "rollback_operations": rollback_count,
-                    "total_operations": len(transaction.operations)
-                }
+                    "total_operations": len(transaction.operations),
+                },
             )
 
         except Exception as e:
-            logger.error(f"【事務管理器】事務回滾失敗 {transaction.transaction_id}: {e}", exc_info=True)
+            logger.error(
+                f"[事務管理器]事務回滾失敗 {transaction.transaction_id}: {e}",
+                exc_info=True,
+            )
             transaction.status = TransactionStatus.FAILED
             transaction.error_message = f"回滾失敗: {e}"
             raise
@@ -443,48 +443,45 @@ class TransactionManager:
         """
         try:
             if operation.operation_type == OperationType.GRANT_ACHIEVEMENT:
-                # 回滾授予成就：撤銷成就
                 if self.achievement_service and operation.achievement_id:
                     await self.achievement_service.revoke_user_achievement(
-                        operation.user_id,
-                        operation.achievement_id
+                        operation.user_id, operation.achievement_id
                     )
 
             elif operation.operation_type == OperationType.REVOKE_ACHIEVEMENT:
-                # 回滾撤銷成就：重新授予成就
                 if self.achievement_service and operation.achievement_id:
                     await self.achievement_service.grant_user_achievement(
-                        operation.user_id,
-                        operation.achievement_id
+                        operation.user_id, operation.achievement_id
                     )
 
             elif operation.operation_type == OperationType.ADJUST_PROGRESS:
-                # 回滾進度調整：恢復原始值
-                if self.achievement_service and operation.achievement_id and operation.old_value is not None:
+                if (
+                    self.achievement_service
+                    and operation.achievement_id
+                    and operation.old_value is not None
+                ):
                     await self.achievement_service.update_user_progress(
-                        operation.user_id,
-                        operation.achievement_id,
-                        operation.old_value
+                        operation.user_id, operation.achievement_id, operation.old_value
                     )
 
-            elif operation.operation_type == OperationType.RESET_USER_DATA:
-                # 回滾用戶資料重置：恢復備份數據
-                if operation.old_value and isinstance(operation.old_value, dict):
-                    await self._restore_user_data(operation.user_id, operation.old_value)
+            elif operation.operation_type == OperationType.RESET_USER_DATA and operation.old_value and isinstance(operation.old_value, dict):
+                await self._restore_user_data(
+                    operation.user_id, operation.old_value
+                )
 
             logger.debug(
-                "【事務管理器】操作回滾成功",
+                "[事務管理器]操作回滾成功",
                 extra={
                     "operation_id": operation.operation_id,
                     "operation_type": operation.operation_type.value,
-                    "user_id": operation.user_id
-                }
+                    "user_id": operation.user_id,
+                },
             )
 
         except Exception as e:
             logger.error(
-                f"【事務管理器】操作回滾失敗 {operation.operation_id}: {e}",
-                exc_info=True
+                f"[事務管理器]操作回滾失敗 {operation.operation_id}: {e}",
+                exc_info=True,
             )
             raise
 
@@ -501,23 +498,27 @@ class TransactionManager:
         for invalidation in transaction.cache_invalidations:
             try:
                 for cache_key in invalidation.cache_keys:
-                    await self.cache_service.invalidate(invalidation.cache_type, cache_key)
+                    await self.cache_service.invalidate(
+                        invalidation.cache_type, cache_key
+                    )
                     invalidation_count += 1
 
                 invalidation.invalidated = True
 
             except Exception as e:
-                logger.error(f"【事務管理器】快取失效失敗 {invalidation.cache_type}: {e}")
+                logger.error(
+                    f"[事務管理器]快取失效失敗 {invalidation.cache_type}: {e}"
+                )
                 raise
 
         self._stats["cache_invalidations"] += invalidation_count
 
         logger.debug(
-            "【事務管理器】快取失效完成",
+            "[事務管理器]快取失效完成",
             extra={
                 "transaction_id": transaction.transaction_id,
-                "invalidation_count": invalidation_count
-            }
+                "invalidation_count": invalidation_count,
+            },
         )
 
     async def _update_statistics(self, transaction: Transaction) -> None:
@@ -533,7 +534,7 @@ class TransactionManager:
             for operation in transaction.operations:
                 if operation.operation_type in [
                     OperationType.GRANT_ACHIEVEMENT,
-                    OperationType.REVOKE_ACHIEVEMENT
+                    OperationType.REVOKE_ACHIEVEMENT,
                 ]:
                     stats_to_update.add("user_achievements")
                     stats_to_update.add("global_stats")
@@ -544,7 +545,7 @@ class TransactionManager:
 
                 elif operation.operation_type in [
                     OperationType.RESET_USER_DATA,
-                    OperationType.BULK_RESET
+                    OperationType.BULK_RESET,
                 ]:
                     stats_to_update.add("user_achievements")
                     stats_to_update.add("user_progress")
@@ -556,18 +557,20 @@ class TransactionManager:
                 await self._trigger_stats_update(stat_type, transaction)
 
             logger.debug(
-                "【事務管理器】統計更新完成",
+                "[事務管理器]統計更新完成",
                 extra={
                     "transaction_id": transaction.transaction_id,
-                    "updated_stats": list(stats_to_update)
-                }
+                    "updated_stats": list(stats_to_update),
+                },
             )
 
         except Exception as e:
-            logger.error(f"【事務管理器】統計更新失敗: {e}", exc_info=True)
+            logger.error(f"[事務管理器]統計更新失敗: {e}", exc_info=True)
             # 統計更新失敗不應該影響事務提交
 
-    async def _get_actual_state(self, check_type: str, target_id: int) -> dict[str, Any]:
+    async def _get_actual_state(
+        self, check_type: str, target_id: int
+    ) -> dict[str, Any]:
         """獲取實際狀態.
 
         Args:
@@ -580,7 +583,9 @@ class TransactionManager:
         if check_type == "user_achievement_count":
             # 獲取用戶成就數量
             if self.achievement_service:
-                achievements = await self.achievement_service.get_user_achievements(target_id)
+                achievements = await self.achievement_service.get_user_achievements(
+                    target_id
+                )
                 return {"count": len(achievements)}
 
         elif check_type == "user_progress":
@@ -589,11 +594,10 @@ class TransactionManager:
                 progress = await self.achievement_service.get_user_progress(target_id)
                 return {"progress_count": len(progress)}
 
-        elif check_type == "achievement_exists":
+        elif check_type == "achievement_exists" and self.achievement_service:
             # 檢查成就是否存在
-            if self.achievement_service:
-                achievement = await self.achievement_service.get_achievement(target_id)
-                return {"exists": achievement is not None}
+            achievement = await self.achievement_service.get_achievement(target_id)
+            return {"exists": achievement is not None}
 
         return {}
 
@@ -614,7 +618,11 @@ class TransactionManager:
             actual_value = actual[key]
 
             # 支援範圍檢查
-            if isinstance(expected_value, dict) and "min" in expected_value and "max" in expected_value:
+            if (
+                isinstance(expected_value, dict)
+                and "min" in expected_value
+                and "max" in expected_value
+            ):
                 if not (expected_value["min"] <= actual_value <= expected_value["max"]):
                     return False
             elif actual_value != expected_value:
@@ -622,7 +630,9 @@ class TransactionManager:
 
         return True
 
-    async def _restore_user_data(self, user_id: int, backup_data: dict[str, Any]) -> None:
+    async def _restore_user_data(
+        self, user_id: int, backup_data: dict[str, Any]
+    ) -> None:
         """恢復用戶資料.
 
         Args:
@@ -637,8 +647,7 @@ class TransactionManager:
             if "achievements" in backup_data:
                 for achievement_data in backup_data["achievements"]:
                     await self.achievement_service.grant_user_achievement(
-                        user_id,
-                        achievement_data["achievement_id"]
+                        user_id, achievement_data["achievement_id"]
                     )
 
             # 恢復用戶進度
@@ -647,16 +656,20 @@ class TransactionManager:
                     await self.achievement_service.update_user_progress(
                         user_id,
                         progress_data["achievement_id"],
-                        progress_data["current_value"]
+                        progress_data["current_value"],
                     )
 
-            logger.info(f"【事務管理器】用戶資料恢復完成: {user_id}")
+            logger.info(f"[事務管理器]用戶資料恢復完成: {user_id}")
 
         except Exception as e:
-            logger.error(f"【事務管理器】用戶資料恢復失敗 {user_id}: {e}", exc_info=True)
+            logger.error(
+                f"[事務管理器]用戶資料恢復失敗 {user_id}: {e}", exc_info=True
+            )
             raise
 
-    async def _trigger_stats_update(self, stat_type: str, transaction: Transaction) -> None:
+    async def _trigger_stats_update(
+        self, stat_type: str, transaction: Transaction  # noqa: ARG002
+    ) -> None:
         """觸發統計更新.
 
         Args:
@@ -666,10 +679,10 @@ class TransactionManager:
         try:
             # 這裡可以觸發異步統計更新任務
             # 實際實現中可能需要使用任務隊列或後台任務
-            logger.debug(f"【事務管理器】觸發統計更新: {stat_type}")
+            logger.debug(f"[事務管理器]觸發統計更新: {stat_type}")
 
         except Exception as e:
-            logger.error(f"【事務管理器】觸發統計更新失敗 {stat_type}: {e}")
+            logger.error(f"[事務管理器]觸發統計更新失敗 {stat_type}: {e}")
 
     async def _cleanup_expired_locks(self) -> None:
         """清理過期的鎖."""
@@ -678,7 +691,7 @@ class TransactionManager:
             # 實際實現中可能需要更複雜的清理邏輯
             pass
         except Exception as e:
-            logger.error(f"【事務管理器】清理鎖失敗: {e}")
+            logger.error(f"[事務管理器]清理鎖失敗: {e}")
 
     def get_transaction_stats(self) -> dict[str, Any]:
         """獲取事務統計.
@@ -689,7 +702,7 @@ class TransactionManager:
         return {
             **self._stats,
             "active_transactions": len(self._active_transactions),
-            "active_locks": len(self._transaction_locks)
+            "active_locks": len(self._transaction_locks),
         }
 
     async def get_active_transactions(self) -> list[dict[str, Any]]:
@@ -700,15 +713,21 @@ class TransactionManager:
         """
         transactions = []
         for transaction in self._active_transactions.values():
-            transactions.append({
-                "transaction_id": transaction.transaction_id,
-                "status": transaction.status.value,
-                "operations_count": len(transaction.operations),
-                "created_at": transaction.created_at.isoformat(),
-                "started_at": transaction.started_at.isoformat() if transaction.started_at else None,
-                "duration_seconds": (
-                    datetime.utcnow() - transaction.started_at
-                ).total_seconds() if transaction.started_at else 0
-            })
+            transactions.append(
+                {
+                    "transaction_id": transaction.transaction_id,
+                    "status": transaction.status.value,
+                    "operations_count": len(transaction.operations),
+                    "created_at": transaction.created_at.isoformat(),
+                    "started_at": transaction.started_at.isoformat()
+                    if transaction.started_at
+                    else None,
+                    "duration_seconds": (
+                        datetime.utcnow() - transaction.started_at
+                    ).total_seconds()
+                    if transaction.started_at
+                    else 0,
+                }
+            )
 
         return transactions

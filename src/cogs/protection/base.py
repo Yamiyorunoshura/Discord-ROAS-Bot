@@ -41,7 +41,6 @@ if not logger.hasHandlers():
     logger.addHandler(_log_handler)
     logger.addHandler(logging.StreamHandler())
 
-
 def friendly_trace(exc: BaseException, depth: int = 3) -> str:
     """生成友善的錯誤追蹤資訊
 
@@ -56,7 +55,6 @@ def friendly_trace(exc: BaseException, depth: int = 3) -> str:
         traceback.TracebackException.from_exception(exc, limit=depth).format()
     )
 
-
 def friendly_log(msg: str, exc: BaseException | None = None, level=logging.ERROR):
     """記錄友善的錯誤訊息,包含追蹤碼和詳細資訊
 
@@ -68,7 +66,6 @@ def friendly_log(msg: str, exc: BaseException | None = None, level=logging.ERROR
     if exc:
         msg += f"\n原因:{exc.__class__.__name__}: {exc}\n{friendly_trace(exc)}"
     logger.log(level, msg, exc_info=bool(exc))
-
 
 # ────────────────────────────
 # 統一錯誤處理
@@ -90,16 +87,18 @@ def handle_error(ctx_or_itx: object | None, user_msg: str = "發生未知錯誤"
         try:
             if isinstance(ctx_or_itx, discord.Interaction):
                 if ctx_or_itx.response.is_done():
-                    asyncio.create_task(ctx_or_itx.followup.send(hint, ephemeral=True))
+                    task = asyncio.create_task(ctx_or_itx.followup.send(hint, ephemeral=True))
+                    task.add_done_callback(lambda t: t.exception())  # Log exceptions
                 else:
-                    asyncio.create_task(
+                    task = asyncio.create_task(
                         ctx_or_itx.response.send_message(hint, ephemeral=True)
                     )
+                    task.add_done_callback(lambda t: t.exception())  # Log exceptions
             elif isinstance(ctx_or_itx, commands.Context):
-                asyncio.create_task(ctx_or_itx.reply(hint, mention_author=False))
+                task = asyncio.create_task(ctx_or_itx.reply(hint, mention_author=False))
+                task.add_done_callback(lambda t: t.exception())  # Log exceptions
         except Exception:
             pass
-
 
 # ────────────────────────────
 # 保護模組基礎類別
@@ -219,7 +218,6 @@ class ProtectionCog(commands.Cog):
 
         return commands.check(pred)
 
-
 # ────────────────────────────
 # Slash 指令權限檢查器
 # ────────────────────────────
@@ -237,7 +235,6 @@ def admin_only():
 
     return app_commands.check(predicate)
 
-
 # ────────────────────────────
 # 背景任務安全封裝
 # ────────────────────────────
@@ -251,7 +248,6 @@ def safe_task(coro):
         背景任務物件
     """
     return asyncio.create_task(_wrap_err(coro))
-
 
 async def _wrap_err(coro):
     """包裝協程並處理異常"""

@@ -1,6 +1,6 @@
 """用戶成就管理服務.
 
-此模組提供用戶成就管理的核心業務邏輯：
+此模組提供用戶成就管理的核心業務邏輯:
 - 用戶搜尋和選擇
 - 手動成就授予和撤銷
 - 成就進度調整
@@ -27,6 +27,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# 常數定義
+MAX_BATCH_USERS = 50  # 批量操作最大用戶數量
 
 class UserSearchService:
     """用戶搜尋服務."""
@@ -40,15 +42,12 @@ class UserSearchService:
         self.bot = bot
 
     async def search_users(
-        self,
-        query: str,
-        guild_id: int,
-        limit: int = 10
+        self, query: str, guild_id: int, limit: int = 10
     ) -> list[dict[str, Any]]:
-        """搜尋用戶，支援多種搜尋方式.
+        """搜尋用戶,支援多種搜尋方式.
 
         Args:
-            query: 搜尋查詢（用戶 ID、用戶名、顯示名稱、暱稱）
+            query: 搜尋查詢(用戶 ID、用戶名、顯示名稱、暱稱)
             guild_id: 伺服器 ID
             limit: 最大返回數量
 
@@ -81,18 +80,22 @@ class UserSearchService:
                     if len(matched_users) >= limit:
                         break
 
-                    # 避免重複添加（如果已按 ID 找到）
+                    # 避免重複添加(如果已按 ID 找到)
                     if any(u["user_id"] == member.id for u in matched_users):
                         continue
 
                     # 檢查用戶名、顯示名稱、暱稱
-                    if (query_lower in member.name.lower() or
-                        query_lower in member.display_name.lower() or
-                        (member.nick and query_lower in member.nick.lower())):
+                    if (
+                        query_lower in member.name.lower()
+                        or query_lower in member.display_name.lower()
+                        or (member.nick and query_lower in member.nick.lower())
+                    ):
                         matched_users.append(self._format_user_data(member))
                         logger.debug(f"按名稱找到用戶: {member.display_name}")
 
-            logger.info(f"搜尋查詢 '{query}' 在伺服器 {guild_id} 找到 {len(matched_users)} 個用戶")
+            logger.info(
+                f"搜尋查詢 '{query}' 在伺服器 {guild_id} 找到 {len(matched_users)} 個用戶"
+            )
             return matched_users[:limit]
 
         except Exception as e:
@@ -106,15 +109,15 @@ class UserSearchService:
             "username": member.name,
             "display_name": member.display_name,
             "nick": member.nick,
-            "avatar_url": member.avatar.url if member.avatar else member.default_avatar.url,
+            "avatar_url": member.avatar.url
+            if member.avatar
+            else member.default_avatar.url,
             "joined_at": member.joined_at.isoformat() if member.joined_at else None,
             "user": member,  # 保留 member 物件供後續使用
         }
 
     async def get_user_achievement_summary(
-        self,
-        user_id: int,
-        repository: AchievementRepository
+        self, user_id: int, repository: AchievementRepository
     ) -> dict[str, Any]:
         """獲取用戶成就摘要統計.
 
@@ -133,16 +136,22 @@ class UserSearchService:
 
             # 計算統計資料
             earned_count = len(user_achievements)
-            in_progress_count = len([p for p in user_progress if p.current_value < p.target_value])
+            in_progress_count = len(
+                [p for p in user_progress if p.current_value < p.target_value]
+            )
             total_points = sum(ach.points for _, ach in user_achievements)
 
             return {
                 "total_achievements": total_achievements,
                 "earned_achievements": earned_count,
                 "in_progress_achievements": in_progress_count,
-                "completion_rate": round((earned_count / total_achievements * 100), 1) if total_achievements > 0 else 0,
+                "completion_rate": round((earned_count / total_achievements * 100), 1)
+                if total_achievements > 0
+                else 0,
                 "total_points": total_points,
-                "last_achievement": user_achievements[0].earned_at if user_achievements else None,
+                "last_achievement": user_achievements[0].earned_at
+                if user_achievements
+                else None,
             }
 
         except Exception as e:
@@ -155,7 +164,6 @@ class UserSearchService:
                 "total_points": 0,
                 "last_achievement": None,
             }
-
 
 class UserAchievementAdminService:
     """用戶成就管理服務."""
@@ -186,7 +194,7 @@ class UserAchievementAdminService:
         target_user_id: int,
         achievement_id: int,
         notify_user: bool = True,
-        reason: str = "Manual grant by admin"
+        reason: str = "Manual grant by admin",
     ) -> tuple[bool, str, UserAchievement | None]:
         """手動授予用戶成就.
 
@@ -213,7 +221,9 @@ class UserAchievementAdminService:
                 return False, "成就未啟用", None
 
             # 檢查用戶是否已擁有此成就
-            has_achievement = await self.repository.has_user_achievement(target_user_id, achievement_id)
+            has_achievement = await self.repository.has_user_achievement(
+                target_user_id, achievement_id
+            )
             if has_achievement:
                 return False, "用戶已擁有此成就", None
 
@@ -223,10 +233,12 @@ class UserAchievementAdminService:
                 user_id=target_user_id,
                 achievement_id=achievement_id,
                 earned_at=datetime.utcnow(),
-                notified=not notify_user  # 如果不通知，標記為已通知避免後續通知
+                notified=not notify_user,  # 如果不通知,標記為已通知避免後續通知
             )
 
-            saved_achievement = await self.repository.create_user_achievement(user_achievement)
+            saved_achievement = await self.repository.create_user_achievement(
+                user_achievement
+            )
 
             # 記錄審計日誌
             await self.audit_logger.log_user_achievement_operation(
@@ -237,15 +249,17 @@ class UserAchievementAdminService:
                 details={
                     "achievement_name": achievement.name,
                     "reason": reason,
-                    "notify_user": notify_user
+                    "notify_user": notify_user,
                 },
-                result="success"
+                result="success",
             )
 
             # 清除相關快取
             await self._invalidate_user_cache(target_user_id)
 
-            logger.info(f"管理員 {admin_user_id} 成功授予用戶 {target_user_id} 成就 {achievement.name}")
+            logger.info(
+                f"管理員 {admin_user_id} 成功授予用戶 {target_user_id} 成就 {achievement.name}"
+            )
             return True, f"成功授予成就「{achievement.name}」", saved_achievement
 
         except Exception as e:
@@ -257,7 +271,7 @@ class UserAchievementAdminService:
                 target_user_id=target_user_id,
                 achievement_id=achievement_id,
                 details={"reason": reason, "error": str(e)},
-                result="failed"
+                result="failed",
             )
             return False, f"授予成就時發生錯誤: {e!s}", None
 
@@ -266,7 +280,7 @@ class UserAchievementAdminService:
         admin_user_id: int,
         target_user_id: int,
         achievement_id: int,
-        reason: str = "Manual revoke by admin"
+        reason: str = "Manual revoke by admin",
     ) -> tuple[bool, str]:
         """撤銷用戶成就.
 
@@ -290,12 +304,15 @@ class UserAchievementAdminService:
                 return False, "成就不存在"
 
             # 檢查用戶是否擁有此成就
-            has_achievement = await self.repository.has_user_achievement(target_user_id, achievement_id)
+            has_achievement = await self.repository.has_user_achievement(
+                target_user_id, achievement_id
+            )
             if not has_achievement:
                 return False, "用戶未擁有此成就"
 
-            # 撤銷成就（刪除用戶成就記錄）
-            success = await self.repository.delete_user_achievement(target_user_id, achievement_id)
+            success = await self.repository.delete_user_achievement(
+                target_user_id, achievement_id
+            )
             if not success:
                 return False, "撤銷成就失敗"
 
@@ -308,17 +325,16 @@ class UserAchievementAdminService:
                 operation="revoke_achievement",
                 target_user_id=target_user_id,
                 achievement_id=achievement_id,
-                details={
-                    "achievement_name": achievement.name,
-                    "reason": reason
-                },
-                result="success"
+                details={"achievement_name": achievement.name, "reason": reason},
+                result="success",
             )
 
             # 清除相關快取
             await self._invalidate_user_cache(target_user_id)
 
-            logger.info(f"管理員 {admin_user_id} 成功撤銷用戶 {target_user_id} 成就 {achievement.name}")
+            logger.info(
+                f"管理員 {admin_user_id} 成功撤銷用戶 {target_user_id} 成就 {achievement.name}"
+            )
             return True, f"成功撤銷成就「{achievement.name}」"
 
         except Exception as e:
@@ -330,17 +346,17 @@ class UserAchievementAdminService:
                 target_user_id=target_user_id,
                 achievement_id=achievement_id,
                 details={"reason": reason, "error": str(e)},
-                result="failed"
+                result="failed",
             )
             return False, f"撤銷成就時發生錯誤: {e!s}"
 
-    async def update_user_progress(
+    async def update_user_progress(  # noqa: PLR0911
         self,
         admin_user_id: int,
         target_user_id: int,
         achievement_id: int,
         new_value: float,
-        reason: str = "Manual adjustment by admin"
+        reason: str = "Manual adjustment by admin",
     ) -> tuple[bool, str, AchievementProgress | None]:
         """調整用戶成就進度.
 
@@ -367,11 +383,12 @@ class UserAchievementAdminService:
                 return False, "成就未啟用", None
 
             # 檢查用戶是否已擁有此成就
-            has_achievement = await self.repository.has_user_achievement(target_user_id, achievement_id)
+            has_achievement = await self.repository.has_user_achievement(
+                target_user_id, achievement_id
+            )
             if has_achievement:
-                return False, "用戶已擁有此成就，無法調整進度", None
+                return False, "用戶已擁有此成就,無法調整進度", None
 
-            # 獲取目標值（從成就條件中解析）
             criteria = achievement.criteria or {}
             target_value = criteria.get("target", 1)
 
@@ -382,7 +399,9 @@ class UserAchievementAdminService:
                 return False, f"進度值不能大於目標值 {target_value}", None
 
             # 獲取或創建進度記錄
-            progress = await self.repository.get_user_progress_by_achievement(target_user_id, achievement_id)
+            progress = await self.repository.get_user_progress_by_achievement(
+                target_user_id, achievement_id
+            )
             if progress:
                 # 更新現有進度
                 progress.current_value = new_value
@@ -397,7 +416,7 @@ class UserAchievementAdminService:
                     current_value=new_value,
                     target_value=target_value,
                     progress_data={},
-                    last_updated=datetime.utcnow()
+                    last_updated=datetime.utcnow(),
                 )
                 updated_progress = await self.repository.create_user_progress(progress)
 
@@ -405,10 +424,13 @@ class UserAchievementAdminService:
             if new_value >= target_value:
                 # 自動授予成就
                 _, message, _ = await self.grant_achievement_to_user(
-                    admin_user_id, target_user_id, achievement_id,
-                    notify_user=True, reason="Auto-granted after progress adjustment"
+                    admin_user_id,
+                    target_user_id,
+                    achievement_id,
+                    notify_user=True,
+                    reason="Auto-granted after progress adjustment",
                 )
-                success_msg = f"進度已調整為 {new_value}/{target_value}，並自動授予成就"
+                success_msg = f"進度已調整為 {new_value}/{target_value},並自動授予成就"
             else:
                 success_msg = f"進度已調整為 {new_value}/{target_value}"
 
@@ -423,15 +445,17 @@ class UserAchievementAdminService:
                     "previous_value": progress.current_value if progress else 0,
                     "new_value": new_value,
                     "target_value": target_value,
-                    "reason": reason
+                    "reason": reason,
                 },
-                result="success"
+                result="success",
             )
 
             # 清除相關快取
             await self._invalidate_user_cache(target_user_id)
 
-            logger.info(f"管理員 {admin_user_id} 成功調整用戶 {target_user_id} 成就 {achievement.name} 進度至 {new_value}")
+            logger.info(
+                f"管理員 {admin_user_id} 成功調整用戶 {target_user_id} 成就 {achievement.name} 進度至 {new_value}"
+            )
             return True, success_msg, updated_progress
 
         except Exception as e:
@@ -443,7 +467,7 @@ class UserAchievementAdminService:
                 target_user_id=target_user_id,
                 achievement_id=achievement_id,
                 details={"reason": reason, "new_value": new_value, "error": str(e)},
-                result="failed"
+                result="failed",
             )
             return False, f"調整進度時發生錯誤: {e!s}", None
 
@@ -452,14 +476,14 @@ class UserAchievementAdminService:
         admin_user_id: int,
         target_user_id: int,
         category_id: int | None = None,
-        reason: str = "Manual reset by admin"
+        reason: str = "Manual reset by admin",
     ) -> tuple[bool, str, dict[str, int]]:
         """重置用戶成就資料.
 
         Args:
             admin_user_id: 管理員用戶 ID
             target_user_id: 目標用戶 ID
-            category_id: 要重置的分類 ID（None 表示重置所有）
+            category_id: 要重置的分類 ID(None 表示重置所有)
             reason: 重置原因
 
         Returns:
@@ -470,31 +494,42 @@ class UserAchievementAdminService:
             if not await self.permission_service.has_admin_permission(admin_user_id):
                 return False, "權限不足", {}
 
-            # 備份用戶資料（用於回滾）
-            user_achievements = await self.repository.get_user_achievements(target_user_id, category_id)
-            user_progress = await self.repository.get_user_progress(target_user_id, category_id)
+            user_achievements = await self.repository.get_user_achievements(
+                target_user_id, category_id
+            )
+            user_progress = await self.repository.get_user_progress(
+                target_user_id, category_id
+            )
 
             # 執行重置操作
             if category_id:
                 # 重置特定分類
-                deleted_achievements = await self.repository.delete_user_achievements_by_category(
-                    target_user_id, category_id
+                deleted_achievements = (
+                    await self.repository.delete_user_achievements_by_category(
+                        target_user_id, category_id
+                    )
                 )
-                deleted_progress = await self.repository.delete_user_progress_by_category(
-                    target_user_id, category_id
+                deleted_progress = (
+                    await self.repository.delete_user_progress_by_category(
+                        target_user_id, category_id
+                    )
                 )
                 reset_scope = f"分類 {category_id}"
             else:
                 # 重置所有資料
-                deleted_achievements = await self.repository.delete_all_user_achievements(target_user_id)
-                deleted_progress = await self.repository.delete_all_user_progress(target_user_id)
+                deleted_achievements = (
+                    await self.repository.delete_all_user_achievements(target_user_id)
+                )
+                deleted_progress = await self.repository.delete_all_user_progress(
+                    target_user_id
+                )
                 reset_scope = "所有"
 
             reset_stats = {
                 "deleted_achievements": deleted_achievements,
                 "deleted_progress": deleted_progress,
                 "backup_achievements": len(user_achievements),
-                "backup_progress": len(user_progress)
+                "backup_progress": len(user_progress),
             }
 
             # 記錄審計日誌
@@ -507,15 +542,17 @@ class UserAchievementAdminService:
                     "category_id": category_id,
                     "reset_scope": reset_scope,
                     "reason": reason,
-                    "stats": reset_stats
+                    "stats": reset_stats,
                 },
-                result="success"
+                result="success",
             )
 
             # 清除相關快取
             await self._invalidate_user_cache(target_user_id)
 
-            logger.info(f"管理員 {admin_user_id} 成功重置用戶 {target_user_id} 的{reset_scope}成就資料")
+            logger.info(
+                f"管理員 {admin_user_id} 成功重置用戶 {target_user_id} 的{reset_scope}成就資料"
+            )
             return True, f"成功重置{reset_scope}成就資料", reset_stats
 
         except Exception as e:
@@ -527,7 +564,7 @@ class UserAchievementAdminService:
                 target_user_id=target_user_id,
                 achievement_id=None,
                 details={"category_id": category_id, "reason": reason, "error": str(e)},
-                result="failed"
+                result="failed",
             )
             return False, f"重置用戶資料時發生錯誤: {e!s}", {}
 
@@ -537,7 +574,7 @@ class UserAchievementAdminService:
         user_ids: list[int],
         achievement_id: int,
         notify_users: bool = True,
-        reason: str = "Bulk grant by admin"
+        reason: str = "Bulk grant by admin",
     ) -> tuple[bool, str, dict[str, Any]]:
         """批量授予成就給多個用戶.
 
@@ -557,7 +594,7 @@ class UserAchievementAdminService:
                 return False, "權限不足", {}
 
             # 限制批量操作數量
-            if len(user_ids) > 50:
+            if len(user_ids) > MAX_BATCH_USERS:
                 return False, "批量操作最多支援 50 個用戶", {}
 
             # 檢查成就是否存在且啟用
@@ -572,29 +609,49 @@ class UserAchievementAdminService:
                 "successful": 0,
                 "failed": 0,
                 "skipped": 0,
-                "details": []
+                "details": [],
             }
 
             # 批量處理
             for user_id in user_ids:
                 try:
-                    success, message, user_achievement = await self.grant_achievement_to_user(
+                    (
+                        success,
+                        message,
+                        user_achievement,
+                    ) = await self.grant_achievement_to_user(
                         admin_user_id, user_id, achievement_id, notify_users, reason
                     )
 
                     if success:
                         results["successful"] += 1
-                        results["details"].append({"user_id": user_id, "status": "success", "message": message})
+                        results["details"].append(
+                            {
+                                "user_id": user_id,
+                                "status": "success",
+                                "message": message,
+                            }
+                        )
                     elif "已擁有" in message:
                         results["skipped"] += 1
-                        results["details"].append({"user_id": user_id, "status": "skipped", "message": message})
+                        results["details"].append(
+                            {
+                                "user_id": user_id,
+                                "status": "skipped",
+                                "message": message,
+                            }
+                        )
                     else:
                         results["failed"] += 1
-                        results["details"].append({"user_id": user_id, "status": "failed", "message": message})
+                        results["details"].append(
+                            {"user_id": user_id, "status": "failed", "message": message}
+                        )
 
                 except Exception as e:
                     results["failed"] += 1
-                    results["details"].append({"user_id": user_id, "status": "error", "message": str(e)})
+                    results["details"].append(
+                        {"user_id": user_id, "status": "error", "message": str(e)}
+                    )
 
             # 記錄批量操作審計日誌
             await self.audit_logger.log_user_achievement_operation(
@@ -606,13 +663,15 @@ class UserAchievementAdminService:
                     "achievement_name": achievement.name,
                     "user_count": len(user_ids),
                     "reason": reason,
-                    "results": results
+                    "results": results,
                 },
-                result="success" if results["failed"] == 0 else "partial"
+                result="success" if results["failed"] == 0 else "partial",
             )
 
             summary = f"批量授予完成: 成功 {results['successful']}, 失敗 {results['failed']}, 跳過 {results['skipped']}"
-            logger.info(f"管理員 {admin_user_id} 執行批量授予成就 {achievement.name}: {summary}")
+            logger.info(
+                f"管理員 {admin_user_id} 執行批量授予成就 {achievement.name}: {summary}"
+            )
 
             return True, summary, results
 
@@ -625,7 +684,7 @@ class UserAchievementAdminService:
         admin_user_id: int,
         user_ids: list[int],
         achievement_id: int,
-        reason: str = "Bulk revoke by admin"
+        reason: str = "Bulk revoke by admin",
     ) -> tuple[bool, str, dict[str, Any]]:
         """批量撤銷成就從多個用戶.
 
@@ -644,7 +703,7 @@ class UserAchievementAdminService:
                 return False, "權限不足", {}
 
             # 限制批量操作數量
-            if len(user_ids) > 50:
+            if len(user_ids) > MAX_BATCH_USERS:
                 return False, "批量操作最多支援 50 個用戶", {}
 
             # 檢查成就是否存在
@@ -657,7 +716,7 @@ class UserAchievementAdminService:
                 "successful": 0,
                 "failed": 0,
                 "skipped": 0,
-                "details": []
+                "details": [],
             }
 
             # 批量處理
@@ -669,17 +728,33 @@ class UserAchievementAdminService:
 
                     if success:
                         results["successful"] += 1
-                        results["details"].append({"user_id": user_id, "status": "success", "message": message})
+                        results["details"].append(
+                            {
+                                "user_id": user_id,
+                                "status": "success",
+                                "message": message,
+                            }
+                        )
                     elif "未擁有" in message:
                         results["skipped"] += 1
-                        results["details"].append({"user_id": user_id, "status": "skipped", "message": message})
+                        results["details"].append(
+                            {
+                                "user_id": user_id,
+                                "status": "skipped",
+                                "message": message,
+                            }
+                        )
                     else:
                         results["failed"] += 1
-                        results["details"].append({"user_id": user_id, "status": "failed", "message": message})
+                        results["details"].append(
+                            {"user_id": user_id, "status": "failed", "message": message}
+                        )
 
                 except Exception as e:
                     results["failed"] += 1
-                    results["details"].append({"user_id": user_id, "status": "error", "message": str(e)})
+                    results["details"].append(
+                        {"user_id": user_id, "status": "error", "message": str(e)}
+                    )
 
             # 記錄批量操作審計日誌
             await self.audit_logger.log_user_achievement_operation(
@@ -691,13 +766,15 @@ class UserAchievementAdminService:
                     "achievement_name": achievement.name,
                     "user_count": len(user_ids),
                     "reason": reason,
-                    "results": results
+                    "results": results,
                 },
-                result="success" if results["failed"] == 0 else "partial"
+                result="success" if results["failed"] == 0 else "partial",
             )
 
             summary = f"批量撤銷完成: 成功 {results['successful']}, 失敗 {results['failed']}, 跳過 {results['skipped']}"
-            logger.info(f"管理員 {admin_user_id} 執行批量撤銷成就 {achievement.name}: {summary}")
+            logger.info(
+                f"管理員 {admin_user_id} 執行批量撤銷成就 {achievement.name}: {summary}"
+            )
 
             return True, summary, results
 

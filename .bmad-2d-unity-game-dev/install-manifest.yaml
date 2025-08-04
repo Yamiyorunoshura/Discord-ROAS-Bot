@@ -1,5 +1,5 @@
 version: 1.5.0
-installed_at: '2025-08-02T17:18:30.816Z'
+installed_at: '2025-08-02T20:15:42.829Z'
 install_type: expansion-pack
 expansion_pack_id: bmad-2d-unity-game-dev
 expansion_pack_name: bmad-2d-unity-game-dev
@@ -15,33 +15,6 @@ files:
     modified: false
   - path: .bmad-2d-unity-game-dev\workflows\game-dev-greenfield.yaml
     hash: 12e261d9905eac5e
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\project-brief-tmpl.yaml
-    hash: cd4b269b0722c361
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\market-research-tmpl.yaml
-    hash: 949ab9c006cfaf6f
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\level-design-doc-tmpl.yaml
-    hash: b76991063995fd9c
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\game-story-tmpl.yaml
-    hash: 02b2c0a00c79a8b3
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\game-design-doc-tmpl.yaml
-    hash: da1a9ab58a0a68fd
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\game-brief-tmpl.yaml
-    hash: 5b0c7928b81aa9ff
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\game-architecture-tmpl.yaml
-    hash: e6e9eb30d2bf578f
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\competitor-analysis-tmpl.yaml
-    hash: b58b108e14dac04b
-    modified: false
-  - path: .bmad-2d-unity-game-dev\templates\brainstorming-output-tmpl.yaml
-    hash: e4261b61b915ee9b
     modified: false
   - path: .bmad-2d-unity-game-dev\utils\workflow-management.md
     hash: b148df3ebb1f9c61
@@ -88,20 +61,32 @@ files:
   - path: .bmad-2d-unity-game-dev\tasks\advanced-elicitation.md
     hash: 0bac598f2b276297
     modified: false
-  - path: .bmad-2d-unity-game-dev\agent-teams\unity-2d-game-team.yaml
-    hash: 2a40d879eab4360f
+  - path: .bmad-2d-unity-game-dev\templates\project-brief-tmpl.yaml
+    hash: cd4b269b0722c361
     modified: false
-  - path: .bmad-2d-unity-game-dev\data\elicitation-methods.md
-    hash: 82d24b664e1a58ff
+  - path: .bmad-2d-unity-game-dev\templates\market-research-tmpl.yaml
+    hash: 949ab9c006cfaf6f
     modified: false
-  - path: .bmad-2d-unity-game-dev\data\development-guidelines.md
-    hash: a62458553884dcd5
+  - path: .bmad-2d-unity-game-dev\templates\level-design-doc-tmpl.yaml
+    hash: b76991063995fd9c
     modified: false
-  - path: .bmad-2d-unity-game-dev\data\brainstorming-techniques.md
-    hash: 2dae43f4464f1ad2
+  - path: .bmad-2d-unity-game-dev\templates\game-story-tmpl.yaml
+    hash: 02b2c0a00c79a8b3
     modified: false
-  - path: .bmad-2d-unity-game-dev\data\bmad-kb.md
-    hash: 7e0b63dfca44c4e1
+  - path: .bmad-2d-unity-game-dev\templates\game-design-doc-tmpl.yaml
+    hash: da1a9ab58a0a68fd
+    modified: false
+  - path: .bmad-2d-unity-game-dev\templates\game-brief-tmpl.yaml
+    hash: 5b0c7928b81aa9ff
+    modified: false
+  - path: .bmad-2d-unity-game-dev\templates\game-architecture-tmpl.yaml
+    hash: e6e9eb30d2bf578f
+    modified: false
+  - path: .bmad-2d-unity-game-dev\templates\competitor-analysis-tmpl.yaml
+    hash: b58b108e14dac04b
+    modified: false
+  - path: .bmad-2d-unity-game-dev\templates\brainstorming-output-tmpl.yaml
+    hash: e4261b61b915ee9b
     modified: false
   - path: .bmad-2d-unity-game-dev\checklists\game-story-dod-checklist.md
     hash: 45289f5aee7ac67f
@@ -114,6 +99,9 @@ files:
     modified: false
   - path: .bmad-2d-unity-game-dev\checklists\game-architect-checklist.md
     hash: afc89ce2b74935cc
+    modified: false
+  - path: .bmad-2d-unity-game-dev\agent-teams\unity-2d-game-team.yaml
+    hash: 2a40d879eab4360f
     modified: false
   - path: .bmad-2d-unity-game-dev\agents\game-sm.md
     hash: 43d7b1230117684c
@@ -132,4 +120,16 @@ files:
     modified: false
   - path: .bmad-2d-unity-game-dev\agents\analyst.md
     hash: 5e7ca9ff3c9cf908
+    modified: false
+  - path: .bmad-2d-unity-game-dev\data\elicitation-methods.md
+    hash: 82d24b664e1a58ff
+    modified: false
+  - path: .bmad-2d-unity-game-dev\data\development-guidelines.md
+    hash: a62458553884dcd5
+    modified: false
+  - path: .bmad-2d-unity-game-dev\data\brainstorming-techniques.md
+    hash: 2dae43f4464f1ad2
+    modified: false
+  - path: .bmad-2d-unity-game-dev\data\bmad-kb.md
+    hash: 7e0b63dfca44c4e1
     modified: false

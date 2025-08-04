@@ -4,15 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterable, AsyncIterator, Awaitable
+    from collections.abc import AsyncIterable, AsyncIterator, Awaitable, Coroutine
 
-T = TypeVar("T")
-
-
-class AsyncIteratorWrapper:
+class AsyncIteratorWrapper[T]:
     """Wrapper to fix 'coroutine' object is not an async iterator errors."""
 
     def __init__(self, async_iterable: AsyncIterable[T]):
@@ -32,7 +29,6 @@ class AsyncIteratorWrapper:
             self._iterator = self._async_iterable.__aiter__()
         return await self._iterator.__anext__()
 
-
 def ensure_async_iterator(obj: Any) -> AsyncIterator[Any]:
     """Ensure object is an async iterator, fixing Python 3.12 compatibility issues.
 
@@ -44,16 +40,16 @@ def ensure_async_iterator(obj: Any) -> AsyncIterator[Any]:
     """
     # Check if it's already an async iterator
     if hasattr(obj, "__aiter__") and hasattr(obj, "__anext__"):
-        return obj
+        return obj  # type: ignore[no-any-return]
 
     # Check if it's an async iterable
     if hasattr(obj, "__aiter__"):
-        return obj.__aiter__()
+        return obj.__aiter__()  # type: ignore[no-any-return]
 
     # Check if it's a coroutine that should return an async iterator
     if asyncio.iscoroutine(obj):
 
-        async def _wrapper():
+        async def _wrapper() -> AsyncIterator[Any]:
             result = await obj
             if hasattr(result, "__aiter__"):
                 async for item in result:
@@ -66,20 +62,19 @@ def ensure_async_iterator(obj: Any) -> AsyncIterator[Any]:
     # If it's a regular iterable, convert to async iterator
     if hasattr(obj, "__iter__"):
 
-        async def _async_iter():
+        async def _async_iter() -> AsyncIterator[Any]:
             for item in obj:
                 yield item
 
         return _async_iter()
 
     # Fallback: wrap in async iterator that yields the object
-    async def _single_item():
+    async def _single_item() -> AsyncIterator[Any]:
         yield obj
 
     return _single_item()
 
-
-async def safe_async_iterator(
+async def safe_async_iterator[T](
     coro_or_iter: Awaitable[AsyncIterable[T]] | AsyncIterable[T],
 ) -> AsyncIterator[T]:
     """Safely handle coroutines that return async iterators.
@@ -111,7 +106,6 @@ async def safe_async_iterator(
     else:
         yield async_iterable
 
-
 class AsyncContextManagerWrapper:
     """Wrapper for async context managers to fix Python 3.12 issues."""
 
@@ -132,7 +126,6 @@ class AsyncContextManagerWrapper:
         if hasattr(self._context_manager, "__aexit__"):
             await self._context_manager.__aexit__(exc_type, exc_val, exc_tb)
 
-
 def fix_async_context_manager(obj: Any) -> AsyncContextManagerWrapper:
     """Fix async context manager compatibility issues.
 
@@ -143,7 +136,6 @@ def fix_async_context_manager(obj: Any) -> AsyncContextManagerWrapper:
         Wrapped async context manager
     """
     return AsyncContextManagerWrapper(obj)
-
 
 # Database cursor compatibility fixes
 class AsyncCursorWrapper:
@@ -194,16 +186,15 @@ class AsyncCursorWrapper:
     def lastrowid(self) -> int | None:
         """Get last inserted row ID."""
         if hasattr(self._cursor, "lastrowid"):
-            return self._cursor.lastrowid
+            return self._cursor.lastrowid  # type: ignore[no-any-return]
         return None
 
     @property
     def rowcount(self) -> int:
         """Get affected row count."""
         if hasattr(self._cursor, "rowcount"):
-            return self._cursor.rowcount
+            return self._cursor.rowcount  # type: ignore[no-any-return]
         return -1
-
 
 def fix_database_cursor(cursor: Any) -> AsyncCursorWrapper:
     """Fix database cursor for Python 3.12 compatibility.
@@ -215,7 +206,6 @@ def fix_database_cursor(cursor: Any) -> AsyncCursorWrapper:
         Wrapped cursor with proper async iteration
     """
     return AsyncCursorWrapper(cursor)
-
 
 # HTTP session compatibility fixes
 class AsyncHTTPSessionWrapper:
@@ -250,7 +240,6 @@ class AsyncHTTPSessionWrapper:
                 else:
                     self._session.close()
 
-
 def fix_http_session(session_factory: Any) -> AsyncHTTPSessionWrapper:
     """Fix HTTP session for Python 3.12 compatibility.
 
@@ -261,7 +250,6 @@ def fix_http_session(session_factory: Any) -> AsyncHTTPSessionWrapper:
         Wrapped session with proper async context management
     """
     return AsyncHTTPSessionWrapper(session_factory)
-
 
 # General purpose async wrapper
 async def ensure_awaitable(obj: Any) -> Any:
@@ -278,11 +266,8 @@ async def ensure_awaitable(obj: Any) -> Any:
     else:
         return obj
 
-
 # Task creation helpers for Python 3.12
-def create_task_safe(
-    coro: Awaitable[T], *, name: str | None = None
-) -> asyncio.Task[T]:
+def create_task_safe[T](coro: Coroutine[Any, Any, T], *, name: str | None = None) -> asyncio.Task[T]:
     """Safely create asyncio task with Python 3.12 compatibility.
 
     Args:
@@ -302,7 +287,6 @@ def create_task_safe(
         # Fallback for edge cases
         loop = asyncio.get_event_loop()
         return loop.create_task(coro)
-
 
 # Gather with proper error handling
 async def gather_safe(
@@ -324,7 +308,6 @@ async def gather_safe(
             return [e for _ in coros]
         else:
             raise
-
 
 __all__ = [
     "AsyncContextManagerWrapper",

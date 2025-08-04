@@ -6,6 +6,8 @@ import discord
 
 from ...main.main import AntiExecutable
 
+# 常數定義
+MAX_DISPLAY_FORMATS = 10
 
 class MainEmbed:
     """主要面板 Embed 生成器"""
@@ -91,8 +93,8 @@ class MainEmbed:
             # 檢測格式
             try:
                 formats = config.get("blocked_formats", [])
-                formats_text = ", ".join(formats[:10])  # 只顯示前10個
-                if len(formats) > 10:
+                formats_text = ", ".join(formats[:MAX_DISPLAY_FORMATS])
+                if len(formats) > MAX_DISPLAY_FORMATS:
                     formats_text += f" 等 {len(formats)} 種格式"
 
                 embed.add_field(

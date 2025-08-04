@@ -1,18 +1,16 @@
 """服務容器快速存取包裝器.
 
-此模組提供服務容器的簡化存取介面，
-主要用於 UI 組件中快速獲取所需服務。
+此模組提供服務容器的簡化存取介面,
+主要用於 UI 組件中快速獲取所需服務.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
 
 from src.core.database import get_database_pool
 
-if TYPE_CHECKING:
-    from ..database.repository import AchievementRepository
+from ..database.repository import AchievementRepository
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,6 @@ class ServiceContainer:
                 pool = await get_database_pool("achievement")
 
                 # 建立 Repository
-                from ..database.repository import AchievementRepository
                 self._repository = AchievementRepository(pool)
 
                 logger.debug("Repository 實例已建立")

@@ -1,0 +1,257 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: '3.12'
+  UV_VERSION: 'latest'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Run ruff
+        run: uv run ruff check src tests
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Run tests with coverage
+        run: uv run pytest --cov=src --cov-fail-under=70 --cov-report=xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Run security checks
+        run: |
+          uv run bandit -r src -f json -o bandit-report.json
+          uv run safety check --json --output safety-report.json
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, tests, security]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for proper versioning
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: uv sync --dev
+      - name: Build package
+        run: |
+          echo "🏗️ Building distribution package..."
+          uv build
+          echo "📊 Validating package size..."
+          python3 -c "
+          import os, sys
+          whl_files = [f for f in os.listdir('dist') if f.endswith('.whl')]
+          if not whl_files:
+              print('❌ No wheel file found')
+              sys.exit(1)
+          whl_file = whl_files[0]
+          size = os.path.getsize(f'dist/{whl_file}')
+          size_mb = size / (1024 * 1024)
+          print(f'📦 Package size: {size_mb:.2f} MB')
+          if size_mb > 25:
+              print('❌ Package size exceeds 25MB limit')
+              sys.exit(1)
+          print('✅ Package size validation passed')
+          "
+      - name: Generate checksums
+        run: |
+          echo "🔐 Generating SHA256 checksums..."
+          cd dist
+          sha256sum *.whl *.tar.gz > SHA256SUMS
+          echo "📋 Distribution contents:"
+          ls -la
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+      - name: Upload checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums-${{ github.sha }}
+          path: dist/SHA256SUMS
+          retention-days: 90
+
+  test-installation:
+    runs-on: ${{ matrix.os }}
+    needs: [build]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+      - name: Test installation script (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x scripts/install.sh
+          ./scripts/install.sh --dry-run
+      - name: Test installation script (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          powershell -ExecutionPolicy Bypass -File scripts/install.ps1 -DryRun
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build, test-installation]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          echo "🎉 Discord ADR Bot Release ${GITHUB_REF#refs/tags/}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "## 🚀 Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Quick Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "**Linux/macOS:**" >> release_notes.md
+          echo '```bash' >> release_notes.md
+          echo 'curl -sSL https://github.com/YOUR_USERNAME/discord-adr-bot/releases/download/${GITHUB_REF#refs/tags/}/install.sh | bash' >> release_notes.md
+          echo '```' >> release_notes.md
+          echo "" >> release_notes.md
+          echo "**Windows (PowerShell):**" >> release_notes.md
+          echo '```powershell' >> release_notes.md
+          echo 'Invoke-WebRequest -Uri "https://github.com/YOUR_USERNAME/discord-adr-bot/releases/download/${GITHUB_REF#refs/tags/}/install.ps1" -OutFile "install.ps1"; .\install.ps1' >> release_notes.md
+          echo '```' >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Manual Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "1. Download the wheel file below" >> release_notes.md
+          echo "2. Install with: \`uv venv .venv && uv pip install discord_adr_bot-*.whl\`" >> release_notes.md
+          echo "3. Configure your bot token in \`.env\`" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## 🔐 Package Verification" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "Verify package integrity using the SHA256 checksums:" >> release_notes.md
+          echo '```bash' >> release_notes.md
+          echo 'sha256sum -c SHA256SUMS' >> release_notes.md
+          echo '```' >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## 📋 What's Changed" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          # Add commit messages since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            echo "Changes since $LAST_TAG:" >> release_notes.md
+            git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> release_notes.md
+          else
+            echo "Initial release" >> release_notes.md
+          fi
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Discord ADR Bot ${{ github.ref }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/
+          asset_name: discord-adr-bot-dist
+          asset_content_type: application/zip
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: always()
+    steps:
+      - name: Cleanup old artifacts
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            
+            // Keep only the 10 most recent artifacts per workflow
+            const oldArtifacts = artifacts.data.artifacts
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(10);
+            
+            for (const artifact of oldArtifacts) {
+              if (artifact.name.startsWith('dist-') || artifact.name.startsWith('checksums-')) {
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                });
+                console.log(`Deleted artifact: ${artifact.name}`);
+              }
+            }

@@ -1,13 +1,13 @@
 """成就系統效能監控器.
 
-此模組擴展現有的 PerformanceMonitor，專門監控成就系統的效能指標：
+此模組擴展現有的 PerformanceMonitor,專門監控成就系統的效能指標:
 - 查詢執行時間監控
 - 資料庫連線狀態追蹤
 - 快取效能監控
 - 記憶體使用量追蹤
 - 自動警報機制
 
-根據 Story 5.1 Task 1.5 和 Task 5 的要求實作。
+根據 Story 5.1 Task 1.5 和 Task 5 的要求實作.
 """
 
 from __future__ import annotations
@@ -27,15 +27,30 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class MetricType(str, Enum):
     """指標類型."""
+
     QUERY_TIME = "query_time"
     CACHE_HIT_RATE = "cache_hit_rate"
     MEMORY_USAGE = "memory_usage"
     DATABASE_CONNECTIONS = "database_connections"
     ERROR_RATE = "error_rate"
 
+# 效能監控常數
+CRITICAL_CONNECTION_USAGE_THRESHOLD = 0.9  # 90%
+WARNING_CONNECTION_USAGE_THRESHOLD = 0.7   # 70%
+CRITICAL_RESPONSE_TIME_MS = 500
+WARNING_RESPONSE_TIME_MS = 200
+CRITICAL_SLOW_QUERY_RATE = 0.3
+WARNING_SLOW_QUERY_RATE = 0.1
+CRITICAL_ERROR_RATE = 0.1
+WARNING_ERROR_RATE = 0.05
+
+# 健康狀態閾值
+EXCELLENT_HEALTH_SCORE = 90
+GOOD_HEALTH_SCORE = 75
+FAIR_HEALTH_SCORE = 60
+POOR_HEALTH_SCORE = 40
 
 @dataclass
 class AchievementMetric:
@@ -59,7 +74,6 @@ class AchievementMetric:
     user_id: int | None = None
     """相關用戶 ID"""
 
-
 @dataclass
 class QueryMetrics:
     """查詢指標統計."""
@@ -69,14 +83,13 @@ class QueryMetrics:
     failed_queries: int = 0
     avg_response_time: float = 0.0
     max_response_time: float = 0.0
-    min_response_time: float = float('inf')
+    min_response_time: float = float("inf")
     last_reset: datetime = field(default_factory=datetime.now)
-
 
 class AchievementPerformanceMonitor(PerformanceMonitor):
     """成就系統效能監控器.
 
-    擴展基礎 PerformanceMonitor，增加成就系統特定的監控功能。
+    擴展基礎 PerformanceMonitor,增加成就系統特定的監控功能.
     """
 
     def __init__(
@@ -84,14 +97,14 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
         cache_manager: CacheManager | None = None,
         slow_query_threshold: float = 200.0,  # 200ms
         memory_threshold_mb: float = 100.0,
-        enable_detailed_logging: bool = True
+        enable_detailed_logging: bool = True,
     ):
         """初始化成就系統效能監控器.
 
         Args:
             cache_manager: 快取管理器
-            slow_query_threshold: 慢查詢門檻（毫秒）
-            memory_threshold_mb: 記憶體使用門檻（MB）
+            slow_query_threshold: 慢查詢門檻(毫秒)
+            memory_threshold_mb: 記憶體使用門檻(MB)
             enable_detailed_logging: 是否啟用詳細日誌
         """
         super().__init__()
@@ -126,8 +139,8 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
             extra={
                 "slow_query_threshold": slow_query_threshold,
                 "memory_threshold": memory_threshold_mb,
-                "detailed_logging": enable_detailed_logging
-            }
+                "detailed_logging": enable_detailed_logging,
+            },
         )
 
     # =============================================================================
@@ -140,13 +153,13 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
         duration_ms: float,
         success: bool = True,
         user_id: int | None = None,
-        context: dict[str, Any] | None = None
+        context: dict[str, Any] | None = None,
     ) -> None:
         """追蹤查詢操作效能.
 
         Args:
             operation: 操作名稱
-            duration_ms: 執行時間（毫秒）
+            duration_ms: 執行時間(毫秒)
             success: 是否成功
             user_id: 相關用戶 ID
             context: 上下文資訊
@@ -179,12 +192,13 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                 self._query_metrics.slow_queries += 1
 
                 # 記錄慢查詢警報
+                SLOW_QUERY_THRESHOLD = 500
                 await self._create_performance_alert(
-                    "warning" if duration_ms < 500 else "critical",
+                    "warning" if duration_ms < SLOW_QUERY_THRESHOLD else "critical",
                     f"慢查詢檢測: {operation} 執行時間 {duration_ms:.1f}ms",
                     MetricType.QUERY_TIME,
                     duration_ms,
-                    self._slow_query_threshold
+                    self._slow_query_threshold,
                 )
 
                 if self._enable_detailed_logging:
@@ -194,8 +208,8 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                             "operation": operation,
                             "duration_ms": duration_ms,
                             "user_id": user_id,
-                            "context": context or {}
-                        }
+                            "context": context or {},
+                        },
                     )
         else:
             # 查詢失敗
@@ -208,8 +222,8 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                         "operation": operation,
                         "duration_ms": duration_ms,
                         "user_id": user_id,
-                        "context": context or {}
-                    }
+                        "context": context or {},
+                    },
                 )
 
         # 記錄指標
@@ -218,20 +232,22 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
             value=duration_ms,
             operation=operation,
             user_id=user_id,
-            context=context or {}
+            context=context or {},
         )
         self._metrics_history.append(metric)
 
         # 限制歷史記錄數量
-        if len(self._metrics_history) > 10000:
-            self._metrics_history = self._metrics_history[-5000:]
+        MAX_METRICS_HISTORY = 10000
+        TRIM_METRICS_TO = 5000
+        if len(self._metrics_history) > MAX_METRICS_HISTORY:
+            self._metrics_history = self._metrics_history[-TRIM_METRICS_TO:]
 
     async def track_cache_operation(
         self,
         cache_type: CacheType,
         operation: str,
         hit: bool,
-        duration_ms: float | None = None
+        duration_ms: float | None = None,
     ) -> None:
         """追蹤快取操作效能.
 
@@ -239,7 +255,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
             cache_type: 快取類型
             operation: 操作名稱
             hit: 是否命中
-            duration_ms: 執行時間（可選）
+            duration_ms: 執行時間(可選)
         """
         # 記錄快取指標
         metric = AchievementMetric(
@@ -249,8 +265,8 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
             context={
                 "cache_type": cache_type.value,
                 "hit": hit,
-                "duration_ms": duration_ms
-            }
+                "duration_ms": duration_ms,
+            },
         )
         self._metrics_history.append(metric)
 
@@ -261,22 +277,22 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     "cache_type": cache_type.value,
                     "operation": operation,
                     "hit": hit,
-                    "duration_ms": duration_ms
-                }
+                    "duration_ms": duration_ms,
+                },
             )
 
     async def track_memory_usage(self, usage_mb: float, context: str = "") -> None:
         """追蹤記憶體使用量.
 
         Args:
-            usage_mb: 記憶體使用量（MB）
+            usage_mb: 記憶體使用量(MB)
             context: 上下文描述
         """
         # 記錄記憶體指標
         metric = AchievementMetric(
             metric_type=MetricType.MEMORY_USAGE,
             value=usage_mb,
-            context={"context": context}
+            context={"context": context},
         )
         self._metrics_history.append(metric)
 
@@ -287,7 +303,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                 f"記憶體使用量過高: {usage_mb:.1f}MB ({context})",
                 MetricType.MEMORY_USAGE,
                 usage_mb,
-                self._achievement_thresholds["memory_usage_critical"]
+                self._achievement_thresholds["memory_usage_critical"],
             )
         elif usage_mb >= self._achievement_thresholds["memory_usage_warning"]:
             await self._create_performance_alert(
@@ -295,10 +311,12 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                 f"記憶體使用量較高: {usage_mb:.1f}MB ({context})",
                 MetricType.MEMORY_USAGE,
                 usage_mb,
-                self._achievement_thresholds["memory_usage_warning"]
+                self._achievement_thresholds["memory_usage_warning"],
             )
 
-    async def track_database_connections(self, active_connections: int, max_connections: int) -> None:
+    async def track_database_connections(
+        self, active_connections: int, max_connections: int
+    ) -> None:
         """追蹤資料庫連線狀態.
 
         Args:
@@ -314,27 +332,27 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
             context={
                 "active_connections": active_connections,
                 "max_connections": max_connections,
-                "usage_rate": connection_usage_rate
-            }
+                "usage_rate": connection_usage_rate,
+            },
         )
         self._metrics_history.append(metric)
 
         # 檢查連線使用率警報
-        if connection_usage_rate >= 0.9:  # 90%
+        if connection_usage_rate >= CRITICAL_CONNECTION_USAGE_THRESHOLD:
             await self._create_performance_alert(
                 "critical",
                 f"資料庫連線使用率過高: {connection_usage_rate:.1%} ({active_connections}/{max_connections})",
                 MetricType.DATABASE_CONNECTIONS,
                 connection_usage_rate,
-                0.9
+                CRITICAL_CONNECTION_USAGE_THRESHOLD,
             )
-        elif connection_usage_rate >= 0.7:  # 70%
+        elif connection_usage_rate >= WARNING_CONNECTION_USAGE_THRESHOLD:
             await self._create_performance_alert(
                 "warning",
                 f"資料庫連線使用率較高: {connection_usage_rate:.1%} ({active_connections}/{max_connections})",
                 MetricType.DATABASE_CONNECTIONS,
                 connection_usage_rate,
-                0.7
+                WARNING_CONNECTION_USAGE_THRESHOLD,
             )
 
     # =============================================================================
@@ -345,15 +363,14 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
         """取得成就系統指標摘要.
 
         Args:
-            minutes: 時間範圍（分鐘）
+            minutes: 時間範圍(分鐘)
 
         Returns:
             指標摘要資訊
         """
         cutoff_time = datetime.now() - timedelta(minutes=minutes)
         recent_metrics = [
-            m for m in self._metrics_history
-            if m.timestamp >= cutoff_time
+            m for m in self._metrics_history if m.timestamp >= cutoff_time
         ]
 
         if not recent_metrics:
@@ -370,7 +387,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
         summary = {
             "time_range_minutes": minutes,
             "total_metrics": len(recent_metrics),
-            "metrics_by_type": {}
+            "metrics_by_type": {},
         }
 
         # 分析每種類型的指標
@@ -383,7 +400,9 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     "avg_ms": sum(values) / len(values),
                     "max_ms": max(values),
                     "min_ms": min(values),
-                    "slow_queries": len([v for v in values if v >= self._slow_query_threshold])
+                    "slow_queries": len(
+                        [v for v in values if v >= self._slow_query_threshold]
+                    ),
                 }
             elif metric_type == MetricType.CACHE_HIT_RATE:
                 hit_rate = sum(values) / len(values) if values else 0
@@ -391,21 +410,21 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     "count": len(values),
                     "hit_rate": hit_rate,
                     "hits": sum(values),
-                    "total_requests": len(values)
+                    "total_requests": len(values),
                 }
             elif metric_type == MetricType.MEMORY_USAGE:
                 summary["metrics_by_type"][metric_type.value] = {
                     "count": len(values),
                     "avg_mb": sum(values) / len(values),
                     "max_mb": max(values),
-                    "current_mb": values[-1] if values else 0
+                    "current_mb": values[-1] if values else 0,
                 }
             else:
                 summary["metrics_by_type"][metric_type.value] = {
                     "count": len(values),
                     "avg": sum(values) / len(values),
                     "max": max(values),
-                    "min": min(values)
+                    "min": min(values),
                 }
 
         # 添加查詢統計
@@ -417,14 +436,15 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
             "max_response_time": self._query_metrics.max_response_time,
             "min_response_time": self._query_metrics.min_response_time,
             "slow_query_rate": (
-                self._query_metrics.slow_queries / max(self._query_metrics.total_queries, 1)
+                self._query_metrics.slow_queries
+                / max(self._query_metrics.total_queries, 1)
             ),
             "error_rate": (
-                self._query_metrics.failed_queries / max(self._query_metrics.total_queries, 1)
-            )
+                self._query_metrics.failed_queries
+                / max(self._query_metrics.total_queries, 1)
+            ),
         }
 
-        # 添加快取統計（如果有快取管理器）
         if self._cache_manager:
             cache_stats = self._cache_manager.get_stats()
             summary["cache_stats"] = cache_stats
@@ -442,60 +462,63 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                 "max_response_time_ms": round(self._query_metrics.max_response_time, 2),
                 "min_response_time_ms": round(self._query_metrics.min_response_time, 2),
                 "slow_query_rate": round(
-                    self._query_metrics.slow_queries / max(self._query_metrics.total_queries, 1), 4
+                    self._query_metrics.slow_queries
+                    / max(self._query_metrics.total_queries, 1),
+                    4,
                 ),
                 "error_rate": round(
-                    self._query_metrics.failed_queries / max(self._query_metrics.total_queries, 1), 4
+                    self._query_metrics.failed_queries
+                    / max(self._query_metrics.total_queries, 1),
+                    4,
                 ),
-                "last_reset": self._query_metrics.last_reset.isoformat()
+                "last_reset": self._query_metrics.last_reset.isoformat(),
             },
             "thresholds": {
                 "slow_query_threshold_ms": self._slow_query_threshold,
-                "memory_threshold_mb": self._memory_threshold_mb
+                "memory_threshold_mb": self._memory_threshold_mb,
             },
-            "health_status": self._calculate_health_status()
+            "health_status": self._calculate_health_status(),
         }
 
     def _calculate_health_status(self) -> str:
         """計算系統健康狀態."""
         # 基於多個指標計算整體健康狀態
-        slow_query_rate = (
-            self._query_metrics.slow_queries / max(self._query_metrics.total_queries, 1)
+        slow_query_rate = self._query_metrics.slow_queries / max(
+            self._query_metrics.total_queries, 1
         )
-        error_rate = (
-            self._query_metrics.failed_queries / max(self._query_metrics.total_queries, 1)
+        error_rate = self._query_metrics.failed_queries / max(
+            self._query_metrics.total_queries, 1
         )
         avg_response_time = self._query_metrics.avg_response_time
 
-        # 計算健康分數（0-100）
         health_score = 100
 
         # 回應時間影響
-        if avg_response_time > 500:
+        if avg_response_time > CRITICAL_RESPONSE_TIME_MS:
             health_score -= 30
-        elif avg_response_time > 200:
+        elif avg_response_time > WARNING_RESPONSE_TIME_MS:
             health_score -= 15
 
         # 慢查詢率影響
-        if slow_query_rate > 0.3:
+        if slow_query_rate > CRITICAL_SLOW_QUERY_RATE:
             health_score -= 25
-        elif slow_query_rate > 0.1:
+        elif slow_query_rate > WARNING_SLOW_QUERY_RATE:
             health_score -= 10
 
         # 錯誤率影響
-        if error_rate > 0.1:
+        if error_rate > CRITICAL_ERROR_RATE:
             health_score -= 20
-        elif error_rate > 0.05:
+        elif error_rate > WARNING_ERROR_RATE:
             health_score -= 10
 
         # 返回健康狀態
-        if health_score >= 90:
+        if health_score >= EXCELLENT_HEALTH_SCORE:
             return "excellent"
-        elif health_score >= 75:
+        elif health_score >= GOOD_HEALTH_SCORE:
             return "good"
-        elif health_score >= 60:
+        elif health_score >= FAIR_HEALTH_SCORE:
             return "fair"
-        elif health_score >= 40:
+        elif health_score >= POOR_HEALTH_SCORE:
             return "poor"
         else:
             return "critical"
@@ -510,7 +533,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
         message: str,
         metric_type: MetricType,
         current_value: float,
-        threshold: float
+        threshold: float,
     ) -> None:
         """建立效能警報."""
         alert = PerformanceAlert(
@@ -519,7 +542,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
             timestamp=datetime.now(),
             metric_name=metric_type.value,
             current_value=current_value,
-            threshold=threshold
+            threshold=threshold,
         )
 
         # 添加到警報歷史
@@ -539,7 +562,9 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
         """啟動成就系統效能監控."""
         if not self._is_monitoring:
             self._is_monitoring = True
-            self._monitoring_task = asyncio.create_task(self._achievement_monitoring_loop())
+            self._monitoring_task = asyncio.create_task(
+                self._achievement_monitoring_loop()
+            )
             logger.info("成就系統效能監控已啟動")
 
     async def stop_achievement_monitoring(self) -> None:
@@ -585,7 +610,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     f"快取命中率過低: {hit_rate:.1%}",
                     MetricType.CACHE_HIT_RATE,
                     hit_rate,
-                    self._achievement_thresholds["cache_hit_rate_critical"]
+                    self._achievement_thresholds["cache_hit_rate_critical"],
                 )
             elif hit_rate < self._achievement_thresholds["cache_hit_rate_warning"]:
                 await self._create_performance_alert(
@@ -593,7 +618,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     f"快取命中率較低: {hit_rate:.1%}",
                     MetricType.CACHE_HIT_RATE,
                     hit_rate,
-                    self._achievement_thresholds["cache_hit_rate_warning"]
+                    self._achievement_thresholds["cache_hit_rate_warning"],
                 )
 
         except Exception as e:
@@ -602,8 +627,8 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
     async def _monitor_error_rate(self) -> None:
         """監控錯誤率."""
         try:
-            error_rate = (
-                self._query_metrics.failed_queries / max(self._query_metrics.total_queries, 1)
+            error_rate = self._query_metrics.failed_queries / max(
+                self._query_metrics.total_queries, 1
             )
 
             # 檢查錯誤率警報
@@ -613,7 +638,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     f"查詢錯誤率過高: {error_rate:.1%}",
                     MetricType.ERROR_RATE,
                     error_rate,
-                    self._achievement_thresholds["error_rate_critical"]
+                    self._achievement_thresholds["error_rate_critical"],
                 )
             elif error_rate >= self._achievement_thresholds["error_rate_warning"]:
                 await self._create_performance_alert(
@@ -621,7 +646,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     f"查詢錯誤率較高: {error_rate:.1%}",
                     MetricType.ERROR_RATE,
                     error_rate,
-                    self._achievement_thresholds["error_rate_warning"]
+                    self._achievement_thresholds["error_rate_warning"],
                 )
 
         except Exception as e:
@@ -640,7 +665,6 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
     def get_metrics_count(self) -> int:
         """取得指標記錄數量."""
         return len(self._metrics_history)
-
 
 __all__ = [
     "AchievementMetric",

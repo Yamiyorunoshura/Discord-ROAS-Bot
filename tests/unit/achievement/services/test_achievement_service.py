@@ -1,12 +1,12 @@
 """AchievementService 單元測試.
 
-此模組測試成就服務的核心功能，包含：
+此模組測試成就服務的核心功能,包含:
 - CRUD 操作測試
 - 業務規則驗證測試
 - 快取行為測試
 - 錯誤處理測試
 
-遵循 AAA 模式（Arrange, Act, Assert）和測試最佳實踐。
+遵循 AAA 模式(Arrange, Act, Assert)和測試最佳實踐.
 """
 
 from unittest.mock import patch
@@ -39,9 +39,7 @@ class TestAchievementService:
         """測試服務初始化."""
         # Arrange & Act
         service = AchievementService(
-            repository=mock_repository,
-            cache_ttl=300,
-            cache_maxsize=1000
+            repository=mock_repository, cache_ttl=300, cache_maxsize=1000
         )
 
         # Assert
@@ -72,7 +70,7 @@ class TestAchievementService:
             name="test_social",
             description="測試社交分類",
             display_order=1,
-            icon_emoji="👥"
+            icon_emoji="👥",
         )
 
         # Act
@@ -84,7 +82,9 @@ class TestAchievementService:
         assert created_category.description == "測試社交分類"
 
     @pytest.mark.asyncio
-    async def test_create_category_duplicate_name(self, achievement_service, repository):
+    async def test_create_category_duplicate_name(
+        self, achievement_service, repository
+    ):
         """測試建立重複名稱的分類時拋出錯誤."""
         # Arrange
         category1 = AchievementCategory(name="duplicate", description="第一個分類")
@@ -105,13 +105,13 @@ class TestAchievementService:
         # Act - 第一次呼叫
         result1 = await achievement_service.get_category_by_id(category.id)
 
-        # Act - 第二次呼叫（應從快取取得）
+        # Act - 第二次呼叫(應從快取取得)
         result2 = await achievement_service.get_category_by_id(category.id)
 
         # Assert
         assert result1.id == category.id
         assert result2.id == category.id
-        assert result1 is result2  # 應該是相同的物件實例（來自快取）
+        assert result1 is result2  # 應該是相同的物件實例(來自快取)
 
     @pytest.mark.asyncio
     async def test_list_categories_cached(self, achievement_service, repository):
@@ -123,7 +123,7 @@ class TestAchievementService:
         # Act - 第一次呼叫
         result1 = await achievement_service.list_categories()
 
-        # Act - 第二次呼叫（應從快取取得）
+        # Act - 第二次呼叫(應從快取取得)
         result2 = await achievement_service.list_categories()
 
         # Assert
@@ -133,7 +133,9 @@ class TestAchievementService:
         assert [cat.name for cat in result1] == [cat.name for cat in result2]
 
     @pytest.mark.asyncio
-    async def test_update_category_invalidates_cache(self, achievement_service, repository):
+    async def test_update_category_invalidates_cache(
+        self, achievement_service, repository
+    ):
         """測試更新分類時無效化快取."""
         # Arrange
         category = await create_test_category(repository, "update_test")
@@ -143,22 +145,19 @@ class TestAchievementService:
 
         # Act - 更新分類
         updated_category = await achievement_service.update_category(
-            category.id,
-            {"description": "更新後的描述"}
+            category.id, {"description": "更新後的描述"}
         )
 
         # Assert
         assert updated_category.description == "更新後的描述"
 
-        # 驗證快取已被無效化（重新從資料庫取得）
+        # 驗證快取已被無效化(重新從資料庫取得)
         fresh_category = await achievement_service.get_category_by_id(category.id)
         assert fresh_category.description == "更新後的描述"
 
     @pytest.mark.asyncio
     async def test_delete_category_with_achievements_fails(
-        self,
-        achievement_service,
-        repository
+        self, achievement_service, repository
     ):
         """測試刪除有成就的分類時失敗."""
         # Arrange
@@ -166,7 +165,7 @@ class TestAchievementService:
         await create_test_achievement(repository, category.id, "test_achievement")
 
         # Act & Assert
-        with pytest.raises(ValueError, match="下還有.*個成就，無法刪除"):
+        with pytest.raises(ValueError, match="下還有.*個成就,無法刪除"):
             await achievement_service.delete_category(category.id)
 
     # ==========================================================================
@@ -186,7 +185,7 @@ class TestAchievementService:
             criteria={"target_value": 50, "counter_field": "messages"},
             points=100,
             role_reward="測試專家",
-            is_hidden=False
+            is_hidden=False,
         )
 
         # Act
@@ -212,7 +211,7 @@ class TestAchievementService:
             criteria={"target_value": 50},
             points=100,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
 
         # Act & Assert
@@ -221,9 +220,7 @@ class TestAchievementService:
 
     @pytest.mark.asyncio
     async def test_create_achievement_duplicate_name_in_category(
-        self,
-        achievement_service,
-        repository
+        self, achievement_service, repository
     ):
         """測試在同一分類中建立重複名稱成就的錯誤."""
         # Arrange
@@ -237,7 +234,7 @@ class TestAchievementService:
             criteria={"target_value": 50},
             points=100,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
 
         achievement2 = Achievement(
@@ -248,7 +245,7 @@ class TestAchievementService:
             criteria={"target_value": 100},
             points=200,
             role_reward="重複專家",
-            is_hidden=True
+            is_hidden=True,
         )
 
         await achievement_service.create_achievement(achievement1)
@@ -258,19 +255,29 @@ class TestAchievementService:
             await achievement_service.create_achievement(achievement2)
 
     @pytest.mark.asyncio
-    async def test_list_achievements_with_filters(self, achievement_service, repository):
+    async def test_list_achievements_with_filters(
+        self, achievement_service, repository
+    ):
         """測試帶篩選條件的成就列表查詢."""
         # Arrange
         category1 = await create_test_category(repository, "cat1")
         category2 = await create_test_category(repository, "cat2")
 
         # 建立不同類型的成就
-        await create_test_achievement(repository, category1.id, "counter1", AchievementType.COUNTER)
-        await create_test_achievement(repository, category1.id, "milestone1", AchievementType.MILESTONE)
-        await create_test_achievement(repository, category2.id, "counter2", AchievementType.COUNTER)
+        await create_test_achievement(
+            repository, category1.id, "counter1", AchievementType.COUNTER
+        )
+        await create_test_achievement(
+            repository, category1.id, "milestone1", AchievementType.MILESTONE
+        )
+        await create_test_achievement(
+            repository, category2.id, "counter2", AchievementType.COUNTER
+        )
 
         # Act - 按分類篩選
-        cat1_achievements = await achievement_service.list_achievements(category_id=category1.id)
+        cat1_achievements = await achievement_service.list_achievements(
+            category_id=category1.id
+        )
 
         # Act - 按類型篩選
         counter_achievements = await achievement_service.list_achievements(
@@ -289,11 +296,15 @@ class TestAchievementService:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_award_achievement_to_user_success(self, achievement_service, repository):
+    async def test_award_achievement_to_user_success(
+        self, achievement_service, repository
+    ):
         """測試成功為用戶頒發成就."""
         # Arrange
         category = await create_test_category(repository, "award_cat")
-        achievement = await create_test_achievement(repository, category.id, "award_test")
+        achievement = await create_test_achievement(
+            repository, category.id, "award_test"
+        )
         user_id = 123456789
 
         # Act
@@ -320,14 +331,20 @@ class TestAchievementService:
             )
 
     @pytest.mark.asyncio
-    async def test_award_achievement_inactive_achievement(self, achievement_service, repository):
+    async def test_award_achievement_inactive_achievement(
+        self, achievement_service, repository
+    ):
         """測試頒發未啟用的成就時失敗."""
         # Arrange
         category = await create_test_category(repository, "inactive_cat")
-        achievement = await create_test_achievement(repository, category.id, "inactive_test")
+        achievement = await create_test_achievement(
+            repository, category.id, "inactive_test"
+        )
 
         # 停用成就
-        await achievement_service.update_achievement(achievement.id, {"is_active": False})
+        await achievement_service.update_achievement(
+            achievement.id, {"is_active": False}
+        )
 
         user_id = 123456789
 
@@ -340,8 +357,12 @@ class TestAchievementService:
         """測試取得用戶成就列表."""
         # Arrange
         category = await create_test_category(repository, "user_cat")
-        achievement1 = await create_test_achievement(repository, category.id, "user_ach1")
-        achievement2 = await create_test_achievement(repository, category.id, "user_ach2")
+        achievement1 = await create_test_achievement(
+            repository, category.id, "user_ach1"
+        )
+        achievement2 = await create_test_achievement(
+            repository, category.id, "user_ach2"
+        )
 
         user_id = 123456789
 
@@ -363,7 +384,9 @@ class TestAchievementService:
         """測試取得用戶成就統計."""
         # Arrange
         category = await create_test_category(repository, "stats_cat")
-        achievement = await create_test_achievement(repository, category.id, "stats_ach")
+        achievement = await create_test_achievement(
+            repository, category.id, "stats_ach"
+        )
         user_id = 123456789
 
         # 頒發成就
@@ -381,7 +404,9 @@ class TestAchievementService:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_batch_create_achievements_success(self, achievement_service, repository):
+    async def test_batch_create_achievements_success(
+        self, achievement_service, repository
+    ):
         """測試批量建立成就成功."""
         # Arrange
         category = await create_test_category(repository, "batch_cat")
@@ -395,13 +420,15 @@ class TestAchievementService:
                 criteria={"target_value": i * 10},
                 points=i * 50,
                 role_reward=f"批量專家 {i}" if i % 2 == 0 else None,
-                is_hidden=i == 3
+                is_hidden=i == 3,
             )
             for i in range(1, 4)
         ]
 
         # Act
-        created_achievements = await achievement_service.batch_create_achievements(achievements)
+        created_achievements = await achievement_service.batch_create_achievements(
+            achievements
+        )
 
         # Assert
         assert len(created_achievements) == 3
@@ -411,15 +438,13 @@ class TestAchievementService:
 
     @pytest.mark.asyncio
     async def test_batch_create_achievements_partial_failure(
-        self,
-        achievement_service,
-        repository
+        self, achievement_service, repository
     ):
         """測試批量建立成就時部分失敗的情況."""
         # Arrange
         category = await create_test_category(repository, "partial_cat")
 
-        # 建立一些成就，其中一個會因為重複名稱失敗
+        # 建立一些成就,其中一個會因為重複名稱失敗
         achievements = [
             Achievement(
                 name="批量成就 1",
@@ -429,7 +454,7 @@ class TestAchievementService:
                 criteria={"target_value": 10},
                 points=50,
                 role_reward=None,
-                is_hidden=False
+                is_hidden=False,
             ),
             Achievement(
                 name="批量成就 1",  # 重複名稱
@@ -439,7 +464,7 @@ class TestAchievementService:
                 criteria={"target_value": 20},
                 points=100,
                 role_reward="重複專家",
-                is_hidden=True
+                is_hidden=True,
             ),
             Achievement(
                 name="批量成就 2",
@@ -449,14 +474,16 @@ class TestAchievementService:
                 criteria={"target_value": 30},
                 points=150,
                 role_reward="批量大師",
-                is_hidden=False
-            )
+                is_hidden=False,
+            ),
         ]
 
         # Act
-        created_achievements = await achievement_service.batch_create_achievements(achievements)
+        created_achievements = await achievement_service.batch_create_achievements(
+            achievements
+        )
 
-        # Assert - 應該建立了 2 個成就（第 1 個和第 3 個）
+        # Assert - 應該建立了 2 個成就(第 1 個和第 3 個)
         assert len(created_achievements) == 2
         created_names = {a.name for a in created_achievements}
         assert "批量成就 1" in created_names
@@ -471,7 +498,9 @@ class TestAchievementService:
         """測試取得全域成就統計."""
         # Arrange
         category = await create_test_category(repository, "global_cat")
-        achievement = await create_test_achievement(repository, category.id, "global_ach")
+        achievement = await create_test_achievement(
+            repository, category.id, "global_ach"
+        )
         user_id = 123456789
 
         # 頒發成就
@@ -491,17 +520,25 @@ class TestAchievementService:
         """測試取得熱門成就列表."""
         # Arrange
         category = await create_test_category(repository, "popular_cat")
-        achievement1 = await create_test_achievement(repository, category.id, "popular1")
-        achievement2 = await create_test_achievement(repository, category.id, "popular2")
+        achievement1 = await create_test_achievement(
+            repository, category.id, "popular1"
+        )
+        achievement2 = await create_test_achievement(
+            repository, category.id, "popular2"
+        )
 
         # 讓第一個成就更受歡迎
         for user_id in [111, 222, 333]:
-            await achievement_service.award_achievement_to_user(user_id, achievement1.id)
+            await achievement_service.award_achievement_to_user(
+                user_id, achievement1.id
+            )
 
         await achievement_service.award_achievement_to_user(444, achievement2.id)
 
         # Act
-        popular_achievements = await achievement_service.get_popular_achievements(limit=2)
+        popular_achievements = await achievement_service.get_popular_achievements(
+            limit=2
+        )
 
         # Assert
         assert len(popular_achievements) == 2
@@ -533,8 +570,12 @@ class TestAchievementService:
         category = await create_test_category(repository, "cache_error_cat")
 
         # 模擬快取錯誤
-        with patch.object(achievement_service._cache, '__contains__', side_effect=Exception("快取錯誤")):
-            # Act - 即使快取出錯，應該仍能從資料庫取得資料
+        with patch.object(
+            achievement_service._cache,
+            "__contains__",
+            side_effect=Exception("快取錯誤"),
+        ):
+            # Act - 即使快取出錯,應該仍能從資料庫取得資料
             result = await achievement_service.get_category_by_id(category.id)
 
             # Assert

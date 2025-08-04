@@ -1,6 +1,6 @@
 """成就管理服務模組.
 
-此模組提供成就系統的管理功能，包含：
+此模組提供成就系統的管理功能,包含:
 - 成就 CRUD 操作
 - 批量操作支援
 - 資料驗證和完整性檢查
@@ -14,11 +14,23 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from ..constants import (
+    ACHIEVEMENT_DESCRIPTION_MAX_LENGTH,
+    ACHIEVEMENT_NAME_MAX_LENGTH,
+    ACHIEVEMENT_POINTS_MAX,
+    ACHIEVEMENT_ROLE_REWARD_MAX_LENGTH,
+    CATEGORY_DESCRIPTION_MAX_LENGTH,
+    CATEGORY_ICON_MAX_LENGTH,
+    CATEGORY_NAME_MAX_LENGTH,
+    HOUR_IN_SECONDS,
+)
+from ..database.models import AchievementCategory
+from ..database.query_builder import QueryBuilder
+
 if TYPE_CHECKING:
     from ..database.models import Achievement
 
 logger = logging.getLogger(__name__)
-
 
 @dataclass
 class BulkOperationResult:
@@ -54,7 +66,6 @@ class BulkOperationResult:
             return 0.0
         return (self.success_count / self.total_count) * 100
 
-
 @dataclass
 class ValidationResult:
     """驗證結果."""
@@ -72,12 +83,11 @@ class ValidationResult:
         """添加警告."""
         self.warnings.append(warning)
 
-
 class AchievementAdminService:
     """成就管理服務.
 
-    提供成就系統的完整管理功能，包括 CRUD 操作、
-    批量處理、資料驗證和依賴關係管理。
+    提供成就系統的完整管理功能,包括 CRUD 操作、
+    批量處理、資料驗證和依賴關係管理.
     """
 
     def __init__(self, repository, permission_service, cache_service=None):
@@ -86,7 +96,7 @@ class AchievementAdminService:
         Args:
             repository: 成就資料庫倉庫
             permission_service: 權限檢查服務
-            cache_service: 快取服務（可選）
+            cache_service: 快取服務(可選)
         """
         self.repository = repository
         self.permission_service = permission_service
@@ -199,7 +209,7 @@ class AchievementAdminService:
         Args:
             achievement_id: 成就 ID
             admin_user_id: 管理員用戶 ID
-            force: 是否強制刪除（忽略依賴關係）
+            force: 是否強制刪除(忽略依賴關係)
 
         Returns:
             (是否成功, 驗證結果) 元組
@@ -212,7 +222,7 @@ class AchievementAdminService:
                 validation.add_error(f"成就 {achievement_id} 不存在")
                 return False, validation
 
-            # 檢查依賴關係（除非強制刪除）
+            # ========== 檢查依賴關係(除非強制刪除) ==========
             validation = ValidationResult(is_valid=True)
             if not force:
                 dependency_check = await self._check_achievement_dependencies(
@@ -353,7 +363,7 @@ class AchievementAdminService:
                         result.add_error(f"成就 {achievement_id} 不存在")
                         continue
 
-                    # 檢查依賴關係（除非強制刪除）
+                    # Check dependencies unless force delete
                     if not force:
                         dependency_check = await self._check_achievement_dependencies(
                             achievement_id
@@ -396,7 +406,7 @@ class AchievementAdminService:
             )
 
             logger.info(
-                f"批量刪除完成: {result.success_count}/{len(achievement_ids)} 成功，強制模式: {force}"
+                f"批量刪除完成: {result.success_count}/{len(achievement_ids)} 成功,強制模式: {force}"
             )
 
         except Exception as e:
@@ -445,7 +455,7 @@ class AchievementAdminService:
                     if achievement.category_id == target_category_id:
                         result.add_success(
                             achievement,
-                            f"成就「{achievement.name}」已在目標分類中，無需變更",
+                            f"成就「{achievement.name}」已在目標分類中,無需變更",
                         )
                         continue
 
@@ -552,22 +562,22 @@ class AchievementAdminService:
         name = data.get("name", "").strip()
         if not name:
             validation.add_error("成就名稱不能為空")
-        elif len(name) > 100:
-            validation.add_error("成就名稱不能超過 100 字元")
+        elif len(name) > ACHIEVEMENT_NAME_MAX_LENGTH:
+            validation.add_error(f"成就名稱不能超過 {ACHIEVEMENT_NAME_MAX_LENGTH} 字元")
 
         # 描述驗證
         description = data.get("description", "").strip()
         if not description:
             validation.add_error("成就描述不能為空")
-        elif len(description) > 500:
-            validation.add_error("成就描述不能超過 500 字元")
+        elif len(description) > ACHIEVEMENT_DESCRIPTION_MAX_LENGTH:
+            validation.add_error(f"成就描述不能超過 {ACHIEVEMENT_DESCRIPTION_MAX_LENGTH} 字元")
 
         # 點數驗證
         points = data.get("points")
         if points is None:
             validation.add_error("成就點數不能為空")
-        elif not isinstance(points, int) or points < 0 or points > 10000:
-            validation.add_error("成就點數必須為 0-10000 的整數")
+        elif not isinstance(points, int) or points < 0 or points > ACHIEVEMENT_POINTS_MAX:
+            validation.add_error(f"成就點數必須為 0-{ACHIEVEMENT_POINTS_MAX} 的整數")
 
         # 類型驗證
         achievement_type = data.get("type")
@@ -575,7 +585,7 @@ class AchievementAdminService:
         if not achievement_type:
             validation.add_error("成就類型不能為空")
         elif achievement_type not in valid_types:
-            validation.add_error(f"無效的成就類型，有效值: {', '.join(valid_types)}")
+            validation.add_error(f"無效的成就類型,有效值: {', '.join(valid_types)}")
 
         # 分類驗證
         category_id = data.get("category_id")
@@ -587,22 +597,21 @@ class AchievementAdminService:
         if criteria is not None and not isinstance(criteria, dict):
             validation.add_error("成就條件必須為字典格式")
 
-        # 徽章 URL 驗證（可選）
+        # 徽章 URL 驗證(可選)
         badge_url = data.get("badge_url")
-        if badge_url is not None and badge_url.strip():
-            # 簡單的 URL 格式檢查
-            if not badge_url.startswith(("http://", "https://")):
-                validation.add_error("徽章 URL 格式無效")
+        if (badge_url is not None and badge_url.strip() and
+            not badge_url.startswith(("http://", "https://"))):
+            validation.add_error("徽章 URL 格式無效")
 
-        # 獎勵身分組驗證（可選）
+        # ========== 獎勵身分組驗證(可選) ==========
         role_reward = data.get("role_reward")
         if role_reward is not None:
             if not isinstance(role_reward, str):
                 validation.add_error("獎勵身分組必須為字串格式")
-            elif len(role_reward.strip()) > 100:
-                validation.add_error("獎勵身分組名稱不能超過 100 字元")
+            elif len(role_reward.strip()) > ACHIEVEMENT_ROLE_REWARD_MAX_LENGTH:
+                validation.add_error(f"獎勵身分組名稱不能超過 {ACHIEVEMENT_ROLE_REWARD_MAX_LENGTH} 字元")
 
-        # 隱藏成就驗證（可選）
+        # ========== 隱藏成就驗證(可選) ==========
         is_hidden = data.get("is_hidden")
         if is_hidden is not None and not isinstance(is_hidden, bool):
             validation.add_error("隱藏成就設定必須為布林值")
@@ -615,7 +624,7 @@ class AchievementAdminService:
         """驗證成就更新資料."""
         validation = ValidationResult(is_valid=True)
 
-        # 如果更新名稱，檢查唯一性
+        # 如果更新名稱,檢查唯一性
         if "name" in updates:
             name_check = await self._check_name_uniqueness(
                 updates["name"], achievement_id
@@ -627,10 +636,18 @@ class AchievementAdminService:
         await self._validate_achievement_data(updates)
 
         # 只檢查實際存在的欄位
-        for field, value in updates.items():
-            if field in ["name", "description", "points", "type", "badge_url", "role_reward", "is_hidden"]:
+        for field_name, value in updates.items():
+            if field_name in [
+                "name",
+                "description",
+                "points",
+                "type",
+                "badge_url",
+                "role_reward",
+                "is_hidden",
+            ]:
                 # 重用現有驗證邏輯
-                temp_data = {field: value}
+                temp_data = {field_name: value}
                 field_validation = await self._validate_achievement_data(temp_data)
                 if not field_validation.is_valid:
                     validation.errors.extend(field_validation.errors)
@@ -680,12 +697,13 @@ class AchievementAdminService:
     async def _get_user_achievement_count(self, achievement_id: int) -> int:
         """獲取獲得此成就的用戶數量."""
         try:
-            # 查詢實際的用戶成就表
-            from ..database.query_builder import QueryBuilder
-            
-            query = QueryBuilder("user_achievements").count().where("achievement_id", "=", achievement_id)
+            query = (
+                QueryBuilder("user_achievements")
+                .count()
+                .where("achievement_id", "=", achievement_id)
+            )
             sql, params = query.to_select_sql()
-            
+
             row = await self.repository.execute_query(sql, params, fetch_one=True)
             return row[0] if row else 0
         except Exception as e:
@@ -695,49 +713,67 @@ class AchievementAdminService:
     async def _get_achievement_statistics(self, achievement_id: int) -> dict[str, Any]:
         """獲取成就統計資訊."""
         try:
-            # 從實際數據庫獲取統計
-            from ..database.query_builder import QueryBuilder
-            
             # 獲得此成就的用戶數量
-            earned_count_query = QueryBuilder("user_achievements").count().where("achievement_id", "=", achievement_id)
+            earned_count_query = (
+                QueryBuilder("user_achievements")
+                .count()
+                .where("achievement_id", "=", achievement_id)
+            )
             earned_sql, earned_params = earned_count_query.to_select_sql()
-            earned_row = await self.repository.execute_query(earned_sql, earned_params, fetch_one=True)
+            earned_row = await self.repository.execute_query(
+                earned_sql, earned_params, fetch_one=True
+            )
             earned_count = earned_row[0] if earned_row else 0
-            
+
             # 獲取總用戶數來計算完成率
-            total_users_query = QueryBuilder("user_achievements").select("COUNT(DISTINCT user_id) as count")
+            total_users_query = QueryBuilder("user_achievements").select(
+                "COUNT(DISTINCT user_id) as count"
+            )
             total_sql, total_params = total_users_query.to_select_sql()
-            total_row = await self.repository.execute_query(total_sql, total_params, fetch_one=True)
+            total_row = await self.repository.execute_query(
+                total_sql, total_params, fetch_one=True
+            )
             total_users = total_row[0] if total_row else 1
-            
-            completion_rate = (earned_count / total_users * 100) if total_users > 0 else 0.0
-            
+
+            completion_rate = (
+                (earned_count / total_users * 100) if total_users > 0 else 0.0
+            )
+
             # 獲取本月獲得數量
-            from datetime import datetime, timedelta
-            month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            monthly_query = (QueryBuilder("user_achievements")
-                           .count()
-                           .where("achievement_id", "=", achievement_id)
-                           .where("earned_at", ">=", month_start))
+            month_start = datetime.now().replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            )
+            monthly_query = (
+                QueryBuilder("user_achievements")
+                .count()
+                .where("achievement_id", "=", achievement_id)
+                .where("earned_at", ">=", month_start)
+            )
             monthly_sql, monthly_params = monthly_query.to_select_sql()
-            monthly_row = await self.repository.execute_query(monthly_sql, monthly_params, fetch_one=True)
+            monthly_row = await self.repository.execute_query(
+                monthly_sql, monthly_params, fetch_one=True
+            )
             monthly_earned = monthly_row[0] if monthly_row else 0
-            
-            # 獲取成就排名（按獲得人數）
-            rank_query = (QueryBuilder("user_achievements", "ua")
-                         .select("a.id", "COUNT(ua.id) as count")
-                         .inner_join("achievements a", "a.id = ua.achievement_id")
-                         .group_by("a.id")
-                         .order_by("count", "DESC"))
+
+            # Get achievement ranking by earned count
+            rank_query = (
+                QueryBuilder("user_achievements", "ua")
+                .select("a.id", "COUNT(ua.id) as count")
+                .inner_join("achievements a", "a.id = ua.achievement_id")
+                .group_by("a.id")
+                .order_by("count", "DESC")
+            )
             rank_sql, rank_params = rank_query.to_select_sql()
-            rank_rows = await self.repository.execute_query(rank_sql, rank_params, fetch_all=True)
-            
+            rank_rows = await self.repository.execute_query(
+                rank_sql, rank_params, fetch_all=True
+            )
+
             popular_rank = 1
             for i, row in enumerate(rank_rows or [], 1):
                 if row[0] == achievement_id:
                     popular_rank = i
                     break
-            
+
             return {
                 "earned_count": earned_count,
                 "completion_rate": round(completion_rate, 1),
@@ -780,7 +816,7 @@ class AchievementAdminService:
                 await self.cache_service.delete_pattern("achievements:list:*")
                 await self.cache_service.delete_pattern("achievements:count:*")
 
-                logger.debug(f"已清除成就快取，ID: {achievement_id or '全部'}")
+                logger.debug(f"已清除成就快取,ID: {achievement_id or '全部'}")
             except Exception as e:
                 logger.error(f"清除快取失敗: {e}")
 
@@ -886,14 +922,17 @@ class AchievementAdminService:
             return None, validation
 
     async def delete_category(
-        self, category_id: int, admin_user_id: int, target_category_id: int | None = None
+        self,
+        category_id: int,
+        admin_user_id: int,
+        target_category_id: int | None = None,
     ) -> tuple[bool, ValidationResult]:
         """刪除成就分類.
 
         Args:
             category_id: 要刪除的分類 ID
             admin_user_id: 管理員用戶 ID
-            target_category_id: 成就重新分配的目標分類 ID（可選）
+            target_category_id: 成就重新分配的目標分類 ID(可選)
 
         Returns:
             (是否成功, 驗證結果) 元組
@@ -910,11 +949,11 @@ class AchievementAdminService:
             usage_info = await self._check_category_usage(category_id)
             validation = ValidationResult(is_valid=True)
 
-            # 如果分類有成就，需要重新分配
+            # 如果分類有成就,需要重新分配
             if usage_info["has_achievements"]:
                 if target_category_id is None:
                     validation.add_error(
-                        f"分類中有 {usage_info['achievement_count']} 個成就，需要指定重新分配的目標分類"
+                        f"分類中有 {usage_info['achievement_count']} 個成就,需要指定重新分配的目標分類"
                     )
                     return False, validation
 
@@ -1049,7 +1088,7 @@ class AchievementAdminService:
                         result.add_error(f"分類 {category_id} 不存在")
                         continue
 
-                    # 如果順序沒有變化，跳過
+                    # 如果順序沒有變化,跳過
                     if category.display_order == new_order:
                         result.add_success(
                             category, f"分類「{category.name}」順序無變化"
@@ -1107,26 +1146,26 @@ class AchievementAdminService:
         name = data.get("name", "").strip()
         if not name:
             validation.add_error("分類名稱不能為空")
-        elif len(name) > 50:
-            validation.add_error("分類名稱不能超過 50 字元")
+        elif len(name) > CATEGORY_NAME_MAX_LENGTH:
+            validation.add_error(f"分類名稱不能超過 {CATEGORY_NAME_MAX_LENGTH} 字元")
 
         # 描述驗證
         description = data.get("description", "").strip()
         if not description:
             validation.add_error("分類描述不能為空")
-        elif len(description) > 200:
-            validation.add_error("分類描述不能超過 200 字元")
+        elif len(description) > CATEGORY_DESCRIPTION_MAX_LENGTH:
+            validation.add_error(f"分類描述不能超過 {CATEGORY_DESCRIPTION_MAX_LENGTH} 字元")
 
         # 顯示順序驗證
         display_order = data.get("display_order")
-        if display_order is not None:
-            if not isinstance(display_order, int) or display_order < 0:
-                validation.add_error("顯示順序必須為非負整數")
+        if (display_order is not None and
+            (not isinstance(display_order, int) or display_order < 0)):
+            validation.add_error("顯示順序必須為非負整數")
 
-        # 圖示驗證（可選）
+        # Validate icon emoji if provided
         icon_emoji = data.get("icon_emoji")
-        if icon_emoji is not None and len(icon_emoji) > 10:
-            validation.add_error("圖示長度不能超過 10 字元")
+        if icon_emoji is not None and len(icon_emoji) > CATEGORY_ICON_MAX_LENGTH:
+            validation.add_error(f"圖示長度不能超過 {CATEGORY_ICON_MAX_LENGTH} 字元")
 
         return validation
 
@@ -1136,7 +1175,7 @@ class AchievementAdminService:
         """驗證分類更新資料."""
         validation = ValidationResult(is_valid=True)
 
-        # 如果更新名稱，檢查唯一性
+        # 如果更新名稱,檢查唯一性
         if "name" in updates:
             name_check = await self._check_category_name_uniqueness(
                 updates["name"], category_id
@@ -1145,9 +1184,9 @@ class AchievementAdminService:
                 validation.errors.extend(name_check.errors)
 
         # 對更新資料執行基本驗證
-        for field, value in updates.items():
-            if field in ["name", "description", "display_order", "icon_emoji"]:
-                temp_data = {field: value}
+        for field_name, value in updates.items():
+            if field_name in ["name", "description", "display_order", "icon_emoji"]:
+                temp_data = {field_name: value}
                 field_validation = await self._validate_category_data(temp_data)
                 if not field_validation.is_valid:
                     validation.errors.extend(field_validation.errors)
@@ -1194,75 +1233,98 @@ class AchievementAdminService:
     async def _get_category_statistics(self, category_id: int) -> dict[str, Any]:
         """獲取分類統計資訊."""
         try:
-            # 從實際資料庫獲取統計
-            from ..database.query_builder import QueryBuilder
-            
             # 獲取分類下的成就數量
             achievement_count = await self._get_category_achievement_count(category_id)
-            
+
             # 獲取活躍成就數量
-            active_query = (QueryBuilder("achievements")
-                          .count()
-                          .where("category_id", "=", category_id)
-                          .where("is_active", "=", True))
+            active_query = (
+                QueryBuilder("achievements")
+                .count()
+                .where("category_id", "=", category_id)
+                .where("is_active", "=", True)
+            )
             active_sql, active_params = active_query.to_select_sql()
-            active_row = await self.repository.execute_query(active_sql, active_params, fetch_one=True)
+            active_row = await self.repository.execute_query(
+                active_sql, active_params, fetch_one=True
+            )
             active_achievements = active_row[0] if active_row else 0
-            
+
             # 獲取用戶進度數量
-            progress_query = (QueryBuilder("achievement_progress", "ap")
-                            .select("COUNT(DISTINCT ap.user_id) as count")
-                            .inner_join("achievements a", "a.id = ap.achievement_id")
-                            .where("a.category_id", "=", category_id))
+            progress_query = (
+                QueryBuilder("achievement_progress", "ap")
+                .select("COUNT(DISTINCT ap.user_id) as count")
+                .inner_join("achievements a", "a.id = ap.achievement_id")
+                .where("a.category_id", "=", category_id)
+            )
             progress_sql, progress_params = progress_query.to_select_sql()
-            progress_row = await self.repository.execute_query(progress_sql, progress_params, fetch_one=True)
+            progress_row = await self.repository.execute_query(
+                progress_sql, progress_params, fetch_one=True
+            )
             user_progress_count = progress_row[0] if progress_row else 0
-            
+
             # 計算完成率
             if user_progress_count > 0:
-                completed_query = (QueryBuilder("achievement_progress", "ap")
-                                 .select("COUNT(*) as count")
-                                 .inner_join("achievements a", "a.id = ap.achievement_id")
-                                 .where("a.category_id", "=", category_id)
-                                 .where("ap.current_value", ">=", "ap.target_value"))
+                completed_query = (
+                    QueryBuilder("achievement_progress", "ap")
+                    .select("COUNT(*) as count")
+                    .inner_join("achievements a", "a.id = ap.achievement_id")
+                    .where("a.category_id", "=", category_id)
+                    .where("ap.current_value", ">=", "ap.target_value")
+                )
                 completed_sql, completed_params = completed_query.to_select_sql()
-                completed_row = await self.repository.execute_query(completed_sql, completed_params, fetch_one=True)
+                completed_row = await self.repository.execute_query(
+                    completed_sql, completed_params, fetch_one=True
+                )
                 completed_count = completed_row[0] if completed_row else 0
-                completion_rate = (completed_count / user_progress_count * 100) if user_progress_count > 0 else 0.0
+                completion_rate = (
+                    (completed_count / user_progress_count * 100)
+                    if user_progress_count > 0
+                    else 0.0
+                )
             else:
                 completion_rate = 0.0
-            
+
             # 獲取本月創建的成就數量
-            from datetime import datetime
-            month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            monthly_query = (QueryBuilder("achievements")
-                           .count()
-                           .where("category_id", "=", category_id)
-                           .where("created_at", ">=", month_start))
+            month_start = datetime.now().replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            )
+            monthly_query = (
+                QueryBuilder("achievements")
+                .count()
+                .where("category_id", "=", category_id)
+                .where("created_at", ">=", month_start)
+            )
             monthly_sql, monthly_params = monthly_query.to_select_sql()
-            monthly_row = await self.repository.execute_query(monthly_sql, monthly_params, fetch_one=True)
+            monthly_row = await self.repository.execute_query(
+                monthly_sql, monthly_params, fetch_one=True
+            )
             created_achievements_this_month = monthly_row[0] if monthly_row else 0
-            
+
             # 獲取最後活動時間
-            last_activity_query = (QueryBuilder("user_achievements", "ua")
-                                 .select("MAX(ua.earned_at) as last_activity")
-                                 .inner_join("achievements a", "a.id = ua.achievement_id")
-                                 .where("a.category_id", "=", category_id))
-            last_activity_sql, last_activity_params = last_activity_query.to_select_sql()
-            last_activity_row = await self.repository.execute_query(last_activity_sql, last_activity_params, fetch_one=True)
-            
+            last_activity_query = (
+                QueryBuilder("user_achievements", "ua")
+                .select("MAX(ua.earned_at) as last_activity")
+                .inner_join("achievements a", "a.id = ua.achievement_id")
+                .where("a.category_id", "=", category_id)
+            )
+            last_activity_sql, last_activity_params = (
+                last_activity_query.to_select_sql()
+            )
+            last_activity_row = await self.repository.execute_query(
+                last_activity_sql, last_activity_params, fetch_one=True
+            )
+
             last_activity = "無活動"
             if last_activity_row and last_activity_row[0]:
-                from datetime import datetime
                 last_time = last_activity_row[0]
                 if isinstance(last_time, str):
-                    last_time = datetime.fromisoformat(last_time.replace('Z', '+00:00'))
+                    last_time = datetime.fromisoformat(last_time.replace("Z", "+00:00"))
                 time_diff = datetime.now() - last_time.replace(tzinfo=None)
-                
+
                 if time_diff.days > 0:
                     last_activity = f"{time_diff.days} 天前"
-                elif time_diff.seconds > 3600:
-                    hours = time_diff.seconds // 3600
+                elif time_diff.seconds > HOUR_IN_SECONDS:
+                    hours = time_diff.seconds // HOUR_IN_SECONDS
                     last_activity = f"{hours} 小時前"
                 else:
                     minutes = time_diff.seconds // 60
@@ -1292,12 +1354,13 @@ class AchievementAdminService:
     async def _get_category_achievement_count(self, category_id: int) -> int:
         """獲取分類下的成就數量."""
         try:
-            # 查詢實際的 achievements 表
-            from ..database.query_builder import QueryBuilder
-            
-            query = QueryBuilder("achievements").count().where("category_id", "=", category_id)
+            query = (
+                QueryBuilder("achievements")
+                .count()
+                .where("category_id", "=", category_id)
+            )
             sql, params = query.to_select_sql()
-            
+
             row = await self.repository.execute_query(sql, params, fetch_one=True)
             return row[0] if row else 0
         except Exception as e:
@@ -1319,7 +1382,7 @@ class AchievementAdminService:
                 return {"success": True, "count": 0, "error": None}
 
             # 2. 獲取該分類下的所有成就 ID
-            # 實際實作中應該查詢資料庫，這裡使用模擬邏輯
+            # 實際實作中應該查詢資料庫,這裡使用模擬邏輯
             achievement_ids = await self._get_category_achievement_ids(
                 source_category_id
             )
@@ -1329,7 +1392,7 @@ class AchievementAdminService:
                 return {"success": True, "count": 0, "error": None}
 
             # 3. 使用批量更新功能重新分配成就
-            admin_user_id = 0  # 系統操作，使用特殊 ID
+            admin_user_id = 0  # 系統操作,使用特殊 ID
             result = await self.bulk_update_category(
                 achievement_ids, target_category_id, admin_user_id
             )
@@ -1357,14 +1420,13 @@ class AchievementAdminService:
     async def _get_category_achievement_ids(self, category_id: int) -> list[int]:
         """獲取分類下的所有成就 ID."""
         try:
-            # 查詢實際的 achievements 表
-            from ..database.query_builder import QueryBuilder
-            
-            query = (QueryBuilder("achievements")
-                    .select("id")
-                    .where("category_id", "=", category_id))
+            query = (
+                QueryBuilder("achievements")
+                .select("id")
+                .where("category_id", "=", category_id)
+            )
             sql, params = query.to_select_sql()
-            
+
             rows = await self.repository.execute_query(sql, params, fetch_all=True)
             return [row[0] for row in rows] if rows else []
         except Exception as e:
@@ -1376,10 +1438,6 @@ class AchievementAdminService:
     async def _create_category_in_db(self, category_data: dict[str, Any]):
         """在資料庫中創建分類."""
         try:
-            # 使用 repository 的真實創建方法
-            from ..database.models import AchievementCategory
-            from datetime import datetime
-            
             category = AchievementCategory(
                 name=category_data["name"],
                 description=category_data["description"],
@@ -1388,7 +1446,7 @@ class AchievementAdminService:
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
-            
+
             return await self.repository.create_category(category)
         except Exception as e:
             logger.error(f"創建分類失敗: {e}")

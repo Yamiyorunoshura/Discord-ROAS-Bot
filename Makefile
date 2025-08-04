@@ -120,6 +120,38 @@ migrate: ## Run migration from v1.6 to v2.0
 	@echo "🔄 Running migration..."
 	uv run python scripts/migrate_to_v2.py
 
+# Database Migration & Rollback Testing
+test-rollback: ## Test currency system rollback performance
+	@echo "⏪ Testing currency rollback performance..."
+	uv run python scripts/test_currency_rollback.py --test-size MEDIUM
+
+test-rollback-small: ## Test rollback with small dataset
+	@echo "⏪ Testing rollback performance (small dataset)..."
+	uv run python scripts/test_currency_rollback.py --test-size SMALL --verbose
+
+test-rollback-large: ## Test rollback with large dataset
+	@echo "⏪ Testing rollback performance (large dataset)..."
+	uv run python scripts/test_currency_rollback.py --test-size LARGE --verbose
+
+test-rollback-dry-run: ## Dry run rollback test
+	@echo "⏪ Dry run rollback test..."
+	uv run python scripts/test_currency_rollback.py --dry-run --verbose
+
+db-migrate-apply: ## Apply pending database migrations
+	@echo "🗄️ Applying database migrations..."
+	uv run alembic upgrade head
+	@echo "✅ Database migrations applied"
+
+db-migrate-rollback: ## Rollback last database migration
+	@echo "⏪ Rolling back last migration..."
+	uv run alembic downgrade -1
+	@echo "✅ Database migration rolled back"
+
+db-migrate-status: ## Show migration status
+	@echo "📊 Database migration status..."
+	uv run alembic current
+	uv run alembic history --verbose
+
 # Database
 db-init: ## Initialize databases
 	@echo "🗄️ Initializing databases..."
@@ -158,11 +190,25 @@ deep-clean: clean ## Deep clean including UV cache
 	uv cache clean
 	@echo "✅ Deep cleanup completed"
 
-# Building
+# Building and Distribution
 build: ## Build the package
 	@echo "🏗️ Building package..."
 	uv build
 	@echo "✅ Package built"
+
+dist: ## Build package with checksums and size validation
+	@echo "📦 Building distribution package..."
+	@echo "🧹 Cleaning previous builds..."
+	rm -rf dist/ build/
+	@echo "🏗️ Building wheel package..."
+	uv build
+	@echo "📊 Validating package size..."
+	@python -c "import os, sys; size = os.path.getsize([f for f in os.listdir('dist') if f.endswith('.whl')][0] if [f for f in os.listdir('dist') if f.endswith('.whl')] else 'nonexistent'); size_mb = size / (1024 * 1024); print(f'Package size: {size_mb:.2f} MB'); sys.exit(1) if size_mb > 25 else None" 2>/dev/null || (echo "❌ Package size exceeds 25MB limit" && exit 1)
+	@echo "🔐 Generating SHA256 checksums..."
+	@cd dist && sha256sum *.whl *.tar.gz > SHA256SUMS 2>/dev/null || (echo "📁 Generating checksums for available files..." && ls -la *.whl 2>/dev/null | while read f; do sha256sum "$$f"; done > SHA256SUMS)
+	@echo "📋 Distribution contents:"
+	@ls -la dist/
+	@echo "✅ Distribution package ready"
 
 # Docker
 docker-build: ## Build Docker image

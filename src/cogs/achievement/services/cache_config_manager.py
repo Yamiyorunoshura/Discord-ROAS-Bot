@@ -1,9 +1,9 @@
 """成就系統快取配置管理器.
 
-此模組實作成就系統的快取配置管理功能，提供：
+此模組實作成就系統的快取配置管理功能,提供:
 - 動態配置調整
 - 配置驗證和預設值管理
-- 配置持久化（未來擴展）
+- 配置持久化(未來擴展)
 - 配置變更通知機制
 """
 
@@ -13,17 +13,25 @@ import logging
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 
-from .cache_strategy import CacheConfig
+from ..constants import (
+    CACHE_SIZE_REDUCTION_THRESHOLD,
+    HIGH_HIT_RATE_THRESHOLD,
+    HIGH_REQUEST_COUNT_THRESHOLD,
+    MIN_HIT_RATE_THRESHOLD,
+    MIN_REQUEST_COUNT_FOR_ADJUSTMENT,
+    MINIMUM_CACHE_SIZE,
+)
+from .cache_strategy import AchievementCacheStrategy, CacheConfig
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class CacheConfigUpdate:
     """快取配置更新資料類別."""
+
     cache_type: str
     ttl: int | None = None
     maxsize: int | None = None
@@ -31,13 +39,14 @@ class CacheConfigUpdate:
 
     def to_dict(self) -> dict[str, Any]:
         """轉換為字典格式."""
-        return {k: v for k, v in asdict(self).items() if v is not None and k != 'cache_type'}
-
+        return {
+            k: v for k, v in asdict(self).items() if v is not None and k != "cache_type"
+        }
 
 class CacheConfigManager:
     """快取配置管理器.
 
-    負責管理快取系統的配置變更、驗證和通知。
+    負責管理快取系統的配置變更、驗證和通知.
     """
 
     def __init__(self):
@@ -50,16 +59,20 @@ class CacheConfigManager:
 
         logger.info("CacheConfigManager 初始化完成")
 
-    def add_config_listener(self, listener: Callable[[str, dict[str, Any]], None]) -> None:
+    def add_config_listener(
+        self, listener: Callable[[str, dict[str, Any]], None]
+    ) -> None:
         """新增配置變更監聽器.
 
         Args:
-            listener: 配置變更回調函數，接收 (cache_type, config_updates) 參數
+            listener: 配置變更回調函數,接收 (cache_type, config_updates) 參數
         """
         self._config_listeners.append(listener)
         logger.debug(f"已新增配置監聽器: {listener.__name__}")
 
-    def remove_config_listener(self, listener: Callable[[str, dict[str, Any]], None]) -> None:
+    def remove_config_listener(
+        self, listener: Callable[[str, dict[str, Any]], None]
+    ) -> None:
         """移除配置變更監聽器.
 
         Args:
@@ -83,18 +96,28 @@ class CacheConfigManager:
             if update.ttl is not None:
                 ttl_rules = self._validation_rules["ttl"]
                 if not (ttl_rules["min"] <= update.ttl <= ttl_rules["max"]):
-                    return False, f"TTL 必須在 {ttl_rules['min']}-{ttl_rules['max']} 秒之間"
+                    return (
+                        False,
+                        f"TTL 必須在 {ttl_rules['min']}-{ttl_rules['max']} 秒之間",
+                    )
 
             # 驗證快取大小
             if update.maxsize is not None:
                 maxsize_rules = self._validation_rules["maxsize"]
                 if not (maxsize_rules["min"] <= update.maxsize <= maxsize_rules["max"]):
-                    return False, f"快取大小必須在 {maxsize_rules['min']}-{maxsize_rules['max']} 之間"
+                    return (
+                        False,
+                        f"快取大小必須在 {maxsize_rules['min']}-{maxsize_rules['max']} 之間",
+                    )
 
             # 驗證快取類型
             valid_cache_types = [
-                "achievement", "category", "user_achievements",
-                "user_progress", "global_stats", "leaderboard"
+                "achievement",
+                "category",
+                "user_achievements",
+                "user_progress",
+                "global_stats",
+                "leaderboard",
             ]
             if update.cache_type not in valid_cache_types:
                 return False, f"無效的快取類型: {update.cache_type}"
@@ -131,13 +154,10 @@ class CacheConfigManager:
                     logger.error(
                         f"配置監聽器通知失敗: {listener.__name__}",
                         extra={"error": str(e)},
-                        exc_info=True
+                        exc_info=True,
                     )
 
-            logger.info(
-                f"配置更新成功: {update.cache_type}",
-                extra=config_updates
-            )
+            logger.info(f"配置更新成功: {update.cache_type}", extra=config_updates)
 
             return True, "配置更新成功"
 
@@ -146,7 +166,9 @@ class CacheConfigManager:
             logger.error(error_msg, exc_info=True)
             return False, error_msg
 
-    def get_recommended_config(self, cache_type: str, usage_stats: dict[str, Any]) -> CacheConfig:
+    def get_recommended_config(
+        self, cache_type: str, usage_stats: dict[str, Any]
+    ) -> CacheConfig:
         """根據使用統計取得建議配置.
 
         Args:
@@ -157,7 +179,6 @@ class CacheConfigManager:
             建議的快取配置
         """
         # 取得目前配置作為基礎
-        from .cache_strategy import AchievementCacheStrategy
         current_config = AchievementCacheStrategy.get_config(cache_type)
 
         # 根據統計資料調整建議
@@ -168,23 +189,23 @@ class CacheConfigManager:
         recommended_config = CacheConfig(
             ttl=current_config.ttl,
             maxsize=current_config.maxsize,
-            enabled=current_config.enabled
+            enabled=current_config.enabled,
         )
 
         # 基於命中率調整 TTL
-        if hit_rate < 50 and total_requests > 100:
-            # 命中率低，增加 TTL
+        if hit_rate < MIN_HIT_RATE_THRESHOLD and total_requests > MIN_REQUEST_COUNT_FOR_ADJUSTMENT:
+            # 命中率低,增加 TTL
             recommended_config.ttl = min(current_config.ttl * 1.5, 1800)
-        elif hit_rate > 90 and total_requests > 1000:
-            # 命中率高，可以稍微減少 TTL 以保持資料新鮮度
+        elif hit_rate > HIGH_HIT_RATE_THRESHOLD and total_requests > HIGH_REQUEST_COUNT_THRESHOLD:
+            # 命中率高,可以稍微減少 TTL 以保持資料新鮮度
             recommended_config.ttl = max(current_config.ttl * 0.8, 60)
 
         # 基於使用率調整快取大小
-        if usage_rate > 90:
-            # 使用率高，增加快取大小
+        if usage_rate > HIGH_HIT_RATE_THRESHOLD:
+            # 使用率高,增加快取大小
             recommended_config.maxsize = min(current_config.maxsize * 1.5, 5000)
-        elif usage_rate < 30 and current_config.maxsize > 100:
-            # 使用率低，減少快取大小以節省記憶體
+        elif usage_rate < CACHE_SIZE_REDUCTION_THRESHOLD and current_config.maxsize > MINIMUM_CACHE_SIZE:
+            # 使用率低,減少快取大小以節省記憶體
             recommended_config.maxsize = max(current_config.maxsize * 0.7, 50)
 
         logger.debug(
@@ -192,16 +213,14 @@ class CacheConfigManager:
             extra={
                 "current": asdict(current_config),
                 "recommended": asdict(recommended_config),
-                "stats": usage_stats
-            }
+                "stats": usage_stats,
+            },
         )
 
         return recommended_config
 
     def create_config_update_from_stats(
-        self,
-        cache_type: str,
-        usage_stats: dict[str, Any]
+        self, cache_type: str, usage_stats: dict[str, Any]
     ) -> CacheConfigUpdate:
         """根據統計資料建立配置更新.
 
@@ -218,14 +237,14 @@ class CacheConfigManager:
             cache_type=cache_type,
             ttl=recommended.ttl,
             maxsize=recommended.maxsize,
-            enabled=recommended.enabled
+            enabled=recommended.enabled,
         )
 
     def auto_optimize_config(
         self,
         cache_type: str,
         usage_stats: dict[str, Any],
-        apply_immediately: bool = False
+        apply_immediately: bool = False,
     ) -> tuple[bool, str, CacheConfigUpdate]:
         """自動優化快取配置.
 
@@ -268,11 +287,7 @@ class CacheConfigManager:
             rules: 新的驗證規則
         """
         self._validation_rules.update(rules)
-        logger.info(
-            "配置驗證規則已更新",
-            extra={"updated_rules": list(rules.keys())}
-        )
-
+        logger.info("配置驗證規則已更新", extra={"updated_rules": list(rules.keys())})
 
 __all__ = [
     "CacheConfigManager",

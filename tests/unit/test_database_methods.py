@@ -46,23 +46,26 @@ class TestDatabaseMethods:
             )
         """)
 
-        await activity_test_db.execute("""
+        await activity_test_db.execute(
+            """
             INSERT INTO activity_meter_settings (guild_id, announcement_time)
             VALUES (?, ?)
-        """, (123, 14))  # 14:00
+        """,
+            (123, 14),
+        )  # 14:00
 
         await activity_test_db.commit()
 
         # 測試獲取公告時間
         result = await activity_db.get_announcement_time(123)
-        assert result == "14:00", f"期望 14:00，實際 {result}"
+        assert result == "14:00", f"期望 14:00,實際 {result}"
 
     @pytest.mark.asyncio
     async def test_get_announcement_time_default(self, activity_db):
         """測試獲取預設公告時間"""
         # 測試不存在的guild_id
         result = await activity_db.get_announcement_time(999)
-        assert result == "09:00", f"期望預設時間 09:00，實際 {result}"
+        assert result == "09:00", f"期望預設時間 09:00,實際 {result}"
 
     @pytest.mark.asyncio
     async def test_get_announcement_time_database_error(self, activity_db):
@@ -101,13 +104,16 @@ class TestDatabaseMethods:
         await activity_db.update_announcement_time(123, "15:30")
 
         # 驗證更新結果
-        cursor = await activity_test_db.execute("""
+        cursor = await activity_test_db.execute(
+            """
             SELECT announcement_time FROM activity_meter_settings WHERE guild_id = ?
-        """, (123,))
+        """,
+            (123,),
+        )
         result = await cursor.fetchone()
 
         assert result is not None, "應該有更新結果"
-        assert result[0] == 15, f"期望小時為 15，實際 {result[0]}"
+        assert result[0] == 15, f"期望小時為 15,實際 {result[0]}"
 
     @pytest.mark.asyncio
     async def test_update_announcement_time_invalid_format(self, activity_db):
@@ -136,10 +142,10 @@ class TestDatabaseMethods:
         invalid_times = [
             "25:00",  # 小時超出範圍
             "12:60",  # 分鐘超出範圍
-            "09:5",   # 格式不正確
-            "abc",    # 非數字
+            "09:5",  # 格式不正確
+            "abc",  # 非數字
             "12:30:45",  # 包含秒
-            "",       # 空字符串
+            "",  # 空字符串
         ]
 
         for time_str in invalid_times:
@@ -151,14 +157,14 @@ class TestDatabaseMethods:
         """測試數據庫接口統一性"""
         # 檢查所有必要的數據庫方法都存在
         required_methods = [
-            'get_announcement_time',
-            'update_announcement_time',
-            'get_user_activity',
-            'update_user_activity',
-            'set_report_channel',
-            'get_report_channels',
-            'load_settings',
-            'save_all_settings'
+            "get_announcement_time",
+            "update_announcement_time",
+            "get_user_activity",
+            "update_user_activity",
+            "set_report_channel",
+            "get_report_channels",
+            "load_settings",
+            "save_all_settings",
         ]
 
         for method_name in required_methods:
@@ -179,9 +185,9 @@ class TestDatabaseMethods:
 
         # 測試各種方法的錯誤處理
         methods_to_test = [
-            ('get_announcement_time', [123]),
-            ('get_user_activity', [123, 456]),
-            ('set_report_channel', [123, 789]),
+            ("get_announcement_time", [123]),
+            ("get_user_activity", [123, 456]),
+            ("set_report_channel", [123, 789]),
         ]
 
         for method_name, args in methods_to_test:
@@ -193,7 +199,10 @@ class TestDatabaseMethods:
             # 檢查錯誤訊息格式
             error_message = str(exc_info.value)
             assert "失敗" in error_message, f"錯誤訊息應該包含'失敗': {error_message}"
-            assert exc_info.value.error_code.startswith("E"), f"錯誤代碼應該以'E'開頭: {exc_info.value.error_code}"
+            assert exc_info.value.error_code.startswith("E"), (
+                f"錯誤代碼應該以'E'開頭: {exc_info.value.error_code}"
+            )
+
 
 class TestDatabaseIntegration:
     """數據庫整合測試類"""
@@ -296,7 +305,8 @@ class TestDatabaseIntegration:
             assert (guild_id, 888) in channels
 
         except Exception as e:
-            pytest.fail(f"數據庫事務應該成功，但失敗了: {e}")
+            pytest.fail(f"數據庫事務應該成功,但失敗了: {e}")
+
 
 # 測試工具函數
 def test_database_method_completeness():
@@ -305,23 +315,26 @@ def test_database_method_completeness():
 
     # 檢查所有必要的數據庫方法都存在
     required_methods = [
-        'get_announcement_time',
-        'update_announcement_time',
-        '_validate_time_format',
-        'get_user_activity',
-        'update_user_activity',
-        'set_report_channel',
-        'get_report_channels'
+        "get_announcement_time",
+        "update_announcement_time",
+        "_validate_time_format",
+        "get_user_activity",
+        "update_user_activity",
+        "set_report_channel",
+        "get_report_channels",
     ]
 
     for method_name in required_methods:
         assert hasattr(db, method_name), f"缺少方法: {method_name}"
 
+
 def test_database_error_handling_completeness():
     """測試數據庫錯誤處理完整性"""
     # 檢查錯誤類別
-    # ActivityMeterError是自定義異常，檢查其基本功能
-    assert issubclass(ActivityMeterError, Exception), "ActivityMeterError應該是Exception的子類"
+    # ActivityMeterError是自定義異常,檢查其基本功能
+    assert issubclass(ActivityMeterError, Exception), (
+        "ActivityMeterError應該是Exception的子類"
+    )
 
     # 測試錯誤創建
     error = ActivityMeterError("E102", "測試錯誤")

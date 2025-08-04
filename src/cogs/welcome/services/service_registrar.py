@@ -7,8 +7,19 @@
 from ...core.dependency_container import DependencyContainer, ServiceLifetime
 from ...core.logger import setup_module_logger
 
-logger = setup_module_logger("welcome.services")
+# 匯入服務類別
+from ..config.welcome_config import WelcomeConfig
+from ..database.database import WelcomeDB
+from ..main.cache import WelcomeCache
+from ..main.main import (
+    IWelcomeCache,
+    IWelcomeConfig,
+    IWelcomeDatabase,
+    IWelcomeRenderer,
+)
+from ..main.renderer import WelcomeRenderer
 
+logger = setup_module_logger("welcome.services")
 
 class WelcomeServiceRegistrar:
     """歡迎系統服務註冊器"""
@@ -39,9 +50,6 @@ class WelcomeServiceRegistrar:
 
     async def _register_config_service(self) -> None:
         """註冊配置服務"""
-        from ..config.welcome_config import WelcomeConfig
-        from ..main.main import IWelcomeConfig
-
         # 註冊為單例服務
         self.container.register_factory(
             IWelcomeConfig, lambda: WelcomeConfig(), ServiceLifetime.SINGLETON
@@ -51,9 +59,6 @@ class WelcomeServiceRegistrar:
 
     async def _register_database_service(self) -> None:
         """註冊資料庫服務"""
-        from ..database.database import WelcomeDB
-        from ..main.main import IWelcomeDatabase
-
         # 註冊為單例服務
         self.container.register_factory(
             IWelcomeDatabase, lambda: WelcomeDB(), ServiceLifetime.SINGLETON
@@ -63,38 +68,25 @@ class WelcomeServiceRegistrar:
 
     async def _register_cache_service(self) -> None:
         """註冊快取服務"""
-        from ..config.welcome_config import WelcomeConfig
-        from ..main.cache import WelcomeCache
-        from ..main.main import IWelcomeCache
-
-        # 直接創建快取實例，避免異步工廠方法中的循環依賴
+        # 直接創建快取實例,避免異步工廠方法中的循環依賴
         config = WelcomeConfig()
         cache_instance = WelcomeCache(
             timeout=config.cache_timeout, max_size=config.max_cache_size
         )
 
-        self.container.register_instance(
-            IWelcomeCache, cache_instance
-        )
+        self.container.register_instance(IWelcomeCache, cache_instance)
 
         logger.debug("快取服務已註冊")
 
     async def _register_renderer_service(self) -> None:
         """註冊渲染器服務"""
-        from ..config.welcome_config import WelcomeConfig
-        from ..main.main import IWelcomeRenderer
-        from ..main.renderer import WelcomeRenderer
-
-        # 直接創建渲染器實例，避免異步工廠方法中的循環依賴
+        # 直接創建渲染器實例,避免異步工廠方法中的循環依賴
         config = WelcomeConfig()
         renderer_instance = WelcomeRenderer(config.background_dir)
 
-        self.container.register_instance(
-            IWelcomeRenderer, renderer_instance
-        )
+        self.container.register_instance(IWelcomeRenderer, renderer_instance)
 
         logger.debug("渲染器服務已註冊")
-
 
 async def register_welcome_services(container: DependencyContainer) -> None:
     """

@@ -4,7 +4,6 @@
 
 import discord
 
-from ...config.config import *
 from ...main.main import AntiLink
 
 

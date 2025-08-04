@@ -6,7 +6,6 @@
 - 驗證權限繼承和審計功能
 """
 
-
 import pytest
 
 from cogs.core.permission_system import (
@@ -49,7 +48,12 @@ class TestPermissionSystem:
     def test_check_permission_developer_actions(self, permission_system):
         """測試開發者權限"""
         # 開發者應該有讀取、寫入、測試、配置權限
-        allowed_actions = [ActionType.READ, ActionType.WRITE, ActionType.TEST, ActionType.CONFIGURE]
+        allowed_actions = [
+            ActionType.READ,
+            ActionType.WRITE,
+            ActionType.TEST,
+            ActionType.CONFIGURE,
+        ]
         denied_actions = [ActionType.ADMIN, ActionType.DELETE]
 
         for action_type in allowed_actions:
@@ -65,7 +69,12 @@ class TestPermissionSystem:
         """測試測試者權限"""
         # 測試者應該只有讀取和測試權限
         allowed_actions = [ActionType.READ, ActionType.TEST]
-        denied_actions = [ActionType.WRITE, ActionType.ADMIN, ActionType.DELETE, ActionType.CONFIGURE]
+        denied_actions = [
+            ActionType.WRITE,
+            ActionType.ADMIN,
+            ActionType.DELETE,
+            ActionType.CONFIGURE,
+        ]
 
         for action_type in allowed_actions:
             result = permission_system.check_permission(UserRole.TESTER, action_type)
@@ -80,7 +89,13 @@ class TestPermissionSystem:
         """測試普通用戶權限"""
         # 普通用戶應該只有讀取權限
         allowed_actions = [ActionType.READ]
-        denied_actions = [ActionType.WRITE, ActionType.ADMIN, ActionType.TEST, ActionType.DELETE, ActionType.CONFIGURE]
+        denied_actions = [
+            ActionType.WRITE,
+            ActionType.ADMIN,
+            ActionType.TEST,
+            ActionType.DELETE,
+            ActionType.CONFIGURE,
+        ]
 
         for action_type in allowed_actions:
             result = permission_system.check_permission(UserRole.USER, action_type)
@@ -94,9 +109,7 @@ class TestPermissionSystem:
     def test_check_permission_with_resource(self, permission_system):
         """測試帶資源的權限檢查"""
         result = permission_system.check_permission(
-            UserRole.DEVELOPER,
-            ActionType.READ,
-            resource="activity_data"
+            UserRole.DEVELOPER, ActionType.READ, resource="activity_data"
         )
 
         assert result.allowed is True
@@ -108,9 +121,7 @@ class TestPermissionSystem:
         context = {"guild_id": "123456789", "user_id": "987654321"}
 
         result = permission_system.check_permission(
-            UserRole.ADMIN,
-            ActionType.WRITE,
-            context=context
+            UserRole.ADMIN, ActionType.WRITE, context=context
         )
 
         assert result.allowed is True
@@ -124,11 +135,15 @@ class TestPermissionSystem:
         assert len(admin_permissions) == 6  # 所有6種操作類型
 
         # 開發者應該有4種權限
-        developer_permissions = permission_system._get_effective_permissions(UserRole.DEVELOPER)
+        developer_permissions = permission_system._get_effective_permissions(
+            UserRole.DEVELOPER
+        )
         assert len(developer_permissions) == 4
 
         # 測試者應該有2種權限
-        tester_permissions = permission_system._get_effective_permissions(UserRole.TESTER)
+        tester_permissions = permission_system._get_effective_permissions(
+            UserRole.TESTER
+        )
         assert len(tester_permissions) == 2
 
         # 普通用戶應該有1種權限
@@ -146,11 +161,15 @@ class TestPermissionSystem:
         assert required_role == UserRole.TESTER
 
         # 寫入操作需要開發者角色
-        required_role = permission_system._get_required_role_for_action(ActionType.WRITE)
+        required_role = permission_system._get_required_role_for_action(
+            ActionType.WRITE
+        )
         assert required_role == UserRole.DEVELOPER
 
         # 管理操作需要管理員角色
-        required_role = permission_system._get_required_role_for_action(ActionType.ADMIN)
+        required_role = permission_system._get_required_role_for_action(
+            ActionType.ADMIN
+        )
         assert required_role == UserRole.ADMIN
 
     def test_add_role(self, permission_system):
@@ -159,14 +178,16 @@ class TestPermissionSystem:
             "moderator",
             [ActionType.READ, ActionType.WRITE, ActionType.DELETE],
             "版主 - 擁有管理權限",
-            UserRole.USER
+            UserRole.USER,
         )
 
         assert result is True
         assert UserRole("moderator") in permission_system.roles
 
         # 驗證新角色的權限
-        moderator_permissions = permission_system._get_effective_permissions(UserRole("moderator"))
+        moderator_permissions = permission_system._get_effective_permissions(
+            UserRole("moderator")
+        )
         assert ActionType.READ in moderator_permissions
         assert ActionType.WRITE in moderator_permissions
         assert ActionType.DELETE in moderator_permissions
@@ -195,14 +216,18 @@ class TestPermissionSystem:
         assert result is True
 
         # 驗證權限已更新
-        developer_permissions = permission_system._get_effective_permissions(UserRole.DEVELOPER)
+        developer_permissions = permission_system._get_effective_permissions(
+            UserRole.DEVELOPER
+        )
         assert len(developer_permissions) == 2
         assert ActionType.READ in developer_permissions
         assert ActionType.WRITE in developer_permissions
 
     def test_update_nonexistent_role_permissions(self, permission_system):
         """測試更新不存在角色的權限"""
-        result = permission_system.update_role_permissions("nonexistent_role", [ActionType.READ])
+        result = permission_system.update_role_permissions(
+            "nonexistent_role", [ActionType.READ]
+        )
         assert result is False
 
     def test_get_role_info(self, permission_system):
@@ -300,7 +325,9 @@ class TestPermissionSystem:
         assert len(validation["issues"]) == 0
         assert validation["roles_count"] == 4
 
-    def test_validate_permission_hierarchy_with_circular_inheritance(self, permission_system):
+    def test_validate_permission_hierarchy_with_circular_inheritance(
+        self, permission_system
+    ):
         """測試循環繼承的權限層次結構"""
         # 創建循環繼承
         permission_system.roles[UserRole.DEVELOPER]["inherits_from"] = UserRole.TESTER
@@ -311,6 +338,7 @@ class TestPermissionSystem:
         assert validation["valid"] is False
         assert len(validation["issues"]) > 0
         assert "循環繼承" in validation["issues"][0]
+
 
 class TestUserRole:
     """UserRole 測試類"""
@@ -326,6 +354,7 @@ class TestUserRole:
         """測試用戶角色創建"""
         role = UserRole("admin")
         assert role == UserRole.ADMIN
+
 
 class TestActionType:
     """ActionType 測試類"""
@@ -344,6 +373,7 @@ class TestActionType:
         action = ActionType("read")
         assert action == ActionType.READ
 
+
 class TestPermission:
     """Permission 測試類"""
 
@@ -353,13 +383,14 @@ class TestPermission:
             role=UserRole.ADMIN,
             action_type=ActionType.READ,
             resource="activity_data",
-            conditions={"guild_id": "123456789"}
+            conditions={"guild_id": "123456789"},
         )
 
         assert permission.role == UserRole.ADMIN
         assert permission.action_type == ActionType.READ
         assert permission.resource == "activity_data"
         assert permission.conditions == {"guild_id": "123456789"}
+
 
 class TestPermissionCheck:
     """PermissionCheck 測試類"""
@@ -370,7 +401,7 @@ class TestPermissionCheck:
             allowed=True,
             reason="權限檢查通過",
             required_role=UserRole.ADMIN,
-            audit_log={"timestamp": "2024-01-01T12:00:00"}
+            audit_log={"timestamp": "2024-01-01T12:00:00"},
         )
 
         assert check.allowed is True

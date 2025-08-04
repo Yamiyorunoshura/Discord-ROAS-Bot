@@ -27,9 +27,14 @@ class TestActivityTestModule:
     @pytest.fixture
     def activity_test_module(self):
         """建立測試用 ActivityTestModule"""
-        with patch('cogs.activity_meter.main.activity_test_module.ActivityCalculator') as mock_calculator, \
-             patch('cogs.activity_meter.main.activity_test_module.ActivityRenderer') as mock_renderer:
-
+        with (
+            patch(
+                "cogs.activity_meter.main.activity_test_module.ActivityCalculator"
+            ) as mock_calculator,
+            patch(
+                "cogs.activity_meter.main.activity_test_module.ActivityRenderer"
+            ) as mock_renderer,
+        ):
             mock_calculator.return_value = Mock()
             mock_renderer.return_value = Mock()
 
@@ -95,6 +100,7 @@ class TestActivityTestModule:
         assert report.covered_lines >= 0
         assert 0 <= report.coverage_rate <= 100
 
+
 class TestCoverageTracker:
     """覆蓋率追蹤器測試類"""
 
@@ -155,8 +161,9 @@ class TestCoverageTracker:
         assert report.total_lines == 100
         assert report.covered_lines == 2
         assert report.coverage_rate == 2.0
-        # 修復：未覆蓋的行數應該是98（100-2），但實際實現中包含了所有行
+        # 修復:未覆蓋的行數應該是98(100-2),但實際實現中包含了所有行
         assert len(report.uncovered_lines) >= 98
+
 
 class TestTestFramework:
     """測試框架測試類"""
@@ -203,7 +210,7 @@ class TestTestFramework:
         test_framework.results = [
             TestResult("unit", "success"),
             TestResult("unit", "success"),
-            TestResult("unit", "failed")
+            TestResult("unit", "failed"),
         ]
 
         summary = test_framework.generate_summary()
@@ -211,7 +218,8 @@ class TestTestFramework:
         assert summary["total_tests"] == 3
         assert summary["passed_tests"] == 2
         assert summary["failed_tests"] == 1
-        assert summary["success_rate"] == (2/3) * 100
+        assert summary["success_rate"] == (2 / 3) * 100
+
 
 class TestTestResult:
     """測試結果測試類"""
@@ -223,7 +231,7 @@ class TestTestResult:
             status="success",
             coverage=85.5,
             execution_time=1.5,
-            error_message=""
+            error_message="",
         )
 
         assert result.test_type == "unit"
@@ -236,13 +244,10 @@ class TestTestResult:
     def test_test_result_with_details(self):
         """測試帶詳細信息的測試結果"""
         details = {"test_count": 10, "passed": 8}
-        result = TestResult(
-            test_type="integration",
-            status="success",
-            details=details
-        )
+        result = TestResult(test_type="integration", status="success", details=details)
 
         assert result.details == details
+
 
 class TestCoverageReport:
     """覆蓋率報告測試類"""
@@ -253,7 +258,7 @@ class TestCoverageReport:
             total_lines=1000,
             covered_lines=850,
             coverage_rate=85.0,
-            uncovered_lines=[1, 2, 3, 4, 5]
+            uncovered_lines=[1, 2, 3, 4, 5],
         )
 
         assert report.total_lines == 1000

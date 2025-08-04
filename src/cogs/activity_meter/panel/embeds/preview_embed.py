@@ -4,22 +4,26 @@
 - 支援PRD v1.71的進度條風格預覽功能
 """
 
+import logging
 from datetime import datetime
 
 import discord
 
 from ...config import config
 from ...database.database import ActivityDatabase
+from ...main.embed_optimizer import optimize_embed, validate_embed
+
+logger = logging.getLogger("activity_meter")
 
 
 async def create_preview_embed(
-    bot: discord.Client, guild: discord.Guild | None, db: ActivityDatabase
+    _bot: discord.Client, guild: discord.Guild | None, db: ActivityDatabase
 ) -> discord.Embed:
     """
     創建活躍度系統排行榜預覽嵌入
 
     Args:
-        bot: Discord 機器人實例
+        _bot: Discord 機器人實例 (未使用)
         guild: Discord 伺服器
         db: 活躍度資料庫實例
 
@@ -45,7 +49,7 @@ async def create_preview_embed(
     # 獲取當前進度條風格設定
     try:
         progress_style = await db.get_progress_style(guild.id)
-    except:
+    except Exception:
         progress_style = "classic"
 
     # 風格名稱映射
@@ -106,5 +110,12 @@ async def create_preview_embed(
     embed.set_footer(
         text=f"活躍度系統 • 預覽面板 v1.71 • {datetime.now(config.TW_TZ).strftime('%Y-%m-%d')}"
     )
+
+    # 驗證和優化 embed
+    validation_result = validate_embed(embed)
+    if not validation_result["is_valid"]:
+        logger.warning(f"Preview embed 驗證失敗: {validation_result['issues']}")
+        embed = optimize_embed(embed)
+        logger.info(f"Preview embed 已優化, 字符數: {validation_result['char_count']}")
 
     return embed

@@ -6,6 +6,7 @@
 - 智能批量調整系統
 """
 
+import datetime
 import json
 import time
 from collections import defaultdict, deque
@@ -16,9 +17,72 @@ import discord
 from ..config.config import setup_logger
 from ..database.database import MessageListenerDB
 
+# 常量定義
+# 內容長度閾值
+CONTENT_LENGTH_VERY_LONG = 2000
+CONTENT_LENGTH_LONG = 1000
+CONTENT_LENGTH_MEDIUM = 500
+CONTENT_LENGTH_SHORT = 200
+
+# 提及數量閾值
+MENTION_COUNT_HIGH = 5
+MENTION_COUNT_MEDIUM = 2
+
+# URL 數量閾值
+URL_COUNT_HIGH = 3
+URL_COUNT_MEDIUM = 1
+
+# 附件數量閾值
+ATTACHMENT_COUNT_HIGH = 3
+ATTACHMENT_COUNT_MEDIUM = 1
+ATTACHMENT_COUNT_LOW = 0.5
+
+# 嵌入數量閾值
+EMBED_COUNT_HIGH = 2
+EMBED_COUNT_MEDIUM = 1
+
+# 時間相關常量
+NIGHT_HOUR_START = 2
+NIGHT_HOUR_END = 6
+WORK_HOUR_START = 9
+WORK_HOUR_END = 17
+PEAK_HOUR_START = 18
+PEAK_HOUR_END = 23
+
+# 性能閾值
+PERFORMANCE_GOOD_RATE = 0.95
+PERFORMANCE_NORMAL_TIME = 1.0
+PERFORMANCE_BAD_RATE = 0.8
+PERFORMANCE_BAD_TIME = 3.0
+
+PERFORMANCE_EXCELLENT_SCORE = 0.8
+PERFORMANCE_GOOD_SCORE = 0.6
+PERFORMANCE_NORMAL_SCORE = 0.4
+PERFORMANCE_BAD_SCORE = 0.2
+
+# 系統負載閾值
+CPU_HIGH_LOAD = 0.8
+CPU_MEDIUM_LOAD = 0.6
+CPU_LOW_LOAD = 0.4
+
+MEMORY_HIGH_USAGE = 0.9
+MEMORY_MEDIUM_USAGE = 0.7
+MEMORY_LOW_USAGE = 0.5
+
+# 活動水平閾值
+ACTIVITY_HIGH_COUNT = 20
+ACTIVITY_MEDIUM_COUNT = 5
+
+# 集中度閾值
+CONCENTRATION_HIGH = 0.8
+CONCENTRATION_MEDIUM = 0.5
+
+# 其他常量
+MIN_HISTORY_SIZE = 10
+RECENT_PERFORMANCE_SIZE = 5
+
 # 設定日誌記錄器
 logger = setup_logger()
-
 
 class SmartBatchProcessor:
     """
@@ -67,7 +131,7 @@ class SmartBatchProcessor:
         self.system_load_factor = 1.0
         self.memory_pressure_factor = 1.0
 
-        logger.info("【智能批量】智能批量處理器已初始化")
+        logger.info("[智能批量]智能批量處理器已初始化")
 
     def calculate_optimal_batch_size(self, messages: list[discord.Message]) -> int:
         """
@@ -128,7 +192,7 @@ class SmartBatchProcessor:
         )
 
         logger.debug(
-            f"【智能批量】計算最佳批量大小: {optimal_batch_size} "
+            f"[智能批量]計算最佳批量大小: {optimal_batch_size} "
             f"(基礎: {base_batch_size}) "
             f"因子: {factors} "
             f"權重: {weights}"
@@ -180,29 +244,29 @@ class SmartBatchProcessor:
         """計算增強版內容因子"""
         # 基於內容長度
         length_factor = 1.0
-        if complexity["avg_length"] > 2000:
+        if complexity["avg_length"] > CONTENT_LENGTH_VERY_LONG:
             length_factor = 0.3
-        elif complexity["avg_length"] > 1000:
+        elif complexity["avg_length"] > CONTENT_LENGTH_LONG:
             length_factor = 0.5
-        elif complexity["avg_length"] > 500:
+        elif complexity["avg_length"] > CONTENT_LENGTH_MEDIUM:
             length_factor = 0.7
-        elif complexity["avg_length"] > 200:
+        elif complexity["avg_length"] > CONTENT_LENGTH_SHORT:
             length_factor = 0.9
         else:
             length_factor = 1.2
 
         # 基於提及數量
         mention_factor = 1.0
-        if complexity["mentions"] > 5:
+        if complexity["mentions"] > MENTION_COUNT_HIGH:
             mention_factor = 0.6
-        elif complexity["mentions"] > 2:
+        elif complexity["mentions"] > MENTION_COUNT_MEDIUM:
             mention_factor = 0.8
 
         # 基於 URL 數量
         url_factor = 1.0
-        if complexity["urls"] > 3:
+        if complexity["urls"] > URL_COUNT_HIGH:
             url_factor = 0.7
-        elif complexity["urls"] > 1:
+        elif complexity["urls"] > URL_COUNT_MEDIUM:
             url_factor = 0.9
 
         return length_factor * mention_factor * url_factor
@@ -211,18 +275,18 @@ class SmartBatchProcessor:
         """計算媒體因子"""
         # 附件因子
         attachment_factor = 1.0
-        if media_complexity["attachments"] > 3:
+        if media_complexity["attachments"] > ATTACHMENT_COUNT_HIGH:
             attachment_factor = 0.2
-        elif media_complexity["attachments"] > 1:
+        elif media_complexity["attachments"] > ATTACHMENT_COUNT_MEDIUM:
             attachment_factor = 0.4
-        elif media_complexity["attachments"] > 0.5:
+        elif media_complexity["attachments"] > ATTACHMENT_COUNT_LOW:
             attachment_factor = 0.6
 
         # 嵌入因子
         embed_factor = 1.0
-        if media_complexity["embeds"] > 2:
+        if media_complexity["embeds"] > EMBED_COUNT_HIGH:
             embed_factor = 0.5
-        elif media_complexity["embeds"] > 1:
+        elif media_complexity["embeds"] > EMBED_COUNT_MEDIUM:
             embed_factor = 0.7
 
         # 貼圖因子
@@ -239,16 +303,14 @@ class SmartBatchProcessor:
 
     def _calculate_temporal_factor(self) -> float:
         """計算時間因子"""
-        import datetime
-
         current_hour = datetime.datetime.now().hour
 
         # 根據時間調整批量大小
-        if 2 <= current_hour <= 6:  # 深夜時段,系統負載較低
+        if NIGHT_HOUR_START <= current_hour <= NIGHT_HOUR_END:  # 深夜時段,系統負載較低
             return 1.3
-        elif 9 <= current_hour <= 17:  # 工作時段,適中負載
+        elif WORK_HOUR_START <= current_hour <= WORK_HOUR_END:  # 工作時段,適中負載
             return 1.0
-        elif 18 <= current_hour <= 23:  # 晚間高峰,負載較高
+        elif PEAK_HOUR_START <= current_hour <= PEAK_HOUR_END:  # 晚間高峰,負載較高
             return 0.8
         else:
             return 1.0
@@ -269,17 +331,17 @@ class SmartBatchProcessor:
         max_channel_count = max(channel_counts.values())
         concentration_ratio = max_channel_count / len(messages)
 
-        if concentration_ratio > 0.8:
+        if concentration_ratio > CONCENTRATION_HIGH:
             return 1.3  # 高度集中
-        elif concentration_ratio > 0.5:
+        elif concentration_ratio > CONCENTRATION_MEDIUM:
             return 1.1  # 中度集中
         else:
             return 0.8  # 分散
 
-    def _calculate_dynamic_weights(self, factors: dict[str, float]) -> dict[str, float]:
+    def _calculate_dynamic_weights(self, _factors: dict[str, float]) -> dict[str, float]:
         """動態計算權重"""
         # 基於當前性能狀況調整權重
-        if len(self.performance_history) < 10:
+        if len(self.performance_history) < MIN_HISTORY_SIZE:
             # 初始權重
             return {
                 "content": 0.25,
@@ -296,7 +358,7 @@ class SmartBatchProcessor:
             p["processing_time"] for p in recent_performance
         ) / len(recent_performance)
 
-        if avg_processing_time > 3.0:  # 處理時間過長,更重視內容和媒體因子
+        if avg_processing_time > PERFORMANCE_BAD_TIME:  # 處理時間過長,更重視內容和媒體因子
             return {
                 "content": 0.35,
                 "media": 0.35,
@@ -317,7 +379,7 @@ class SmartBatchProcessor:
 
     def _calculate_performance_factor_enhanced(self) -> float:
         """計算增強版性能因子"""
-        if len(self.performance_history) < 5:
+        if len(self.performance_history) < RECENT_PERFORMANCE_SIZE:
             return 1.0
 
         # 分析最近的性能趨勢
@@ -339,13 +401,13 @@ class SmartBatchProcessor:
         performance_score = weighted_success_rate - (weighted_processing_time / 10.0)
 
         # 根據性能得分調整因子
-        if performance_score > 0.8:
+        if performance_score > PERFORMANCE_EXCELLENT_SCORE:
             return 1.4  # 性能優秀
-        elif performance_score > 0.6:
+        elif performance_score > PERFORMANCE_GOOD_SCORE:
             return 1.2  # 性能良好
-        elif performance_score > 0.4:
+        elif performance_score > PERFORMANCE_NORMAL_SCORE:
             return 1.0  # 性能一般
-        elif performance_score > 0.2:
+        elif performance_score > PERFORMANCE_BAD_SCORE:
             return 0.8  # 性能較差
         else:
             return 0.6  # 性能很差
@@ -359,27 +421,27 @@ class SmartBatchProcessor:
             memory_usage: 記憶體使用率 (0-1)
         """
         # 更新系統負載因子
-        if cpu_usage > 0.8:
+        if cpu_usage > CPU_HIGH_LOAD:
             self.system_load_factor = 0.5
-        elif cpu_usage > 0.6:
+        elif cpu_usage > CPU_MEDIUM_LOAD:
             self.system_load_factor = 0.7
-        elif cpu_usage > 0.4:
+        elif cpu_usage > CPU_LOW_LOAD:
             self.system_load_factor = 0.9
         else:
             self.system_load_factor = 1.2
 
         # 更新記憶體壓力因子
-        if memory_usage > 0.9:
+        if memory_usage > MEMORY_HIGH_USAGE:
             self.memory_pressure_factor = 0.4
-        elif memory_usage > 0.7:
+        elif memory_usage > MEMORY_MEDIUM_USAGE:
             self.memory_pressure_factor = 0.6
-        elif memory_usage > 0.5:
+        elif memory_usage > MEMORY_LOW_USAGE:
             self.memory_pressure_factor = 0.8
         else:
             self.memory_pressure_factor = 1.0
 
         logger.debug(
-            f"【智能批量】系統指標更新: CPU={cpu_usage:.2f}, "
+            f"[智能批量]系統指標更新: CPU={cpu_usage:.2f}, "
             f"記憶體={memory_usage:.2f}, "
             f"負載因子={self.system_load_factor:.2f}, "
             f"記憶體因子={self.memory_pressure_factor:.2f}"
@@ -406,19 +468,19 @@ class SmartBatchProcessor:
         self.performance_history.append(performance_record)
 
         # 動態調整當前批量大小
-        if success_rate > 0.95 and processing_time < 1.0:
+        if success_rate > PERFORMANCE_GOOD_RATE and processing_time < PERFORMANCE_NORMAL_TIME:
             # 性能良好,可以增加批量
             self.current_batch_size = min(
                 self.max_batch_size, int(self.current_batch_size * 1.1)
             )
-        elif success_rate < 0.8 or processing_time > 3.0:
+        elif success_rate < PERFORMANCE_BAD_RATE or processing_time > PERFORMANCE_BAD_TIME:
             # 性能不佳,減少批量
             self.current_batch_size = max(
                 self.min_batch_size, int(self.current_batch_size * 0.8)
             )
 
         logger.debug(
-            f"【智能批量】記錄性能: 批量={batch_size}, 時間={processing_time:.2f}s, "
+            f"[智能批量]記錄性能: 批量={batch_size}, 時間={processing_time:.2f}s, "
             f"成功率={success_rate:.2f}, 調整後批量={self.current_batch_size}"
         )
 
@@ -455,13 +517,12 @@ class SmartBatchProcessor:
             recent_activity
         )
 
-        if avg_count > 20:
+        if avg_count > ACTIVITY_HIGH_COUNT:
             return "high"
-        elif avg_count > 5:
+        elif avg_count > ACTIVITY_MEDIUM_COUNT:
             return "medium"
         else:
             return "low"
-
 
 class MessageProcessor:
     """
@@ -509,7 +570,7 @@ class MessageProcessor:
 
             return True
         except Exception as exc:
-            logger.error(f"【訊息監聽】處理訊息失敗:{exc}")
+            logger.error(f"[訊息監聽]處理訊息失敗:{exc}")
             return False
 
     async def _process_batch(self) -> bool:
@@ -542,7 +603,7 @@ class MessageProcessor:
                     await self.db.save_message(message)
                     success_count += 1
                 except Exception as exc:
-                    logger.error(f"【訊息監聽】儲存訊息失敗: {exc}")
+                    logger.error(f"[訊息監聽]儲存訊息失敗: {exc}")
 
             # 記錄性能
             processing_time = time.time() - start_time
@@ -563,14 +624,14 @@ class MessageProcessor:
                 self.batch_processor.update_channel_activity(channel_id, count)
 
             logger.info(
-                f"【智能批量】批量處理完成: {success_count}/{len(messages_to_process)} "
+                f"[智能批量]批量處理完成: {success_count}/{len(messages_to_process)} "
                 f"成功, 耗時 {processing_time:.2f}s"
             )
 
             return success_count == len(messages_to_process)
 
         except Exception as exc:
-            logger.error(f"【訊息監聽】批量處理失敗:{exc}")
+            logger.error(f"[訊息監聽]批量處理失敗:{exc}")
             return False
 
     async def force_process_pending(self) -> bool:
@@ -587,7 +648,7 @@ class MessageProcessor:
             await self._process_batch()
             return True
         except Exception as exc:
-            logger.error(f"【訊息監聽】強制處理失敗:{exc}")
+            logger.error(f"[訊息監聽]強制處理失敗:{exc}")
             return False
 
     def get_batch_stats(self) -> dict[str, Any]:
@@ -605,7 +666,7 @@ class MessageProcessor:
         }
 
     async def process_edit(
-        self, before: discord.Message, after: discord.Message
+        self, _before: discord.Message, after: discord.Message
     ) -> bool:
         """
         處理訊息編輯
@@ -626,7 +687,7 @@ class MessageProcessor:
             await self.db.save_message(after)
             return True
         except Exception as exc:
-            logger.error(f"【訊息監聽】處理訊息編輯失敗:{exc}")
+            logger.error(f"[訊息監聽]處理訊息編輯失敗:{exc}")
             return False
 
     async def process_delete(self, message: discord.Message) -> bool:
@@ -650,7 +711,7 @@ class MessageProcessor:
             )
             return True
         except Exception as exc:
-            logger.error(f"【訊息監聽】處理訊息刪除失敗:{exc}")
+            logger.error(f"[訊息監聽]處理訊息刪除失敗:{exc}")
             return False
 
     async def search_messages(
@@ -675,7 +736,7 @@ class MessageProcessor:
         try:
             return await self.db.search_messages(keyword, channel_id, hours, limit)
         except Exception as exc:
-            logger.error(f"【訊息監聽】搜尋訊息失敗:{exc}")
+            logger.error(f"[訊息監聽]搜尋訊息失敗:{exc}")
             return []
 
     def _is_valid_message(self, message: discord.Message) -> bool:
@@ -715,7 +776,7 @@ class MessageProcessor:
         try:
             return json.loads(attachments_json)
         except Exception as exc:
-            logger.error(f"【訊息監聽】解析附件 JSON 失敗:{exc}")
+            logger.error(f"[訊息監聽]解析附件 JSON 失敗:{exc}")
             return []
 
     def format_message_for_display(
@@ -734,8 +795,6 @@ class MessageProcessor:
         attachments = self.parse_attachments(message_data.get("attachments"))
 
         # 格式化時間戳
-        import datetime
-
         timestamp = message_data.get("timestamp", 0)
         formatted_time = datetime.datetime.fromtimestamp(timestamp).strftime(
             "%Y-%m-%d %H:%M:%S"

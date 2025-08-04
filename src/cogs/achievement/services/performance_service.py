@@ -1,12 +1,12 @@
 """整合的成就系統效能服務.
 
-此模組整合所有效能優化功能，提供統一的服務介面：
+此模組整合所有效能優化功能,提供統一的服務介面:
 - 整合快取管理、效能監控、批量操作
 - 提供高級的效能優化策略
 - 統一的服務介面
 - 自動效能調優
 
-根據 Story 5.1 所有 Task 的要求實作統一的效能服務。
+根據 Story 5.1 所有 Task 的要求實作統一的效能服務.
 """
 
 from __future__ import annotations
@@ -30,11 +30,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# 常數定義
+CACHE_HIT_RATE_THRESHOLD = 0.6  # 快取命中率閾值
+SLOW_QUERY_RATIO_THRESHOLD = 0.2  # 慢查詢比例閾值
 
 class AchievementPerformanceService:
     """成就系統整合效能服務.
 
-    整合快取、監控、分析等功能，提供統一的高效能服務介面。
+    整合快取、監控、分析等功能,提供統一的高效能服務介面.
     """
 
     def __init__(
@@ -43,7 +46,7 @@ class AchievementPerformanceService:
         cache_manager: CacheManager | None = None,
         performance_monitor: AchievementPerformanceMonitor | None = None,
         performance_analyzer: PerformanceAnalyzer | None = None,
-        enable_auto_optimization: bool = True
+        enable_auto_optimization: bool = True,
     ):
         """初始化效能服務.
 
@@ -56,10 +59,13 @@ class AchievementPerformanceService:
         """
         self._repository = repository
         self._cache_manager = cache_manager or CacheManager()
-        self._performance_monitor = performance_monitor or AchievementPerformanceMonitor(
-            cache_manager=self._cache_manager
+        self._performance_monitor = (
+            performance_monitor
+            or AchievementPerformanceMonitor(cache_manager=self._cache_manager)
         )
-        self._performance_analyzer = performance_analyzer or PerformanceAnalyzer(repository)
+        self._performance_analyzer = performance_analyzer or PerformanceAnalyzer(
+            repository
+        )
         self._enable_auto_optimization = enable_auto_optimization
 
         # 效能配置
@@ -92,8 +98,10 @@ class AchievementPerformanceService:
     # 高效能成就查詢介面
     # =============================================================================
 
-    async def get_achievement_optimized(self, achievement_id: int) -> Achievement | None:
-        """高效能取得成就（含快取和監控）.
+    async def get_achievement_optimized(
+        self, achievement_id: int
+    ) -> Achievement | None:
+        """高效能取得成就(含快取和監控).
 
         Args:
             achievement_id: 成就 ID
@@ -118,7 +126,7 @@ class AchievementPerformanceService:
                 await self._track_operation_success(operation_name, operation_start)
                 return cached_achievement
 
-            # 快取未命中，從資料庫載入
+            # 快取未命中,從資料庫載入
             await self._performance_monitor.track_cache_operation(
                 CacheType.ACHIEVEMENT, "get", hit=False
             )
@@ -145,7 +153,7 @@ class AchievementPerformanceService:
         active_only: bool = True,
         page: int = 1,
         page_size: int = 20,
-        use_cache: bool = True
+        use_cache: bool = True,
     ) -> tuple[list[Achievement], int]:
         """高效能成就列表查詢.
 
@@ -185,12 +193,15 @@ class AchievementPerformanceService:
                 )
 
             # 執行優化查詢
-            achievements, total_count = await self._repository.list_achievements_optimized(
+            (
+                achievements,
+                total_count,
+            ) = await self._repository.list_achievements_optimized(
                 category_id=category_id,
                 achievement_type=achievement_type,
                 active_only=active_only,
                 page=page,
-                page_size=page_size
+                page_size=page_size,
             )
 
             result = (achievements, total_count)
@@ -198,7 +209,10 @@ class AchievementPerformanceService:
             # 快取結果
             if use_cache:
                 await self._cache_manager.set(
-                    CacheType.ACHIEVEMENT_LIST, cache_key, result, ttl=300  # 5分鐘
+                    CacheType.ACHIEVEMENT_LIST,
+                    cache_key,
+                    result,
+                    ttl=300,  # 5分鐘
                 )
 
             await self._track_operation_success(operation_name, operation_start)
@@ -214,7 +228,7 @@ class AchievementPerformanceService:
         category_id: int | None = None,
         page: int = 1,
         page_size: int = 20,
-        use_cache: bool = True
+        use_cache: bool = True,
     ) -> tuple[list[tuple[UserAchievement, Achievement]], int]:
         """高效能用戶成就查詢.
 
@@ -245,7 +259,9 @@ class AchievementPerformanceService:
                     await self._performance_monitor.track_cache_operation(
                         CacheType.USER_ACHIEVEMENT, "get", hit=True
                     )
-                    await self._track_operation_success(operation_name, operation_start, user_id)
+                    await self._track_operation_success(
+                        operation_name, operation_start, user_id
+                    )
                     return cached_result
 
                 await self._performance_monitor.track_cache_operation(
@@ -253,11 +269,11 @@ class AchievementPerformanceService:
                 )
 
             # 執行優化查詢
-            user_achievements, total_count = await self._repository.get_user_achievements_optimized(
-                user_id=user_id,
-                category_id=category_id,
-                page=page,
-                page_size=page_size
+            (
+                user_achievements,
+                total_count,
+            ) = await self._repository.get_user_achievements_optimized(
+                user_id=user_id, category_id=category_id, page=page, page_size=page_size
             )
 
             result = (user_achievements, total_count)
@@ -265,21 +281,25 @@ class AchievementPerformanceService:
             # 快取結果
             if use_cache:
                 await self._cache_manager.set(
-                    CacheType.USER_ACHIEVEMENT, cache_key, result, ttl=300  # 5分鐘
+                    CacheType.USER_ACHIEVEMENT,
+                    cache_key,
+                    result,
+                    ttl=300,  # 5分鐘
                 )
 
-            await self._track_operation_success(operation_name, operation_start, user_id)
+            await self._track_operation_success(
+                operation_name, operation_start, user_id
+            )
             return result
 
         except Exception as e:
-            await self._track_operation_failure(operation_name, operation_start, str(e), user_id)
+            await self._track_operation_failure(
+                operation_name, operation_start, str(e), user_id
+            )
             raise
 
     async def get_user_progress_optimized(
-        self,
-        user_id: int,
-        achievement_id: int,
-        use_cache: bool = True
+        self, user_id: int, achievement_id: int, use_cache: bool = True
     ) -> AchievementProgress | None:
         """高效能用戶進度查詢.
 
@@ -295,7 +315,6 @@ class AchievementPerformanceService:
         operation_name = "get_user_progress_optimized"
 
         try:
-            # 短期快取（進度資料變化頻繁）
             cache_key = f"user_progress:{user_id}:{achievement_id}"
 
             if use_cache:
@@ -307,7 +326,9 @@ class AchievementPerformanceService:
                     await self._performance_monitor.track_cache_operation(
                         CacheType.USER_PROGRESS, "get", hit=True
                     )
-                    await self._track_operation_success(operation_name, operation_start, user_id)
+                    await self._track_operation_success(
+                        operation_name, operation_start, user_id
+                    )
                     return cached_progress
 
                 await self._performance_monitor.track_cache_operation(
@@ -317,24 +338,30 @@ class AchievementPerformanceService:
             # 從資料庫載入
             progress = await self._repository.get_user_progress(user_id, achievement_id)
 
-            # 短期快取（3分鐘）
+            # 短期快取(3分鐘)
             if use_cache and progress:
                 await self._cache_manager.set(
                     CacheType.USER_PROGRESS, cache_key, progress, ttl=180
                 )
 
-            await self._track_operation_success(operation_name, operation_start, user_id)
+            await self._track_operation_success(
+                operation_name, operation_start, user_id
+            )
             return progress
 
         except Exception as e:
-            await self._track_operation_failure(operation_name, operation_start, str(e), user_id)
+            await self._track_operation_failure(
+                operation_name, operation_start, str(e), user_id
+            )
             raise
 
     # =============================================================================
     # 批量操作介面
     # =============================================================================
 
-    async def batch_get_achievements(self, achievement_ids: list[int]) -> dict[int, Achievement]:
+    async def batch_get_achievements(
+        self, achievement_ids: list[int]
+    ) -> dict[int, Achievement]:
         """批量取得成就.
 
         Args:
@@ -366,7 +393,9 @@ class AchievementPerformanceService:
             # 批量載入缺失的成就
             loaded_achievements = {}
             if missing_ids:
-                achievements = await self._repository.get_achievements_by_ids(missing_ids)
+                achievements = await self._repository.get_achievements_by_ids(
+                    missing_ids
+                )
 
                 for achievement in achievements:
                     loaded_achievements[achievement.id] = achievement
@@ -382,8 +411,8 @@ class AchievementPerformanceService:
             await self._track_operation_success(operation_name, operation_start)
 
             logger.debug(
-                f"批量取得成就: 請求 {len(achievement_ids)} 項，"
-                f"快取命中 {len(cached_achievements)} 項，"
+                f"批量取得成就: 請求 {len(achievement_ids)} 項,"
+                f"快取命中 {len(cached_achievements)} 項,"
                 f"資料庫載入 {len(loaded_achievements)} 項"
             )
 
@@ -394,15 +423,13 @@ class AchievementPerformanceService:
             raise
 
     async def batch_get_user_progress(
-        self,
-        user_ids: list[int],
-        achievement_ids: list[int] | None = None
+        self, user_ids: list[int], achievement_ids: list[int] | None = None
     ) -> dict[tuple[int, int], AchievementProgress]:
         """批量取得用戶進度.
 
         Args:
             user_ids: 用戶 ID 列表
-            achievement_ids: 成就 ID 列表（可選）
+            achievement_ids: 成就 ID 列表(可選)
 
         Returns:
             (用戶ID, 成就ID) 到進度物件的映射
@@ -425,15 +452,18 @@ class AchievementPerformanceService:
                 key = (progress.user_id, progress.achievement_id)
                 result[key] = progress
 
-                # 快取進度資料（短期）
-                cache_key = f"user_progress:{progress.user_id}:{progress.achievement_id}"
+                cache_key = (
+                    f"user_progress:{progress.user_id}:{progress.achievement_id}"
+                )
                 await self._cache_manager.set(
                     CacheType.USER_PROGRESS, cache_key, progress, ttl=180
                 )
 
             await self._track_operation_success(operation_name, operation_start)
 
-            logger.debug(f"批量取得用戶進度: {len(user_ids)} 個用戶，{len(result)} 項進度")
+            logger.debug(
+                f"批量取得用戶進度: {len(user_ids)} 個用戶,{len(result)} 項進度"
+            )
 
             return result
 
@@ -465,7 +495,9 @@ class AchievementPerformanceService:
             achievement_id: 成就 ID
         """
         try:
-            invalidated_count = await self._cache_manager.invalidate_by_achievement(achievement_id)
+            invalidated_count = await self._cache_manager.invalidate_by_achievement(
+                achievement_id
+            )
             logger.info(f"成就 {achievement_id} 快取失效: {invalidated_count} 項")
 
         except Exception as e:
@@ -478,7 +510,9 @@ class AchievementPerformanceService:
             category_id: 分類 ID
         """
         try:
-            invalidated_count = await self._cache_manager.invalidate_by_category(category_id)
+            invalidated_count = await self._cache_manager.invalidate_by_category(
+                category_id
+            )
             logger.info(f"分類 {category_id} 快取失效: {invalidated_count} 項")
 
         except Exception as e:
@@ -509,8 +543,8 @@ class AchievementPerformanceService:
                 "performance_summary": {
                     "total_operations": sum(self._operation_counts.values()),
                     "last_optimization": self._last_optimization.isoformat(),
-                    "auto_optimization_enabled": self._enable_auto_optimization
-                }
+                    "auto_optimization_enabled": self._enable_auto_optimization,
+                },
             }
 
         except Exception as e:
@@ -552,7 +586,7 @@ class AchievementPerformanceService:
             overall_stats = cache_stats.get("overall", {})
             hit_rate = overall_stats.get("hit_rate", 0)
 
-            if hit_rate < 0.6:  # 命中率低於60%
+            if hit_rate < CACHE_HIT_RATE_THRESHOLD:  # 命中率低於60%
                 # 預載熱門資料
                 await self._preload_popular_data()
                 optimizations.append("預載熱門資料以提升快取命中率")
@@ -561,9 +595,9 @@ class AchievementPerformanceService:
             query_stats = self._repository.get_query_stats()
             slow_query_ratio = query_stats.get("slow_query_ratio", 0)
 
-            if slow_query_ratio > 0.2:  # 慢查詢比例超過20%
+            if slow_query_ratio > SLOW_QUERY_RATIO_THRESHOLD:  # 慢查詢比例超過20%
                 # 建議增加索引或優化查詢
-                optimizations.append("檢測到高慢查詢比例，建議檢查資料庫索引")
+                optimizations.append("檢測到高慢查詢比例,建議檢查資料庫索引")
 
             # 3. 記憶體使用優化
             # 清理過期快取
@@ -574,10 +608,12 @@ class AchievementPerformanceService:
 
             return {
                 "optimization_time": optimization_start.isoformat(),
-                "duration_seconds": (datetime.now() - optimization_start).total_seconds(),
+                "duration_seconds": (
+                    datetime.now() - optimization_start
+                ).total_seconds(),
                 "optimizations_applied": optimizations,
                 "cache_hit_rate": hit_rate,
-                "slow_query_ratio": slow_query_ratio
+                "slow_query_ratio": slow_query_ratio,
             }
 
         except Exception as e:
@@ -592,7 +628,9 @@ class AchievementPerformanceService:
         """預載熱門資料."""
         try:
             # 預載前10個熱門成就
-            popular_achievements = await self._repository.get_popular_achievements(limit=10)
+            popular_achievements = await self._repository.get_popular_achievements(
+                limit=10
+            )
 
             for achievement, _ in popular_achievements:
                 cache_key = f"achievement:{achievement.id}"
@@ -606,10 +644,7 @@ class AchievementPerformanceService:
             logger.warning(f"預載熱門資料失敗: {e}")
 
     async def _track_operation_success(
-        self,
-        operation: str,
-        start_time: datetime,
-        user_id: int | None = None
+        self, operation: str, start_time: datetime, user_id: int | None = None
     ) -> None:
         """追蹤操作成功."""
         duration_ms = (datetime.now() - start_time).total_seconds() * 1000
@@ -619,10 +654,7 @@ class AchievementPerformanceService:
 
         # 記錄效能監控
         await self._performance_monitor.track_query_operation(
-            operation=operation,
-            duration_ms=duration_ms,
-            success=True,
-            user_id=user_id
+            operation=operation, duration_ms=duration_ms, success=True, user_id=user_id
         )
 
     async def _track_operation_failure(
@@ -630,7 +662,7 @@ class AchievementPerformanceService:
         operation: str,
         start_time: datetime,
         error: str,
-        user_id: int | None = None
+        user_id: int | None = None,
     ) -> None:
         """追蹤操作失敗."""
         duration_ms = (datetime.now() - start_time).total_seconds() * 1000
@@ -641,11 +673,10 @@ class AchievementPerformanceService:
             duration_ms=duration_ms,
             success=False,
             user_id=user_id,
-            context={"error": error}
+            context={"error": error},
         )
 
-        logger.error(f"操作失敗: {operation}，錯誤: {error}")
-
+        logger.error(f"操作失敗: {operation},錯誤: {error}")
 
 __all__ = [
     "AchievementPerformanceService",

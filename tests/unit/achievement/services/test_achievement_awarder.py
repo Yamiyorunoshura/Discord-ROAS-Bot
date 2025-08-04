@@ -1,12 +1,12 @@
 """AchievementAwarder 測試.
 
-此模組測試自動成就頒發系統的功能，包含：
+此模組測試自動成就頒發系統的功能,包含:
 - 單一和批量成就頒發測試
 - 原子性和一致性測試
 - 錯誤處理和重試測試
 - 通知系統整合測試
 
-測試遵循 AAA 模式和現代測試最佳實踐。
+測試遵循 AAA 模式和現代測試最佳實踐.
 """
 
 import asyncio
@@ -48,7 +48,7 @@ class TestAchievementAwarder:
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
             notification_enabled=True,
-            max_concurrent_awards=20
+            max_concurrent_awards=20,
         ) as awarder:
             # Assert
             assert awarder._repository == mock_repository
@@ -75,17 +75,14 @@ class TestAchievementAwarder:
             is_active=True,
             points=100,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
         mock_repository.get_achievement_by_id.return_value = test_achievement
         mock_repository.has_user_achievement.return_value = False
 
         # 模擬頒發成功
         user_achievement = UserAchievement(
-            id=1,
-            user_id=123,
-            achievement_id=1,
-            earned_at=datetime.now()
+            id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
         )
         mock_repository.award_achievement.return_value = user_achievement
 
@@ -96,15 +93,14 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            notification_enabled=False  # 禁用通知簡化測試
+            notification_enabled=False,  # 禁用通知簡化測試
         ) as awarder:
-
             # Act
             result = await awarder.award_achievement(
                 user_id=123,
                 achievement_id=1,
                 trigger_reason="達到計數目標",
-                trigger_context={"message_count": 10}
+                trigger_context={"message_count": 10},
             )
 
         # Assert
@@ -126,21 +122,17 @@ class TestAchievementAwarder:
             type=AchievementType.COUNTER,
             is_active=True,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
         mock_repository.get_achievement_by_id.return_value = test_achievement
         mock_repository.has_user_achievement.return_value = True  # 已獲得
 
         async with AchievementAwarder(
-            repository=mock_repository,
-            progress_tracker=mock_progress_tracker
+            repository=mock_repository, progress_tracker=mock_progress_tracker
         ) as awarder:
-
             # Act
             result = await awarder.award_achievement(
-                user_id=123,
-                achievement_id=1,
-                trigger_reason="測試觸發"
+                user_id=123, achievement_id=1, trigger_reason="測試觸發"
             )
 
         # Assert
@@ -161,20 +153,16 @@ class TestAchievementAwarder:
             type=AchievementType.COUNTER,
             is_active=False,  # 未啟用
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
         mock_repository.get_achievement_by_id.return_value = inactive_achievement
 
         async with AchievementAwarder(
-            repository=mock_repository,
-            progress_tracker=mock_progress_tracker
+            repository=mock_repository, progress_tracker=mock_progress_tracker
         ) as awarder:
-
             # Act
             result = await awarder.award_achievement(
-                user_id=123,
-                achievement_id=1,
-                trigger_reason="測試觸發"
+                user_id=123, achievement_id=1, trigger_reason="測試觸發"
             )
 
         # Assert
@@ -191,15 +179,11 @@ class TestAchievementAwarder:
         mock_repository.get_achievement_by_id.return_value = None  # 成就不存在
 
         async with AchievementAwarder(
-            repository=mock_repository,
-            progress_tracker=mock_progress_tracker
+            repository=mock_repository, progress_tracker=mock_progress_tracker
         ) as awarder:
-
             # Act
             result = await awarder.award_achievement(
-                user_id=123,
-                achievement_id=999,
-                trigger_reason="測試觸發"
+                user_id=123, achievement_id=999, trigger_reason="測試觸發"
             )
 
         # Assert
@@ -223,20 +207,20 @@ class TestAchievementAwarder:
                 user_id=123,
                 achievement_id=1,
                 trigger_reason="觸發原因1",
-                processing_priority=1
+                processing_priority=1,
             ),
             AwardRequest(
                 user_id=123,
                 achievement_id=2,
                 trigger_reason="觸發原因2",
-                processing_priority=2
+                processing_priority=2,
             ),
             AwardRequest(
                 user_id=456,
                 achievement_id=1,
                 trigger_reason="觸發原因3",
-                processing_priority=0
-            )
+                processing_priority=0,
+            ),
         ]
 
         # 模擬成就存在
@@ -246,17 +230,14 @@ class TestAchievementAwarder:
             type=AchievementType.COUNTER,
             is_active=True,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
         mock_repository.get_achievement_by_id.return_value = test_achievement
         mock_repository.has_user_achievement.return_value = False
 
         # 模擬頒發成功
         user_achievement = UserAchievement(
-            id=1,
-            user_id=123,
-            achievement_id=1,
-            earned_at=datetime.now()
+            id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
         )
         mock_repository.award_achievement.return_value = user_achievement
 
@@ -267,16 +248,18 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            notification_enabled=False
+            notification_enabled=False,
         ) as awarder:
-
             # Act
             results = await awarder.award_multiple_achievements(requests)
 
         # Assert
         assert len(results) == 3
-        # 檢查優先級排序（高優先級先處理）
-        assert results[0].request.processing_priority >= results[1].request.processing_priority
+        # 檢查優先級排序(高優先級先處理)
+        assert (
+            results[0].request.processing_priority
+            >= results[1].request.processing_priority
+        )
         assert all(result.status == AwardStatus.SUCCESS for result in results)
 
     @pytest.mark.asyncio
@@ -287,22 +270,20 @@ class TestAchievementAwarder:
         mock_progress_tracker = AsyncMock()
 
         requests = [
-            AwardRequest(
-                user_id=123,
-                achievement_id=1,
-                trigger_reason="正常頒發"
-            ),
+            AwardRequest(user_id=123, achievement_id=1, trigger_reason="正常頒發"),
             AwardRequest(
                 user_id=123,
                 achievement_id=999,  # 不存在的成就
-                trigger_reason="錯誤頒發"
-            )
+                trigger_reason="錯誤頒發",
+            ),
         ]
 
-        # 模擬第一個成就存在，第二個不存在
+        # 模擬第一個成就存在,第二個不存在
         def mock_get_achievement(achievement_id):
             if achievement_id == 1:
-                return Achievement(id=1, is_active=True, role_reward=None, is_hidden=False)
+                return Achievement(
+                    id=1, is_active=True, role_reward=None, is_hidden=False
+                )
             return None
 
         mock_repository.get_achievement_by_id.side_effect = mock_get_achievement
@@ -311,9 +292,8 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            notification_enabled=False
+            notification_enabled=False,
         ) as awarder:
-
             # Act
             results = await awarder.award_multiple_achievements(requests)
 
@@ -339,36 +319,34 @@ class TestAchievementAwarder:
                 achievement_id=1,
                 triggered=True,
                 reason="達到目標",
-                processing_time=25.0
+                processing_time=25.0,
             ),
             TriggerResult(
                 user_id=123,
                 achievement_id=2,
                 triggered=False,  # 未觸發
-                reason="未達到目標"
+                reason="未達到目標",
             ),
             TriggerResult(
                 user_id=456,
                 achievement_id=1,
                 triggered=True,
                 reason="達到目標",
-                error="處理錯誤"  # 有錯誤
-            )
+                error="處理錯誤",  # 有錯誤
+            ),
         ]
 
         async with AchievementAwarder(
-            repository=mock_repository,
-            progress_tracker=mock_progress_tracker
+            repository=mock_repository, progress_tracker=mock_progress_tracker
         ) as awarder:
-
-            with patch.object(awarder, 'award_multiple_achievements') as mock_award:
+            with patch.object(awarder, "award_multiple_achievements") as mock_award:
                 mock_award.return_value = []
 
                 # Act
                 await awarder.process_trigger_results(trigger_results)
 
         # Assert
-        # 只有第一個結果應該被處理（觸發且無錯誤）
+        # 只有第一個結果應該被處理(觸發且無錯誤)
         mock_award.assert_called_once()
         award_requests = mock_award.call_args[0][0]
         assert len(award_requests) == 1
@@ -386,11 +364,7 @@ class TestAchievementAwarder:
         mock_repository = AsyncMock()
         mock_progress_tracker = AsyncMock()
 
-        test_achievement = Achievement(
-            id=1,
-            name="Test Achievement",
-            is_active=True
-        )
+        test_achievement = Achievement(id=1, name="Test Achievement", is_active=True)
         mock_repository.get_achievement_by_id.return_value = test_achievement
         mock_repository.has_user_achievement.return_value = False
 
@@ -402,14 +376,11 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            notification_enabled=False
+            notification_enabled=False,
         ) as awarder:
-
             # Act
             result = await awarder.award_achievement(
-                user_id=123,
-                achievement_id=1,
-                trigger_reason="測試觸發"
+                user_id=123, achievement_id=1, trigger_reason="測試觸發"
             )
 
         # Assert
@@ -424,19 +395,12 @@ class TestAchievementAwarder:
         mock_repository = AsyncMock()
         mock_progress_tracker = AsyncMock()
 
-        test_achievement = Achievement(
-            id=1,
-            name="Test Achievement",
-            is_active=True
-        )
+        test_achievement = Achievement(id=1, name="Test Achievement", is_active=True)
         mock_repository.get_achievement_by_id.return_value = test_achievement
         mock_repository.has_user_achievement.return_value = False
 
         user_achievement = UserAchievement(
-            id=1,
-            user_id=123,
-            achievement_id=1,
-            earned_at=datetime.now()
+            id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
         )
         mock_repository.award_achievement.return_value = user_achievement
 
@@ -447,18 +411,17 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            notification_enabled=False
+            notification_enabled=False,
         ) as awarder:
-
             # Act - 同時發起兩個相同的頒發請求
             tasks = [
                 awarder.award_achievement(123, 1, "觸發1"),
-                awarder.award_achievement(123, 1, "觸發2")
+                awarder.award_achievement(123, 1, "觸發2"),
             ]
             results = await asyncio.gather(*tasks)
 
         # Assert
-        # 其中一個應該成功，另一個應該被標記為重複
+        # 其中一個應該成功,另一個應該被標記為重複
         success_count = sum(1 for r in results if r.status == AwardStatus.SUCCESS)
         duplicate_count = sum(1 for r in results if r.status == AwardStatus.DUPLICATE)
 
@@ -482,16 +445,13 @@ class TestAchievementAwarder:
             description="測試成就",
             is_active=True,
             points=100,
-            rarity="common"
+            rarity="common",
         )
         mock_repository.get_achievement_by_id.return_value = test_achievement
         mock_repository.has_user_achievement.return_value = False
 
         user_achievement = UserAchievement(
-            id=1,
-            user_id=123,
-            achievement_id=1,
-            earned_at=datetime.now()
+            id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
         )
         mock_repository.award_achievement.return_value = user_achievement
 
@@ -505,9 +465,8 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            notification_enabled=True
+            notification_enabled=True,
         ) as awarder:
-
             awarder.add_notification_handler(notification_handler)
 
             # Act
@@ -515,7 +474,7 @@ class TestAchievementAwarder:
                 user_id=123,
                 achievement_id=1,
                 trigger_reason="測試觸發",
-                source_event="message_sent"
+                source_event="message_sent",
             )
 
         # Assert
@@ -555,20 +514,17 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            notification_enabled=True
+            notification_enabled=True,
         ) as awarder:
-
             awarder.add_notification_handler(error_handler)
 
             # Act
             result = await awarder.award_achievement(
-                user_id=123,
-                achievement_id=1,
-                trigger_reason="測試觸發"
+                user_id=123, achievement_id=1, trigger_reason="測試觸發"
             )
 
         # Assert
-        # 頒發應該成功，即使通知失敗
+        # 頒發應該成功,即使通知失敗
         assert result.status == AwardStatus.SUCCESS
         assert result.notification_sent is False  # 通知失敗
 
@@ -583,8 +539,7 @@ class TestAchievementAwarder:
         mock_progress_tracker = AsyncMock()
 
         awarder = AchievementAwarder(
-            repository=mock_repository,
-            progress_tracker=mock_progress_tracker
+            repository=mock_repository, progress_tracker=mock_progress_tracker
         )
 
         # Act
@@ -607,8 +562,7 @@ class TestAchievementAwarder:
         mock_progress_tracker = AsyncMock()
 
         awarder = AchievementAwarder(
-            repository=mock_repository,
-            progress_tracker=mock_progress_tracker
+            repository=mock_repository, progress_tracker=mock_progress_tracker
         )
 
         handler1 = AsyncMock()
@@ -647,7 +601,9 @@ class TestAchievementAwarder:
         # 模擬慢速頒發操作
         async def slow_award(*args, **kwargs):
             await asyncio.sleep(2)  # 比超時時間長
-            return UserAchievement(id=1, user_id=123, achievement_id=1, earned_at=datetime.now())
+            return UserAchievement(
+                id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
+            )
 
         mock_repository.award_achievement.side_effect = slow_award
 
@@ -658,14 +614,11 @@ class TestAchievementAwarder:
         async with AchievementAwarder(
             repository=mock_repository,
             progress_tracker=mock_progress_tracker,
-            award_timeout=1.0  # 1秒超時
+            award_timeout=1.0,  # 1秒超時
         ) as awarder:
-
             # Act
             result = await awarder.award_achievement(
-                user_id=123,
-                achievement_id=1,
-                trigger_reason="測試觸發"
+                user_id=123, achievement_id=1, trigger_reason="測試觸發"
             )
 
         # Assert
@@ -677,6 +630,7 @@ class TestAchievementAwarder:
 # 測試輔助函數和 Fixtures
 # ==========================================================================
 
+
 @pytest.fixture
 def sample_award_request():
     """創建範例頒發請求."""
@@ -685,7 +639,7 @@ def sample_award_request():
         achievement_id=1,
         trigger_reason="測試觸發",
         trigger_context={"message_count": 10},
-        source_event="message_sent"
+        source_event="message_sent",
     )
 
 
@@ -700,7 +654,7 @@ def sample_achievement():
         criteria={"target_value": 10, "counter_field": "message_count"},
         is_active=True,
         points=100,
-        rarity="common"
+        rarity="common",
     )
 
 
@@ -708,10 +662,7 @@ def sample_achievement():
 def sample_user_achievement():
     """創建範例用戶成就."""
     return UserAchievement(
-        id=1,
-        user_id=123,
-        achievement_id=1,
-        earned_at=datetime.now()
+        id=1, user_id=123, achievement_id=1, earned_at=datetime.now()
     )
 
 
@@ -719,12 +670,12 @@ def create_award_request(
     user_id: int,
     achievement_id: int,
     trigger_reason: str = "測試觸發",
-    priority: int = 0
+    priority: int = 0,
 ) -> AwardRequest:
     """創建頒發請求物件."""
     return AwardRequest(
         user_id=user_id,
         achievement_id=achievement_id,
         trigger_reason=trigger_reason,
-        processing_priority=priority
+        processing_priority=priority,
     )

@@ -1,6 +1,6 @@
 """簡化的核心日誌系統測試.
 
-此模組測試 src.core.logger 中的基本日誌功能。
+此模組測試 src.core.logger 中的基本日誌功能.
 """
 
 import logging
@@ -28,10 +28,7 @@ class TestTraceContext:
         trace_id = "test-trace-123"
         span_id = "test-span-456"
 
-        context = TraceContext(
-            trace_id=trace_id,
-            span_id=span_id
-        )
+        context = TraceContext(trace_id=trace_id, span_id=span_id)
 
         assert context.trace_id == trace_id
         assert context.span_id == span_id
@@ -43,12 +40,13 @@ class TestBotLogger:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_log_file = tempfile.NamedTemporaryFile(suffix='.log', delete=False)
+        self.temp_log_file = tempfile.NamedTemporaryFile(suffix=".log", delete=False)
         self.temp_log_file.close()
 
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.temp_log_file.name)
 
@@ -70,17 +68,14 @@ class TestBotLogger:
         logger.error("Error message")
         logger.critical("Critical message")
 
-        # 基本功能測試，不需要驗證具體輸出
+        # 基本功能測試,不需要驗證具體輸出
 
     def test_bot_logger_with_extra_data(self):
         """測試帶額外數據的日誌記錄."""
         logger = BotLogger("test_logger")
 
         # 測試帶額外字段的日誌記錄
-        logger.info("Test message", extra={
-            "user_id": 12345,
-            "guild_id": 67890
-        })
+        logger.info("Test message", extra={"user_id": 12345, "guild_id": 67890})
 
 
 class TestLoggerIntegration:
@@ -91,8 +86,8 @@ class TestLoggerIntegration:
         logger = get_logger("test_integration")
 
         assert logger is not None
-        assert hasattr(logger, 'info')
-        assert hasattr(logger, 'error')
+        assert hasattr(logger, "info")
+        assert hasattr(logger, "error")
 
         # 測試日誌記錄
         logger.info("Integration test message")
@@ -122,7 +117,7 @@ class TestLoggerErrorHandling:
             logger.info(None)
             logger.error(None)
         except Exception:
-            # 如果拋出異常，確保是預期的類型
+            # 如果拋出異常,確保是預期的類型
             pass
 
     def test_logger_with_invalid_level(self):
@@ -150,6 +145,7 @@ class TestLoggerPerformance:
         logger = get_logger("performance_test")
 
         import time
+
         start_time = time.time()
 
         # 記錄大量日誌
@@ -159,7 +155,7 @@ class TestLoggerPerformance:
         end_time = time.time()
         duration = end_time - start_time
 
-        # 確保效能合理（應該在 1 秒內完成）
+        # 確保效能合理(應該在 1 秒內完成)
         assert duration < 1.0
 
     def test_logger_concurrent_logging(self):
@@ -183,4 +179,4 @@ class TestLoggerPerformance:
         for thread in threads:
             thread.join()
 
-        # 如果沒有異常，則測試通過
+        # 如果沒有異常,則測試通過

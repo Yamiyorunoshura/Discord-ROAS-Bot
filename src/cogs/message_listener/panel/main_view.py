@@ -31,6 +31,10 @@ from .components.buttons import (
 )
 from .embeds import settings_embed
 
+# 常數定義
+MESSAGE_CONTENT_MAX_LENGTH = 100
+MESSAGE_CONTENT_TRUNCATE_LENGTH = 97
+
 
 class EnhancedSettingsView(View):
     """
@@ -65,25 +69,20 @@ class EnhancedSettingsView(View):
         """設置主要組件"""
         self.clear_items()
 
-        # 第一行:智能功能
         self.add_item(SmartBatchConfigButton(self.cog))
         self.add_item(RenderQualityButton(self.cog))
         self.add_item(FontSettingsButton(self.cog))
 
-        # 第二行:視覺設定
         self.add_item(ColorThemeButton(self.cog))
         self.add_item(RenderPreviewButton(self.cog))
         self.add_item(HelpButton())
 
-        # 第三行:傳統設定
         self.add_item(LogChannelSelect(self.cog))
         self.add_item(MonitoredChannelsSelect(self.cog))
 
-        # 第四行:批次設定
         self.add_item(AdjustBatchSize(self.cog))
         self.add_item(AdjustBatchTime(self.cog))
 
-        # 第五行:開關和控制
         self.add_item(ToggleEdits(self.cog))
         self.add_item(ToggleDeletes(self.cog))
         self.add_item(CloseButton())
@@ -336,11 +335,10 @@ class EnhancedSettingsView(View):
         """
         if not is_allowed(interaction, "訊息日誌設定"):
             await interaction.response.send_message(
-                "❌ 您沒有權限使用此功能.需要「管理伺服器」權限.", ephemeral=True
+                "❌ 您沒有權限使用此功能, 需要「管理伺服器」權限。", ephemeral=True
             )
             return False
         return True
-
 
 # 保持原有的 SettingsView 以向後兼容
 class SettingsView(EnhancedSettingsView):
@@ -349,7 +347,6 @@ class SettingsView(EnhancedSettingsView):
     """
 
     pass
-
 
 class SearchPaginationView(View):
     """
@@ -410,8 +407,8 @@ class SearchPaginationView(View):
 
             # 格式化訊息內容
             content = msg.get("content", "")
-            if len(content) > 100:
-                content = content[:97] + "..."
+            if len(content) > MESSAGE_CONTENT_MAX_LENGTH:
+                content = content[:MESSAGE_CONTENT_TRUNCATE_LENGTH] + "..."
 
             # 添加欄位
             field_name = f"{i}. "

@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 # 添加項目根目錄到 Python 路徑
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from cogs.core.venv_manager import VirtualEnvironmentManager
 
@@ -77,7 +77,12 @@ class TestVirtualEnvironmentManager(unittest.TestCase):
             bin_dir.mkdir()
             (bin_dir / "python").touch()
 
-            lib_dir = fake_venv / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+            lib_dir = (
+                fake_venv
+                / "lib"
+                / f"python{sys.version_info.major}.{sys.version_info.minor}"
+                / "site-packages"
+            )
             lib_dir.mkdir(parents=True)
 
         result = self.venv_manager.detect_existing_venv()
@@ -88,8 +93,14 @@ class TestVirtualEnvironmentManager(unittest.TestCase):
         info = self.venv_manager.get_environment_info()
 
         required_keys = [
-            "project_root", "platform", "python_version", "python_executable",
-            "is_in_virtual_env", "current_venv", "is_activated", "activation_method"
+            "project_root",
+            "platform",
+            "python_version",
+            "python_executable",
+            "is_in_virtual_env",
+            "current_venv",
+            "is_activated",
+            "activation_method",
         ]
 
         for key in required_keys:
@@ -99,7 +110,7 @@ class TestVirtualEnvironmentManager(unittest.TestCase):
         self.assertIsInstance(info["python_version"], str)
         self.assertIsInstance(info["is_in_virtual_env"], bool)
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_get_pip_command_system(self, mock_run):
         """測試獲取系統 pip 命令"""
         # 沒有當前虛擬環境時應該使用系統 pip
@@ -126,8 +137,9 @@ class TestVirtualEnvironmentManager(unittest.TestCase):
         missing = await self.venv_manager._check_critical_packages()
         self.assertIsInstance(missing, list)
 
-        # discord.py 可能不在測試環境中，但 asyncio 和 sqlite3 應該存在
+        # discord.py 可能不在測試環境中,但 asyncio 和 sqlite3 應該存在
         # 這個測試主要確保方法能正常運行而不拋出異常
+
 
 class TestVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTestCase):
     """異步測試類"""
@@ -143,12 +155,13 @@ class TestVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     async def test_auto_setup_no_venv(self):
-        """測試自動設置（無現有虛擬環境）"""
-        # 這個測試可能會實際創建虛擬環境，所以我們模擬一些方法
-        with patch.object(self.venv_manager, 'create_virtual_env') as mock_create, \
-             patch.object(self.venv_manager, 'activate_virtual_env') as mock_activate, \
-             patch.object(self.venv_manager, 'install_requirements') as mock_install:
-
+        """測試自動設置(無現有虛擬環境)"""
+        # 這個測試可能會實際創建虛擬環境,所以我們模擬一些方法
+        with (
+            patch.object(self.venv_manager, "create_virtual_env") as mock_create,
+            patch.object(self.venv_manager, "activate_virtual_env") as mock_activate,
+            patch.object(self.venv_manager, "install_requirements") as mock_install,
+        ):
             mock_create.return_value = (True, "虛擬環境創建成功")
             mock_activate.return_value = (True, "虛擬環境激活成功")
             mock_install.return_value = (False, "未找到 requirements 文件")
@@ -160,7 +173,7 @@ class TestVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTestCase):
             self.assertIn("steps", result)
             self.assertIn("errors", result)
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_create_virtual_env_success(self, mock_subprocess):
         """測試成功創建虛擬環境"""
         # 模擬成功的子程序執行
@@ -175,7 +188,7 @@ class TestVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(success)
         self.assertIn("成功", message)
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_create_virtual_env_failure(self, mock_subprocess):
         """測試創建虛擬環境失敗"""
         # 模擬失敗的子程序執行
@@ -190,6 +203,7 @@ class TestVirtualEnvironmentManagerAsync(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(success)
         self.assertIn("失敗", message)
 
+
 def run_async_test(coro):
     """運行異步測試的輔助函數"""
     loop = asyncio.new_event_loop()
@@ -198,6 +212,7 @@ def run_async_test(coro):
         return loop.run_until_complete(coro)
     finally:
         loop.close()
+
 
 if __name__ == "__main__":
     # 運行測試

@@ -16,8 +16,10 @@ import discord
 from ...core.database_pool import get_global_pool
 from ..config.config import MAX_SEARCH_RESULTS, MESSAGE_DB_PATH, MESSAGE_RETENTION_DAYS
 
-logger = logging.getLogger("message_listener")
+# 常量定義
+MESSAGE_TABLE_COLUMN_COUNT = 8  # messages 表的欄位數量
 
+logger = logging.getLogger("message_listener")
 
 class MessageListenerDB:
     """
@@ -34,6 +36,7 @@ class MessageListenerDB:
         """初始化資料庫操作類別"""
         self.db_path = db_path
         self._pool = None  # 將使用全局連接池
+        self._cleanup_task = None  # 存儲清理任務的引用
 
     async def _get_pool(self):
         """獲取全局連接池實例"""
@@ -44,7 +47,7 @@ class MessageListenerDB:
     async def close(self):
         """關閉資料庫連接(現在由全局連接池管理)"""
         # 連接池由全局管理器處理,這裡不需要手動關閉
-        logger.info("【訊息監聽】資料庫連接已由全局連接池管理")
+        logger.info("[訊息監聽]資料庫連接已由全局連接池管理")
 
     async def init_db(self):
         """初始化資料庫結構"""
@@ -94,13 +97,13 @@ class MessageListenerDB:
                 """)
 
                 await conn.commit()
-            logger.info("【訊息監聽】資料庫表格初始化完成")
+            logger.info("[訊息監聽]資料庫表格初始化完成")
 
             # 啟動定期清理過期訊息
-            asyncio.create_task(self._cleanup_old_messages())
+            self._cleanup_task = asyncio.create_task(self._cleanup_old_messages())
 
         except Exception as exc:
-            logger.error(f"【訊息監聽】資料庫初始化失敗: {exc}")
+            logger.error(f"[訊息監聽]資料庫初始化失敗: {exc}")
             raise
 
     async def execute(self, query: str, *args):
@@ -121,7 +124,7 @@ class MessageListenerDB:
                 await conn.commit()
                 return cursor
         except Exception as exc:
-            logger.error(f"【訊息監聽】執行 SQL 查詢失敗: {exc}")
+            logger.error(f"[訊息監聽]執行 SQL 查詢失敗: {exc}")
             raise
 
     async def select(self, query: str, params: tuple = ()) -> list[dict[str, Any]]:
@@ -142,7 +145,11 @@ class MessageListenerDB:
                 rows = await cursor.fetchall()
 
                 # 獲取欄位描述
-                column_names = [desc[0] for desc in cursor.description] if cursor.description else []
+                column_names = (
+                    [desc[0] for desc in cursor.description]
+                    if cursor.description
+                    else []
+                )
 
                 # 根據欄位數量動態構建結果
                 result = []
@@ -150,25 +157,29 @@ class MessageListenerDB:
                     if len(column_names) == len(row):
                         # 使用實際的欄位名稱
                         result.append(dict(zip(column_names, row, strict=False)))
-                    elif len(row) == 8 and not column_names:
-                        # 向後相容：如果是完整的 messages 表查詢
-                        result.append({
-                            "message_id": row[0],
-                            "channel_id": row[1],
-                            "guild_id": row[2],
-                            "author_id": row[3],
-                            "content": row[4],
-                            "timestamp": row[5],
-                            "attachments": row[6],
-                            "deleted": row[7],
-                        })
+                    elif len(row) == MESSAGE_TABLE_COLUMN_COUNT and not column_names:
+                        # 向後相容: 如果是完整的 messages 表查詢
+                        result.append(
+                            {
+                                "message_id": row[0],
+                                "channel_id": row[1],
+                                "guild_id": row[2],
+                                "author_id": row[3],
+                                "content": row[4],
+                                "timestamp": row[5],
+                                "attachments": row[6],
+                                "deleted": row[7],
+                            }
+                        )
                     else:
-                        # 如果無法匹配，使用通用索引
-                        result.append({f"col_{i}": value for i, value in enumerate(row)})
+                        # 如果無法匹配, 使用通用索引
+                        result.append(
+                            {f"col_{i}": value for i, value in enumerate(row)}
+                        )
 
                 return result
         except Exception as exc:
-            logger.error(f"【訊息監聽】執行 SELECT 查詢失敗: {exc}")
+            logger.error(f"[訊息監聽]執行 SELECT 查詢失敗: {exc}")
             return []
 
     async def save_message(self, message: discord.Message | None):
@@ -214,7 +225,7 @@ class MessageListenerDB:
                 attachments_json,
             )
         except Exception as exc:
-            logger.error(f"【訊息監聽】儲存訊息失敗: {exc}")
+            logger.error(f"[訊息監聽]儲存訊息失敗: {exc}")
             raise
 
     async def search_messages(
@@ -264,7 +275,7 @@ class MessageListenerDB:
             return await self.select(query, tuple(params))
 
         except Exception as exc:
-            logger.error(f"【訊息監聽】搜尋訊息失敗: {exc}")
+            logger.error(f"[訊息監聽]搜尋訊息失敗: {exc}")
             return []
 
     async def purge_old_messages(self, days: int = MESSAGE_RETENTION_DAYS):
@@ -282,10 +293,10 @@ class MessageListenerDB:
             )
 
             deleted_count = cursor.rowcount
-            logger.info(f"【訊息監聽】清理了 {deleted_count} 條過期訊息")
+            logger.info(f"[訊息監聽]清理了 {deleted_count} 條過期訊息")
 
         except Exception as exc:
-            logger.error(f"【訊息監聽】清理過期訊息失敗: {exc}")
+            logger.error(f"[訊息監聽]清理過期訊息失敗: {exc}")
 
     async def _cleanup_old_messages(self):
         """定期清理過期訊息的背景任務"""
@@ -294,7 +305,7 @@ class MessageListenerDB:
                 await asyncio.sleep(86400)  # 每天執行一次
                 await self.purge_old_messages()
             except Exception as exc:
-                logger.error(f"【訊息監聽】定期清理任務失敗: {exc}")
+                logger.error(f"[訊息監聽]定期清理任務失敗: {exc}")
 
     async def get_setting(self, key: str, default: str = "") -> str:
         """
@@ -316,7 +327,7 @@ class MessageListenerDB:
                 row = await cursor.fetchone()
                 return row[0] if row else default
         except Exception as exc:
-            logger.error(f"【訊息監聽】獲取設定失敗: {exc}")
+            logger.error(f"[訊息監聽]獲取設定失敗: {exc}")
             return default
 
     async def set_setting(self, key: str, value: str):
@@ -334,7 +345,7 @@ class MessageListenerDB:
                 value,
             )
         except Exception as exc:
-            logger.error(f"【訊息監聽】設定設定值失敗: {exc}")
+            logger.error(f"[訊息監聽]設定設定值失敗: {exc}")
 
     async def get_monitored_channels(self) -> list[int]:
         """
@@ -350,7 +361,7 @@ class MessageListenerDB:
                 rows = await cursor.fetchall()
                 return [row[0] for row in rows]
         except Exception as exc:
-            logger.error(f"【訊息監聽】獲取監聽頻道失敗: {exc}")
+            logger.error(f"[訊息監聽]獲取監聽頻道失敗: {exc}")
             return []
 
     async def add_monitored_channel(self, channel_id: int):
@@ -366,7 +377,7 @@ class MessageListenerDB:
                 channel_id,
             )
         except Exception as exc:
-            logger.error(f"【訊息監聽】添加監聽頻道失敗: {exc}")
+            logger.error(f"[訊息監聽]添加監聽頻道失敗: {exc}")
 
     async def remove_monitored_channel(self, channel_id: int):
         """
@@ -380,11 +391,11 @@ class MessageListenerDB:
                 "DELETE FROM monitored_channels WHERE channel_id = ?", channel_id
             )
         except Exception as exc:
-            logger.error(f"【訊息監聽】移除監聽頻道失敗: {exc}")
+            logger.error(f"[訊息監聽]移除監聽頻道失敗: {exc}")
 
     async def clear_monitored_channels(self):
         """清空所有監聽頻道"""
         try:
             await self.execute("DELETE FROM monitored_channels")
         except Exception as exc:
-            logger.error(f"【訊息監聽】清空監聽頻道失敗: {exc}")
+            logger.error(f"[訊息監聽]清空監聽頻道失敗: {exc}")

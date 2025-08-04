@@ -1,6 +1,6 @@
 """測試排行榜組件模組.
 
-測試排行榜相關的 UI 組件功能。
+測試排行榜相關的 UI 組件功能.
 """
 
 from unittest.mock import AsyncMock, MagicMock
@@ -38,7 +38,7 @@ class TestLeaderboardTypeSelector:
         return [
             {"id": 1, "name": "活動成就", "count": 10},
             {"id": 2, "name": "社交成就", "count": 8},
-            {"id": 3, "name": "時間成就", "count": 5}
+            {"id": 3, "name": "時間成就", "count": 5},
         ]
 
     def test_initialization_basic(self, mock_panel):
@@ -55,7 +55,7 @@ class TestLeaderboardTypeSelector:
         """測試包含分類的初始化."""
         selector = LeaderboardTypeSelector(mock_panel, mock_categories)
 
-        # 驗證選項數量（基本2個 + 分類3個）
+        # 驗證選項數量(基本2個 + 分類3個)
         assert len(selector.options) == 5
 
         # 驗證分類選項
@@ -66,7 +66,7 @@ class TestLeaderboardTypeSelector:
         assert category_options[2].value == "category_3"
 
     def test_initialization_limits_categories(self, mock_panel):
-        """測試分類數量限制（最多3個）."""
+        """測試分類數量限制(最多3個)."""
         # 創建大量分類
         many_categories = [
             {"id": i, "name": f"分類{i}", "count": 5} for i in range(1, 10)
@@ -126,7 +126,7 @@ class TestLeaderboardTypeSelector:
 
         await selector.callback(mock_interaction)
 
-        # 驗證視圖設置（分類類型需要傳遞分類ID）
+        # 驗證視圖設置(分類類型需要傳遞分類ID)
         leaderboard_view = mock_panel.view_manager.get_view.return_value
         leaderboard_view.set_leaderboard_type.assert_called_once_with("category", 42)
 
@@ -176,11 +176,7 @@ class TestLeaderboardPaginationButton:
     def test_initialization(self, mock_panel):
         """測試按鈕初始化."""
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️",
-            disabled=False
+            mock_panel, direction="next", label="下一頁", emoji="▶️", disabled=False
         )
 
         assert button.direction == "next"
@@ -193,10 +189,7 @@ class TestLeaderboardPaginationButton:
     async def test_callback_next_page(self, mock_panel):
         """測試下一頁按鈕."""
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         mock_interaction = MagicMock(spec=discord.Interaction)
@@ -214,10 +207,7 @@ class TestLeaderboardPaginationButton:
     async def test_callback_prev_page(self, mock_panel):
         """測試上一頁按鈕."""
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="prev",
-            label="上一頁",
-            emoji="◀️"
+            mock_panel, direction="prev", label="上一頁", emoji="◀️"
         )
 
         mock_interaction = MagicMock(spec=discord.Interaction)
@@ -232,10 +222,7 @@ class TestLeaderboardPaginationButton:
     async def test_callback_first_page(self, mock_panel):
         """測試首頁按鈕."""
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="first",
-            label="首頁",
-            emoji="⏮️"
+            mock_panel, direction="first", label="首頁", emoji="⏮️"
         )
 
         mock_interaction = MagicMock(spec=discord.Interaction)
@@ -250,10 +237,7 @@ class TestLeaderboardPaginationButton:
     async def test_callback_last_page(self, mock_panel):
         """測試末頁按鈕."""
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="last",
-            label="末頁",
-            emoji="⏭️"
+            mock_panel, direction="last", label="末頁", emoji="⏭️"
         )
 
         mock_interaction = MagicMock(spec=discord.Interaction)
@@ -272,10 +256,7 @@ class TestLeaderboardPaginationButton:
         leaderboard_view.has_previous_page.return_value = False
 
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="prev",
-            label="上一頁",
-            emoji="◀️"
+            mock_panel, direction="prev", label="上一頁", emoji="◀️"
         )
 
         mock_interaction = MagicMock(spec=discord.Interaction)
@@ -296,10 +277,7 @@ class TestLeaderboardPaginationButton:
         leaderboard_view.has_next_page.return_value = False
 
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         mock_interaction = MagicMock(spec=discord.Interaction)
@@ -313,10 +291,7 @@ class TestLeaderboardPaginationButton:
     async def test_callback_error_handling(self, mock_panel):
         """測試回調錯誤處理."""
         button = LeaderboardPaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         # 模擬錯誤
@@ -406,5 +381,5 @@ class TestComponentFactory:
         # 驗證只有 prev 相關按鈕啟用
         assert not buttons[0].disabled  # first - 啟用
         assert not buttons[1].disabled  # prev - 啟用
-        assert buttons[2].disabled      # next - 禁用
-        assert buttons[3].disabled      # last - 禁用
+        assert buttons[2].disabled  # next - 禁用
+        assert buttons[3].disabled  # last - 禁用

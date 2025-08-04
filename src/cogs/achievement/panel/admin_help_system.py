@@ -1,6 +1,6 @@
 """管理面板幫助系統.
 
-此模組提供管理面板的完整幫助文檔和使用指南：
+此模組提供管理面板的完整幫助文檔和使用指南:
 - 功能介紹
 - 使用指南
 - 常見問題
@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import discord
 from discord import ui
@@ -19,13 +18,12 @@ from src.cogs.core.base_cog import StandardEmbedBuilder
 
 logger = logging.getLogger(__name__)
 
-
 class AdminHelpSystem:
     """管理面板幫助系統."""
 
     def __init__(self, admin_panel):
         """初始化幫助系統.
-        
+
         Args:
             admin_panel: 管理面板實例
         """
@@ -36,11 +34,11 @@ class AdminHelpSystem:
         try:
             view = HelpOverviewView(self)
             embed = await self._create_help_overview_embed()
-            
+
             await interaction.response.send_message(
                 embed=embed, view=view, ephemeral=True
             )
-            
+
         except Exception as e:
             logger.error(f"顯示幫助概覽失敗: {e}")
             await interaction.response.send_message(
@@ -51,8 +49,8 @@ class AdminHelpSystem:
         """創建幫助概覽 Embed."""
         embed = StandardEmbedBuilder.create_info_embed(
             "📚 管理面板使用指南",
-            "歡迎使用 Discord ROAS Bot 成就系統管理面板！\n"
-            "這裡提供完整的功能介紹和使用指南。"
+            "歡迎使用 Discord ROAS Bot 成就系統管理面板!\n"
+            "這裡提供完整的功能介紹和使用指南.",
         )
 
         embed.add_field(
@@ -65,7 +63,7 @@ class AdminHelpSystem:
                 "• **統計分析** - 查看系統統計和報表\n"
                 "• **安全管理** - 權限控制和審計日誌"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -77,7 +75,7 @@ class AdminHelpSystem:
                 "• **故障排除** - 常見問題解決\n"
                 "• **安全須知** - 重要安全提醒"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -88,12 +86,11 @@ class AdminHelpSystem:
                 "• 需要管理員權限才能使用\n"
                 "• 所有操作都有詳細記錄"
             ),
-            inline=False
+            inline=False,
         )
 
-        embed.set_footer(text="💡 提示：點擊下方按鈕查看詳細說明")
+        embed.set_footer(text="💡 提示:點擊下方按鈕查看詳細說明")
         return embed
-
 
 class HelpOverviewView(ui.View):
     """幫助概覽視圖."""
@@ -104,35 +101,37 @@ class HelpOverviewView(ui.View):
         self.help_system = help_system
 
     @ui.button(label="🚀 快速開始", style=discord.ButtonStyle.primary, emoji="🚀")
-    async def quick_start_guide(self, interaction: discord.Interaction, button: ui.Button):
+    async def quick_start_guide(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """顯示快速開始指南."""
         embed = await self._create_quick_start_embed()
         view = QuickStartView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
     @ui.button(label="📋 功能詳解", style=discord.ButtonStyle.primary, emoji="📋")
-    async def feature_guide(self, interaction: discord.Interaction, button: ui.Button):
+    async def feature_guide(self, interaction: discord.Interaction, _button: ui.Button):
         """顯示功能詳解."""
         embed = await self._create_feature_guide_embed()
         view = FeatureGuideView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
     @ui.button(label="💡 最佳實踐", style=discord.ButtonStyle.secondary, emoji="💡")
-    async def best_practices(self, interaction: discord.Interaction, button: ui.Button):
+    async def best_practices(self, interaction: discord.Interaction, _button: ui.Button):
         """顯示最佳實踐."""
         embed = await self._create_best_practices_embed()
         view = BestPracticesView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
     @ui.button(label="❓ 常見問題", style=discord.ButtonStyle.secondary, emoji="❓")
-    async def faq(self, interaction: discord.Interaction, button: ui.Button):
+    async def faq(self, interaction: discord.Interaction, _button: ui.Button):
         """顯示常見問題."""
         embed = await self._create_faq_embed()
         view = FAQView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
     @ui.button(label="🔒 安全須知", style=discord.ButtonStyle.danger, emoji="🔒")
-    async def security_guide(self, interaction: discord.Interaction, button: ui.Button):
+    async def security_guide(self, interaction: discord.Interaction, _button: ui.Button):
         """顯示安全須知."""
         embed = await self._create_security_guide_embed()
         view = SecurityGuideView(self.help_system)
@@ -141,8 +140,7 @@ class HelpOverviewView(ui.View):
     async def _create_quick_start_embed(self) -> discord.Embed:
         """創建快速開始 Embed."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "🚀 快速開始指南",
-            "歡迎使用成就系統管理面板！以下是基本操作流程："
+            "🚀 快速開始指南", "歡迎使用成就系統管理面板!以下是基本操作流程:"
         )
 
         embed.add_field(
@@ -152,37 +150,27 @@ class HelpOverviewView(ui.View):
                 "• 確保您有管理員權限\n"
                 "• 面板將以私人訊息形式顯示"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
             name="2️⃣ 瀏覽系統概覽",
-            value=(
-                "• 查看系統統計資料\n"
-                "• 了解當前成就數量\n"
-                "• 檢查用戶活躍度"
-            ),
-            inline=False
+            value=("• 查看系統統計資料\n• 了解當前成就數量\n• 檢查用戶活躍度"),
+            inline=False,
         )
 
         embed.add_field(
             name="3️⃣ 管理成就",
             value=(
-                "• 點擊「成就管理」按鈕\n"
-                "• 創建新成就或編輯現有成就\n"
-                "• 設置成就達成條件"
+                "• 點擊「成就管理」按鈕\n• 創建新成就或編輯現有成就\n• 設置成就達成條件"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
             name="4️⃣ 管理用戶",
-            value=(
-                "• 點擊「用戶管理」按鈕\n"
-                "• 搜尋特定用戶\n"
-                "• 授予或撤銷成就"
-            ),
-            inline=False
+            value=("• 點擊「用戶管理」按鈕\n• 搜尋特定用戶\n• 授予或撤銷成就"),
+            inline=False,
         )
 
         embed.add_field(
@@ -192,7 +180,7 @@ class HelpOverviewView(ui.View):
                 "• 重要操作需要二次確認\n"
                 "• 面板會在15分鐘後自動超時"
             ),
-            inline=False
+            inline=False,
         )
 
         return embed
@@ -200,8 +188,7 @@ class HelpOverviewView(ui.View):
     async def _create_feature_guide_embed(self) -> discord.Embed:
         """創建功能詳解 Embed."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "📋 功能詳解",
-            "詳細介紹管理面板的各項功能："
+            "📋 功能詳解", "詳細介紹管理面板的各項功能:"
         )
 
         embed.add_field(
@@ -212,7 +199,7 @@ class HelpOverviewView(ui.View):
                 "• **條件設置** - 設定達成條件\n"
                 "• **批量操作** - 同時處理多個成就"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -223,7 +210,7 @@ class HelpOverviewView(ui.View):
                 "• **授予成就** - 手動授予成就\n"
                 "• **撤銷成就** - 移除用戶成就"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -234,7 +221,7 @@ class HelpOverviewView(ui.View):
                 "• **時間條件** - 設定連續活躍天數\n"
                 "• **複合條件** - 組合多種條件"
             ),
-            inline=False
+            inline=False,
         )
 
         return embed
@@ -242,8 +229,7 @@ class HelpOverviewView(ui.View):
     async def _create_best_practices_embed(self) -> discord.Embed:
         """創建最佳實踐 Embed."""
         embed = StandardEmbedBuilder.create_success_embed(
-            "💡 最佳實踐建議",
-            "遵循這些建議可以更好地使用管理面板："
+            "💡 最佳實踐建議", "遵循這些建議可以更好地使用管理面板:"
         )
 
         embed.add_field(
@@ -254,7 +240,7 @@ class HelpOverviewView(ui.View):
                 "• 定期檢視成就完成率\n"
                 "• 根據用戶反饋調整條件"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -265,7 +251,7 @@ class HelpOverviewView(ui.View):
                 "• 定期檢查異常用戶\n"
                 "• 保護用戶隱私資料"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -276,7 +262,7 @@ class HelpOverviewView(ui.View):
                 "• 備份重要設定資料\n"
                 "• 監控異常操作行為"
             ),
-            inline=False
+            inline=False,
         )
 
         return embed
@@ -284,43 +270,42 @@ class HelpOverviewView(ui.View):
     async def _create_faq_embed(self) -> discord.Embed:
         """創建常見問題 Embed."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "❓ 常見問題解答",
-            "以下是使用管理面板時的常見問題："
+            "❓ 常見問題解答", "以下是使用管理面板時的常見問題:"
         )
 
         embed.add_field(
-            name="Q: 為什麼我無法使用管理面板？",
+            name="Q: 為什麼我無法使用管理面板?",
             value=(
-                "A: 請確認您具有以下條件：\n"
+                "A: 請確認您具有以下條件:\n"
                 "• 擁有伺服器管理員權限\n"
                 "• 機器人已正確設定\n"
                 "• 成就系統已啟用"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
-            name="Q: 如何設定成就條件？",
+            name="Q: 如何設定成就條件?",
             value=(
-                "A: 操作步驟：\n"
+                "A: 操作步驟:\n"
                 "• 進入成就管理 → 條件設置\n"
                 "• 選擇要設定的成就\n"
                 "• 根據需要設定各種條件\n"
                 "• 預覽並保存設定"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
-            name="Q: 批量操作如何使用？",
+            name="Q: 批量操作如何使用?",
             value=(
-                "A: 批量操作功能：\n"
+                "A: 批量操作功能:\n"
                 "• 選擇多個目標對象\n"
                 "• 選擇要執行的操作\n"
                 "• 確認操作詳情\n"
                 "• 執行並查看結果"
             ),
-            inline=False
+            inline=False,
         )
 
         return embed
@@ -328,8 +313,7 @@ class HelpOverviewView(ui.View):
     async def _create_security_guide_embed(self) -> discord.Embed:
         """創建安全須知 Embed."""
         embed = StandardEmbedBuilder.create_warning_embed(
-            "🔒 安全須知",
-            "使用管理面板時請注意以下安全事項："
+            "🔒 安全須知", "使用管理面板時請注意以下安全事項:"
         )
 
         embed.add_field(
@@ -340,7 +324,7 @@ class HelpOverviewView(ui.View):
                 "• 請勿濫用管理權限\n"
                 "• 保護用戶隱私資料"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -351,7 +335,7 @@ class HelpOverviewView(ui.View):
                 "• 惡意修改系統設定\n"
                 "• 繞過安全檢查機制"
             ),
-            inline=False
+            inline=False,
         )
 
         embed.add_field(
@@ -362,11 +346,10 @@ class HelpOverviewView(ui.View):
                 "• 可用於問題追蹤\n"
                 "• 定期檢查異常記錄"
             ),
-            inline=False
+            inline=False,
         )
 
         return embed
-
 
 class QuickStartView(ui.View):
     """快速開始視圖."""
@@ -376,12 +359,13 @@ class QuickStartView(ui.View):
         self.help_system = help_system
 
     @ui.button(label="🔙 返回概覽", style=discord.ButtonStyle.secondary)
-    async def back_to_overview(self, interaction: discord.Interaction, button: ui.Button):
+    async def back_to_overview(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """返回幫助概覽."""
         embed = await self.help_system._create_help_overview_embed()
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
-
 
 class FeatureGuideView(ui.View):
     """功能詳解視圖."""
@@ -393,12 +377,24 @@ class FeatureGuideView(ui.View):
     @ui.select(
         placeholder="選擇要了解的功能...",
         options=[
-            discord.SelectOption(label="🏆 成就管理", value="achievements", description="成就的創建、編輯和管理"),
-            discord.SelectOption(label="👥 用戶管理", value="users", description="用戶成就和進度管理"),
-            discord.SelectOption(label="🎯 條件設置", value="criteria", description="成就達成條件設置"),
-            discord.SelectOption(label="📦 批量操作", value="bulk", description="批量處理功能"),
-            discord.SelectOption(label="📊 統計分析", value="stats", description="系統統計和報表"),
-        ]
+            discord.SelectOption(
+                label="🏆 成就管理",
+                value="achievements",
+                description="成就的創建、編輯和管理",
+            ),
+            discord.SelectOption(
+                label="👥 用戶管理", value="users", description="用戶成就和進度管理"
+            ),
+            discord.SelectOption(
+                label="🎯 條件設置", value="criteria", description="成就達成條件設置"
+            ),
+            discord.SelectOption(
+                label="📦 批量操作", value="bulk", description="批量處理功能"
+            ),
+            discord.SelectOption(
+                label="📊 統計分析", value="stats", description="系統統計和報表"
+            ),
+        ],
     )
     async def feature_select(self, interaction: discord.Interaction, select: ui.Select):
         """處理功能選擇."""
@@ -411,7 +407,7 @@ class FeatureGuideView(ui.View):
         if feature == "achievements":
             return StandardEmbedBuilder.create_info_embed(
                 "🏆 成就管理詳解",
-                "成就管理是系統的核心功能，包含以下操作：\n\n"
+                "成就管理是系統的核心功能,包含以下操作:\n\n"
                 "**創建成就**\n"
                 "• 設定成就名稱和描述\n"
                 "• 選擇成就類型和分類\n"
@@ -426,12 +422,12 @@ class FeatureGuideView(ui.View):
                 "• 同時編輯多個成就\n"
                 "• 批量啟用或停用\n"
                 "• 批量分類變更\n"
-                "• 批量刪除操作"
+                "• 批量刪除操作",
             )
         elif feature == "users":
             return StandardEmbedBuilder.create_info_embed(
                 "👥 用戶管理詳解",
-                "用戶管理功能幫助您管理用戶的成就和進度：\n\n"
+                "用戶管理功能幫助您管理用戶的成就和進度:\n\n"
                 "**搜尋用戶**\n"
                 "• 按用戶名稱搜尋\n"
                 "• 按用戶ID搜尋\n"
@@ -446,12 +442,12 @@ class FeatureGuideView(ui.View):
                 "• 授予特定成就\n"
                 "• 撤銷已獲得成就\n"
                 "• 調整成就進度\n"
-                "• 重置用戶資料"
+                "• 重置用戶資料",
             )
         elif feature == "criteria":
             return StandardEmbedBuilder.create_info_embed(
                 "🎯 條件設置詳解",
-                "條件設置讓您靈活配置成就的達成條件：\n\n"
+                "條件設置讓您靈活配置成就的達成條件:\n\n"
                 "**訊息數量條件**\n"
                 "• 設定目標訊息數量\n"
                 "• 可選時間窗口限制\n"
@@ -467,12 +463,12 @@ class FeatureGuideView(ui.View):
                 "**複合條件**\n"
                 "• AND/OR 邏輯組合\n"
                 "• 多條件同時滿足\n"
-                "• 靈活的條件組合"
+                "• 靈活的條件組合",
             )
         elif feature == "bulk":
             return StandardEmbedBuilder.create_info_embed(
                 "📦 批量操作詳解",
-                "批量操作功能提高管理效率：\n\n"
+                "批量操作功能提高管理效率:\n\n"
                 "**成就批量操作**\n"
                 "• 批量啟用/停用成就\n"
                 "• 批量修改成就分類\n"
@@ -487,12 +483,12 @@ class FeatureGuideView(ui.View):
                 "• 操作前預覽\n"
                 "• 二次確認機制\n"
                 "• 操作記錄追蹤\n"
-                "• 錯誤處理和回滾"
+                "• 錯誤處理和回滾",
             )
         else:  # stats
             return StandardEmbedBuilder.create_info_embed(
                 "📊 統計分析詳解",
-                "統計分析功能提供系統洞察：\n\n"
+                "統計分析功能提供系統洞察:\n\n"
                 "**系統統計**\n"
                 "• 總成就數量\n"
                 "• 活躍用戶數量\n"
@@ -507,16 +503,17 @@ class FeatureGuideView(ui.View):
                 "• 用戶活躍度排行\n"
                 "• 成就獲得分佈\n"
                 "• 用戶成長趨勢\n"
-                "• 參與度分析"
+                "• 參與度分析",
             )
 
     @ui.button(label="🔙 返回概覽", style=discord.ButtonStyle.secondary)
-    async def back_to_overview(self, interaction: discord.Interaction, button: ui.Button):
+    async def back_to_overview(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """返回幫助概覽."""
         embed = await self.help_system._create_help_overview_embed()
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
-
 
 class BestPracticesView(ui.View):
     """最佳實踐視圖."""
@@ -526,12 +523,13 @@ class BestPracticesView(ui.View):
         self.help_system = help_system
 
     @ui.button(label="🔙 返回概覽", style=discord.ButtonStyle.secondary)
-    async def back_to_overview(self, interaction: discord.Interaction, button: ui.Button):
+    async def back_to_overview(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """返回幫助概覽."""
         embed = await self.help_system._create_help_overview_embed()
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
-
 
 class FAQView(ui.View):
     """常見問題視圖."""
@@ -541,12 +539,13 @@ class FAQView(ui.View):
         self.help_system = help_system
 
     @ui.button(label="🔙 返回概覽", style=discord.ButtonStyle.secondary)
-    async def back_to_overview(self, interaction: discord.Interaction, button: ui.Button):
+    async def back_to_overview(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """返回幫助概覽."""
         embed = await self.help_system._create_help_overview_embed()
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
-
 
 class SecurityGuideView(ui.View):
     """安全須知視圖."""
@@ -556,7 +555,9 @@ class SecurityGuideView(ui.View):
         self.help_system = help_system
 
     @ui.button(label="🔙 返回概覽", style=discord.ButtonStyle.secondary)
-    async def back_to_overview(self, interaction: discord.Interaction, button: ui.Button):
+    async def back_to_overview(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """返回幫助概覽."""
         embed = await self.help_system._create_help_overview_embed()
         view = HelpOverviewView(self.help_system)

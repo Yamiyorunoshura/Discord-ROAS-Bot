@@ -1,13 +1,13 @@
 """成就系統效能優化和快取整合.
 
-此模組提供成就系統的效能優化功能，包含：
+此模組提供成就系統的效能優化功能,包含:
 - 智慧快取管理和策略
 - 批量資料庫操作優化
 - 異步任務隊列處理
 - 效能監控和統計
 - 記憶體使用優化
 
-效能優化遵循以下設計原則：
+效能優化遵循以下設計原則:
 - 多層次快取策略減少資料庫存取
 - 批量操作優化減少 I/O 開銷
 - 異步非阻塞處理提升併發效能
@@ -33,28 +33,30 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# 常數定義
+MAX_CACHE_SIZE = 10000  # 最大快取大小
 
 class CacheType(str, Enum):
     """快取類型列舉."""
+
     ACHIEVEMENT = "achievement"
     USER_ACHIEVEMENT = "user_achievement"
     PROGRESS = "progress"
     TRIGGER_RESULT = "trigger_result"
     USER_STATS = "user_stats"
 
-
 @dataclass
 class CacheConfig:
     """快取配置.
 
-    定義不同類型快取的配置參數。
+    定義不同類型快取的配置參數.
     """
 
     max_size: int = 1000
     """最大快取項目數"""
 
     ttl: int = 300  # 5分鐘
-    """存活時間（秒）"""
+    """存活時間(秒)"""
 
     enable_compression: bool = False
     """是否啟用壓縮"""
@@ -62,16 +64,15 @@ class CacheConfig:
     auto_refresh: bool = True
     """是否自動重新整理"""
 
-
 @dataclass
 class BatchOperation:
     """批量操作.
 
-    封裝批量資料庫操作的資訊。
+    封裝批量資料庫操作的資訊.
     """
 
     operation_type: str
-    """操作類型（select, insert, update, delete）"""
+    """操作類型(select, insert, update, delete)"""
 
     table: str
     """目標表"""
@@ -85,11 +86,10 @@ class BatchOperation:
     created_at: datetime = field(default_factory=datetime.now)
     """創建時間"""
 
-
 class PerformanceOptimizer:
     """效能優化器.
 
-    提供成就系統的全面效能優化功能，包含：
+    提供成就系統的全面效能優化功能,包含:
     - 多層次智慧快取管理
     - 批量資料庫操作調度
     - 異步任務隊列處理
@@ -102,7 +102,7 @@ class PerformanceOptimizer:
         cache_configs: dict[CacheType, CacheConfig] | None = None,
         batch_size: int = 100,
         batch_timeout: float = 5.0,
-        enable_monitoring: bool = True
+        enable_monitoring: bool = True,
     ):
         """初始化效能優化器.
 
@@ -138,7 +138,7 @@ class PerformanceOptimizer:
             "database_queries": 0,
             "average_response_time": 0.0,
             "memory_usage": 0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
 
         # 背景任務
@@ -150,8 +150,8 @@ class PerformanceOptimizer:
             extra={
                 "cache_types": list(self._cache_configs.keys()),
                 "batch_size": batch_size,
-                "monitoring_enabled": enable_monitoring
-            }
+                "monitoring_enabled": enable_monitoring,
+            },
         )
 
     async def __aenter__(self) -> PerformanceOptimizer:
@@ -184,7 +184,7 @@ class PerformanceOptimizer:
             self._stats["cache_hits"] += 1
             return cached
 
-        # 快取未命中，從資料庫載入
+        # 快取未命中,從資料庫載入
         self._stats["cache_misses"] += 1
         achievement = await self._repository.get_achievement_by_id(achievement_id)
 
@@ -194,9 +194,7 @@ class PerformanceOptimizer:
         return achievement
 
     async def get_cached_user_achievements(
-        self,
-        user_id: int,
-        use_batch: bool = True
+        self, user_id: int, use_batch: bool = True
     ) -> list[UserAchievement]:
         """從快取取得用戶成就列表.
 
@@ -215,7 +213,7 @@ class PerformanceOptimizer:
             self._stats["cache_hits"] += 1
             return cached
 
-        # 快取未命中，從資料庫載入
+        # 快取未命中,從資料庫載入
         self._stats["cache_misses"] += 1
 
         if use_batch:
@@ -229,9 +227,7 @@ class PerformanceOptimizer:
             return achievements
 
     async def get_cached_user_progress(
-        self,
-        user_id: int,
-        achievement_id: int
+        self, user_id: int, achievement_id: int
     ) -> AchievementProgress | None:
         """從快取取得用戶進度.
 
@@ -250,7 +246,7 @@ class PerformanceOptimizer:
             self._stats["cache_hits"] += 1
             return cached
 
-        # 快取未命中，從資料庫載入
+        # 快取未命中,從資料庫載入
         self._stats["cache_misses"] += 1
         progress = await self._repository.get_user_progress(user_id, achievement_id)
 
@@ -264,7 +260,7 @@ class PerformanceOptimizer:
         user_id: int,
         achievement_id: int,
         trigger_context: dict[str, Any],
-        result: tuple[bool, str]
+        result: tuple[bool, str],
     ) -> None:
         """快取觸發檢查結果.
 
@@ -281,10 +277,7 @@ class PerformanceOptimizer:
         self._set_cache(CacheType.TRIGGER_RESULT, cache_key, result)
 
     async def get_cached_trigger_result(
-        self,
-        user_id: int,
-        achievement_id: int,
-        trigger_context: dict[str, Any]
+        self, user_id: int, achievement_id: int, trigger_context: dict[str, Any]
     ) -> tuple[bool, str] | None:
         """取得快取的觸發檢查結果.
 
@@ -317,7 +310,7 @@ class PerformanceOptimizer:
             f"user_achievements:{user_id}",
             f"progress:{user_id}:",
             f"trigger:{user_id}:",
-            f"user_stats:{user_id}"
+            f"user_stats:{user_id}",
         ]
 
         for cache_type in self._caches:
@@ -344,7 +337,7 @@ class PerformanceOptimizer:
         patterns_to_clear = [
             f"achievement:{achievement_id}",
             f"progress:.*:{achievement_id}",
-            f"trigger:.*:{achievement_id}:"
+            f"trigger:.*:{achievement_id}:",
         ]
 
         for cache_type in self._caches:
@@ -367,8 +360,7 @@ class PerformanceOptimizer:
     # =============================================================================
 
     async def batch_load_achievements(
-        self,
-        achievement_ids: list[int]
+        self, achievement_ids: list[int]
     ) -> dict[int, Achievement]:
         """批量載入成就資料.
 
@@ -381,7 +373,7 @@ class PerformanceOptimizer:
         if not achievement_ids:
             return {}
 
-        # 檢查快取，找出需要從資料庫載入的 ID
+        # 檢查快取,找出需要從資料庫載入的 ID
         cached_achievements = {}
         missing_ids = []
 
@@ -415,15 +407,14 @@ class PerformanceOptimizer:
             extra={
                 "requested": len(achievement_ids),
                 "from_cache": len(cached_achievements),
-                "from_db": len(loaded_achievements)
-            }
+                "from_db": len(loaded_achievements),
+            },
         )
 
         return result
 
     async def _batch_load_user_achievements(
-        self,
-        user_ids: list[int]
+        self, user_ids: list[int]
     ) -> dict[int, list[UserAchievement]]:
         """批量載入用戶成就.
 
@@ -457,8 +448,7 @@ class PerformanceOptimizer:
         return user_achievements
 
     async def batch_update_progress(
-        self,
-        progress_updates: list[dict[str, Any]]
+        self, progress_updates: list[dict[str, Any]]
     ) -> None:
         """批量更新進度資料.
 
@@ -473,15 +463,12 @@ class PerformanceOptimizer:
             operation_type="update",
             table="achievement_progress",
             data=progress_updates,
-            priority=1
+            priority=1,
         )
 
         await self._enqueue_batch_operation(operation)
 
-    async def batch_award_achievements(
-        self,
-        award_data: list[dict[str, Any]]
-    ) -> None:
+    async def batch_award_achievements(self, award_data: list[dict[str, Any]]) -> None:
         """批量頒發成就.
 
         Args:
@@ -495,7 +482,7 @@ class PerformanceOptimizer:
             operation_type="insert",
             table="user_achievements",
             data=award_data,
-            priority=2
+            priority=2,
         )
 
         await self._enqueue_batch_operation(operation)
@@ -565,7 +552,9 @@ class PerformanceOptimizer:
 
             # 檢查是否達到批量處理條件
             queue = self._batch_queues[queue_key]
-            time_elapsed = (datetime.now() - self._batch_timers[queue_key]).total_seconds()
+            time_elapsed = (
+                datetime.now() - self._batch_timers[queue_key]
+            ).total_seconds()
 
             if len(queue) >= self._batch_size or time_elapsed >= self._batch_timeout:
                 # 處理批量操作
@@ -580,9 +569,7 @@ class PerformanceOptimizer:
                 self._background_tasks.add(task)
 
     async def _process_batch_operations(
-        self,
-        queue_key: str,
-        operations: list[BatchOperation]
+        self, queue_key: str, operations: list[BatchOperation]
     ) -> None:
         """處理批量操作."""
         try:
@@ -619,8 +606,8 @@ class PerformanceOptimizer:
                 extra={
                     "queue_key": queue_key,
                     "operation_count": len(operations),
-                    "processing_time_ms": processing_time
-                }
+                    "processing_time_ms": processing_time,
+                },
             )
 
         except Exception as e:
@@ -629,9 +616,9 @@ class PerformanceOptimizer:
                 extra={
                     "queue_key": queue_key,
                     "operation_count": len(operations),
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
         finally:
             # 清理背景任務
@@ -678,10 +665,13 @@ class PerformanceOptimizer:
                 # 檢查快取大小和記憶體使用
                 total_cache_size = sum(len(cache) for cache in self._caches.values())
 
-                if total_cache_size > 10000:  # 如果快取項目過多
+                if total_cache_size > MAX_CACHE_SIZE:  # 如果快取項目過多
                     # 清理最少使用的快取項目
                     for _cache_type, cache in self._caches.items():
-                        if isinstance(cache, LRUCache) and len(cache) > cache.maxsize * 0.8:
+                        if (
+                            isinstance(cache, LRUCache)
+                            and len(cache) > cache.maxsize * 0.8
+                        ):
                             # 清理 20% 的項目
                             items_to_remove = int(len(cache) * 0.2)
                             for _ in range(items_to_remove):
@@ -702,10 +692,13 @@ class PerformanceOptimizer:
         while self._is_running:
             try:
                 # 計算快取命中率
-                total_cache_requests = self._stats["cache_hits"] + self._stats["cache_misses"]
+                total_cache_requests = (
+                    self._stats["cache_hits"] + self._stats["cache_misses"]
+                )
                 hit_rate = (
                     self._stats["cache_hits"] / total_cache_requests
-                    if total_cache_requests > 0 else 0
+                    if total_cache_requests > 0
+                    else 0
                 )
 
                 # 記錄效能統計
@@ -713,10 +706,12 @@ class PerformanceOptimizer:
                     "效能統計",
                     extra={
                         "cache_hit_rate": f"{hit_rate:.2%}",
-                        "cache_size": sum(len(cache) for cache in self._caches.values()),
+                        "cache_size": sum(
+                            len(cache) for cache in self._caches.values()
+                        ),
                         "batch_operations": self._stats["batch_operations"],
-                        "background_tasks": len(self._background_tasks)
-                    }
+                        "background_tasks": len(self._background_tasks),
+                    },
                 )
 
                 await asyncio.sleep(300)  # 每5分鐘記錄一次
@@ -737,16 +732,18 @@ class PerformanceOptimizer:
             stats[cache_type.value] = {
                 "size": len(cache),
                 "max_size": cache.maxsize,
-                "usage_rate": len(cache) / cache.maxsize if cache.maxsize > 0 else 0
+                "usage_rate": len(cache) / cache.maxsize if cache.maxsize > 0 else 0,
             }
 
         total_requests = self._stats["cache_hits"] + self._stats["cache_misses"]
-        hit_rate = self._stats["cache_hits"] / total_requests if total_requests > 0 else 0
+        hit_rate = (
+            self._stats["cache_hits"] / total_requests if total_requests > 0 else 0
+        )
 
         stats["overall"] = {
             "hit_rate": hit_rate,
             "total_requests": total_requests,
-            "batch_operations": self._stats["batch_operations"]
+            "batch_operations": self._stats["batch_operations"],
         }
 
         return stats
@@ -761,7 +758,6 @@ class PerformanceOptimizer:
     def get_performance_stats(self) -> dict[str, Any]:
         """取得效能統計資訊."""
         return self._stats.copy()
-
 
 __all__ = [
     "BatchOperation",

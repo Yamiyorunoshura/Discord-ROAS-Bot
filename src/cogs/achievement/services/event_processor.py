@@ -1,13 +1,13 @@
 """事件驅動觸發處理器.
 
-此模組實作事件驅動的成就觸發處理系統，提供：
+此模組實作事件驅動的成就觸發處理系統,提供:
 - 事件到成就觸發的整合處理
 - 批量事件處理和優化
 - 事件過濾和預處理機制
 - 觸發優先級管理
 - 高效能事件處理流程
 
-事件處理器遵循以下設計原則：
+事件處理器遵循以下設計原則:
 - 異步非阻塞處理所有觸發邏輯
 - 智慧事件過濾減少不必要的計算
 - 批量處理優化高頻率事件
@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from ..constants import HIGH_PRIORITY_THRESHOLD
 from ..database.models import Achievement, AchievementType
 
 if TYPE_CHECKING:
@@ -32,12 +33,11 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class EventTriggerContext:
     """事件觸發上下文.
 
-    封裝事件觸發所需的完整上下文資訊。
+    封裝事件觸發所需的完整上下文資訊.
     """
 
     user_id: int
@@ -59,17 +59,16 @@ class EventTriggerContext:
     """頻道 ID"""
 
     priority: int = 0
-    """事件優先級（數值越高優先級越高）"""
+    """事件優先級(數值越高優先級越高)"""
 
     batch_key: str | None = None
-    """批量處理鍵（相同鍵的事件會被批量處理）"""
-
+    """批量處理鍵(相同鍵的事件會被批量處理)"""
 
 @dataclass
 class TriggerResult:
     """觸發結果.
 
-    封裝成就觸發檢查的結果資訊。
+    封裝成就觸發檢查的結果資訊.
     """
 
     user_id: int
@@ -85,16 +84,15 @@ class TriggerResult:
     """觸發原因或失敗原因"""
 
     processing_time: float = 0.0
-    """處理時間（毫秒）"""
+    """處理時間(毫秒)"""
 
     error: str | None = None
     """錯誤訊息"""
 
-
 class EventTriggerProcessor:
     """事件驅動觸發處理器.
 
-    整合事件監聽和成就觸發檢查的核心處理器，提供：
+    整合事件監聽和成就觸發檢查的核心處理器,提供:
     - 事件到成就映射和過濾
     - 批量事件處理和優化
     - 優先級管理和負載均衡
@@ -108,7 +106,7 @@ class EventTriggerProcessor:
         progress_tracker: ProgressTracker,
         batch_size: int = 50,
         batch_timeout: float = 5.0,
-        max_concurrent_processing: int = 10
+        max_concurrent_processing: int = 10,
     ):
         """初始化事件觸發處理器.
 
@@ -117,7 +115,7 @@ class EventTriggerProcessor:
             trigger_engine: 觸發引擎
             progress_tracker: 進度追蹤器
             batch_size: 批量處理大小
-            batch_timeout: 批量處理超時（秒）
+            batch_timeout: 批量處理超時(秒)
             max_concurrent_processing: 最大並發處理數
         """
         self._repository = repository
@@ -146,7 +144,7 @@ class EventTriggerProcessor:
             "achievements_triggered": 0,
             "processing_errors": 0,
             "average_processing_time": 0.0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
 
         # 事件到成就類型映射快取
@@ -159,8 +157,8 @@ class EventTriggerProcessor:
             extra={
                 "batch_size": batch_size,
                 "batch_timeout": batch_timeout,
-                "max_concurrent": max_concurrent_processing
-            }
+                "max_concurrent": max_concurrent_processing,
+            },
         )
 
     async def __aenter__(self) -> EventTriggerProcessor:
@@ -183,7 +181,7 @@ class EventTriggerProcessor:
         event_data: dict[str, Any],
         priority: int = 0,
         guild_id: int | None = None,
-        channel_id: int | None = None
+        channel_id: int | None = None,
     ) -> list[TriggerResult]:
         """處理單一事件觸發檢查.
 
@@ -205,11 +203,11 @@ class EventTriggerProcessor:
             timestamp=datetime.now(),
             guild_id=guild_id,
             channel_id=channel_id,
-            priority=priority
+            priority=priority,
         )
 
-        # 如果是高優先級事件，立即處理
-        if priority >= 5:
+        # 如果是高優先級事件,立即處理
+        if priority >= HIGH_PRIORITY_THRESHOLD:
             return await self._process_event_immediately(context)
 
         # 否則加入隊列等待批量處理
@@ -217,8 +215,7 @@ class EventTriggerProcessor:
         return []
 
     async def process_batch_events(
-        self,
-        events: list[EventTriggerContext]
+        self, events: list[EventTriggerContext]
     ) -> list[TriggerResult]:
         """批量處理事件觸發檢查.
 
@@ -269,8 +266,8 @@ class EventTriggerProcessor:
                     "event_count": len(events),
                     "user_count": len(user_events),
                     "triggered_count": len([r for r in results if r.triggered]),
-                    "processing_time_ms": processing_time
-                }
+                    "processing_time_ms": processing_time,
+                },
             )
 
             return results
@@ -278,11 +275,8 @@ class EventTriggerProcessor:
         except Exception as e:
             logger.error(
                 "批量事件處理失敗",
-                extra={
-                    "event_count": len(events),
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"event_count": len(events), "error": str(e)},
+                exc_info=True,
             )
             self._stats["processing_errors"] += len(events)
             raise
@@ -292,9 +286,7 @@ class EventTriggerProcessor:
     # =============================================================================
 
     async def _filter_relevant_achievements(
-        self,
-        event_type: str,
-        user_id: int
+        self, event_type: str, user_id: int
     ) -> list[Achievement]:
         """過濾與事件相關的成就.
 
@@ -311,7 +303,7 @@ class EventTriggerProcessor:
         # 取得相關的成就類型
         relevant_types = self._event_achievement_mapping.get(event_type, [])
         if not relevant_types:
-            # 如果沒有映射，檢查所有成就類型
+            # 如果沒有映射,檢查所有成就類型
             relevant_types = list(AchievementType)
 
         # 取得所有啟用的成就
@@ -319,22 +311,24 @@ class EventTriggerProcessor:
 
         # 過濾相關的成就
         relevant_achievements = [
-            achievement for achievement in all_achievements
+            achievement
+            for achievement in all_achievements
             if achievement.type in relevant_types
         ]
 
         # 進一步過濾已獲得的成就
         filtered_achievements = []
         for achievement in relevant_achievements:
-            has_achievement = await self._repository.has_user_achievement(user_id, achievement.id)
+            has_achievement = await self._repository.has_user_achievement(
+                user_id, achievement.id
+            )
             if not has_achievement:
                 filtered_achievements.append(achievement)
 
         return filtered_achievements
 
     async def _preprocess_event_data(
-        self,
-        context: EventTriggerContext
+        self, context: EventTriggerContext
     ) -> dict[str, Any]:
         """預處理事件資料.
 
@@ -347,13 +341,15 @@ class EventTriggerProcessor:
         processed_data = context.event_data.copy()
 
         # 添加標準化欄位
-        processed_data.update({
-            "event_type": context.event_type,
-            "timestamp": context.timestamp.isoformat(),
-            "user_id": context.user_id,
-            "guild_id": context.guild_id,
-            "channel_id": context.channel_id
-        })
+        processed_data.update(
+            {
+                "event_type": context.event_type,
+                "timestamp": context.timestamp.isoformat(),
+                "user_id": context.user_id,
+                "guild_id": context.guild_id,
+                "channel_id": context.channel_id,
+            }
+        )
 
         # 根據事件類型進行特殊處理
         if context.event_type == "message_sent":
@@ -365,7 +361,9 @@ class EventTriggerProcessor:
 
         return processed_data
 
-    async def _preprocess_message_event(self, event_data: dict[str, Any]) -> dict[str, Any]:
+    async def _preprocess_message_event(
+        self, event_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """預處理訊息事件資料."""
         # 計算訊息長度
         message_content = event_data.get("content", "")
@@ -379,7 +377,9 @@ class EventTriggerProcessor:
 
         return event_data
 
-    async def _preprocess_reaction_event(self, event_data: dict[str, Any]) -> dict[str, Any]:
+    async def _preprocess_reaction_event(
+        self, event_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """預處理反應事件資料."""
         # 標準化表情符號
         emoji = event_data.get("emoji", {})
@@ -389,7 +389,9 @@ class EventTriggerProcessor:
 
         return event_data
 
-    async def _preprocess_voice_event(self, event_data: dict[str, Any]) -> dict[str, Any]:
+    async def _preprocess_voice_event(
+        self, event_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """預處理語音事件資料."""
         # 計算語音頻道停留時長
         join_time = event_data.get("join_time")
@@ -408,8 +410,7 @@ class EventTriggerProcessor:
     # =============================================================================
 
     async def _process_event_immediately(
-        self,
-        context: EventTriggerContext
+        self, context: EventTriggerContext
     ) -> list[TriggerResult]:
         """立即處理高優先級事件.
 
@@ -422,9 +423,7 @@ class EventTriggerProcessor:
         return await self._process_user_events(context.user_id, [context])
 
     async def _process_user_events(
-        self,
-        user_id: int,
-        events: list[EventTriggerContext]
+        self, user_id: int, events: list[EventTriggerContext]
     ) -> list[TriggerResult]:
         """處理特定用戶的事件列表.
 
@@ -457,20 +456,25 @@ class EventTriggerProcessor:
                 # 檢查每個相關成就的觸發條件
                 for achievement in relevant_achievements:
                     try:
-                        should_trigger, reason = await self._trigger_engine.check_achievement_trigger(
+                        (
+                            should_trigger,
+                            reason,
+                        ) = await self._trigger_engine.check_achievement_trigger(
                             user_id=user_id,
                             achievement_id=achievement.id,
-                            trigger_context=processed_data
+                            trigger_context=processed_data,
                         )
 
-                        processing_time = (datetime.now() - start_time).total_seconds() * 1000
+                        processing_time = (
+                            datetime.now() - start_time
+                        ).total_seconds() * 1000
 
                         result = TriggerResult(
                             user_id=user_id,
                             achievement_id=achievement.id,
                             triggered=should_trigger,
                             reason=reason,
-                            processing_time=processing_time
+                            processing_time=processing_time,
                         )
 
                         results.append(result)
@@ -484,12 +488,14 @@ class EventTriggerProcessor:
                                     "achievement_id": achievement.id,
                                     "event_type": event.event_type,
                                     "reason": reason,
-                                    "processing_time_ms": processing_time
-                                }
+                                    "processing_time_ms": processing_time,
+                                },
                             )
 
                     except Exception as e:
-                        processing_time = (datetime.now() - start_time).total_seconds() * 1000
+                        processing_time = (
+                            datetime.now() - start_time
+                        ).total_seconds() * 1000
                         error_msg = f"觸發檢查失敗: {e}"
 
                         result = TriggerResult(
@@ -497,7 +503,7 @@ class EventTriggerProcessor:
                             achievement_id=achievement.id,
                             triggered=False,
                             processing_time=processing_time,
-                            error=error_msg
+                            error=error_msg,
                         )
 
                         results.append(result)
@@ -509,9 +515,9 @@ class EventTriggerProcessor:
                                 "user_id": user_id,
                                 "achievement_id": achievement.id,
                                 "event_type": event.event_type,
-                                "error": str(e)
+                                "error": str(e),
                             },
-                            exc_info=True
+                            exc_info=True,
                         )
 
                 self._stats["events_processed"] += 1
@@ -521,12 +527,8 @@ class EventTriggerProcessor:
         except Exception as e:
             logger.error(
                 "用戶事件處理失敗",
-                extra={
-                    "user_id": user_id,
-                    "event_count": len(events),
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"user_id": user_id, "event_count": len(events), "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -558,19 +560,25 @@ class EventTriggerProcessor:
         while self._is_processing:
             try:
                 # 處理高優先級事件
-                while self._priority_queue and len(self._processing_tasks) < self._max_concurrent_processing:
+                while (
+                    self._priority_queue
+                    and len(self._processing_tasks) < self._max_concurrent_processing
+                ):
                     event = self._priority_queue.popleft()
                     task = asyncio.create_task(self._process_event_immediately(event))
                     self._processing_tasks.add(task)
 
                 # 檢查批量處理條件
-                should_process_batch = (
-                    len(self._event_queue) >= self._batch_size or
-                    (self._event_queue and
-                     (datetime.now() - self._last_batch_time).total_seconds() >= self._batch_timeout)
+                should_process_batch = len(self._event_queue) >= self._batch_size or (
+                    self._event_queue
+                    and (datetime.now() - self._last_batch_time).total_seconds()
+                    >= self._batch_timeout
                 )
 
-                if should_process_batch and len(self._processing_tasks) < self._max_concurrent_processing:
+                if (
+                    should_process_batch
+                    and len(self._processing_tasks) < self._max_concurrent_processing
+                ):
                     # 收集批量事件
                     batch_events = []
                     for _ in range(min(self._batch_size, len(self._event_queue))):
@@ -578,12 +586,16 @@ class EventTriggerProcessor:
                             batch_events.append(self._event_queue.popleft())
 
                     if batch_events:
-                        task = asyncio.create_task(self.process_batch_events(batch_events))
+                        task = asyncio.create_task(
+                            self.process_batch_events(batch_events)
+                        )
                         self._processing_tasks.add(task)
                         self._last_batch_time = datetime.now()
 
                 # 清理完成的任務
-                completed_tasks = {task for task in self._processing_tasks if task.done()}
+                completed_tasks = {
+                    task for task in self._processing_tasks if task.done()
+                }
                 for task in completed_tasks:
                     try:
                         await task
@@ -605,7 +617,7 @@ class EventTriggerProcessor:
         Args:
             context: 事件上下文
         """
-        if context.priority >= 5:
+        if context.priority >= HIGH_PRIORITY_THRESHOLD:
             self._priority_queue.append(context)
         else:
             self._event_queue.append(context)
@@ -618,13 +630,17 @@ class EventTriggerProcessor:
         """更新事件到成就類型映射快取."""
         current_time = datetime.now()
 
-        if (self._mapping_cache_time is None or
-            current_time - self._mapping_cache_time > self._mapping_cache_ttl):
-
+        if (
+            self._mapping_cache_time is None
+            or current_time - self._mapping_cache_time > self._mapping_cache_ttl
+        ):
             # 重建映射快取
             self._event_achievement_mapping = {
                 "message_sent": [AchievementType.COUNTER],
-                "reaction_added": [AchievementType.COUNTER, AchievementType.CONDITIONAL],
+                "reaction_added": [
+                    AchievementType.COUNTER,
+                    AchievementType.CONDITIONAL,
+                ],
                 "voice_joined": [AchievementType.TIME_BASED, AchievementType.MILESTONE],
                 "member_joined": [AchievementType.MILESTONE],
                 "command_used": [AchievementType.COUNTER, AchievementType.CONDITIONAL],
@@ -636,12 +652,14 @@ class EventTriggerProcessor:
             self._mapping_cache_time = current_time
             logger.debug("事件成就映射快取已更新")
 
-    def _update_processing_stats(self, event_count: int, processing_time: float) -> None:
+    def _update_processing_stats(
+        self, event_count: int, processing_time: float
+    ) -> None:
         """更新處理統計.
 
         Args:
             event_count: 處理的事件數量
-            processing_time: 處理時間（毫秒）
+            processing_time: 處理時間(毫秒)
         """
         self._stats["events_processed"] += event_count
 
@@ -651,8 +669,8 @@ class EventTriggerProcessor:
 
         if total_events > 0:
             self._stats["average_processing_time"] = (
-                (current_avg * (total_events - event_count) + processing_time) / total_events
-            )
+                current_avg * (total_events - event_count) + processing_time
+            ) / total_events
 
     def get_processing_stats(self) -> dict[str, Any]:
         """取得處理統計資訊.
@@ -668,10 +686,12 @@ class EventTriggerProcessor:
             "queue_sizes": {
                 "normal": len(self._event_queue),
                 "priority": len(self._priority_queue),
-                "processing": len(self._processing_tasks)
+                "processing": len(self._processing_tasks),
             },
             "uptime_seconds": uptime,
-            "events_per_second": self._stats["events_processed"] / uptime if uptime > 0 else 0
+            "events_per_second": self._stats["events_processed"] / uptime
+            if uptime > 0
+            else 0,
         }
 
     def reset_stats(self) -> None:
@@ -682,10 +702,9 @@ class EventTriggerProcessor:
             "achievements_triggered": 0,
             "processing_errors": 0,
             "average_processing_time": 0.0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
         logger.info("處理統計已重置")
-
 
 __all__ = [
     "EventTriggerContext",

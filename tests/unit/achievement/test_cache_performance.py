@@ -1,6 +1,6 @@
 """成就管理快取和效能測試.
 
-此模組測試快取管理和效能優化功能：
+此模組測試快取管理和效能優化功能:
 - 快取失效機制
 - 快取一致性
 - 效能優化測試
@@ -78,7 +78,7 @@ class TestCacheAndPerformance:
         )
         admin_service._create_achievement_in_db = AsyncMock(
             return_value=Achievement(
-                id=1, 
+                id=1,
                 name="測試成就",
                 description="測試描述",
                 category="社交互動",
@@ -167,8 +167,8 @@ class TestCacheAndPerformance:
         # 配置模擬
         achievements = [
             Achievement(
-                id=1, 
-                name="成就1", 
+                id=1,
+                name="成就1",
                 description="描述1",
                 category="社交互動",
                 category_id=1,
@@ -182,8 +182,8 @@ class TestCacheAndPerformance:
                 updated_at=datetime.now(),
             ),
             Achievement(
-                id=2, 
-                name="成就2", 
+                id=2,
+                name="成就2",
                 description="描述2",
                 category="社交互動",
                 category_id=1,
@@ -197,8 +197,8 @@ class TestCacheAndPerformance:
                 updated_at=datetime.now(),
             ),
             Achievement(
-                id=3, 
-                name="成就3", 
+                id=3,
+                name="成就3",
                 description="描述3",
                 category="社交互動",
                 category_id=1,
@@ -270,7 +270,7 @@ class TestCacheAndPerformance:
         updates1 = {"name": "更新1"}
         updates2 = {"description": "更新2"}
 
-        # 執行並發更新（實際上是序列，但測試邏輯）
+        # 執行並發更新(實際上是序列,但測試邏輯)
         await admin_service.update_achievement(1, updates1, 123)
         await admin_service.update_achievement(1, updates2, 124)
 
@@ -284,8 +284,8 @@ class TestCacheAndPerformance:
         """測試選擇性快取失效."""
         # 測試更新特定成就只失效相關快取
         sample_achievement = Achievement(
-            id=1, 
-            name="測試成就", 
+            id=1,
+            name="測試成就",
             description="測試描述",
             category="社交互動",
             category_id=1,
@@ -316,8 +316,11 @@ class TestCacheAndPerformance:
         mock_cache_service.delete.assert_called_with("achievement:detail:1")
         mock_cache_service.delete_pattern.assert_any_call("achievements:list:*")
 
-        # 分類快取不應該被失效（因為沒有變更分類）
-        assert all(call.args[0] != "categories:*" for call in mock_cache_service.delete_pattern.call_args_list)
+        # 分類快取不應該被失效(因為沒有變更分類)
+        assert all(
+            call.args[0] != "categories:*"
+            for call in mock_cache_service.delete_pattern.call_args_list
+        )
 
     # 效能優化測試
     async def test_batch_database_operations_performance(self, admin_service):
@@ -326,8 +329,8 @@ class TestCacheAndPerformance:
         large_achievement_ids = list(range(1, 101))  # 100個成就
         achievements = [
             Achievement(
-                id=i, 
-                name=f"成就{i}", 
+                id=i,
+                name=f"成就{i}",
                 description=f"描述{i}",
                 category="社交互動",
                 category_id=1,
@@ -368,7 +371,7 @@ class TestCacheAndPerformance:
         )
         end_time = datetime.now()
 
-        # 驗證效能（操作應該在合理時間內完成）
+        # 驗證效能(操作應該在合理時間內完成)
         operation_time = (end_time - start_time).total_seconds()
         assert operation_time < 5.0  # 假設5秒是合理的上限
 
@@ -383,7 +386,19 @@ class TestCacheAndPerformance:
     async def test_cache_preloading_mechanism(self, admin_service, mock_cache_service):
         """測試快取預載入機制."""
         # 模擬預載入邏輯
-        achievements = [Achievement(id=1, name="Test", description="Desc", category="Cat", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True)]
+        achievements = [
+            Achievement(
+                id=1,
+                name="Test",
+                description="Desc",
+                category="Cat",
+                category_id=1,
+                type="counter",
+                criteria={"target_value": 10, "counter_field": "interactions"},
+                points=100,
+                is_active=True,
+            )
+        ]
         mock_cache_service.set("achievements:list:all", achievements)
 
         # 驗證快取設置
@@ -393,30 +408,92 @@ class TestCacheAndPerformance:
         """測試延遲載入效能."""
         # 模擬快取獲取和設置
         mock_cache_service.get = AsyncMock(side_effect=[None, "cached_data"])
-        admin_service.repository.get_achievement_by_id = AsyncMock(return_value=Achievement(id=1, name="Test", description="Desc", category="Cat", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True))
+        admin_service.repository.get_achievement_by_id = AsyncMock(
+            return_value=Achievement(
+                id=1,
+                name="Test",
+                description="Desc",
+                category="Cat",
+                category_id=1,
+                type="counter",
+                criteria={"target_value": 10, "counter_field": "interactions"},
+                points=100,
+                is_active=True,
+            )
+        )
         mock_cache_service.set = AsyncMock()
 
         # First call: cache miss
         result1 = await admin_service.get_achievement_by_id(1)
-        assert result1 == Achievement(id=1, name="Test", description="Desc", category="Cat", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True)
+        assert result1 == Achievement(
+            id=1,
+            name="Test",
+            description="Desc",
+            category="Cat",
+            category_id=1,
+            type="counter",
+            criteria={"target_value": 10, "counter_field": "interactions"},
+            points=100,
+            is_active=True,
+        )
         admin_service.repository.get_achievement_by_id.assert_called_once_with(1)
-        mock_cache_service.set.assert_called_once_with(f"achievement:1", Achievement(id=1, name="Test", description="Desc", category="Cat", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True), ttl=1800)
+        mock_cache_service.set.assert_called_once_with(
+            f"achievement:1",
+            Achievement(
+                id=1,
+                name="Test",
+                description="Desc",
+                category="Cat",
+                category_id=1,
+                type="counter",
+                criteria={"target_value": 10, "counter_field": "interactions"},
+                points=100,
+                is_active=True,
+            ),
+            ttl=1800,
+        )
 
         # Second call: cache hit
         result2 = await admin_service.get_achievement_by_id(1)
         assert result2 == "cached_data"
-        assert admin_service.repository.get_achievement_by_id.call_count == 1  # Not called again
+        assert (
+            admin_service.repository.get_achievement_by_id.call_count == 1
+        )  # Not called again
 
     # 異步處理測試
     async def test_async_bulk_operation_processing(self, admin_service):
         """測試異步批量操作處理."""
         # 模擬批量更新
         achievement_ids = [1, 2]
-        admin_service._get_achievements_by_ids = AsyncMock(return_value=[
-            Achievement(id=1, name="Test1", description="Desc1", category="Cat1", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True),
-            Achievement(id=2, name="Test2", description="Desc2", category="Cat1", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True)
-        ])
-        admin_service._validate_bulk_status_update = AsyncMock(return_value=ValidationResult(is_valid=True))
+        admin_service._get_achievements_by_ids = AsyncMock(
+            return_value=[
+                Achievement(
+                    id=1,
+                    name="Test1",
+                    description="Desc1",
+                    category="Cat1",
+                    category_id=1,
+                    type="counter",
+                    criteria={"target_value": 10, "counter_field": "interactions"},
+                    points=100,
+                    is_active=True,
+                ),
+                Achievement(
+                    id=2,
+                    name="Test2",
+                    description="Desc2",
+                    category="Cat1",
+                    category_id=1,
+                    type="counter",
+                    criteria={"target_value": 10, "counter_field": "interactions"},
+                    points=100,
+                    is_active=True,
+                ),
+            ]
+        )
+        admin_service._validate_bulk_status_update = AsyncMock(
+            return_value=ValidationResult(is_valid=True)
+        )
         admin_service._update_achievements_status_in_db = AsyncMock(return_value=True)
 
         result = await admin_service.bulk_update_status(achievement_ids, True, 123)
@@ -441,19 +518,53 @@ class TestCacheAndPerformance:
         assert mock_cache_service.delete_pattern.call_count >= 5
 
         # 確保沒有發生競態條件或死鎖
-        # （如果有問題，上面的 gather 會超時或拋出異常）
+        # (如果有問題,上面的 gather 會超時或拋出異常)
 
     # 記憶體效率測試
     async def test_memory_efficient_bulk_processing(self, admin_service):
         """測試記憶體效率的批量處理."""
         # 模擬批量處理
         achievement_ids = [1, 2, 3]
-        admin_service._get_achievements_by_ids = AsyncMock(return_value=[
-            Achievement(id=1, name="Test1", description="Desc1", category="Cat1", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True),
-            Achievement(id=2, name="Test2", description="Desc2", category="Cat1", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True),
-            Achievement(id=3, name="Test3", description="Desc3", category="Cat1", category_id=1, type="counter", criteria={"target_value": 10, "counter_field": "interactions"}, points=100, is_active=True)
-        ])
-        admin_service._validate_bulk_status_update = AsyncMock(return_value=ValidationResult(is_valid=True))
+        admin_service._get_achievements_by_ids = AsyncMock(
+            return_value=[
+                Achievement(
+                    id=1,
+                    name="Test1",
+                    description="Desc1",
+                    category="Cat1",
+                    category_id=1,
+                    type="counter",
+                    criteria={"target_value": 10, "counter_field": "interactions"},
+                    points=100,
+                    is_active=True,
+                ),
+                Achievement(
+                    id=2,
+                    name="Test2",
+                    description="Desc2",
+                    category="Cat1",
+                    category_id=1,
+                    type="counter",
+                    criteria={"target_value": 10, "counter_field": "interactions"},
+                    points=100,
+                    is_active=True,
+                ),
+                Achievement(
+                    id=3,
+                    name="Test3",
+                    description="Desc3",
+                    category="Cat1",
+                    category_id=1,
+                    type="counter",
+                    criteria={"target_value": 10, "counter_field": "interactions"},
+                    points=100,
+                    is_active=True,
+                ),
+            ]
+        )
+        admin_service._validate_bulk_status_update = AsyncMock(
+            return_value=ValidationResult(is_valid=True)
+        )
         admin_service._update_achievements_status_in_db = AsyncMock(return_value=True)
 
         result = await admin_service.bulk_update_status(achievement_ids, True, 123)
@@ -466,7 +577,7 @@ class TestCacheAndPerformance:
         # 測試快取服務的基本調用
         # 模擬獲取成就操作
         sample_achievement = Achievement(
-            id=1, 
+            id=1,
             name="測試成就",
             description="測試描述",
             category="社交互動",
@@ -480,12 +591,14 @@ class TestCacheAndPerformance:
             created_at=datetime.now(),
             updated_at=datetime.now(),
         )
-        
-        admin_service.repository.get_achievement_by_id = AsyncMock(return_value=sample_achievement)
-        
+
+        admin_service.repository.get_achievement_by_id = AsyncMock(
+            return_value=sample_achievement
+        )
+
         # 執行獲取操作
         result = await admin_service.repository.get_achievement_by_id(1)
-        
+
         # 驗證結果
         assert result is not None
         assert result.id == 1
@@ -495,7 +608,7 @@ class TestCacheAndPerformance:
         """測試快取TTL管理."""
         # 測試快取失效功能
         sample_achievement = Achievement(
-            id=1, 
+            id=1,
             name="測試成就",
             description="測試描述",
             category="社交互動",
@@ -512,13 +625,12 @@ class TestCacheAndPerformance:
 
         # 測試快取失效調用
         await admin_service._invalidate_achievement_cache(1)
-        
+
         # 驗證快取失效方法被調用
         mock_cache_service.delete.assert_called_with("achievement:detail:1")
-        mock_cache_service.delete_pattern.assert_has_calls([
-            call("achievements:list:*"),
-            call("achievements:count:*")
-        ])
+        mock_cache_service.delete_pattern.assert_has_calls(
+            [call("achievements:list:*"), call("achievements:count:*")]
+        )
 
     # 資源清理測試
     async def test_resource_cleanup_on_service_shutdown(
@@ -527,15 +639,14 @@ class TestCacheAndPerformance:
         """測試服務關閉時的資源清理."""
         # 測試快取服務的存在性
         assert admin_service.cache_service is not None
-        
+
         # 測試快取失效功能
         await admin_service._invalidate_achievement_cache()
-        
+
         # 驗證快取失效被調用
-        mock_cache_service.delete_pattern.assert_has_calls([
-            call("achievements:list:*"),
-            call("achievements:count:*")
-        ])
+        mock_cache_service.delete_pattern.assert_has_calls(
+            [call("achievements:list:*"), call("achievements:count:*")]
+        )
 
     # 快取策略測試
     async def test_cache_strategy_effectiveness(
@@ -548,9 +659,11 @@ class TestCacheAndPerformance:
         await admin_service._invalidate_achievement_cache()  # Test global invalidation
 
         mock_cache_service.delete.assert_called_with("achievement:detail:1")
-        mock_cache_service.delete_pattern.assert_has_calls([
-            call("achievements:list:*"),
-            call("achievements:count:*"),
-            call("achievements:list:*"),
-            call("achievements:count:*")
-        ])
+        mock_cache_service.delete_pattern.assert_has_calls(
+            [
+                call("achievements:list:*"),
+                call("achievements:count:*"),
+                call("achievements:list:*"),
+                call("achievements:count:*"),
+            ]
+        )

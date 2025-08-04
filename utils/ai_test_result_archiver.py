@@ -44,7 +44,7 @@ class AITestResultArchiver:
     def _check_and_remove_old_result(self):
         """檢查並移除舊的測試結果文檔"""
         if os.path.exists(self.result_file_path):
-            print(f"📝 發現舊的測試結果文檔，正在覆蓋: {self.result_file_path}")
+            print(f"📝 發現舊的測試結果文檔,正在覆蓋: {self.result_file_path}")
             os.remove(self.result_file_path)
 
     def _generate_result_content(self, comprehensive_report: dict[str, Any]) -> str:
@@ -62,30 +62,30 @@ class AITestResultArchiver:
 
 ## 📊 測試執行摘要
 - **執行時間**: {timestamp}
-- **整體狀態**: {summary.get('overall_status', 'unknown')}
-- **測試覆蓋率**: {summary.get('coverage_percentage', 0):.1f}%
-- **驗收通過率**: {summary.get('acceptance_pass_rate', 0):.1%}
-- **總需求數**: {summary.get('total_requirements', 0)}
+- **整體狀態**: {summary.get("overall_status", "unknown")}
+- **測試覆蓋率**: {summary.get("coverage_percentage", 0):.1f}%
+- **驗收通過率**: {summary.get("acceptance_pass_rate", 0):.1%}
+- **總需求數**: {summary.get("total_requirements", 0)}
 
 ## 📈 詳細測試結果
 
 ### 覆蓋率分析
-- **總需求數**: {coverage_report.get('total_requirements', 0)}
-- **已覆蓋需求**: {coverage_report.get('covered_requirements', 0)}
-- **未覆蓋需求**: {coverage_report.get('total_requirements', 0) - coverage_report.get('covered_requirements', 0)}
-- **覆蓋率**: {coverage_report.get('coverage_percentage', 0):.1f}%
+- **總需求數**: {coverage_report.get("total_requirements", 0)}
+- **已覆蓋需求**: {coverage_report.get("covered_requirements", 0)}
+- **未覆蓋需求**: {coverage_report.get("total_requirements", 0) - coverage_report.get("covered_requirements", 0)}
+- **覆蓋率**: {coverage_report.get("coverage_percentage", 0):.1f}%
 
 ### 驗收測試結果
-- **總需求數**: {acceptance_report.get('total_requirements', 0)}
-- **通過需求**: {acceptance_report.get('passed_requirements', 0)}
-- **失敗需求**: {acceptance_report.get('failed_requirements', 0)}
-- **通過率**: {(acceptance_report.get('passed_requirements', 0) / max(acceptance_report.get('total_requirements', 1), 1)) * 100:.1f}%
+- **總需求數**: {acceptance_report.get("total_requirements", 0)}
+- **通過需求**: {acceptance_report.get("passed_requirements", 0)}
+- **失敗需求**: {acceptance_report.get("failed_requirements", 0)}
+- **通過率**: {(acceptance_report.get("passed_requirements", 0) / max(acceptance_report.get("total_requirements", 1), 1)) * 100:.1f}%
 
 ## 🔍 關鍵發現
 """
 
         # 添加關鍵發現
-        key_findings = summary.get('key_findings', [])
+        key_findings = summary.get("key_findings", [])
         for finding in key_findings:
             content += f"- {finding}\n"
 
@@ -93,7 +93,13 @@ class AITestResultArchiver:
 
         # 添加 AI 建議
         for rec in recommendations:
-            priority_emoji = "🔴" if rec.get("priority") == "high" else "🟡" if rec.get("priority") == "medium" else "🟢"
+            priority_emoji = (
+                "🔴"
+                if rec.get("priority") == "high"
+                else "🟡"
+                if rec.get("priority") == "medium"
+                else "🟢"
+            )
             content += f"{priority_emoji} **{rec.get('category', 'UNKNOWN').upper()}** - {rec.get('priority', 'unknown').upper()}\n"
             content += f"   - {rec.get('message', '')}\n"
             content += f"   - 建議行動: {rec.get('action', '')}\n"
@@ -102,18 +108,22 @@ class AITestResultArchiver:
         content += "## 📋 下一步行動\n"
 
         # 添加下一步行動
-        next_steps = summary.get('next_steps', [])
+        next_steps = summary.get("next_steps", [])
         for step in next_steps:
             content += f"- {step}\n"
 
         content += "\n## 📊 質量指標\n"
 
         # 添加質量指標
-        quality_metrics = analysis.get('quality_metrics', {})
+        quality_metrics = analysis.get("quality_metrics", {})
         content += f"- **整體質量分數**: {quality_metrics.get('overall_quality_score', 0):.2f}\n"
-        content += f"- **測試可靠性**: {quality_metrics.get('test_reliability', 0):.2f}\n"
+        content += (
+            f"- **測試可靠性**: {quality_metrics.get('test_reliability', 0):.2f}\n"
+        )
         content += f"- **需求完整性**: {quality_metrics.get('requirement_completeness', 0):.2f}\n"
-        content += f"- **實現質量**: {quality_metrics.get('implementation_quality', 0):.2f}\n"
+        content += (
+            f"- **實現質量**: {quality_metrics.get('implementation_quality', 0):.2f}\n"
+        )
 
         content += "\n---\n"
         content += f"*此報告由 AI Agent 自動生成於 {timestamp}*"
@@ -137,13 +147,15 @@ class AITestResultArchiver:
 
         history_data = {
             "timestamp": datetime.now().isoformat(),
-            "overall_status": summary.get('overall_status', 'unknown'),
-            "coverage_percentage": summary.get('coverage_percentage', 0),
-            "acceptance_pass_rate": summary.get('acceptance_pass_rate', 0),
-            "total_requirements": summary.get('total_requirements', 0),
-            "passed_requirements": acceptance_report.get('passed_requirements', 0),
-            "failed_requirements": acceptance_report.get('failed_requirements', 0),
-            "quality_score": analysis.get('quality_metrics', {}).get('overall_quality_score', 0)
+            "overall_status": summary.get("overall_status", "unknown"),
+            "coverage_percentage": summary.get("coverage_percentage", 0),
+            "acceptance_pass_rate": summary.get("acceptance_pass_rate", 0),
+            "total_requirements": summary.get("total_requirements", 0),
+            "passed_requirements": acceptance_report.get("passed_requirements", 0),
+            "failed_requirements": acceptance_report.get("failed_requirements", 0),
+            "quality_score": analysis.get("quality_metrics", {}).get(
+                "overall_quality_score", 0
+            ),
         }
 
         # 讀取現有歷史記錄
@@ -174,13 +186,13 @@ class AITestResultArchiver:
                 return {
                     "exists": True,
                     "content": content,
-                    "file_path": self.result_file_path
+                    "file_path": self.result_file_path,
                 }
         else:
             return {
                 "exists": False,
                 "content": None,
-                "file_path": self.result_file_path
+                "file_path": self.result_file_path,
             }
 
     def get_test_history(self) -> list[dict]:

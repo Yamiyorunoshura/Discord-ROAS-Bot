@@ -11,13 +11,12 @@ from discord import app_commands
 from discord.ext import commands
 
 from ...base import ProtectionCog
-from ..config.config import *
 from ..database.database import AntiExecutableDatabase
+from ..panel.main_view import AntiExecutableMainView
 from .actions import ExecutableActions
 from .detector import ExecutableDetector
 
 logger = logging.getLogger("anti_executable")
-
 
 class AntiExecutable(ProtectionCog):
     """
@@ -56,17 +55,17 @@ class AntiExecutable(ProtectionCog):
         """Cog 載入時的初始化"""
         try:
             await self.db.init_db()
-            logger.info("【反可執行檔案】模組載入完成")
+            logger.info("[反可執行檔案]模組載入完成")
         except Exception as exc:
-            logger.error(f"【反可執行檔案】模組載入失敗: {exc}")
+            logger.error(f"[反可執行檔案]模組載入失敗: {exc}")
             raise
 
     async def cog_unload(self):
         """Cog 卸載時的清理"""
         try:
-            logger.info("【反可執行檔案】模組卸載完成")
+            logger.info("[反可執行檔案]模組卸載完成")
         except Exception as exc:
-            logger.error(f"【反可執行檔案】模組卸載失敗: {exc}")
+            logger.error(f"[反可執行檔案]模組卸載失敗: {exc}")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -151,9 +150,6 @@ class AntiExecutable(ProtectionCog):
             return
 
         try:
-            # 導入面板視圖
-            from ..panel.main_view import AntiExecutableMainView
-
             # 創建面板視圖
             view = AntiExecutableMainView(
                 self, interaction.guild_id, interaction.user.id

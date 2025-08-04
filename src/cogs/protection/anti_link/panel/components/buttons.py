@@ -45,7 +45,6 @@ class TutorialButton(ui.Button):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-
 class EnableButton(ui.Button):
     """啟用按鈕"""
 
@@ -68,7 +67,6 @@ class EnableButton(ui.Button):
             await interaction.response.send_message(
                 f"❌ 啟用失敗:{exc}", ephemeral=True
             )
-
 
 class DisableButton(ui.Button):
     """停用按鈕"""
@@ -93,7 +91,6 @@ class DisableButton(ui.Button):
                 f"❌ 停用失敗:{exc}", ephemeral=True
             )
 
-
 class EditSettingsButton(ui.Button):
     """編輯設定按鈕"""
 
@@ -108,7 +105,6 @@ class EditSettingsButton(ui.Button):
         await interaction.response.send_message(
             "⚙️ 設定編輯功能開發中...", ephemeral=True
         )
-
 
 class ResetSettingsButton(ui.Button):
     """重置設定按鈕"""
@@ -125,38 +121,35 @@ class ResetSettingsButton(ui.Button):
             "🔄 設定重置功能開發中...", ephemeral=True
         )
 
-
 class AddWhitelistButton(ui.Button):
     """添加白名單按鈕"""
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="➕ 添加白名單", style=discord.ButtonStyle.success, emoji="➕"
+            label="+ 添加白名單", style=discord.ButtonStyle.success, emoji="+"
         )
         self.main_view = view
 
     async def callback(self, interaction: discord.Interaction):
         """按鈕回調"""
         await interaction.response.send_message(
-            "➕ 添加白名單功能開發中...", ephemeral=True
+            "+ 添加白名單功能開發中...", ephemeral=True
         )
-
 
 class RemoveWhitelistButton(ui.Button):
     """移除白名單按鈕"""
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="➖ 移除白名單", style=discord.ButtonStyle.danger, emoji="➖"
+            label="- 移除白名單", style=discord.ButtonStyle.danger, emoji="-"
         )
         self.main_view = view
 
     async def callback(self, interaction: discord.Interaction):
         """按鈕回調"""
         await interaction.response.send_message(
-            "➖ 移除白名單功能開發中...", ephemeral=True
+            "- 移除白名單功能開發中...", ephemeral=True
         )
-
 
 class ClearWhitelistButton(ui.Button):
     """清空白名單按鈕"""
@@ -173,38 +166,35 @@ class ClearWhitelistButton(ui.Button):
             "🗑️ 清空白名單功能開發中...", ephemeral=True
         )
 
-
 class AddBlacklistButton(ui.Button):
     """添加黑名單按鈕"""
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="➕ 添加黑名單", style=discord.ButtonStyle.danger, emoji="➕"
+            label="+ 添加黑名單", style=discord.ButtonStyle.danger, emoji="+"
         )
         self.main_view = view
 
     async def callback(self, interaction: discord.Interaction):
         """按鈕回調"""
         await interaction.response.send_message(
-            "➕ 添加黑名單功能開發中...", ephemeral=True
+            "+ 添加黑名單功能開發中...", ephemeral=True
         )
-
 
 class RemoveBlacklistButton(ui.Button):
     """移除黑名單按鈕"""
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="➖ 移除黑名單", style=discord.ButtonStyle.success, emoji="➖"
+            label="- 移除黑名單", style=discord.ButtonStyle.success, emoji="-"
         )
         self.main_view = view
 
     async def callback(self, interaction: discord.Interaction):
         """按鈕回調"""
         await interaction.response.send_message(
-            "➖ 移除黑名單功能開發中...", ephemeral=True
+            "- 移除黑名單功能開發中...", ephemeral=True
         )
-
 
 class RefreshBlacklistButton(ui.Button):
     """刷新黑名單按鈕"""
@@ -221,7 +211,6 @@ class RefreshBlacklistButton(ui.Button):
             "🔄 刷新黑名單功能開發中...", ephemeral=True
         )
 
-
 class ClearStatsButton(ui.Button):
     """清空統計按鈕"""
 
@@ -237,7 +226,6 @@ class ClearStatsButton(ui.Button):
             "🗑️ 清空統計功能開發中...", ephemeral=True
         )
 
-
 class ExportStatsButton(ui.Button):
     """匯出統計按鈕"""
 
@@ -252,7 +240,6 @@ class ExportStatsButton(ui.Button):
         await interaction.response.send_message(
             "📊 匯出統計功能開發中...", ephemeral=True
         )
-
 
 class CloseButton(ui.Button):
     """關閉按鈕"""

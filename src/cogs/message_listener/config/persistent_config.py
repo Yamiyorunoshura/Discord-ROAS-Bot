@@ -17,7 +17,6 @@ from src.core.config import get_settings
 
 logger = logging.getLogger("message_listener")
 
-
 class PersistentConfig:
     """持久化配置管理器"""
 
@@ -345,28 +344,23 @@ class PersistentConfig:
         except Exception as e:
             logger.error(f"清理快取失敗: {e}")
 
-
 # 全域配置管理器實例
 config_manager = PersistentConfig()
-
 
 # 便利函數
 async def get_guild_config(guild_id: int) -> dict[str, Any]:
     """獲取伺服器配置"""
     return await config_manager.load_config(guild_id)
 
-
 async def save_guild_config(guild_id: int, config: dict[str, Any]) -> bool:
     """保存伺服器配置"""
     return await config_manager.save_config(guild_id, config)
-
 
 async def update_guild_setting(
     guild_id: int, category: str, key: str, value: Any
 ) -> bool:
     """更新伺服器設定"""
     return await config_manager.update_setting(guild_id, category, key, value)
-
 
 async def get_guild_setting(
     guild_id: int, category: str, key: str, default: Any = None

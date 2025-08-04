@@ -18,6 +18,9 @@ import psutil
 
 from .logger import get_logger_manager
 
+# 健康檢查常數
+HIGH_LATENCY_THRESHOLD = 1000  # 毫秒
+
 
 class HealthStatus(Enum):
     """健康狀態枚舉"""
@@ -26,7 +29,6 @@ class HealthStatus(Enum):
     WARNING = "warning"
     CRITICAL = "critical"
     UNKNOWN = "unknown"
-
 
 @dataclass
 class HealthCheckResult:
@@ -39,7 +41,6 @@ class HealthCheckResult:
     timestamp: datetime
     response_time_ms: float | None = None
 
-
 @dataclass
 class ModuleStatus:
     """模塊狀態"""
@@ -51,7 +52,6 @@ class ModuleStatus:
     warning_count: int = 0
     uptime_seconds: float = 0
     last_error: str | None = None
-
 
 class HealthChecker:
     """系統健康檢查器"""
@@ -278,7 +278,7 @@ class HealthChecker:
             if not is_connected:
                 status = HealthStatus.CRITICAL
                 message = "機器人未連線到 Discord"
-            elif latency_ms > 1000:
+            elif latency_ms > HIGH_LATENCY_THRESHOLD:
                 status = HealthStatus.WARNING
                 message = f"機器人延遲較高: {latency_ms:.1f}ms"
 
@@ -410,8 +410,10 @@ class HealthChecker:
                 self.health_history.append(result)
 
                 # 保持歷史記錄在合理範圍內
-                if len(self.health_history) > 1000:
-                    self.health_history = self.health_history[-500:]
+                MAX_HISTORY_SIZE = 1000
+                TRIM_TO_SIZE = 500
+                if len(self.health_history) > MAX_HISTORY_SIZE:
+                    self.health_history = self.health_history[-TRIM_TO_SIZE:]
 
             except Exception as e:
                 self.logger.error(f"健康檢查 {name} 執行失敗: {e}")
@@ -586,10 +588,20 @@ class HealthChecker:
             else None,
         }
 
+class HealthCheckerManager:
+    """健康檢查器管理器"""
 
-# 全域健康檢查器實例
-_health_checker: HealthChecker | None = None
+    def __init__(self):
+        self._health_checker: HealthChecker | None = None
 
+    def get_health_checker(self) -> HealthChecker:
+        """獲取健康檢查器實例"""
+        if self._health_checker is None:
+            self._health_checker = HealthChecker()
+        return self._health_checker
+
+# 全域管理器實例
+_health_checker_manager = HealthCheckerManager()
 
 def get_health_checker() -> HealthChecker:
     """
@@ -598,11 +610,7 @@ def get_health_checker() -> HealthChecker:
     Returns:
         HealthChecker: 健康檢查器實例
     """
-    global _health_checker
-    if _health_checker is None:
-        _health_checker = HealthChecker()
-    return _health_checker
-
+    return _health_checker_manager.get_health_checker()
 
 async def start_health_monitoring():
     """啟動健康監控的便捷函數"""

@@ -21,6 +21,7 @@ import pytest
 # 🎯 基本測試框架驗證
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
+
 class TestFrameworkBasics:
     """🧪 測試框架基本功能"""
 
@@ -33,6 +34,7 @@ class TestFrameworkBasics:
     @pytest.mark.asyncio
     async def test_asyncio_working(self):
         """🔄 測試異步功能工作正常"""
+
         async def async_task():
             await asyncio.sleep(0.01)
             return "完成"
@@ -54,14 +56,16 @@ class TestFrameworkBasics:
     def test_discord_py_available(self):
         """🎮 測試 Discord.py 可用性"""
         assert discord is not None, "discord.py 應該可用"
-        assert hasattr(discord, 'Guild'), "應該有 Guild 類別"
-        assert hasattr(discord, 'User'), "應該有 User 類別"
-        assert hasattr(discord, 'Message'), "應該有 Message 類別"
-        assert hasattr(discord, 'TextChannel'), "應該有 TextChannel 類別"
+        assert hasattr(discord, "Guild"), "應該有 Guild 類別"
+        assert hasattr(discord, "User"), "應該有 User 類別"
+        assert hasattr(discord, "Message"), "應該有 Message 類別"
+        assert hasattr(discord, "TextChannel"), "應該有 TextChannel 類別"
+
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🎭 Mock 物件測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestMockObjects:
     """🎭 測試 Mock 物件創建和使用"""
@@ -71,9 +75,9 @@ class TestMockObjects:
         assert mock_guild.id == 12345, "伺服器 ID 應該正確"
         assert mock_guild.name == "測試伺服器", "伺服器名稱應該正確"
         assert mock_guild.member_count == 100, "成員數量應該正確"
-        assert hasattr(mock_guild, 'get_member'), "應該有獲取成員方法"
-        assert hasattr(mock_guild, 'get_channel'), "應該有獲取頻道方法"
-        assert hasattr(mock_guild, 'get_role'), "應該有獲取角色方法"
+        assert hasattr(mock_guild, "get_member"), "應該有獲取成員方法"
+        assert hasattr(mock_guild, "get_channel"), "應該有獲取頻道方法"
+        assert hasattr(mock_guild, "get_role"), "應該有獲取角色方法"
 
     def test_mock_user_creation(self, mock_user):
         """👤 測試模擬用戶創建"""
@@ -81,20 +85,22 @@ class TestMockObjects:
         assert mock_user.name == "測試用戶", "用戶名稱應該正確"
         assert mock_user.discriminator == "0001", "用戶標識符應該正確"
         assert not mock_user.bot, "應該不是機器人"
-        assert hasattr(mock_user, 'display_avatar'), "應該有頭像屬性"
-        assert hasattr(mock_user, 'mention'), "應該有提及屬性"
+        assert hasattr(mock_user, "display_avatar"), "應該有頭像屬性"
+        assert hasattr(mock_user, "mention"), "應該有提及屬性"
 
     def test_mock_member_creation(self, mock_member):
         """👥 測試模擬成員創建"""
         assert mock_member.id == 67890, "成員 ID 應該正確"
-        assert hasattr(mock_member, 'guild'), "應該有伺服器屬性"
-        assert hasattr(mock_member, 'guild_permissions'), "應該有權限屬性"
-        assert hasattr(mock_member, 'timeout'), "應該有超時方法"
-        assert hasattr(mock_member, 'edit'), "應該有編輯方法"
+        assert hasattr(mock_member, "guild"), "應該有伺服器屬性"
+        assert hasattr(mock_member, "guild_permissions"), "應該有權限屬性"
+        assert hasattr(mock_member, "timeout"), "應該有超時方法"
+        assert hasattr(mock_member, "edit"), "應該有編輯方法"
 
         # 測試權限設定
         assert not mock_member.guild_permissions.administrator, "預設不應該是管理員"
-        assert not mock_member.guild_permissions.manage_guild, "預設不應該有管理伺服器權限"
+        assert not mock_member.guild_permissions.manage_guild, (
+            "預設不應該有管理伺服器權限"
+        )
 
     def test_mock_admin_member_creation(self, mock_admin_member):
         """👑 測試模擬管理員成員創建"""
@@ -108,40 +114,42 @@ class TestMockObjects:
         assert mock_channel.id == 98765, "頻道 ID 應該正確"
         assert mock_channel.name == "測試頻道", "頻道名稱應該正確"
         assert mock_channel.type == discord.ChannelType.text, "頻道類型應該正確"
-        assert hasattr(mock_channel, 'send'), "應該有發送方法"
-        assert hasattr(mock_channel, 'edit'), "應該有編輯方法"
-        assert hasattr(mock_channel, 'delete'), "應該有刪除方法"
+        assert hasattr(mock_channel, "send"), "應該有發送方法"
+        assert hasattr(mock_channel, "edit"), "應該有編輯方法"
+        assert hasattr(mock_channel, "delete"), "應該有刪除方法"
 
     def test_mock_message_creation(self, mock_message):
         """💬 測試模擬訊息創建"""
         assert mock_message.id == 123456789, "訊息 ID 應該正確"
         assert mock_message.content == "測試訊息內容", "訊息內容應該正確"
-        assert hasattr(mock_message, 'author'), "應該有作者屬性"
-        assert hasattr(mock_message, 'guild'), "應該有伺服器屬性"
-        assert hasattr(mock_message, 'channel'), "應該有頻道屬性"
-        assert hasattr(mock_message, 'edit'), "應該有編輯方法"
-        assert hasattr(mock_message, 'delete'), "應該有刪除方法"
+        assert hasattr(mock_message, "author"), "應該有作者屬性"
+        assert hasattr(mock_message, "guild"), "應該有伺服器屬性"
+        assert hasattr(mock_message, "channel"), "應該有頻道屬性"
+        assert hasattr(mock_message, "edit"), "應該有編輯方法"
+        assert hasattr(mock_message, "delete"), "應該有刪除方法"
 
     def test_mock_interaction_creation(self, mock_interaction):
         """⚡ 測試模擬互動創建"""
         assert mock_interaction.guild_id == 12345, "互動伺服器 ID 應該正確"
-        assert hasattr(mock_interaction, 'response'), "應該有響應屬性"
-        assert hasattr(mock_interaction, 'followup'), "應該有跟進屬性"
-        assert hasattr(mock_interaction.response, 'send_message'), "響應應該有發送方法"
-        assert hasattr(mock_interaction.followup, 'send'), "跟進應該有發送方法"
+        assert hasattr(mock_interaction, "response"), "應該有響應屬性"
+        assert hasattr(mock_interaction, "followup"), "應該有跟進屬性"
+        assert hasattr(mock_interaction.response, "send_message"), "響應應該有發送方法"
+        assert hasattr(mock_interaction.followup, "send"), "跟進應該有發送方法"
 
     def test_mock_bot_creation(self, mock_bot):
         """🤖 測試模擬機器人創建"""
         assert mock_bot.user.id == 11111, "機器人 ID 應該正確"
         assert mock_bot.user.name == "測試機器人", "機器人名稱應該正確"
         assert mock_bot.user.bot, "應該是機器人"
-        assert hasattr(mock_bot, 'add_cog'), "應該有添加 Cog 方法"
-        assert hasattr(mock_bot, 'remove_cog'), "應該有移除 Cog 方法"
-        assert hasattr(mock_bot, 'get_guild'), "應該有獲取伺服器方法"
+        assert hasattr(mock_bot, "add_cog"), "應該有添加 Cog 方法"
+        assert hasattr(mock_bot, "remove_cog"), "應該有移除 Cog 方法"
+        assert hasattr(mock_bot, "get_guild"), "應該有獲取伺服器方法"
+
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🗄️ 資料庫測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestDatabaseOperations:
     """🗄️ 測試資料庫操作功能"""
@@ -179,14 +187,13 @@ class TestDatabaseOperations:
         # 測試插入資料
         await activity_test_db.execute(
             "INSERT INTO meter (guild_id, user_id, score, last_msg) VALUES (?, ?, ?, ?)",
-            (12345, 67890, 50.0, int(time.time()))
+            (12345, 67890, 50.0, int(time.time())),
         )
         await activity_test_db.commit()
 
         # 驗證插入
         cursor = await activity_test_db.execute(
-            "SELECT * FROM meter WHERE guild_id=? AND user_id=?",
-            (12345, 67890)
+            "SELECT * FROM meter WHERE guild_id=? AND user_id=?", (12345, 67890)
         )
         result = await cursor.fetchone()
         assert result is not None, "活躍度資料應該被插入"
@@ -205,7 +212,11 @@ class TestDatabaseOperations:
             assert result is not None, f"{table} 表格應該存在"
 
         # 檢查索引
-        indexes = ["idx_messages_channel", "idx_messages_author", "idx_messages_timestamp"]
+        indexes = [
+            "idx_messages_channel",
+            "idx_messages_author",
+            "idx_messages_timestamp",
+        ]
         for index in indexes:
             cursor = await message_listener_test_db.execute(
                 f"SELECT name FROM sqlite_master WHERE type='index' AND name='{index}'"
@@ -217,10 +228,14 @@ class TestDatabaseOperations:
     async def test_database_transaction_handling(self, test_db):
         """🔄 測試資料庫事務處理"""
         # 創建測試表格
-        await test_db.execute("CREATE TABLE transaction_test (id INTEGER PRIMARY KEY, value TEXT)")
+        await test_db.execute(
+            "CREATE TABLE transaction_test (id INTEGER PRIMARY KEY, value TEXT)"
+        )
 
         # 測試成功事務
-        await test_db.execute("INSERT INTO transaction_test (value) VALUES (?)", ("成功",))
+        await test_db.execute(
+            "INSERT INTO transaction_test (value) VALUES (?)", ("成功",)
+        )
         await test_db.commit()
 
         cursor = await test_db.execute("SELECT COUNT(*) FROM transaction_test")
@@ -228,7 +243,9 @@ class TestDatabaseOperations:
         assert count[0] == 1, "成功事務應該提交資料"
 
         # 測試回滾事務
-        await test_db.execute("INSERT INTO transaction_test (value) VALUES (?)", ("失敗",))
+        await test_db.execute(
+            "INSERT INTO transaction_test (value) VALUES (?)", ("失敗",)
+        )
         await test_db.rollback()
 
         cursor = await test_db.execute("SELECT COUNT(*) FROM transaction_test")
@@ -243,7 +260,9 @@ class TestDatabaseOperations:
             await test_db.execute("INVALID SQL SYNTAX")
 
         # 測試約束違反
-        await test_db.execute("CREATE TABLE constraint_test (id INTEGER PRIMARY KEY UNIQUE)")
+        await test_db.execute(
+            "CREATE TABLE constraint_test (id INTEGER PRIMARY KEY UNIQUE)"
+        )
         await test_db.execute("INSERT INTO constraint_test (id) VALUES (1)")
         await test_db.commit()
 
@@ -251,9 +270,11 @@ class TestDatabaseOperations:
             await test_db.execute("INSERT INTO constraint_test (id) VALUES (1)")
             await test_db.commit()
 
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # ⚙️ 配置管理測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestConfigurationManagement:
     """⚙️ 測試配置管理功能"""
@@ -283,9 +304,11 @@ class TestConfigurationManagement:
         assert version_info.major >= 3, "應該使用 Python 3"
         assert version_info.minor >= 8, "應該使用 Python 3.8 或更高版本"
 
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # ⚡ 效能測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestPerformanceBasics:
     """⚡ 測試基本效能指標"""
@@ -303,25 +326,33 @@ class TestPerformanceBasics:
         performance_timer.stop()
 
         assert len(results) == 10000, "計算結果數量應該正確"
-        assert performance_timer.elapsed < 1.0, f"基本計算時間過長: {performance_timer.elapsed:.3f}s"
+        assert performance_timer.elapsed < 1.0, (
+            f"基本計算時間過長: {performance_timer.elapsed:.3f}s"
+        )
 
     @pytest.mark.asyncio
     async def test_database_operation_performance(self, test_db, performance_timer):
         """🗄️ 測試資料庫操作效能"""
         # 創建測試表格
-        await test_db.execute("CREATE TABLE perf_test (id INTEGER PRIMARY KEY, data TEXT)")
+        await test_db.execute(
+            "CREATE TABLE perf_test (id INTEGER PRIMARY KEY, data TEXT)"
+        )
 
         # 測試批量插入效能
         performance_timer.start()
 
         for i in range(100):
-            await test_db.execute("INSERT INTO perf_test (data) VALUES (?)", (f"資料{i}",))
+            await test_db.execute(
+                "INSERT INTO perf_test (data) VALUES (?)", (f"資料{i}",)
+            )
         await test_db.commit()
 
         performance_timer.stop()
 
         # 驗證插入時間在可接受範圍內 (2秒)
-        assert performance_timer.elapsed < 2.0, f"批量插入時間過長: {performance_timer.elapsed:.3f}s"
+        assert performance_timer.elapsed < 2.0, (
+            f"批量插入時間過長: {performance_timer.elapsed:.3f}s"
+        )
 
         # 測試查詢效能
         performance_timer.start()
@@ -332,7 +363,9 @@ class TestPerformanceBasics:
         performance_timer.stop()
 
         assert result[0] == 100, "查詢結果應該正確"
-        assert performance_timer.elapsed < 0.1, f"查詢時間過長: {performance_timer.elapsed:.3f}s"
+        assert performance_timer.elapsed < 0.1, (
+            f"查詢時間過長: {performance_timer.elapsed:.3f}s"
+        )
 
     def test_memory_usage_basic(self, memory_monitor):
         """🧠 測試基本記憶體使用"""
@@ -347,7 +380,9 @@ class TestPerformanceBasics:
         memory_increase = current_memory - initial_memory
 
         # 驗證記憶體增加在合理範圍內 (100MB)
-        assert memory_increase < 100 * 1024 * 1024, f"記憶體使用過多: {memory_increase} bytes"
+        assert memory_increase < 100 * 1024 * 1024, (
+            f"記憶體使用過多: {memory_increase} bytes"
+        )
 
         # 清理資料
         del test_data
@@ -356,6 +391,7 @@ class TestPerformanceBasics:
     @pytest.mark.asyncio
     async def test_async_operation_performance(self, performance_timer):
         """🔄 測試異步操作效能"""
+
         async def test_async_task():
             await asyncio.sleep(0.01)  # 模擬異步操作
             return "完成"
@@ -371,11 +407,15 @@ class TestPerformanceBasics:
         assert len(results) == 10, "所有任務應該完成"
         assert all(result == "完成" for result in results), "所有任務結果應該正確"
         # 並行執行應該比串行快
-        assert performance_timer.elapsed < 0.5, f"並行執行時間過長: {performance_timer.elapsed:.3f}s"
+        assert performance_timer.elapsed < 0.5, (
+            f"並行執行時間過長: {performance_timer.elapsed:.3f}s"
+        )
+
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🔒 安全性測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestSecurityBasics:
     """🔒 測試基本安全性"""
@@ -383,27 +423,36 @@ class TestSecurityBasics:
     @pytest.mark.asyncio
     async def test_sql_injection_prevention(self, test_db):
         """🛡️ 測試 SQL 注入防護"""
-        await test_db.execute("CREATE TABLE security_test (id INTEGER PRIMARY KEY, name TEXT)")
+        await test_db.execute(
+            "CREATE TABLE security_test (id INTEGER PRIMARY KEY, name TEXT)"
+        )
 
         # 嘗試 SQL 注入攻擊
         malicious_input = "'; DROP TABLE security_test; --"
 
         # 使用參數化查詢應該安全
-        await test_db.execute("INSERT INTO security_test (name) VALUES (?)", (malicious_input,))
+        await test_db.execute(
+            "INSERT INTO security_test (name) VALUES (?)", (malicious_input,)
+        )
         await test_db.commit()
 
         # 驗證表格仍然存在
-        cursor = await test_db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='security_test'")
+        cursor = await test_db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='security_test'"
+        )
         result = await cursor.fetchone()
-        assert result is not None, "表格應該仍然存在，SQL 注入應該被防護"
+        assert result is not None, "表格應該仍然存在,SQL 注入應該被防護"
 
         # 驗證資料被正確插入
-        cursor = await test_db.execute("SELECT name FROM security_test WHERE name = ?", (malicious_input,))
+        cursor = await test_db.execute(
+            "SELECT name FROM security_test WHERE name = ?", (malicious_input,)
+        )
         result = await cursor.fetchone()
         assert result is not None, "惡意輸入應該被當作普通資料處理"
 
     def test_input_validation_basic(self):
         """✅ 測試基本輸入驗證"""
+
         def validate_discord_id(discord_id) -> bool:
             """基本 Discord ID 驗證"""
             if not isinstance(discord_id, int):
@@ -420,10 +469,13 @@ class TestSecurityBasics:
         invalid_inputs = [-1, 0, 123, "not_a_number"]
 
         for invalid_input in invalid_inputs:
-            assert not validate_discord_id(invalid_input), f"無效 ID {invalid_input} 應該被拒絕"
+            assert not validate_discord_id(invalid_input), (
+                f"無效 ID {invalid_input} 應該被拒絕"
+            )
 
     def test_data_sanitization(self, security_tester):
         """🧹 測試資料清理"""
+
         def sanitize_user_input(user_input: str) -> str:
             """基本用戶輸入清理"""
             if not isinstance(user_input, str):
@@ -450,15 +502,19 @@ class TestSecurityBasics:
                 assert "DROP TABLE" not in sanitized.upper(), "SQL 命令應該被清理"
                 assert len(sanitized) <= 2000, "清理後的資料長度應該被限制"
 
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🧪 整合測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestIntegrationBasics:
     """🧪 測試基本整合功能"""
 
     @pytest.mark.asyncio
-    async def test_mock_integration(self, mock_bot, mock_guild, mock_channel, mock_member):
+    async def test_mock_integration(
+        self, mock_bot, mock_guild, mock_channel, mock_member
+    ):
         """🔌 測試 Mock 物件整合"""
         # 測試物件關聯
         assert mock_member.guild == mock_guild, "成員應該屬於伺服器"
@@ -469,8 +525,10 @@ class TestIntegrationBasics:
         mock_channel.send.assert_called_once_with("測試訊息")
 
         # 測試權限檢查
-        assert hasattr(mock_member, 'guild_permissions'), "成員應該有權限屬性"
-        assert hasattr(mock_member.guild_permissions, 'administrator'), "應該有管理員權限屬性"
+        assert hasattr(mock_member, "guild_permissions"), "成員應該有權限屬性"
+        assert hasattr(mock_member.guild_permissions, "administrator"), (
+            "應該有管理員權限屬性"
+        )
 
     @pytest.mark.asyncio
     async def test_database_integration(self, activity_test_db):
@@ -481,13 +539,13 @@ class TestIntegrationBasics:
         # 插入活躍度資料
         await activity_test_db.execute(
             "INSERT INTO meter (guild_id, user_id, score, last_msg) VALUES (?, ?, ?, ?)",
-            (guild_id, user_id, 75.5, int(time.time()))
+            (guild_id, user_id, 75.5, int(time.time())),
         )
 
         # 插入每日資料
         await activity_test_db.execute(
             "INSERT INTO daily (ymd, guild_id, user_id, msg_cnt) VALUES (?, ?, ?, ?)",
-            ("20240101", guild_id, user_id, 25)
+            ("20240101", guild_id, user_id, 25),
         )
 
         await activity_test_db.commit()
@@ -495,7 +553,7 @@ class TestIntegrationBasics:
         # 驗證資料一致性
         cursor = await activity_test_db.execute(
             "SELECT m.score, d.msg_cnt FROM meter m JOIN daily d ON m.guild_id = d.guild_id AND m.user_id = d.user_id WHERE m.guild_id = ? AND m.user_id = ?",
-            (guild_id, user_id)
+            (guild_id, user_id),
         )
         result = await cursor.fetchone()
 
@@ -521,9 +579,11 @@ class TestIntegrationBasics:
             assert isinstance(data["user_id"], int), "用戶 ID 應該是整數"
             assert not data["bot"], "測試用戶不應該是機器人"
 
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🎯 工具函數測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestUtilityFunctions:
     """🎯 測試工具函數"""
@@ -541,7 +601,7 @@ class TestUtilityFunctions:
             "INVALID_FORMAT",
             "TRACKING_ID-123",
             "TRACKING-ID-TEST-001-123456",
-            ""
+            "",
         ]
 
         for invalid_id in invalid_tracking_ids:
@@ -587,13 +647,15 @@ class TestUtilityFunctions:
         embed.add_field(name="欄位名稱", value="欄位值", inline=False)
         assert_embed_valid(embed)
 
-        # 測試無效 Embed（非 Embed 物件）
+        # 測試無效 Embed(非 Embed 物件)
         with pytest.raises(AssertionError):
             assert_embed_valid("not an embed")
+
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🔧 錯誤處理測試
 # ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 class TestErrorHandling:
     """🔧 測試錯誤處理機制"""
@@ -620,8 +682,8 @@ class TestErrorHandling:
             await failing_function()
 
         # 另外測試 assert_async_no_exception 的行為
-        # 當函數拋出異常時，assert_async_no_exception 應該導致測試失敗
-        # 這是一個輔助函數，我們不直接測試它的失敗情況
+        # 當函數拋出異常時,assert_async_no_exception 應該導致測試失敗
+        # 這是一個輔助函數,我們不直接測試它的失敗情況
 
     def test_performance_validation(self):
         """⚡ 測試效能驗證"""
@@ -639,15 +701,20 @@ class TestErrorHandling:
         from tests.conftest import assert_memory_usage_acceptable
 
         # 測試可接受的記憶體使用
-        assert_memory_usage_acceptable(50 * 1024 * 1024, 100 * 1024 * 1024)  # 50MB < 100MB限制
+        assert_memory_usage_acceptable(
+            50 * 1024 * 1024, 100 * 1024 * 1024
+        )  # 50MB < 100MB限制
 
         # 測試不可接受的記憶體使用
         with pytest.raises(AssertionError):
-            assert_memory_usage_acceptable(150 * 1024 * 1024, 100 * 1024 * 1024)  # 150MB > 100MB限制
+            assert_memory_usage_acceptable(
+                150 * 1024 * 1024, 100 * 1024 * 1024
+            )  # 150MB > 100MB限制
 
     @pytest.mark.asyncio
     async def test_timeout_handling(self):
         """⏰ 測試超時處理"""
+
         async def slow_function():
             await asyncio.sleep(2)
             return "完成"

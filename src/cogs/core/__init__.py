@@ -24,7 +24,6 @@ __all__ = [
     "setup_module_logger",
 ]
 
-
 async def setup(bot: commands.Bot):
     """
     設置核心模組

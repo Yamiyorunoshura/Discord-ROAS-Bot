@@ -1,7 +1,7 @@
 """效能監控系統測試模組.
 
-此模組測試 Discord ROAS Bot 的性能監控功能，
-包括系統指標收集、警報機制、監控任務管理等核心功能。
+此模組測試 Discord ROAS Bot 的性能監控功能,
+包括系統指標收集、警報機制、監控任務管理等核心功能.
 """
 
 import asyncio
@@ -37,7 +37,7 @@ class TestSystemMetrics:
             disk_percent=45.8,
             disk_total_gb=500.0,
             disk_used_gb=229.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         assert metrics.timestamp == timestamp
@@ -63,7 +63,7 @@ class TestPerformanceAlert:
             timestamp=timestamp,
             metric_name="cpu_percent",
             current_value=75.5,
-            threshold=70.0
+            threshold=70.0,
         )
 
         assert alert.level == "warning"
@@ -91,6 +91,7 @@ class TestPerformanceMonitor:
     def mock_settings(self):
         """創建模擬設定."""
         from src.core.config import Settings
+
         return Settings()
 
     @pytest.fixture
@@ -174,10 +175,12 @@ class TestPerformanceMonitor:
         assert monitor._is_monitoring is False
 
     @pytest.mark.asyncio
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    async def test_collect_system_metrics(self, mock_disk_usage, mock_virtual_memory, mock_cpu_percent, monitor):
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    async def test_collect_system_metrics(
+        self, mock_disk_usage, mock_virtual_memory, mock_cpu_percent, monitor
+    ):
         """測試收集系統指標."""
         # 模擬psutil返回值
         mock_cpu_percent.return_value = 45.5
@@ -185,12 +188,12 @@ class TestPerformanceMonitor:
         mock_memory = MagicMock()
         mock_memory.percent = 72.3
         mock_memory.total = 16 * 1024**3  # 16GB
-        mock_memory.used = 12 * 1024**3   # 12GB
+        mock_memory.used = 12 * 1024**3  # 12GB
         mock_virtual_memory.return_value = mock_memory
 
         mock_disk = MagicMock()
-        mock_disk.total = 500 * 1024**3   # 500GB
-        mock_disk.used = 300 * 1024**3    # 300GB
+        mock_disk.total = 500 * 1024**3  # 500GB
+        mock_disk.used = 300 * 1024**3  # 300GB
         mock_disk_usage.return_value = mock_disk
 
         # 收集指標
@@ -208,8 +211,10 @@ class TestPerformanceMonitor:
         assert isinstance(metrics.uptime_seconds, float)
 
     @pytest.mark.asyncio
-    @patch('psutil.cpu_percent', side_effect=Exception("psutil error"))
-    async def test_collect_system_metrics_error_handling(self, mock_cpu_percent, monitor):
+    @patch("psutil.cpu_percent", side_effect=Exception("psutil error"))
+    async def test_collect_system_metrics_error_handling(
+        self, mock_cpu_percent, monitor
+    ):
         """測試收集系統指標錯誤處理."""
         # 收集指標應該返回默認值
         metrics = await monitor._collect_system_metrics()
@@ -236,7 +241,7 @@ class TestPerformanceMonitor:
             disk_percent=40.0,
             disk_total_gb=500.0,
             disk_used_gb=200.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -254,7 +259,7 @@ class TestPerformanceMonitor:
             disk_percent=40.0,
             disk_total_gb=500.0,
             disk_used_gb=200.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -278,7 +283,7 @@ class TestPerformanceMonitor:
             disk_percent=40.0,
             disk_total_gb=500.0,
             disk_used_gb=200.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -302,7 +307,7 @@ class TestPerformanceMonitor:
             disk_percent=40.0,
             disk_total_gb=500.0,
             disk_used_gb=200.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -326,7 +331,7 @@ class TestPerformanceMonitor:
             disk_percent=40.0,
             disk_total_gb=500.0,
             disk_used_gb=200.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -348,7 +353,7 @@ class TestPerformanceMonitor:
             disk_percent=90.0,  # 超過85%警告線
             disk_total_gb=500.0,
             disk_used_gb=450.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -370,7 +375,7 @@ class TestPerformanceMonitor:
             disk_percent=97.0,  # 超過95%嚴重線
             disk_total_gb=500.0,
             disk_used_gb=485.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -385,14 +390,14 @@ class TestPerformanceMonitor:
         """測試檢查警報 - 多個警報."""
         metrics = SystemMetrics(
             timestamp=time.time(),
-            cpu_percent=95.0,    # CPU嚴重警告
-            memory_percent=85.0, # 記憶體警告
+            cpu_percent=95.0,  # CPU嚴重警告
+            memory_percent=85.0,  # 記憶體警告
             memory_total_gb=16.0,
             memory_used_gb=13.6,
-            disk_percent=97.0,   # 磁碟嚴重警告
+            disk_percent=97.0,  # 磁碟嚴重警告
             disk_total_gb=500.0,
             disk_used_gb=485.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         alerts = monitor._check_alerts(metrics)
@@ -423,7 +428,7 @@ class TestPerformanceMonitor:
             disk_percent=55.0,
             disk_total_gb=500.0,
             disk_used_gb=275.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
         monitor.metrics_history.append(metrics)
 
@@ -454,7 +459,7 @@ class TestPerformanceMonitor:
                 disk_percent=45.0 + i * 2,
                 disk_total_gb=500.0,
                 disk_used_gb=225.0 + i * 10,
-                uptime_seconds=3600.0 + i * 60
+                uptime_seconds=3600.0 + i * 60,
             )
             monitor.metrics_history.append(metrics)
 
@@ -497,7 +502,7 @@ class TestPerformanceMonitor:
                 timestamp=now - timedelta(hours=1),
                 metric_name="cpu_percent",
                 current_value=75.0,
-                threshold=70.0
+                threshold=70.0,
             ),
             PerformanceAlert(
                 level="critical",
@@ -505,7 +510,7 @@ class TestPerformanceMonitor:
                 timestamp=now - timedelta(hours=2),
                 metric_name="memory_percent",
                 current_value=97.0,
-                threshold=95.0
+                threshold=95.0,
             ),
             PerformanceAlert(
                 level="warning",
@@ -513,8 +518,8 @@ class TestPerformanceMonitor:
                 timestamp=now - timedelta(hours=48),  # 超過24小時
                 metric_name="disk_percent",
                 current_value=87.0,
-                threshold=85.0
-            )
+                threshold=85.0,
+            ),
         ]
         monitor.alerts_history.extend(alerts)
 
@@ -537,7 +542,7 @@ class TestPerformanceMonitor:
             timestamp=datetime.utcnow(),
             metric_name="cpu_percent",
             current_value=75.0,
-            threshold=70.0
+            threshold=70.0,
         )
         monitor.alerts_history.append(alert)
 
@@ -573,14 +578,14 @@ class TestPerformanceMonitor:
             disk_percent=55.0,
             disk_total_gb=500.0,
             disk_used_gb=275.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         monitor._collect_system_metrics = AsyncMock(return_value=test_metrics)
         monitor._check_alerts = MagicMock(return_value=[])
         monitor.monitoring_interval = 0.01  # 快速測試
 
-        # 啟動監控，短暫運行後停止
+        # 啟動監控,短暫運行後停止
         await monitor.start_monitoring()
         await asyncio.sleep(0.05)  # 讓監控循環運行幾次
         await monitor.stop_monitoring()
@@ -639,6 +644,7 @@ class TestGlobalMonitorFunctions:
 
         # 全域監控器應該被重置
         from src.core.monitor import _global_monitor
+
         assert _global_monitor is None
 
 
@@ -649,6 +655,7 @@ class TestMonitoringErrorHandling:
     def monitor(self):
         """創建效能監控器."""
         from src.core.config import Settings
+
         return PerformanceMonitor(settings=Settings())
 
     @pytest.mark.asyncio
@@ -682,14 +689,14 @@ class TestMonitoringErrorHandling:
                 disk_percent=45.0,
                 disk_total_gb=500.0,
                 disk_used_gb=225.0,
-                uptime_seconds=3600.0 + i
+                uptime_seconds=3600.0 + i,
             )
             monitor.metrics_history.append(metrics)
 
             # 模擬限制檢查邏輯
             if len(monitor.metrics_history) > monitor.metrics_history_limit:
                 monitor.metrics_history = monitor.metrics_history[
-                    -monitor.metrics_history_limit // 2:
+                    -monitor.metrics_history_limit // 2 :
                 ]
 
         # 應該被限制在指定數量內
@@ -706,7 +713,7 @@ class TestMonitoringErrorHandling:
                 timestamp=now - timedelta(minutes=i),
                 metric_name="cpu_percent",
                 current_value=75.0,
-                threshold=70.0
+                threshold=70.0,
             )
             monitor.alerts_history.append(alert)
 
@@ -725,13 +732,16 @@ class TestMonitoringPerformance:
     def monitor(self):
         """創建效能監控器."""
         from src.core.config import Settings
+
         return PerformanceMonitor(settings=Settings())
 
     @pytest.mark.asyncio
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    async def test_metrics_collection_performance(self, mock_disk_usage, mock_virtual_memory, mock_cpu_percent, monitor):
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    async def test_metrics_collection_performance(
+        self, mock_disk_usage, mock_virtual_memory, mock_cpu_percent, monitor
+    ):
         """測試指標收集性能."""
         # 設置模擬返回值
         mock_cpu_percent.return_value = 45.5
@@ -772,7 +782,7 @@ class TestMonitoringPerformance:
             disk_percent=55.0,
             disk_total_gb=500.0,
             disk_used_gb=275.0,
-            uptime_seconds=3600.0
+            uptime_seconds=3600.0,
         )
 
         start_time = time.time()
@@ -801,7 +811,7 @@ class TestMonitoringPerformance:
                 disk_percent=45.0 + (i % 20),
                 disk_total_gb=500.0,
                 disk_used_gb=225.0 + (i % 100),
-                uptime_seconds=3600.0 + i * 60
+                uptime_seconds=3600.0 + i * 60,
             )
             monitor.metrics_history.append(metrics)
 

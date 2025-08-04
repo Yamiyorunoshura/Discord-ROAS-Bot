@@ -39,7 +39,6 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 EventHandler = Callable[["Event"], Awaitable[None]]
 
-
 class EventPriority(Enum):
     """事件優先級枚舉"""
 
@@ -48,7 +47,6 @@ class EventPriority(Enum):
     NORMAL = 2  # 普通優先級事件
     LOW = 3  # 低優先級事件
     BACKGROUND = 4  # 背景事件,最低優先級
-
 
 class EventStatus(Enum):
     """事件狀態枚舉"""
@@ -60,7 +58,6 @@ class EventStatus(Enum):
     CANCELLED = "cancelled"  # 已取消
     BATCHED = "batched"  # 已批處理
 
-
 class EventProcessingMode(Enum):
     """事件處理模式枚舉"""
 
@@ -68,7 +65,6 @@ class EventProcessingMode(Enum):
     BATCHED = "batched"  # 批處理
     SCHEDULED = "scheduled"  # 定時處理
     ADAPTIVE = "adaptive"  # 自適應處理
-
 
 @dataclass
 class Event:
@@ -154,9 +150,8 @@ class Event:
         """估算事件大小(字節)"""
         try:
             return len(json.dumps(self.to_dict()).encode("utf-8"))
-        except:
+        except Exception:
             return len(str(self.data).encode("utf-8"))
-
 
 @dataclass
 class EventBatch:
@@ -188,7 +183,6 @@ class EventBatch:
         """獲取批次總大小"""
         return sum(event.get_size() for event in self.events)
 
-
 @dataclass
 class EventSubscription:
     """事件訂閱描述符"""
@@ -217,11 +211,10 @@ class EventSubscription:
                 if not filter_func(event):
                     return False
             except Exception as e:
-                logger.warning(f"【事件總線】過濾器執行失敗: {e}")
+                logger.warning(f"[事件總線]過濾器執行失敗: {e}")
                 return False
 
         return True
-
 
 class EventMetrics:
     """事件指標收集器"""
@@ -248,7 +241,7 @@ class EventMetrics:
             self.events_by_priority[event.priority.name] += 1
 
     async def record_event_processed(
-        self, event: Event, processing_time: float, success: bool = True
+        self, _event: Event, processing_time: float, success: bool = True
     ):
         """記錄事件處理"""
         async with self._lock:
@@ -307,7 +300,6 @@ class EventMetrics:
                 else 0.0,
             }
 
-
 class EventRouter:
     """智能事件路由器"""
 
@@ -333,7 +325,7 @@ class EventRouter:
                     rule_results = rule(event)
                     matched_subscribers.extend(rule_results)
                 except Exception as e:
-                    logger.warning(f"【事件總線】路由規則執行失敗: {e}")
+                    logger.warning(f"[事件總線]路由規則執行失敗: {e}")
 
             # 如果沒有路由規則匹配,使用默認匹配
             if not matched_subscribers:
@@ -358,7 +350,6 @@ class EventRouter:
                 )
             else:
                 self.performance_cache[subscriber_id] = processing_time
-
 
 class EventCompressor:
     """事件壓縮器"""
@@ -391,13 +382,12 @@ class EventCompressor:
                     compressed = self.compression_rules[event_type](type_events)
                     compressed_events.extend(compressed)
                 except Exception as e:
-                    logger.warning(f"【事件總線】事件壓縮失敗 {event_type}: {e}")
+                    logger.warning(f"[事件總線]事件壓縮失敗 {event_type}: {e}")
                     compressed_events.extend(type_events)
             else:
                 compressed_events.extend(type_events)
 
         return compressed_events
-
 
 class EventFilter:
     """事件過濾器工具類別"""
@@ -435,7 +425,6 @@ class EventFilter:
         """按關聯ID過濾"""
         return lambda event: event.correlation_id == correlation_id
 
-
 class EventPersistence(ABC):
     """事件持久化抽象基類"""
 
@@ -464,7 +453,6 @@ class EventPersistence(ABC):
     async def save_batch(self, batch: EventBatch) -> bool:
         """保存事件批次"""
         pass
-
 
 class MemoryEventPersistence(EventPersistence):
     """內存事件持久化實現"""
@@ -535,7 +523,6 @@ class MemoryEventPersistence(EventPersistence):
                 or (deleted_count := deleted_count + 1, False)[1]
             ]
             return deleted_count
-
 
 class EventBus:
     """高性能事件總線"""
@@ -612,11 +599,11 @@ class EventBus:
             self._batch_tasks.add(batch_task)
             batch_task.add_done_callback(self._batch_tasks.discard)
 
-        logger.info("【事件總線】事件總線已初始化")
+        logger.info("[事件總線]事件總線已初始化")
 
     async def shutdown(self):
         """關閉事件總線"""
-        logger.info("【事件總線】正在關閉事件總線...")
+        logger.info("[事件總線]正在關閉事件總線...")
 
         # 設置關閉信號
         self._shutdown_event.set()
@@ -626,7 +613,7 @@ class EventBus:
         if all_tasks:
             await asyncio.gather(*all_tasks, return_exceptions=True)
 
-        logger.info("【事件總線】事件總線已關閉")
+        logger.info("[事件總線]事件總線已關閉")
 
     def subscribe(
         self,
@@ -659,14 +646,14 @@ class EventBus:
 
         self._subscriptions[subscriber_id] = subscription
 
-        logger.debug(f"【事件總線】新訂閱: {subscriber_id} -> {event_types}")
+        logger.debug(f"[事件總線]新訂閱: {subscriber_id} -> {event_types}")
         return subscriber_id
 
     def unsubscribe(self, subscriber_id: str) -> bool:
         """取消訂閱"""
         if subscriber_id in self._subscriptions:
             del self._subscriptions[subscriber_id]
-            logger.debug(f"【事件總線】取消訂閱: {subscriber_id}")
+            logger.debug(f"[事件總線]取消訂閱: {subscriber_id}")
             return True
         return False
 
@@ -693,13 +680,12 @@ class EventBus:
             return True
 
         except Exception as e:
-            logger.error(f"【事件總線】發布事件失敗: {e}")
+            logger.error(f"[事件總線]發布事件失敗: {e}")
             return False
 
     async def publish_batch(self, events: list[Event], persist: bool = True) -> bool:
         """批量發布事件"""
         try:
-            # 壓縮事件(如果啟用)
             if self.enable_compression and len(events) > 1:
                 events = await self.compressor.compress_events(events)
 
@@ -710,7 +696,7 @@ class EventBus:
             return True
 
         except Exception as e:
-            logger.error(f"【事件總線】批量發布事件失敗: {e}")
+            logger.error(f"[事件總線]批量發布事件失敗: {e}")
             return False
 
     async def publish_sync(self, event: Event) -> list[Any]:
@@ -738,7 +724,7 @@ class EventBus:
                     )
 
                 except Exception as e:
-                    logger.error(f"【事件總線】同步處理事件失敗 {subscriber_id}: {e}")
+                    logger.error(f"[事件總線]同步處理事件失敗 {subscriber_id}: {e}")
                     results.append(e)
                     await self.metrics.record_event_processed(event, 0, False)
 
@@ -789,7 +775,7 @@ class EventBus:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"【事件總線】批處理循環錯誤: {e}")
+                logger.error(f"[事件總線]批處理循環錯誤: {e}")
                 await asyncio.sleep(1)
 
     async def _process_batch(self, batch: EventBatch):
@@ -824,11 +810,11 @@ class EventBus:
             await self.metrics.record_batch_processed(batch, processing_time)
 
             logger.debug(
-                f"【事件總線】批次處理完成: {batch.batch_key} ({len(batch.events)} 事件)"
+                f"[事件總線]批次處理完成: {batch.batch_key} ({len(batch.events)} 事件)"
             )
 
         except Exception as e:
-            logger.error(f"【事件總線】批次處理失敗: {e}")
+            logger.error(f"[事件總線]批次處理失敗: {e}")
 
     async def _execute_batch_handler(
         self, subscription: EventSubscription, events: list[Event]
@@ -850,14 +836,13 @@ class EventBus:
 
         except Exception as e:
             logger.error(
-                f"【事件總線】批次處理器執行失敗 {subscription.subscriber_id}: {e}"
+                f"[事件總線]批次處理器執行失敗 {subscription.subscriber_id}: {e}"
             )
 
     async def _process_events(self):
         """事件處理工作者循環"""
         while not self._shutdown_event.is_set():
             try:
-                # 從隊列獲取事件(帶超時)
                 try:
                     priority, enqueue_time, event = await asyncio.wait_for(
                         self._event_queue.get(), timeout=1.0
@@ -870,7 +855,7 @@ class EventBus:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"【事件總線】事件處理工作者錯誤: {e}")
+                logger.error(f"[事件總線]事件處理工作者錯誤: {e}")
                 await asyncio.sleep(0.1)
 
     async def _handle_event(self, event: Event):
@@ -896,7 +881,7 @@ class EventBus:
                 await asyncio.gather(*tasks, return_exceptions=True)
 
         except Exception as e:
-            logger.error(f"【事件總線】處理事件失敗 {event.event_id}: {e}")
+            logger.error(f"[事件總線]處理事件失敗 {event.event_id}: {e}")
 
     async def _execute_handler(self, event: Event, subscription: EventSubscription):
         """執行事件處理器"""
@@ -928,13 +913,13 @@ class EventBus:
 
                 if retry_count <= subscription.max_retries:
                     logger.warning(
-                        f"【事件總線】處理器執行失敗,重試 {retry_count}/{subscription.max_retries}: "
+                        f"[事件總線]處理器執行失敗,重試 {retry_count}/{subscription.max_retries}: "
                         f"{subscription.subscriber_id} - {e}"
                     )
                     await asyncio.sleep(subscription.retry_delay * retry_count)
                 else:
                     logger.error(
-                        f"【事件總線】處理器執行失敗,已達最大重試次數: "
+                        f"[事件總線]處理器執行失敗,已達最大重試次數: "
                         f"{subscription.subscriber_id} - {e}"
                     )
 
@@ -1022,33 +1007,38 @@ class EventBus:
         finally:
             self.unsubscribe(subscription_id)
 
+class EventBusManager:
+    """全域事件總線管理器"""
 
-# 全域事件總線實例
-_global_event_bus: EventBus | None = None
-_bus_lock = asyncio.Lock()
+    def __init__(self):
+        self._event_bus: EventBus | None = None
+        self._lock = asyncio.Lock()
 
+    async def get_event_bus(self) -> EventBus:
+        """獲取全域事件總線"""
+        async with self._lock:
+            if self._event_bus is None:
+                self._event_bus = EventBus()
+                await self._event_bus.initialize()
+        return self._event_bus
+
+    async def dispose_event_bus(self):
+        """釋放全域事件總線"""
+        async with self._lock:
+            if self._event_bus is not None:
+                await self._event_bus.shutdown()
+                self._event_bus = None
+
+# 全域管理器實例
+_event_bus_manager = EventBusManager()
 
 async def get_global_event_bus() -> EventBus:
     """獲取全域事件總線"""
-    global _global_event_bus
-
-    async with _bus_lock:
-        if _global_event_bus is None:
-            _global_event_bus = EventBus()
-            await _global_event_bus.initialize()
-
-    return _global_event_bus
-
+    return await _event_bus_manager.get_event_bus()
 
 async def dispose_global_event_bus():
     """釋放全域事件總線"""
-    global _global_event_bus
-
-    async with _bus_lock:
-        if _global_event_bus is not None:
-            await _global_event_bus.shutdown()
-            _global_event_bus = None
-
+    await _event_bus_manager.dispose_event_bus()
 
 # 便捷函數
 async def publish_event(
@@ -1072,14 +1062,12 @@ async def publish_event(
     bus = await get_global_event_bus()
     return await bus.publish(event)
 
-
 async def publish_batch_events(events_data: list[dict[str, Any]]) -> bool:
     """批量發布事件的便捷函數"""
     events = [Event.from_dict(event_data) for event_data in events_data]
 
     bus = await get_global_event_bus()
     return await bus.publish_batch(events)
-
 
 def event_handler(
     event_types: list[str],
@@ -1101,7 +1089,11 @@ def event_handler(
             )
 
         # 自動註冊處理器
-        asyncio.create_task(wrapper())
+        task = asyncio.create_task(wrapper())
+        # 儲存task引用以避免被垃圾回收
+        if not hasattr(func, '_event_tasks'):
+            func._event_tasks = []
+        func._event_tasks.append(task)
         return func
 
     return decorator

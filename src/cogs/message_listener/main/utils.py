@@ -15,18 +15,23 @@ import re
 import tempfile
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import aiohttp
 import discord
 import requests
-from PIL import ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 from ..config.config import (
     CHINESE_FONTS,
     DEFAULT_FONT_SIZE,
     FONT_DOWNLOAD_URLS,
     FONT_PATH,
+    FONT_TEST_SIZE,
+    HTTP_OK,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
     TW_TZ,
     setup_logger,
 )
@@ -38,7 +43,6 @@ logger = setup_logger()
 # 字型管理工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
-
 def find_available_font() -> str:
     """
     尋找可用的字型檔案
@@ -49,50 +53,49 @@ def find_available_font() -> str:
     # 記錄嘗試過的路徑,用於診斷
     tried_paths = []
 
-    # 先檢查自定義字型目錄 (最優先)
     for font_name in CHINESE_FONTS:
-        font_path = os.path.join(FONT_PATH, font_name)
-        tried_paths.append(font_path)
+        font_path = Path(FONT_PATH) / font_name
+        tried_paths.append(str(font_path))
 
-        if os.path.exists(font_path):
-            logger.info(f"【訊息監聽】找到字型檔案: {font_path}")
-            return font_path
+        if font_path.exists():
+            logger.info(f"[訊息監聽]找到字型檔案: {font_path}")
+            return str(font_path)
 
     # 檢查系統字型目錄
     system_font_dirs = get_system_font_dirs()
 
     # 在系統字型目錄中尋找
     for font_dir in system_font_dirs:
-        if not os.path.exists(font_dir):
+        font_dir_path = Path(font_dir)
+        if not font_dir_path.exists():
             continue
 
         for font_name in CHINESE_FONTS:
-            font_path = os.path.join(font_dir, font_name)
-            tried_paths.append(font_path)
+            font_path = font_dir_path / font_name
+            tried_paths.append(str(font_path))
 
-            if os.path.exists(font_path):
-                logger.info(f"【訊息監聽】找到系統字型: {font_path}")
-                return font_path
+            if font_path.exists():
+                logger.info(f"[訊息監聽]找到系統字型: {font_path}")
+                return str(font_path)
 
     # 如果找不到中文字型,嘗試下載
     for font_name, url in FONT_DOWNLOAD_URLS.items():
-        target_path = os.path.join(FONT_PATH, font_name)
-        if download_font(url, target_path):
-            logger.info(f"【訊息監聽】已下載字型: {target_path}")
+        target_path = Path(FONT_PATH) / font_name
+        if download_font(url, str(target_path)):
+            logger.info(f"[訊息監聽]已下載字型: {target_path}")
             return target_path
 
     # 如果都找不到,使用預設字型
-    logger.warning(f"【訊息監聽】找不到合適的中文字型,嘗試過以下路徑: {tried_paths}")
+    logger.warning(f"[訊息監聽]找不到合適的中文字型,嘗試過以下路徑: {tried_paths}")
 
     # 嘗試找到任何可用的字型
     system_fonts = find_system_fonts()
     if system_fonts:
-        logger.info(f"【訊息監聽】使用系統字型: {system_fonts[0]}")
+        logger.info(f"[訊息監聽]使用系統字型: {system_fonts[0]}")
         return system_fonts[0]
 
     # 最後的備用方案
     return "arial.ttf"
-
 
 def get_system_font_dirs() -> list[str]:
     """
@@ -105,7 +108,7 @@ def get_system_font_dirs() -> list[str]:
 
     if os.name == "nt":  # Windows
         system_font_dirs.append(
-            os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Fonts")
+            str(Path(os.environ.get("WINDIR", "C:\\Windows")) / "Fonts")
         )
     elif os.name == "posix":  # Linux/Mac
         system_font_dirs.extend(
@@ -116,14 +119,13 @@ def get_system_font_dirs() -> list[str]:
                 "/usr/share/fonts/opentype",
                 "/usr/share/fonts/TTF",
                 "/usr/share/fonts/OTF",
-                os.path.expanduser("~/.fonts"),
+                str(Path.home() / ".fonts"),
                 "/Library/Fonts",  # macOS
-                os.path.expanduser("~/Library/Fonts"),  # macOS 用戶字型
+                str(Path.home() / "Library/Fonts"),  # macOS 用戶字型
             ]
         )
 
     return system_font_dirs
-
 
 def find_system_fonts() -> list[str]:
     """
@@ -142,16 +144,15 @@ def find_system_fonts() -> list[str]:
 
     # 在系統字型目錄中尋找常見字型
     for font_dir in system_font_dirs:
-        if not os.path.exists(font_dir):
+        if not Path(font_dir).exists():
             continue
 
         for font_name in common_fonts:
-            font_path = os.path.join(font_dir, font_name)
-            if os.path.exists(font_path):
-                fonts.append(font_path)
+            font_path = Path(font_dir) / font_name
+            if font_path.exists():
+                fonts.append(str(font_path))
 
     return fonts
-
 
 def download_font(url: str, target_path: str) -> bool:
     """
@@ -166,30 +167,29 @@ def download_font(url: str, target_path: str) -> bool:
     """
     try:
         response = requests.get(url, stream=True, timeout=30)
-        if response.status_code == 200:
+        if response.status_code == HTTP_OK:
             # 確保目標目錄存在
-            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+            Path(target_path).parent.mkdir(parents=True, exist_ok=True)
 
-            with open(target_path, "wb") as f:
+            with Path(target_path).open("wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
 
             # 驗證下載的檔案是否為有效的字型檔案
             if validate_font_file(target_path):
-                logger.info(f"【訊息監聽】成功下載字型: {target_path}")
+                logger.info(f"[訊息監聽]成功下載字型: {target_path}")
                 return True
             else:
-                logger.error(f"【訊息監聽】下載的字型檔案無效: {target_path}")
+                logger.error(f"[訊息監聽]下載的字型檔案無效: {target_path}")
                 safe_remove_file(target_path)
                 return False
         else:
-            logger.error(f"【訊息監聽】下載字型失敗,HTTP狀態碼: {response.status_code}")
+            logger.error(f"[訊息監聽]下載字型失敗,HTTP狀態碼: {response.status_code}")
             return False
     except Exception as exc:
-        logger.error(f"【訊息監聽】下載字型失敗: {exc}")
+        logger.error(f"[訊息監聽]下載字型失敗: {exc}")
         return False
-
 
 def validate_font_file(font_path: str) -> bool:
     """
@@ -207,17 +207,14 @@ def validate_font_file(font_path: str) -> bool:
 
         # 測試字型是否能正常使用
         test_text = "測試"
-        from PIL import Image, ImageDraw
-
-        test_image = Image.new("RGB", (100, 100), (255, 255, 255))
+        test_image = Image.new("RGB", (FONT_TEST_SIZE, FONT_TEST_SIZE), (255, 255, 255))
         draw = ImageDraw.Draw(test_image)
         draw.text((10, 10), test_text, font=font, fill=(0, 0, 0))
 
         return True
     except Exception as exc:
-        logger.error(f"【訊息監聽】驗證字型檔案失敗: {exc}")
+        logger.error(f"[訊息監聽]驗證字型檔案失敗: {exc}")
         return False
-
 
 def test_font_chinese_support(font_path: str) -> bool:
     """
@@ -240,23 +237,21 @@ def test_font_chinese_support(font_path: str) -> bool:
                 # 嘗試獲取字符的邊界框
                 bbox = font.getbbox(char)
                 if bbox[2] - bbox[0] <= 0:  # 寬度為0表示字符不存在
-                    logger.warning(f"【訊息監聽】字型 {font_path} 不支援字符: {char}")
+                    logger.warning(f"[訊息監聽]字型 {font_path} 不支援字符: {char}")
                     return False
             except Exception:
-                logger.warning(f"【訊息監聽】字型 {font_path} 不支援字符: {char}")
+                logger.warning(f"[訊息監聽]字型 {font_path} 不支援字符: {char}")
                 return False
 
-        logger.info(f"【訊息監聽】字型 {font_path} 支援中文")
+        logger.info(f"[訊息監聽]字型 {font_path} 支援中文")
         return True
     except Exception as exc:
-        logger.error(f"【訊息監聽】測試字型中文支援失敗: {exc}")
+        logger.error(f"[訊息監聽]測試字型中文支援失敗: {exc}")
         return False
-
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 錯誤處理工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
 
 def safe_execute(func, *args, default=None, max_retries: int = 3, **kwargs):
     """
@@ -278,15 +273,14 @@ def safe_execute(func, *args, default=None, max_retries: int = 3, **kwargs):
         except Exception as exc:
             if attempt == max_retries:
                 logger.error(
-                    f"【訊息監聽】執行函數 {func.__name__} 失敗,已達最大重試次數: {exc}"
+                    f"[訊息監聽]執行函數 {func.__name__} 失敗,已達最大重試次數: {exc}"
                 )
                 return default
             else:
                 logger.warning(
-                    f"【訊息監聽】執行函數 {func.__name__} 失敗,重試 {attempt + 1}/{max_retries}: {exc}"
+                    f"[訊息監聽]執行函數 {func.__name__} 失敗,重試 {attempt + 1}/{max_retries}: {exc}"
                 )
                 time.sleep(2**attempt)  # 指數退避
-
 
 async def safe_execute_async(func, *args, default=None, max_retries: int = 3, **kwargs):
     """
@@ -308,15 +302,14 @@ async def safe_execute_async(func, *args, default=None, max_retries: int = 3, **
         except Exception as exc:
             if attempt == max_retries:
                 logger.error(
-                    f"【訊息監聽】執行異步函數 {func.__name__} 失敗,已達最大重試次數: {exc}"
+                    f"[訊息監聽]執行異步函數 {func.__name__} 失敗,已達最大重試次數: {exc}"
                 )
                 return default
             else:
                 logger.warning(
-                    f"【訊息監聽】執行異步函數 {func.__name__} 失敗,重試 {attempt + 1}/{max_retries}: {exc}"
+                    f"[訊息監聽]執行異步函數 {func.__name__} 失敗,重試 {attempt + 1}/{max_retries}: {exc}"
                 )
                 await asyncio.sleep(2**attempt)  # 指數退避
-
 
 def log_error_with_context(
     error: Exception, context: str, extra_info: dict[str, Any] | None = None
@@ -329,18 +322,16 @@ def log_error_with_context(
         context: 上下文描述
         extra_info: 額外信息
     """
-    error_msg = f"【訊息監聽】{context}: {error}"
+    error_msg = f"[訊息監聽]{context}: {error}"
 
     if extra_info:
         error_msg += f" | 額外信息: {extra_info}"
 
     logger.error(error_msg, exc_info=True)
 
-
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 文件操作工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
 
 def safe_remove_file(file_path: str) -> bool:
     """
@@ -353,15 +344,15 @@ def safe_remove_file(file_path: str) -> bool:
         bool: 是否成功刪除
     """
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            logger.debug(f"【訊息監聽】已刪除檔案: {file_path}")
+        file_path_obj = Path(file_path)
+        if file_path_obj.exists():
+            file_path_obj.unlink()
+            logger.debug(f"[訊息監聽]已刪除檔案: {file_path}")
             return True
         return False
     except Exception as exc:
-        logger.error(f"【訊息監聽】刪除檔案失敗 {file_path}: {exc}")
+        logger.error(f"[訊息監聽]刪除檔案失敗 {file_path}: {exc}")
         return False
-
 
 def ensure_directory_exists(directory: str) -> bool:
     """
@@ -374,12 +365,11 @@ def ensure_directory_exists(directory: str) -> bool:
         bool: 是否成功創建或已存在
     """
     try:
-        os.makedirs(directory, exist_ok=True)
+        Path(directory).mkdir(parents=True, exist_ok=True)
         return True
     except Exception as exc:
-        logger.error(f"【訊息監聽】創建目錄失敗 {directory}: {exc}")
+        logger.error(f"[訊息監聽]創建目錄失敗 {directory}: {exc}")
         return False
-
 
 def get_file_size(file_path: str) -> int:
     """
@@ -392,11 +382,10 @@ def get_file_size(file_path: str) -> int:
         int: 檔案大小(字節),失敗時返回 -1
     """
     try:
-        return os.path.getsize(file_path)
+        return Path(file_path).stat().st_size
     except Exception as exc:
-        logger.error(f"【訊息監聽】取得檔案大小失敗 {file_path}: {exc}")
+        logger.error(f"[訊息監聽]取得檔案大小失敗 {file_path}: {exc}")
         return -1
-
 
 def get_file_hash(file_path: str, algorithm: str = "md5") -> str | None:
     """
@@ -412,15 +401,14 @@ def get_file_hash(file_path: str, algorithm: str = "md5") -> str | None:
     try:
         hash_obj = hashlib.new(algorithm)
 
-        with open(file_path, "rb") as f:
+        with Path(file_path).open("rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_obj.update(chunk)
 
         return hash_obj.hexdigest()
     except Exception as exc:
-        logger.error(f"【訊息監聽】計算檔案哈希失敗 {file_path}: {exc}")
+        logger.error(f"[訊息監聽]計算檔案哈希失敗 {file_path}: {exc}")
         return None
-
 
 def create_temp_file(suffix: str = "", prefix: str = "msg_listener_") -> str:
     """
@@ -438,14 +426,12 @@ def create_temp_file(suffix: str = "", prefix: str = "msg_listener_") -> str:
         os.close(fd)  # 關閉檔案描述符
         return temp_path
     except Exception as exc:
-        logger.error(f"【訊息監聽】創建臨時檔案失敗: {exc}")
+        logger.error(f"[訊息監聽]創建臨時檔案失敗: {exc}")
         return ""
-
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 文本處理工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
 
 def sanitize_filename(filename: str) -> str:
     """
@@ -465,15 +451,15 @@ def sanitize_filename(filename: str) -> str:
     safe_filename = safe_filename.strip(". ")
 
     # 限制檔案名長度
-    if len(safe_filename) > 200:
-        safe_filename = safe_filename[:200]
+    max_filename_length = 200
+    if len(safe_filename) > max_filename_length:
+        safe_filename = safe_filename[:max_filename_length]
 
     # 確保不是空檔案名
     if not safe_filename:
         safe_filename = "untitled"
 
     return safe_filename
-
 
 def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
     """
@@ -492,7 +478,6 @@ def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
 
     return text[: max_length - len(suffix)] + suffix
 
-
 def extract_urls(text: str) -> list[str]:
     """
     從文本中提取 URL
@@ -505,7 +490,6 @@ def extract_urls(text: str) -> list[str]:
     """
     url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
     return re.findall(url_pattern, text)
-
 
 def extract_mentions(text: str) -> tuple[list[str], list[str], list[str]]:
     """
@@ -522,7 +506,6 @@ def extract_mentions(text: str) -> tuple[list[str], list[str], list[str]]:
     channel_mentions = re.findall(r"<#(\d+)>", text)
 
     return user_mentions, role_mentions, channel_mentions
-
 
 def extract_custom_emojis(text: str) -> list[dict[str, str]]:
     """
@@ -550,7 +533,6 @@ def extract_custom_emojis(text: str) -> list[dict[str, str]]:
 
     return emojis
 
-
 def clean_discord_formatting(text: str) -> str:
     """
     清理 Discord 格式化標記
@@ -572,11 +554,9 @@ def clean_discord_formatting(text: str) -> str:
 
     return text.strip()
 
-
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 時間處理工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
 
 def format_timestamp(timestamp: datetime, format_type: str = "default") -> str:
     """
@@ -605,9 +585,8 @@ def format_timestamp(timestamp: datetime, format_type: str = "default") -> str:
         else:  # default
             return timestamp.strftime("%Y/%m/%d %H:%M")
     except Exception as exc:
-        logger.error(f"【訊息監聽】格式化時間戳失敗: {exc}")
+        logger.error(f"[訊息監聽]格式化時間戳失敗: {exc}")
         return "未知時間"
-
 
 def get_relative_time(timestamp: datetime) -> str:
     """
@@ -628,18 +607,17 @@ def get_relative_time(timestamp: datetime) -> str:
 
         if diff.days > 0:
             return f"{diff.days}天前"
-        elif diff.seconds > 3600:
-            hours = diff.seconds // 3600
+        elif diff.seconds > SECONDS_PER_HOUR:
+            hours = diff.seconds // SECONDS_PER_HOUR
             return f"{hours}小時前"
-        elif diff.seconds > 60:
-            minutes = diff.seconds // 60
+        elif diff.seconds > SECONDS_PER_MINUTE:
+            minutes = diff.seconds // SECONDS_PER_MINUTE
             return f"{minutes}分鐘前"
         else:
             return "剛剛"
     except Exception as exc:
-        logger.error(f"【訊息監聽】計算相對時間失敗: {exc}")
+        logger.error(f"[訊息監聽]計算相對時間失敗: {exc}")
         return "未知時間"
-
 
 def parse_time_duration(duration_str: str) -> timedelta | None:
     """
@@ -660,8 +638,8 @@ def parse_time_duration(duration_str: str) -> timedelta | None:
             return None
 
         total_seconds = 0
-        for value, unit in matches:
-            value = int(value)
+        for value_str, unit in matches:
+            value = int(value_str)
             if unit == "s":
                 total_seconds += value
             elif unit == "m":
@@ -673,14 +651,12 @@ def parse_time_duration(duration_str: str) -> timedelta | None:
 
         return timedelta(seconds=total_seconds)
     except Exception as exc:
-        logger.error(f"【訊息監聽】解析時間持續時間失敗: {exc}")
+        logger.error(f"[訊息監聽]解析時間持續時間失敗: {exc}")
         return None
-
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 網路請求工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
 
 async def download_file_async(
     url: str, target_path: str, max_size: int = 50 * 1024 * 1024
@@ -697,11 +673,10 @@ async def download_file_async(
         bool: 是否下載成功
     """
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status != 200:
+        async with aiohttp.ClientSession() as session, session.get(url) as response:
+                if response.status != HTTP_OK:
                     logger.error(
-                        f"【訊息監聽】下載檔案失敗,HTTP狀態碼: {response.status}"
+                        f"[訊息監聽]下載檔案失敗,HTTP狀態碼: {response.status}"
                     )
                     return False
 
@@ -709,34 +684,33 @@ async def download_file_async(
                 content_length = response.headers.get("content-length")
                 if content_length and int(content_length) > max_size:
                     logger.error(
-                        f"【訊息監聽】檔案太大,超過限制: {content_length} > {max_size}"
+                        f"[訊息監聽]檔案太大,超過限制: {content_length} > {max_size}"
                     )
                     return False
 
                 # 確保目標目錄存在
-                ensure_directory_exists(os.path.dirname(target_path))
+                ensure_directory_exists(str(Path(target_path).parent))
 
                 # 下載檔案
-                with open(target_path, "wb") as f:
+                with Path(target_path).open("wb") as f:
                     downloaded = 0
                     async for chunk in response.content.iter_chunked(8192):
                         downloaded += len(chunk)
                         if downloaded > max_size:
                             logger.error(
-                                f"【訊息監聽】檔案太大,下載中止: {downloaded} > {max_size}"
+                                f"[訊息監聽]檔案太大,下載中止: {downloaded} > {max_size}"
                             )
                             safe_remove_file(target_path)
                             return False
                         f.write(chunk)
 
-                logger.info(f"【訊息監聽】成功下載檔案: {target_path}")
+                logger.info(f"[訊息監聽]成功下載檔案: {target_path}")
                 return True
 
     except Exception as exc:
-        logger.error(f"【訊息監聽】異步下載檔案失敗: {exc}")
+        logger.error(f"[訊息監聽]異步下載檔案失敗: {exc}")
         safe_remove_file(target_path)
         return False
-
 
 async def get_url_content_type(url: str) -> str | None:
     """
@@ -749,13 +723,11 @@ async def get_url_content_type(url: str) -> str | None:
         str | None: 內容類型,失敗時返回 None
     """
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.head(url) as response:
+        async with aiohttp.ClientSession() as session, session.head(url) as response:
                 return response.headers.get("content-type")
     except Exception as exc:
-        logger.error(f"【訊息監聽】取得 URL 內容類型失敗: {exc}")
+        logger.error(f"[訊息監聽]取得 URL 內容類型失敗: {exc}")
         return None
-
 
 async def check_url_accessible(url: str, timeout: int = 10) -> bool:
     """
@@ -775,16 +747,14 @@ async def check_url_accessible(url: str, timeout: int = 10) -> bool:
             ) as session,
             session.head(url) as response,
         ):
-            return response.status == 200
+            return response.status == HTTP_OK
     except Exception as exc:
-        logger.debug(f"【訊息監聽】URL 不可訪問: {url} - {exc}")
+        logger.debug(f"[訊息監聽]URL 不可訪問: {url} - {exc}")
         return False
-
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # Discord 相關工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
 
 def get_user_display_name(user: discord.Member | discord.User) -> str:
     """
@@ -802,7 +772,6 @@ def get_user_display_name(user: discord.Member | discord.User) -> str:
         return user.global_name
     else:
         return user.name
-
 
 def get_channel_display_name(
     channel: discord.CategoryChannel | discord.TextChannel | discord.VoiceChannel,
@@ -825,7 +794,6 @@ def get_channel_display_name(
     else:
         return channel.name
 
-
 def is_image_attachment(attachment: discord.Attachment) -> bool:
     """
     檢查附件是否為圖片
@@ -843,7 +811,6 @@ def is_image_attachment(attachment: discord.Attachment) -> bool:
     image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
     return any(attachment.filename.lower().endswith(ext) for ext in image_extensions)
 
-
 def get_message_jump_url(message: discord.Message) -> str:
     """
     取得訊息跳轉 URL
@@ -859,11 +826,9 @@ def get_message_jump_url(message: discord.Message) -> str:
     else:
         return f"https://discord.com/channels/@me/{message.channel.id}/{message.id}"
 
-
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 數據驗證工具
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
 
 def validate_discord_id(discord_id: int | str) -> bool:
     """
@@ -882,7 +847,6 @@ def validate_discord_id(discord_id: int | str) -> bool:
     except (ValueError, TypeError):
         return False
 
-
 def validate_channel_id(channel_id: int | str) -> bool:
     """
     驗證頻道 ID 格式
@@ -895,7 +859,6 @@ def validate_channel_id(channel_id: int | str) -> bool:
     """
     return validate_discord_id(channel_id)
 
-
 def validate_message_content(content: str) -> bool:
     """
     驗證訊息內容
@@ -907,8 +870,8 @@ def validate_message_content(content: str) -> bool:
         bool: 是否有效
     """
     # Discord 訊息長度限制
-    return len(content) <= 2000
-
+    discord_message_limit = 2000
+    return len(content) <= discord_message_limit
 
 def validate_setting_value(key: str, value: str) -> bool:
     """
@@ -926,13 +889,16 @@ def validate_setting_value(key: str, value: str) -> bool:
             return validate_discord_id(value)
         elif key.endswith("_days"):
             days = int(value)
-            return 1 <= days <= 365
+            max_days = 365
+            return 1 <= days <= max_days
         elif key.endswith("_limit"):
             limit = int(value)
-            return 1 <= limit <= 1000
+            max_limit = 1000
+            return 1 <= limit <= max_limit
         elif key.endswith("_enabled"):
             return value.lower() in ["true", "false", "1", "0"]
         else:
-            return len(value) <= 1000
+            max_value_length = 1000
+            return len(value) <= max_value_length
     except (ValueError, TypeError):
         return False

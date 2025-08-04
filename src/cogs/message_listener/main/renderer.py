@@ -22,9 +22,12 @@ from ..config.config import (
     CONTENT_PADDING,
     DEFAULT_FONT_SIZE,
     DISCORD_COLORS,
+    HTTP_OK,
     MAX_HEIGHT,
+    MAX_REPLY_CONTENT_LENGTH,
     MESSAGE_PADDING,
     RENDER_CONFIG,
+    REPLY_CONTENT_TRUNCATE_SUFFIX,
     TIMESTAMP_FONT_SIZE,
     USERNAME_FONT_SIZE,
     setup_logger,
@@ -33,7 +36,6 @@ from . import utils
 
 # 設定日誌記錄器
 logger = setup_logger()
-
 
 class EnhancedMessageRenderer:
     """
@@ -72,12 +74,12 @@ class EnhancedMessageRenderer:
             self.username_font = ImageFont.truetype(font_path, USERNAME_FONT_SIZE)
             self.timestamp_font = ImageFont.truetype(font_path, TIMESTAMP_FONT_SIZE)
 
-            logger.info(f"【訊息監聽】成功載入字型:{font_path}")
+            logger.info(f"[訊息監聽]成功載入字型:{font_path}")
 
             # 測試字型是否支援中文
             utils.test_font_chinese_support(font_path)
         except Exception as exc:
-            logger.error(f"【訊息監聽】載入字型失敗:{exc}")
+            logger.error(f"[訊息監聽]載入字型失敗:{exc}")
             # 使用預設字型
             self.font = ImageFont.load_default()
             self.username_font = ImageFont.load_default()
@@ -125,7 +127,7 @@ class EnhancedMessageRenderer:
             return enhanced_avatar
 
         except Exception as exc:
-            logger.error(f"【訊息監聽】獲取增強頭像失敗:{exc}")
+            logger.error(f"[訊息監聽]獲取增強頭像失敗:{exc}")
             return self._get_default_avatar()
 
     async def _download_avatar(
@@ -147,7 +149,7 @@ class EnhancedMessageRenderer:
             # 下載頭像
             session = await self.get_session()
             async with session.get(str(avatar_url)) as resp:
-                if resp.status == 200:
+                if resp.status == HTTP_OK:
                     data = await resp.read()
                     avatar = Image.open(io.BytesIO(data))
 
@@ -157,7 +159,7 @@ class EnhancedMessageRenderer:
 
                     return avatar
         except Exception as exc:
-            logger.error(f"【訊息監聽】下載頭像失敗:{exc}")
+            logger.error(f"[訊息監聽]下載頭像失敗:{exc}")
 
         return self._get_default_avatar()
 
@@ -256,7 +258,6 @@ class EnhancedMessageRenderer:
         status_color = status_colors.get(status, DISCORD_COLORS["offline"])
         indicator_size = RENDER_CONFIG["status_indicator_size"]
 
-        # 計算狀態指示器位置 (右下角)
         avatar_size = avatar.size[0]
         indicator_x = avatar_size - indicator_size
         indicator_y = avatar_size - indicator_size
@@ -265,7 +266,6 @@ class EnhancedMessageRenderer:
         result = avatar.copy()
         draw = ImageDraw.Draw(result)
 
-        # 繪製狀態指示器背景 (深色邊框)
         draw.ellipse(
             (
                 indicator_x - 1,
@@ -303,7 +303,6 @@ class EnhancedMessageRenderer:
         # 繪製灰色圓形
         draw.ellipse((0, 0, AVATAR_SIZE, AVATAR_SIZE), fill=(128, 128, 128, 255))
 
-        # 繪製預設用戶圖標 (簡化版)
         center = AVATAR_SIZE // 2
         head_radius = AVATAR_SIZE // 6
         body_width = AVATAR_SIZE // 3
@@ -353,7 +352,7 @@ class EnhancedMessageRenderer:
             # 下載附件
             session = await self.get_session()
             async with session.get(attachment.url) as resp:
-                if resp.status == 200:
+                if resp.status == HTTP_OK:
                     data = await resp.read()
                     img = Image.open(io.BytesIO(data))
 
@@ -431,8 +430,9 @@ class EnhancedMessageRenderer:
             replied_content = replied_msg.content
 
             # 截斷過長的回覆內容
-            if len(replied_content) > 50:
-                replied_content = replied_content[:47] + "..."
+            if len(replied_content) > MAX_REPLY_CONTENT_LENGTH:
+                truncate_length = MAX_REPLY_CONTENT_LENGTH - len(REPLY_CONTENT_TRUNCATE_SUFFIX)
+                replied_content = replied_content[:truncate_length] + REPLY_CONTENT_TRUNCATE_SUFFIX
 
             reply_text = f"回覆 @{replied_user}:{replied_content}"
             get_text_width(reply_text, self.timestamp_font)
@@ -512,7 +512,7 @@ class EnhancedMessageRenderer:
         # 返回結果
         return y_pos, avatar, (10, y_pos - avatar.height), attachments
 
-    def _sanitize_external_emoji(self, text: str, guild: discord.Guild | None) -> str:
+    def _sanitize_external_emoji(self, text: str, _guild: discord.Guild | None) -> str:
         """
         處理外部表情符號
 
@@ -593,9 +593,8 @@ class EnhancedMessageRenderer:
                 bg.save(path)
                 return path
         except Exception as exc:
-            logger.error(f"【訊息監聽】渲染訊息失敗:{exc}")
+            logger.error(f"[訊息監聽]渲染訊息失敗:{exc}")
             return None
-
 
 # 為了向後相容性,提供MessageRenderer別名
 MessageRenderer = EnhancedMessageRenderer

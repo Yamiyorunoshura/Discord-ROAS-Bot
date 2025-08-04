@@ -20,11 +20,14 @@ from ...core.logger import setup_module_logger
 # 導入服務接口
 from ..config.config import get_sync_type_name
 from ..database.database import SyncDataDatabase
+from ..panel.main_view import SyncDataMainView
 
 # 設置模塊日誌記錄器
 logger = setup_module_logger("sync_data")
 error_handler = create_error_handler("sync_data", logger)
 
+# 常數定義
+MIN_SYNC_INTERVAL = 30  # 最小同步間隔(秒)
 
 class SyncDataCog(commands.Cog):
     """
@@ -50,9 +53,9 @@ class SyncDataCog(commands.Cog):
         """Cog 載入時的初始化"""
         try:
             await self.db.init_db()
-            logger.info("【資料同步】Cog 載入完成")
+            logger.info("[資料同步]Cog 載入完成")
         except Exception as exc:
-            logger.error(f"【資料同步】Cog 載入失敗: {exc}")
+            logger.error(f"[資料同步]Cog 載入失敗: {exc}")
             raise
 
     async def cog_unload(self):
@@ -63,9 +66,9 @@ class SyncDataCog(commands.Cog):
                 if lock.locked():
                     lock.release()
             self._sync_locks.clear()
-            logger.info("【資料同步】Cog 卸載完成")
+            logger.info("[資料同步]Cog 卸載完成")
         except Exception as exc:
-            logger.error(f"【資料同步】Cog 卸載失敗: {exc}")
+            logger.error(f"[資料同步]Cog 卸載失敗: {exc}")
 
     # ───────── 工具方法 ─────────
     def _get_cache_key(self, guild_id: int) -> str:
@@ -104,7 +107,7 @@ class SyncDataCog(commands.Cog):
             else:
                 await interaction.response.send_message(message)
         except Exception as exc:
-            logger.error(f"【資料同步】發送進度更新失敗: {exc}")
+            logger.error(f"[資料同步]發送進度更新失敗: {exc}")
 
     # ───────── 同步邏輯 ─────────
     async def sync_guild_data(
@@ -140,7 +143,7 @@ class SyncDataCog(commands.Cog):
         async with sync_lock:
             try:
                 logger.info(
-                    f"【資料同步】開始同步伺服器 {guild.id} ({guild.name}),類型:{get_sync_type_name(sync_type)}"
+                    f"[資料同步]開始同步伺服器 {guild.id} ({guild.name}),類型:{get_sync_type_name(sync_type)}"
                 )
 
                 # 根據同步類型執行相應操作
@@ -192,7 +195,7 @@ class SyncDataCog(commands.Cog):
                 )
 
                 logger.info(
-                    f"【資料同步】伺服器 {guild.id} 同步完成:"
+                    f"[資料同步]伺服器 {guild.id} 同步完成:"
                     f"角色({result['roles_added']}+/{result['roles_updated']}~/{result['roles_deleted']}-) "
                     f"頻道({result['channels_added']}+/{result['channels_updated']}~/{result['channels_deleted']}-) "
                     f"耗時 {result['duration']:.2f}秒"
@@ -215,7 +218,7 @@ class SyncDataCog(commands.Cog):
                     result["duration"],
                 )
 
-                logger.error(f"【資料同步】伺服器 {guild.id} 同步失敗: {exc}")
+                logger.error(f"[資料同步]伺服器 {guild.id} 同步失敗: {exc}")
 
         return result
 
@@ -255,10 +258,10 @@ class SyncDataCog(commands.Cog):
                     await self.db.insert_or_replace_role(role)
                     if db_role:
                         updated += 1
-                        logger.debug(f"【資料同步】更新角色:{role.name} ({role.id})")
+                        logger.debug(f"[資料同步]更新角色:{role.name} ({role.id})")
                     else:
                         added += 1
-                        logger.debug(f"【資料同步】新增角色:{role.name} ({role.id})")
+                        logger.debug(f"[資料同步]新增角色:{role.name} ({role.id})")
 
             # 處理已刪除的角色
             current_role_ids = {role.id for role in guild.roles}
@@ -267,11 +270,11 @@ class SyncDataCog(commands.Cog):
                     await self.db.delete_role(db_role_id)
                     deleted += 1
                     logger.debug(
-                        f"【資料同步】刪除角色:{db_roles_dict[db_role_id]['name']} ({db_role_id})"
+                        f"[資料同步]刪除角色:{db_roles_dict[db_role_id]['name']} ({db_role_id})"
                     )
 
         except Exception as exc:
-            logger.error(f"【資料同步】角色同步失敗: {exc}")
+            logger.error(f"[資料同步]角色同步失敗: {exc}")
             raise
 
         return added, updated, deleted
@@ -313,12 +316,12 @@ class SyncDataCog(commands.Cog):
                     if db_channel:
                         updated += 1
                         logger.debug(
-                            f"【資料同步】更新頻道:{channel.name} ({channel.id})"
+                            f"[資料同步]更新頻道:{channel.name} ({channel.id})"
                         )
                     else:
                         added += 1
                         logger.debug(
-                            f"【資料同步】新增頻道:{channel.name} ({channel.id})"
+                            f"[資料同步]新增頻道:{channel.name} ({channel.id})"
                         )
 
             # 處理已刪除的頻道
@@ -328,11 +331,11 @@ class SyncDataCog(commands.Cog):
                     await self.db.delete_channel(db_channel_id)
                     deleted += 1
                     logger.debug(
-                        f"【資料同步】刪除頻道:{db_channels_dict[db_channel_id]['name']} ({db_channel_id})"
+                        f"[資料同步]刪除頻道:{db_channels_dict[db_channel_id]['name']} ({db_channel_id})"
                     )
 
         except Exception as exc:
-            logger.error(f"【資料同步】頻道同步失敗: {exc}")
+            logger.error(f"[資料同步]頻道同步失敗: {exc}")
             raise
 
         return added, updated, deleted
@@ -356,11 +359,11 @@ class SyncDataCog(commands.Cog):
             dict: 同步結果字典
         """
         # 記錄同步開始
-        logger.info(f"【資料同步】開始執行同步 guild={guild.id}, type={sync_type}")
+        logger.info(f"[資料同步]開始執行同步 guild={guild.id}, type={sync_type}")
 
         # 防止重複同步
         if self._is_syncing(guild.id):
-            logger.warning(f"【資料同步】伺服器 {guild.id} 正在同步中,跳過")
+            logger.warning(f"[資料同步]伺服器 {guild.id} 正在同步中,跳過")
             return {
                 "success": False,
                 "error_message": "此伺服器正在同步中,請稍後再試",
@@ -374,23 +377,23 @@ class SyncDataCog(commands.Cog):
 
             # 記錄同步開始
             sync_type_name = get_sync_type_name(sync_type)
-            logger.info(f"【資料同步】開始{sync_type_name} - 伺服器:{guild.name}")
+            logger.info(f"[資料同步]開始{sync_type_name} - 伺服器:{guild.name}")
 
             if sync_type in ["roles", "full"]:
-                logger.info(f"【資料同步】角色數量:{len(guild.roles)}")
+                logger.info(f"[資料同步]角色數量:{len(guild.roles)}")
             if sync_type in ["channels", "full"]:
-                logger.info(f"【資料同步】頻道數量:{len(guild.channels)}")
+                logger.info(f"[資料同步]頻道數量:{len(guild.channels)}")
 
             # 執行同步
             result = await self.sync_guild_data(guild, sync_type)
 
             # 處理結果
             if result["success"]:
-                logger.info(f"【資料同步】伺服器 {guild.id} 同步成功完成")
+                logger.info(f"[資料同步]伺服器 {guild.id} 同步成功完成")
                 return result
             else:
                 logger.error(
-                    f"【資料同步】伺服器 {guild.id} 同步失敗:{result['error_message']}"
+                    f"[資料同步]伺服器 {guild.id} 同步失敗:{result['error_message']}"
                 )
                 return result
 
@@ -402,7 +405,6 @@ class SyncDataCog(commands.Cog):
                 "sync_type": sync_type,
             }
         finally:
-            # 同步完成,標記會自動過期(通過時間戳管理)
             pass
 
     def _format_sync_result(self, result: dict[str, Any]) -> str:
@@ -442,12 +444,12 @@ class SyncDataCog(commands.Cog):
             # 取得同步歷史
             history = await self.db.get_sync_history(guild.id, limit=limit)
             logger.info(
-                f"【資料同步】獲取伺服器 {guild.id} 的同步歷史,共 {len(history) if history else 0} 條記錄"
+                f"[資料同步]獲取伺服器 {guild.id} 的同步歷史,共 {len(history) if history else 0} 條記錄"
             )
             return history if history else []
 
         except Exception as exc:
-            logger.error(f"【資料同步】獲取同步歷史失敗: {exc}")
+            logger.error(f"[資料同步]獲取同步歷史失敗: {exc}")
             error_handler.log_error(
                 exc, f"獲取伺服器 {guild.id} 同步歷史", "HISTORY_ERROR"
             )
@@ -478,9 +480,6 @@ class SyncDataCog(commands.Cog):
             return
 
         try:
-            # 導入面板視圖
-            from ..panel.main_view import SyncDataMainView
-
             # 創建面板視圖
             view = SyncDataMainView(self, interaction.user.id, interaction.guild)
 

@@ -1,7 +1,7 @@
 """資料庫操作測試模組.
 
-此模組為Discord ROAS Bot的資料庫操作提供全面的測試覆蓋，
-包括連接池管理、事務處理、CRUD操作等核心功能。
+此模組為Discord ROAS Bot的資料庫操作提供全面的測試覆蓋,
+包括連接池管理、事務處理、CRUD操作等核心功能.
 """
 
 import asyncio
@@ -25,13 +25,14 @@ class TestDatabasePool:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.db_path)
 
@@ -41,7 +42,7 @@ class TestDatabasePool:
         pool = DatabasePool(
             database_url=f"sqlite+aiosqlite:///{self.db_path}",
             pool_size=5,
-            max_overflow=10
+            max_overflow=10,
         )
 
         assert pool.database_url == f"sqlite+aiosqlite:///{self.db_path}"
@@ -60,9 +61,11 @@ class TestDatabasePool:
             await conn.execute("CREATE TABLE test (id INTEGER PRIMARY KEY)")
             await conn.commit()
 
-            cursor = await conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            cursor = await conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
             tables = await cursor.fetchall()
-            assert any('test' in str(table) for table in tables)
+            assert any("test" in str(table) for table in tables)
 
     @pytest.mark.asyncio
     async def test_connection_pool_reuse(self):
@@ -78,7 +81,7 @@ class TestDatabasePool:
         async with pool.get_connection() as conn2:
             connections.append(id(conn2))
 
-        # 驗證連接可能被重用（或創建新的）
+        # 驗證連接可能被重用(或創建新的)
         assert len(connections) == 2
 
     @pytest.mark.asyncio
@@ -93,7 +96,9 @@ class TestDatabasePool:
             # 測試事務回滾
             try:
                 await conn.execute("BEGIN")
-                await conn.execute("INSERT INTO test_transaction (id, value) VALUES (1, 'test')")
+                await conn.execute(
+                    "INSERT INTO test_transaction (id, value) VALUES (1, 'test')"
+                )
 
                 # 檢查數據已插入但未提交
                 cursor = await conn.execute("SELECT COUNT(*) FROM test_transaction")
@@ -124,19 +129,22 @@ class TestDatabasePool:
                 await conn.execute("SELECT 1")
 
 
-@pytest.mark.skip(reason="DatabaseManager and TransactionManager classes not implemented yet")
+@pytest.mark.skip(
+    reason="DatabaseManager and TransactionManager classes not implemented yet"
+)
 class TestDatabaseManager:
     """測試資料庫管理器."""
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.db_path)
 
@@ -154,8 +162,7 @@ class TestDatabaseManager:
         manager = DatabaseManager()
 
         pool = await manager.get_pool(
-            "test_db",
-            database_url=f"sqlite+aiosqlite:///{self.db_path}"
+            "test_db", database_url=f"sqlite+aiosqlite:///{self.db_path}"
         )
 
         assert pool is not None
@@ -178,7 +185,7 @@ class TestDatabaseManager:
         """測試多個資料庫連接池管理."""
         manager = DatabaseManager()
 
-        temp_db2 = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        temp_db2 = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         db_path2 = temp_db2.name
         temp_db2.close()
 
@@ -193,6 +200,7 @@ class TestDatabaseManager:
 
         finally:
             import os
+
             with contextlib.suppress(OSError, FileNotFoundError):
                 os.unlink(db_path2)
 
@@ -203,7 +211,7 @@ class TestTransactionManager:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
@@ -212,6 +220,7 @@ class TestTransactionManager:
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.db_path)
 
@@ -243,7 +252,9 @@ class TestTransactionManager:
 
             try:
                 async with tx_manager:
-                    await conn.execute("INSERT INTO test_rollback (id, value) VALUES (1, 'test')")
+                    await conn.execute(
+                        "INSERT INTO test_rollback (id, value) VALUES (1, 'test')"
+                    )
                     # 故意拋出異常
                     raise ValueError("測試異常")
             except ValueError:
@@ -265,10 +276,14 @@ class TestTransactionManager:
             tx_manager2 = TransactionManager(conn)
 
             async with tx_manager1:
-                await conn.execute("INSERT INTO test_nested (id, value) VALUES (1, 'outer')")
+                await conn.execute(
+                    "INSERT INTO test_nested (id, value) VALUES (1, 'outer')"
+                )
 
                 async with tx_manager2:
-                    await conn.execute("INSERT INTO test_nested (id, value) VALUES (2, 'inner')")
+                    await conn.execute(
+                        "INSERT INTO test_nested (id, value) VALUES (2, 'inner')"
+                    )
 
             # 驗證兩條記錄都已提交
             cursor = await conn.execute("SELECT COUNT(*) FROM test_nested")
@@ -281,13 +296,14 @@ class TestDatabaseIntegration:
 
     def setup_method(self):
         """設置測試環境."""
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.db_path = self.temp_db.name
         self.temp_db.close()
 
     def teardown_method(self):
         """清理測試環境."""
         import os
+
         with contextlib.suppress(OSError, FileNotFoundError):
             os.unlink(self.db_path)
 
@@ -298,7 +314,9 @@ class TestDatabaseIntegration:
 
         async def worker(worker_id: int):
             async with pool.get_connection() as conn:
-                await conn.execute(f"CREATE TABLE IF NOT EXISTS worker_{worker_id} (id INTEGER)")
+                await conn.execute(
+                    f"CREATE TABLE IF NOT EXISTS worker_{worker_id} (id INTEGER)"
+                )
                 await conn.commit()
                 return worker_id
 
@@ -328,7 +346,7 @@ class TestDatabaseIntegration:
             await conn.execute("INSERT INTO users (name) VALUES ('test_user')")
             await conn.commit()
 
-            # 模擬遷移：添加新列
+            # 模擬遷移:添加新列
             await conn.execute("ALTER TABLE users ADD COLUMN email TEXT")
             await conn.commit()
 
@@ -337,9 +355,9 @@ class TestDatabaseIntegration:
             columns = await cursor.fetchall()
             column_names = [col[1] for col in columns]
 
-            assert 'id' in column_names
-            assert 'name' in column_names
-            assert 'email' in column_names
+            assert "id" in column_names
+            assert "name" in column_names
+            assert "email" in column_names
 
     @pytest.mark.asyncio
     async def test_performance_with_bulk_operations(self):
@@ -357,20 +375,21 @@ class TestDatabaseIntegration:
 
             # 批量插入測試
             import time
+
             start_time = time.time()
 
             await conn.execute("BEGIN")
             for i in range(1000):
                 await conn.execute(
                     "INSERT INTO performance_test (data) VALUES (?)",
-                    (f"test_data_{i}",)
+                    (f"test_data_{i}",),
                 )
             await conn.commit()
 
             end_time = time.time()
             execution_time = end_time - start_time
 
-            # 驗證數據插入成功且性能合理（小於5秒）
+            # 驗證數據插入成功且性能合理(小於5秒)
             cursor = await conn.execute("SELECT COUNT(*) FROM performance_test")
             count = await cursor.fetchone()
             assert count[0] == 1000

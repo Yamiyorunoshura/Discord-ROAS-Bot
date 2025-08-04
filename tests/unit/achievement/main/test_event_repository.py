@@ -1,6 +1,6 @@
 """成就事件持久化測試模組.
 
-測試成就事件資料存取層的完整功能：
+測試成就事件資料存取層的完整功能:
 - 事件資料庫操作
 - 批次處理功能
 - 查詢和統計功能
@@ -28,7 +28,7 @@ class TestAchievementEventRepository:
     def repository(self, mock_pool):
         """建立事件資料存取庫實例."""
         # 使用 patch 跳過 logger 初始化以避免 MagicMock 比較問題
-        with patch('src.core.database.get_logger') as mock_get_logger:
+        with patch("src.core.database.get_logger") as mock_get_logger:
             mock_logger = MagicMock()
             mock_get_logger.return_value = mock_logger
             return AchievementEventRepository(mock_pool)
@@ -39,12 +39,12 @@ class TestAchievementEventRepository:
         return AchievementEventData(
             user_id=12345,
             guild_id=67890,
-            event_type='achievement.message_sent',
-            event_data={'content_length': 50, 'is_bot': False},
+            event_type="achievement.message_sent",
+            event_data={"content_length": 50, "is_bot": False},
             timestamp=datetime.now(),
             channel_id=11111,
             processed=False,
-            correlation_id='test-correlation-123'
+            correlation_id="test-correlation-123",
         )
 
     # =============================================================================
@@ -80,9 +80,9 @@ class TestAchievementEventRepository:
             event = AchievementEventData(
                 user_id=12345 + i,
                 guild_id=67890,
-                event_type='achievement.message_sent',
-                event_data={'content_length': 50 + i, 'is_bot': False},
-                timestamp=datetime.now()
+                event_type="achievement.message_sent",
+                event_data={"content_length": 50 + i, "is_bot": False},
+                timestamp=datetime.now(),
             )
             events.append(event)
 
@@ -99,15 +99,15 @@ class TestAchievementEventRepository:
         """測試根據 ID 取得事件."""
         # 模擬資料庫查詢結果
         mock_row = {
-            'id': 123,
-            'user_id': 12345,
-            'guild_id': 67890,
-            'event_type': 'achievement.message_sent',
-            'event_data': '{"content_length": 50, "is_bot": false}',
-            'timestamp': datetime.now(),
-            'channel_id': 11111,
-            'processed': False,
-            'correlation_id': 'test-123'
+            "id": 123,
+            "user_id": 12345,
+            "guild_id": 67890,
+            "event_type": "achievement.message_sent",
+            "event_data": '{"content_length": 50, "is_bot": false}',
+            "timestamp": datetime.now(),
+            "channel_id": 11111,
+            "processed": False,
+            "correlation_id": "test-123",
         }
 
         repository.execute_query = AsyncMock(return_value=mock_row)
@@ -137,27 +137,27 @@ class TestAchievementEventRepository:
         # 模擬查詢結果
         mock_rows = [
             {
-                'id': 1,
-                'user_id': 12345,
-                'guild_id': 67890,
-                'event_type': 'achievement.message_sent',
-                'event_data': '{"content_length": 50}',
-                'timestamp': datetime.now(),
-                'channel_id': None,
-                'processed': False,
-                'correlation_id': None
+                "id": 1,
+                "user_id": 12345,
+                "guild_id": 67890,
+                "event_type": "achievement.message_sent",
+                "event_data": '{"content_length": 50}',
+                "timestamp": datetime.now(),
+                "channel_id": None,
+                "processed": False,
+                "correlation_id": None,
             },
             {
-                'id': 2,
-                'user_id': 12345,
-                'guild_id': 67890,
-                'event_type': 'achievement.reaction_added',
-                'event_data': '{"emoji": "👍"}',
-                'timestamp': datetime.now(),
-                'channel_id': None,
-                'processed': False,
-                'correlation_id': None
-            }
+                "id": 2,
+                "user_id": 12345,
+                "guild_id": 67890,
+                "event_type": "achievement.reaction_added",
+                "event_data": '{"emoji": "👍"}',
+                "timestamp": datetime.now(),
+                "channel_id": None,
+                "processed": False,
+                "correlation_id": None,
+            },
         ]
 
         repository.execute_query = AsyncMock(return_value=mock_rows)
@@ -177,7 +177,7 @@ class TestAchievementEventRepository:
 
         start_time = datetime.now() - timedelta(days=1)
         end_time = datetime.now()
-        event_types = ['achievement.message_sent', 'achievement.reaction_added']
+        event_types = ["achievement.message_sent", "achievement.reaction_added"]
 
         # 測試帶過濾器的查詢
         await repository.get_events_by_user(
@@ -186,7 +186,7 @@ class TestAchievementEventRepository:
             start_time=start_time,
             end_time=end_time,
             limit=50,
-            offset=10
+            offset=10,
         )
 
         repository.execute_query.assert_called_once()
@@ -250,7 +250,10 @@ class TestAchievementEventRepository:
 
         assert updated_count == 0
         # 不應該調用資料庫
-        assert not hasattr(repository, 'execute_query') or not repository.execute_query.called
+        assert (
+            not hasattr(repository, "execute_query")
+            or not repository.execute_query.called
+        )
 
     # =============================================================================
     # 統計功能測試
@@ -261,31 +264,33 @@ class TestAchievementEventRepository:
         """測試基本事件統計."""
         # 模擬基本統計查詢結果
         mock_stats_row = {
-            'total_events': 100,
-            'processed_events': 80,
-            'unprocessed_events': 20,
-            'unique_users': 25,
-            'earliest_event': datetime.now() - timedelta(days=30),
-            'latest_event': datetime.now()
+            "total_events": 100,
+            "processed_events": 80,
+            "unprocessed_events": 20,
+            "unique_users": 25,
+            "earliest_event": datetime.now() - timedelta(days=30),
+            "latest_event": datetime.now(),
         }
 
         # 模擬事件類型統計查詢結果
         mock_type_rows = [
-            {'event_type': 'achievement.message_sent', 'count': 60},
-            {'event_type': 'achievement.reaction_added', 'count': 30},
-            {'event_type': 'achievement.voice_joined', 'count': 10}
+            {"event_type": "achievement.message_sent", "count": 60},
+            {"event_type": "achievement.reaction_added", "count": 30},
+            {"event_type": "achievement.voice_joined", "count": 10},
         ]
 
-        repository.execute_query = AsyncMock(side_effect=[mock_stats_row, mock_type_rows])
+        repository.execute_query = AsyncMock(
+            side_effect=[mock_stats_row, mock_type_rows]
+        )
 
         # 測試取得統計
         stats = await repository.get_event_stats()
 
-        assert stats['total_events'] == 100
-        assert stats['processed_events'] == 80
-        assert stats['unprocessed_events'] == 20
-        assert len(stats['event_types']) == 3
-        assert stats['event_types']['achievement.message_sent'] == 60
+        assert stats["total_events"] == 100
+        assert stats["processed_events"] == 80
+        assert stats["unprocessed_events"] == 20
+        assert len(stats["event_types"]) == 3
+        assert stats["event_types"]["achievement.message_sent"] == 60
 
     @pytest.mark.asyncio
     async def test_get_event_stats_with_filters(self, repository):
@@ -297,7 +302,7 @@ class TestAchievementEventRepository:
             guild_id=67890,
             user_id=12345,
             start_time=datetime.now() - timedelta(days=7),
-            end_time=datetime.now()
+            end_time=datetime.now(),
         )
 
         # 驗證兩次查詢調用
@@ -321,22 +326,22 @@ class TestAchievementEventRepository:
     async def test_cleanup_old_events(self, repository):
         """測試清理舊事件."""
         # 模擬計數查詢
-        mock_count_result = {'COUNT(*)': 1000}
+        mock_count_result = {"COUNT(*)": 1000}
 
         # 模擬刪除結果
         mock_delete_results = [
             MagicMock(rowcount=500),
             MagicMock(rowcount=500),
-            MagicMock(rowcount=0)  # 最後一次沒有更多資料
+            MagicMock(rowcount=0),  # 最後一次沒有更多資料
         ]
 
-        repository.execute_query = AsyncMock(side_effect=[mock_count_result, *mock_delete_results])
+        repository.execute_query = AsyncMock(
+            side_effect=[mock_count_result, *mock_delete_results]
+        )
 
         # 測試清理
         deleted_count = await repository.cleanup_old_events(
-            older_than_days=30,
-            batch_size=500,
-            keep_processed=True
+            older_than_days=30, batch_size=500, keep_processed=True
         )
 
         assert deleted_count == 1000
@@ -346,7 +351,7 @@ class TestAchievementEventRepository:
     @pytest.mark.asyncio
     async def test_cleanup_old_events_no_data(self, repository):
         """測試清理無舊資料情況."""
-        mock_count_result = {'COUNT(*)': 0}
+        mock_count_result = {"COUNT(*)": 0}
         repository.execute_query = AsyncMock(return_value=mock_count_result)
 
         # 測試清理
@@ -365,12 +370,11 @@ class TestAchievementEventRepository:
 
         # 測試歸檔
         archived_count = await repository.archive_old_events(
-            older_than_days=90,
-            archive_table="test_archive"
+            older_than_days=90, archive_table="test_archive"
         )
 
         assert archived_count == 500
-        # 應該調用多次：建立歸檔表 + 插入 + 刪除
+        # 應該調用多次:建立歸檔表 + 插入 + 刪除
         assert repository.execute_query.call_count >= 2
 
     @pytest.mark.asyncio
@@ -392,15 +396,15 @@ class TestAchievementEventRepository:
     def test_row_to_event_model(self, repository):
         """測試資料庫行轉換為事件模型."""
         mock_row = {
-            'id': 123,
-            'user_id': 12345,
-            'guild_id': 67890,
-            'event_type': 'achievement.message_sent',
-            'event_data': '{"content_length": 50, "is_bot": false}',
-            'timestamp': datetime.now(),
-            'channel_id': 11111,
-            'processed': True,
-            'correlation_id': 'test-123'
+            "id": 123,
+            "user_id": 12345,
+            "guild_id": 67890,
+            "event_type": "achievement.message_sent",
+            "event_data": '{"content_length": 50, "is_bot": false}',
+            "timestamp": datetime.now(),
+            "channel_id": 11111,
+            "processed": True,
+            "correlation_id": "test-123",
         }
 
         # 模擬 _row_to_dict 方法
@@ -413,22 +417,22 @@ class TestAchievementEventRepository:
         assert event.id == 123
         assert event.user_id == 12345
         assert event.guild_id == 67890
-        assert event.event_type == 'achievement.message_sent'
-        assert event.event_data['content_length'] == 50
+        assert event.event_type == "achievement.message_sent"
+        assert event.event_data["content_length"] == 50
         assert event.processed is True
 
     def test_row_to_event_model_with_string_timestamp(self, repository):
         """測試字串時間戳轉換."""
         mock_row = {
-            'id': 123,
-            'user_id': 12345,
-            'guild_id': 67890,
-            'event_type': 'achievement.message_sent',
-            'event_data': '{}',
-            'timestamp': '2024-01-01T12:00:00',  # 字串格式
-            'channel_id': None,
-            'processed': False,
-            'correlation_id': None
+            "id": 123,
+            "user_id": 12345,
+            "guild_id": 67890,
+            "event_type": "achievement.message_sent",
+            "event_data": "{}",
+            "timestamp": "2024-01-01T12:00:00",  # 字串格式
+            "channel_id": None,
+            "processed": False,
+            "correlation_id": None,
         }
 
         repository._row_to_dict = MagicMock(return_value=mock_row)
@@ -445,7 +449,9 @@ class TestAchievementEventRepository:
     @pytest.mark.asyncio
     async def test_create_event_database_error(self, repository, sample_event_data):
         """測試建立事件資料庫錯誤處理."""
-        repository.execute_query = AsyncMock(side_effect=Exception("Database connection failed"))
+        repository.execute_query = AsyncMock(
+            side_effect=Exception("Database connection failed")
+        )
 
         # 測試錯誤處理
         with pytest.raises(Exception, match="Database connection failed"):
@@ -454,15 +460,19 @@ class TestAchievementEventRepository:
     @pytest.mark.asyncio
     async def test_create_events_batch_error(self, repository):
         """測試批次建立事件錯誤處理."""
-        events = [AchievementEventData(
-            user_id=12345,
-            guild_id=67890,
-            event_type='achievement.message_sent',
-            event_data={'is_bot': False},
-            timestamp=datetime.now()
-        )]
+        events = [
+            AchievementEventData(
+                user_id=12345,
+                guild_id=67890,
+                event_type="achievement.message_sent",
+                event_data={"is_bot": False},
+                timestamp=datetime.now(),
+            )
+        ]
 
-        repository.execute_batch = AsyncMock(side_effect=Exception("Batch insert failed"))
+        repository.execute_batch = AsyncMock(
+            side_effect=Exception("Batch insert failed")
+        )
 
         # 測試錯誤處理
         with pytest.raises(Exception, match="Batch insert failed"):
@@ -499,7 +509,10 @@ class TestAchievementEventRepository:
 
         assert result == []
         # 不應該調用資料庫
-        assert not hasattr(repository, 'execute_batch') or not repository.execute_batch.called
+        assert (
+            not hasattr(repository, "execute_batch")
+            or not repository.execute_batch.called
+        )
 
     @pytest.mark.asyncio
     async def test_get_events_with_zero_limit(self, repository):
@@ -525,10 +538,12 @@ class TestAchievementEventRepository:
     async def test_cleanup_with_zero_batch_size(self, repository):
         """測試批次大小為 0 的清理."""
         # 應該使用預設批次大小
-        mock_count_result = {'COUNT(*)': 100}
+        mock_count_result = {"COUNT(*)": 100}
         mock_delete_result = MagicMock(rowcount=100)
 
-        repository.execute_query = AsyncMock(side_effect=[mock_count_result, mock_delete_result])
+        repository.execute_query = AsyncMock(
+            side_effect=[mock_count_result, mock_delete_result]
+        )
 
         await repository.cleanup_old_events(batch_size=0)
 

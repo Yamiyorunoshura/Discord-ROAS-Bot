@@ -1,6 +1,6 @@
 """成就通知系統整合服務.
 
-此模組負責將通知系統與現有的成就頒發和觸發系統整合，提供：
+此模組負責將通知系統與現有的成就頒發和觸發系統整合,提供:
 - 通知系統初始化和配置
 - 與 AchievementAwarder 的整合
 - 與成就主 Cog 的整合
@@ -12,12 +12,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from .notifier import AchievementNotifier, create_notification_handler
 
 if TYPE_CHECKING:
-
     from discord.ext import commands
 
     from ..database.repository import AchievementRepository
@@ -25,18 +25,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class NotificationIntegrationService:
     """通知系統整合服務.
 
-    負責管理通知系統的整合和生命週期。
+    負責管理通知系統的整合和生命週期.
     """
 
     def __init__(
         self,
         bot: commands.Bot,
         repository: AchievementRepository,
-        achievement_awarder: AchievementAwarder
+        achievement_awarder: AchievementAwarder,
     ):
         """初始化通知整合服務.
 
@@ -56,7 +55,7 @@ class NotificationIntegrationService:
     async def initialize(self) -> None:
         """初始化通知系統整合."""
         if self._initialized:
-            logger.warning("通知系統已初始化，跳過重複初始化")
+            logger.warning("通知系統已初始化,跳過重複初始化")
             return
 
         try:
@@ -67,7 +66,7 @@ class NotificationIntegrationService:
                 max_concurrent_notifications=10,
                 notification_timeout=15.0,
                 default_retry_limit=3,
-                rate_limit_window=60
+                rate_limit_window=60,
             )
 
             # 2. 啟動通知系統
@@ -108,7 +107,7 @@ class NotificationIntegrationService:
         """取得通知器實例.
 
         Returns:
-            AchievementNotifier 實例，如果未初始化則返回 None
+            AchievementNotifier 實例,如果未初始化則返回 None
         """
         return self.notifier
 
@@ -116,7 +115,7 @@ class NotificationIntegrationService:
         """檢查是否已初始化.
 
         Returns:
-            True 如果已初始化，否則 False
+            True 如果已初始化,否則 False
         """
         return self._initialized
 
@@ -147,7 +146,7 @@ class NotificationIntegrationService:
             "notifier_available": self.notifier is not None,
             "notifier_processing": False,
             "awarder_integration": False,
-            "last_error": None
+            "last_error": None,
         }
 
         try:
@@ -155,12 +154,16 @@ class NotificationIntegrationService:
                 stats = self.notifier.get_notification_stats()
                 health_status["notifier_processing"] = stats.get("is_processing", False)
                 health_status["queue_size"] = stats.get("queue_size", 0)
-                health_status["active_notifications"] = stats.get("active_notifications", 0)
+                health_status["active_notifications"] = stats.get(
+                    "active_notifications", 0
+                )
                 health_status["success_rate"] = stats.get("success_rate", 0.0)
 
             # 檢查與 AchievementAwarder 的整合
             awarder_stats = self.achievement_awarder.get_award_stats()
-            health_status["awarder_integration"] = awarder_stats.get("notification_handlers", 0) > 0
+            health_status["awarder_integration"] = (
+                awarder_stats.get("notification_handlers", 0) > 0
+            )
 
         except Exception as e:
             health_status["last_error"] = str(e)
@@ -168,11 +171,10 @@ class NotificationIntegrationService:
 
         return health_status
 
-
 class NotificationServiceManager:
     """通知服務管理器.
 
-    提供高層級的通知服務管理功能。
+    提供高層級的通知服務管理功能.
     """
 
     def __init__(self):
@@ -182,7 +184,7 @@ class NotificationServiceManager:
             "total_services": 0,
             "active_services": 0,
             "total_notifications": 0,
-            "start_time": None
+            "start_time": None,
         }
 
         logger.info("NotificationServiceManager 初始化完成")
@@ -192,7 +194,7 @@ class NotificationServiceManager:
         guild_id: int,
         bot: commands.Bot,
         repository: AchievementRepository,
-        achievement_awarder: AchievementAwarder
+        achievement_awarder: AchievementAwarder,
     ) -> NotificationIntegrationService:
         """為指定伺服器建立通知服務.
 
@@ -212,9 +214,7 @@ class NotificationServiceManager:
         try:
             # 建立服務
             service = NotificationIntegrationService(
-                bot=bot,
-                repository=repository,
-                achievement_awarder=achievement_awarder
+                bot=bot, repository=repository, achievement_awarder=achievement_awarder
             )
 
             # 初始化服務
@@ -226,7 +226,6 @@ class NotificationServiceManager:
             self._global_stats["active_services"] += 1
 
             if self._global_stats["start_time"] is None:
-                from datetime import datetime
                 self._global_stats["start_time"] = datetime.now()
 
             logger.info(f"為伺服器 {guild_id} 建立通知服務")
@@ -244,7 +243,7 @@ class NotificationServiceManager:
             guild_id: 伺服器 ID
 
         Returns:
-            通知整合服務實例，如果不存在則返回 None
+            通知整合服務實例,如果不存在則返回 None
         """
         return self._services.get(guild_id)
 
@@ -255,7 +254,7 @@ class NotificationServiceManager:
             guild_id: 伺服器 ID
 
         Returns:
-            True 如果成功移除，否則 False
+            True 如果成功移除,否則 False
         """
         if guild_id not in self._services:
             return False
@@ -334,7 +333,7 @@ class NotificationServiceManager:
             "total_services": len(self._services),
             "healthy_services": 0,
             "unhealthy_services": [],
-            "service_details": []
+            "service_details": [],
         }
 
         for guild_id, service in self._services.items():
@@ -358,10 +357,8 @@ class NotificationServiceManager:
 
         return results
 
-
 # 全域通知服務管理器實例
 _notification_manager: NotificationServiceManager | None = None
-
 
 async def get_notification_manager() -> NotificationServiceManager:
     """取得全域通知服務管理器.
@@ -369,19 +366,18 @@ async def get_notification_manager() -> NotificationServiceManager:
     Returns:
         NotificationServiceManager 實例
     """
-    global _notification_manager
+    global _notification_manager  # noqa: PLW0603
 
     if _notification_manager is None:
         _notification_manager = NotificationServiceManager()
 
     return _notification_manager
 
-
 async def initialize_notification_integration(
     guild_id: int,
     bot: commands.Bot,
     repository: AchievementRepository,
-    achievement_awarder: AchievementAwarder
+    achievement_awarder: AchievementAwarder,
 ) -> NotificationIntegrationService:
     """初始化指定伺服器的通知系統整合.
 
@@ -397,7 +393,6 @@ async def initialize_notification_integration(
     manager = await get_notification_manager()
     return await manager.create_service(guild_id, bot, repository, achievement_awarder)
 
-
 async def shutdown_notification_integration(guild_id: int) -> bool:
     """關閉指定伺服器的通知系統整合.
 
@@ -405,24 +400,24 @@ async def shutdown_notification_integration(guild_id: int) -> bool:
         guild_id: 伺服器 ID
 
     Returns:
-        True 如果成功關閉，否則 False
+        True 如果成功關閉,否則 False
     """
     manager = await get_notification_manager()
     return await manager.remove_service(guild_id)
 
-
-async def get_notification_service(guild_id: int) -> NotificationIntegrationService | None:
+async def get_notification_service(
+    guild_id: int,
+) -> NotificationIntegrationService | None:
     """取得指定伺服器的通知服務.
 
     Args:
         guild_id: 伺服器 ID
 
     Returns:
-        通知整合服務實例，如果不存在則返回 None
+        通知整合服務實例,如果不存在則返回 None
     """
     manager = await get_notification_manager()
     return await manager.get_service(guild_id)
-
 
 __all__ = [
     "NotificationIntegrationService",

@@ -1,12 +1,12 @@
 """成就系統快取管理器.
 
-此模組提供成就系統的快取管理功能，實作多層快取策略：
-- L1 快取：記憶體快取（cachetools TTLCache）
-- L2 快取：檔案快取（持久化快取）
+此模組提供成就系統的快取管理功能,實作多層快取策略:
+- L1 快取:記憶體快取(cachetools TTLCache)
+- L2 快取:檔案快取(持久化快取)
 - 快取失效和更新策略
 - 快取效能監控
 
-根據 Story 5.1 Task 1.4 和 Task 2 的要求實作，支援完善的查詢快取機制。
+根據 Story 5.1 Task 1.4 和 Task 2 的要求實作,支援完善的查詢快取機制.
 """
 
 from __future__ import annotations
@@ -28,22 +28,21 @@ from ..database.models import Achievement, UserAchievement
 
 logger = logging.getLogger(__name__)
 
-
 class CacheLevel(str, Enum):
     """快取層級."""
+
     L1_MEMORY = "l1_memory"
     L2_FILE = "l2_file"
 
-
 class CacheType(str, Enum):
     """快取類型."""
+
     ACHIEVEMENT = "achievement"
     ACHIEVEMENT_LIST = "achievement_list"
     USER_ACHIEVEMENT = "user_achievement"
     USER_PROGRESS = "user_progress"
     STATS = "stats"
     LEADERBOARD = "leaderboard"
-
 
 @dataclass
 class CacheConfig:
@@ -53,14 +52,13 @@ class CacheConfig:
     """最大快取項目數"""
 
     ttl_seconds: int = 300
-    """存活時間（秒）"""
+    """存活時間(秒)"""
 
     enable_l2_cache: bool = True
     """是否啟用 L2 檔案快取"""
 
     l2_cache_path: str | None = None
     """L2 快取檔案路徑"""
-
 
 @dataclass
 class CacheStats:
@@ -73,17 +71,16 @@ class CacheStats:
     hit_rate: float = 0.0
     last_reset: datetime = None
 
-
 class CacheManager:
     """成就系統快取管理器.
 
-    提供多層快取管理和自動失效機制。
+    提供多層快取管理和自動失效機制.
     """
 
     def __init__(
         self,
         cache_configs: dict[CacheType, CacheConfig] | None = None,
-        cache_dir: str | None = None
+        cache_dir: str | None = None,
     ):
         """初始化快取管理器.
 
@@ -114,7 +111,7 @@ class CacheManager:
         self._cleanup_task: asyncio.Task | None = None
         self._is_running = False
 
-        logger.info(f"CacheManager 初始化完成，快取目錄: {self._cache_dir}")
+        logger.info(f"CacheManager 初始化完成,快取目錄: {self._cache_dir}")
 
     async def __aenter__(self) -> CacheManager:
         """異步上下文管理器進入."""
@@ -129,12 +126,7 @@ class CacheManager:
     # 快取操作介面
     # =============================================================================
 
-    async def get(
-        self,
-        cache_type: CacheType,
-        key: str,
-        default: Any = None
-    ) -> Any:
+    async def get(self, cache_type: CacheType, key: str, default: Any = None) -> Any:
         """從快取取得值.
 
         Args:
@@ -170,11 +162,7 @@ class CacheManager:
         return default
 
     async def set(
-        self,
-        cache_type: CacheType,
-        key: str,
-        value: Any,
-        ttl: int | None = None
+        self, cache_type: CacheType, key: str, value: Any, ttl: int | None = None
     ) -> None:
         """設定快取值.
 
@@ -182,7 +170,7 @@ class CacheManager:
             cache_type: 快取類型
             key: 快取鍵
             value: 快取值
-            ttl: 自訂存活時間（覆蓋預設配置）
+            ttl: 自訂存活時間(覆蓋預設配置)
         """
         # 設定到 L1 記憶體快取
         l1_cache = self._l1_caches.get(cache_type)
@@ -193,7 +181,9 @@ class CacheManager:
         # 設定到 L2 檔案快取
         config = self._cache_configs[cache_type]
         if config.enable_l2_cache:
-            await self._set_to_l2_cache(cache_type, key, value, ttl or config.ttl_seconds)
+            await self._set_to_l2_cache(
+                cache_type, key, value, ttl or config.ttl_seconds
+            )
 
         # 記錄失效追蹤
         self._track_invalidation_keys(cache_type, key, value)
@@ -234,7 +224,7 @@ class CacheManager:
         """清空快取.
 
         Args:
-            cache_type: 要清空的快取類型，None 表示清空所有
+            cache_type: 要清空的快取類型,None 表示清空所有
         """
         if cache_type:
             # 清空特定類型快取
@@ -253,11 +243,11 @@ class CacheManager:
             for cache in self._l1_caches.values():
                 cache.clear()
 
-            for cache_type in self._cache_configs:
-                self._stats[cache_type].size = 0
-                config = self._cache_configs[cache_type]
+            for config_cache_type in self._cache_configs:
+                self._stats[config_cache_type].size = 0
+                config = self._cache_configs[config_cache_type]
                 if config.enable_l2_cache:
-                    await self._clear_l2_cache(cache_type)
+                    await self._clear_l2_cache(config_cache_type)
 
             logger.info("所有快取已清空")
 
@@ -281,10 +271,14 @@ class CacheManager:
             f"user:{user_id}:",
             f"user_achievements:{user_id}",
             f"user_progress:{user_id}",
-            f"user_stats:{user_id}"
+            f"user_stats:{user_id}",
         ]
 
-        for cache_type in [CacheType.USER_ACHIEVEMENT, CacheType.USER_PROGRESS, CacheType.STATS]:
+        for cache_type in [
+            CacheType.USER_ACHIEVEMENT,
+            CacheType.USER_PROGRESS,
+            CacheType.STATS,
+        ]:
             if cache_type not in self._cache_configs:
                 continue  # 跳過未配置的快取類型
             count = await self._invalidate_by_patterns(cache_type, patterns)
@@ -311,7 +305,11 @@ class CacheManager:
             "leaderboard:",  # 排行榜可能受影響
         ]
 
-        for cache_type in [CacheType.ACHIEVEMENT, CacheType.ACHIEVEMENT_LIST, CacheType.LEADERBOARD]:
+        for cache_type in [
+            CacheType.ACHIEVEMENT,
+            CacheType.ACHIEVEMENT_LIST,
+            CacheType.LEADERBOARD,
+        ]:
             if cache_type not in self._cache_configs:
                 continue  # 跳過未配置的快取類型
             count = await self._invalidate_by_patterns(cache_type, patterns)
@@ -359,8 +357,8 @@ class CacheManager:
         """
         logger.info(f"開始預熱成就快取: {len(achievement_ids)} 項")
 
-        # 這裡需要與 repository 整合，暫時跳過具體實作
-        # 在實際使用時，會透過 service 層調用 repository 載入資料並快取
+        # 這裡需要與 repository 整合,暫時跳過具體實作
+        # 在實際使用時,會透過 service 層調用 repository 載入資料並快取
 
         logger.info("成就快取預熱完成")
 
@@ -372,7 +370,7 @@ class CacheManager:
         """
         logger.info(f"開始預熱用戶快取: {len(user_ids)} 項")
 
-        # 這裡需要與 repository 整合，暫時跳過具體實作
+        # 這裡需要與 repository 整合,暫時跳過具體實作
 
         logger.info("用戶快取預熱完成")
 
@@ -384,7 +382,7 @@ class CacheManager:
         """取得快取統計.
 
         Args:
-            cache_type: 快取類型，None 表示取得所有統計
+            cache_type: 快取類型,None 表示取得所有統計
 
         Returns:
             快取統計資訊
@@ -401,7 +399,9 @@ class CacheManager:
                 "hit_rate": hit_rate,
                 "size": stats.size,
                 "evictions": stats.evictions,
-                "last_reset": stats.last_reset.isoformat() if stats.last_reset else None
+                "last_reset": stats.last_reset.isoformat()
+                if stats.last_reset
+                else None,
             }
         else:
             all_stats = {}
@@ -420,7 +420,7 @@ class CacheManager:
                     "misses": stats.misses,
                     "hit_rate": hit_rate,
                     "size": stats.size,
-                    "evictions": stats.evictions
+                    "evictions": stats.evictions,
                 }
 
             # 總體統計
@@ -433,16 +433,16 @@ class CacheManager:
                     "total_misses": total_misses,
                     "hit_rate": overall_hit_rate,
                     "total_size": total_size,
-                    "total_requests": total_requests
+                    "total_requests": total_requests,
                 },
-                "by_type": all_stats
+                "by_type": all_stats,
             }
 
     def reset_stats(self, cache_type: CacheType | None = None) -> None:
         """重置快取統計.
 
         Args:
-            cache_type: 快取類型，None 表示重置所有統計
+            cache_type: 快取類型,None 表示重置所有統計
         """
         now = datetime.now()
 
@@ -492,7 +492,9 @@ class CacheManager:
                 max_size=1000, ttl_seconds=300, enable_l2_cache=True
             ),
             CacheType.USER_PROGRESS: CacheConfig(
-                max_size=2000, ttl_seconds=180, enable_l2_cache=False  # 進度變化頻繁
+                max_size=2000,
+                ttl_seconds=180,
+                enable_l2_cache=False,  # 進度變化頻繁
             ),
             CacheType.STATS: CacheConfig(
                 max_size=200, ttl_seconds=900, enable_l2_cache=True
@@ -535,18 +537,18 @@ class CacheManager:
                 return None
 
             # 載入整個快取檔案
-            with open(cache_file, 'rb') as f:
+            with cache_file.open("rb") as f:
                 cache_data = pickle.load(f)
 
             # 檢查項目是否存在且未過期
             if key in cache_data:
                 item = cache_data[key]
-                if item['expires_at'] > time.time():
-                    return item['value']
+                if item["expires_at"] > time.time():
+                    return item["value"]
                 else:
-                    # 項目已過期，刪除它
+                    # 項目已過期,刪除它
                     del cache_data[key]
-                    with open(cache_file, 'wb') as f:
+                    with cache_file.open("wb") as f:
                         pickle.dump(cache_data, f)
 
             return None
@@ -556,11 +558,7 @@ class CacheManager:
             return None
 
     async def _set_to_l2_cache(
-        self,
-        cache_type: CacheType,
-        key: str,
-        value: Any,
-        ttl_seconds: int
+        self, cache_type: CacheType, key: str, value: Any, ttl_seconds: int
     ) -> None:
         """設定值到 L2 檔案快取."""
         try:
@@ -570,20 +568,20 @@ class CacheManager:
             cache_data = {}
             if cache_file.exists():
                 try:
-                    with open(cache_file, 'rb') as f:
+                    with cache_file.open("rb") as f:
                         cache_data = pickle.load(f)
-                except:
+                except Exception:
                     cache_data = {}
 
             # 設定新項目
             cache_data[key] = {
-                'value': value,
-                'expires_at': time.time() + ttl_seconds,
-                'created_at': time.time()
+                "value": value,
+                "expires_at": time.time() + ttl_seconds,
+                "created_at": time.time(),
             }
 
             # 寫回檔案
-            with open(cache_file, 'wb') as f:
+            with cache_file.open("wb") as f:
                 pickle.dump(cache_data, f)
 
         except Exception as e:
@@ -596,12 +594,12 @@ class CacheManager:
             if not cache_file.exists():
                 return False
 
-            with open(cache_file, 'rb') as f:
+            with cache_file.open("rb") as f:
                 cache_data = pickle.load(f)
 
             if key in cache_data:
                 del cache_data[key]
-                with open(cache_file, 'wb') as f:
+                with cache_file.open("wb") as f:
                     pickle.dump(cache_data, f)
                 return True
 
@@ -621,9 +619,7 @@ class CacheManager:
             logger.warning(f"L2 快取清空失敗 {cache_type.value}: {e}")
 
     async def _invalidate_by_patterns(
-        self,
-        cache_type: CacheType,
-        patterns: list[str]
+        self, cache_type: CacheType, patterns: list[str]
     ) -> int:
         """根據模式失效快取項目."""
         invalidated_count = 0
@@ -653,9 +649,7 @@ class CacheManager:
         return invalidated_count
 
     async def _invalidate_l2_by_patterns(
-        self,
-        cache_type: CacheType,
-        patterns: list[str]
+        self, cache_type: CacheType, patterns: list[str]
     ) -> int:
         """根據模式失效 L2 快取項目."""
         try:
@@ -663,7 +657,7 @@ class CacheManager:
             if not cache_file.exists():
                 return 0
 
-            with open(cache_file, 'rb') as f:
+            with cache_file.open("rb") as f:
                 cache_data = pickle.load(f)
 
             keys_to_remove = []
@@ -677,7 +671,7 @@ class CacheManager:
                 del cache_data[key]
 
             if keys_to_remove:
-                with open(cache_file, 'wb') as f:
+                with cache_file.open("wb") as f:
                     pickle.dump(cache_data, f)
 
             return len(keys_to_remove)
@@ -687,23 +681,20 @@ class CacheManager:
             return 0
 
     def _track_invalidation_keys(
-        self,
-        cache_type: CacheType,
-        key: str,
-        value: Any
+        self, _cache_type: CacheType, key: str, value: Any
     ) -> None:
         """追蹤快取項目的失效鍵."""
         # 根據值的類型提取失效鍵
         invalidation_keys = set()
 
-        if isinstance(value, Achievement | dict) and hasattr(value, 'id'):
+        if isinstance(value, Achievement | dict) and hasattr(value, "id"):
             invalidation_keys.add(f"achievement:{value.id}")
-            if hasattr(value, 'category_id'):
+            if hasattr(value, "category_id"):
                 invalidation_keys.add(f"category:{value.category_id}")
 
-        elif isinstance(value, UserAchievement | dict) and hasattr(value, 'user_id'):
+        elif isinstance(value, UserAchievement | dict) and hasattr(value, "user_id"):
             invalidation_keys.add(f"user:{value.user_id}")
-            if hasattr(value, 'achievement_id'):
+            if hasattr(value, "achievement_id"):
                 invalidation_keys.add(f"achievement:{value.achievement_id}")
 
         # 記錄失效追蹤
@@ -737,13 +728,13 @@ class CacheManager:
                 if not cache_file.exists():
                     continue
 
-                with open(cache_file, 'rb') as f:
+                with cache_file.open("rb") as f:
                     cache_data = pickle.load(f)
 
                 # 找出過期項目
                 expired_keys = []
                 for key, item in cache_data.items():
-                    if item['expires_at'] <= current_time:
+                    if item["expires_at"] <= current_time:
                         expired_keys.append(key)
 
                 # 刪除過期項目
@@ -752,7 +743,7 @@ class CacheManager:
                         del cache_data[key]
                         cleaned_count += 1
 
-                    with open(cache_file, 'wb') as f:
+                    with cache_file.open("wb") as f:
                         pickle.dump(cache_data, f)
 
             except Exception as e:
@@ -760,7 +751,6 @@ class CacheManager:
 
         if cleaned_count > 0:
             logger.debug(f"L2 快取清理完成: {cleaned_count} 項過期項目")
-
 
 __all__ = [
     "CacheConfig",

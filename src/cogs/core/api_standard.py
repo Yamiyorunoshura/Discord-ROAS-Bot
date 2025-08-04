@@ -28,7 +28,6 @@ from discord.ext import commands
 # 設置日誌
 logger = logging.getLogger(__name__)
 
-
 class APIVersion(Enum):
     """API版本枚舉"""
 
@@ -36,7 +35,6 @@ class APIVersion(Enum):
     V1_1 = "1.1"
     V1_2 = "1.2"
     LATEST = "1.2"
-
 
 class ResponseStatus(Enum):
     """響應狀態枚舉"""
@@ -46,38 +44,36 @@ class ResponseStatus(Enum):
     WARNING = "warning"
     PARTIAL = "partial"
 
-
 class ErrorCode(Enum):
     """標準錯誤代碼"""
 
-    # 通用錯誤 (1000-1999)
+    # === 通用錯誤 (1000-1999) ===
     UNKNOWN_ERROR = 1000
     INVALID_PARAMETERS = 1001
     MISSING_PARAMETERS = 1002
     INVALID_FORMAT = 1003
     RATE_LIMITED = 1004
 
-    # 權限錯誤 (2000-2999)
+    # === 權限錯誤 (2000-2999) ===
     PERMISSION_DENIED = 2000
     INSUFFICIENT_PERMISSIONS = 2001
     UNAUTHORIZED = 2002
 
-    # 資源錯誤 (3000-3999)
+    # === 資源錯誤 (3000-3999) ===
     RESOURCE_NOT_FOUND = 3000
     RESOURCE_ALREADY_EXISTS = 3001
     RESOURCE_LIMIT_EXCEEDED = 3002
 
-    # 服務錯誤 (4000-4999)
+    # === 服務錯誤 (4000-4999) ===
     SERVICE_UNAVAILABLE = 4000
     DATABASE_ERROR = 4001
     NETWORK_ERROR = 4002
     CACHE_ERROR = 4003
 
-    # 業務邏輯錯誤 (5000-5999)
+    # === 業務邏輯錯誤 (5000-5999) ===
     BUSINESS_LOGIC_ERROR = 5000
     VALIDATION_FAILED = 5001
     OPERATION_FAILED = 5002
-
 
 @dataclass
 class APIResponse:
@@ -166,7 +162,6 @@ class APIResponse:
             status=ResponseStatus.PARTIAL, data=data, message=message, metadata=metadata
         )
 
-
 class APIValidator:
     """API參數驗證器"""
 
@@ -222,7 +217,6 @@ class APIValidator:
 
         return True, None
 
-
 class RateLimiter:
     """速率限制器"""
 
@@ -252,7 +246,6 @@ class RateLimiter:
         # 記錄請求
         self.requests[key].append(now)
         return True
-
 
 def api_endpoint(
     name: str,
@@ -316,27 +309,22 @@ def api_endpoint(
 
     return decorator
 
-
 # 便利函數
 def success_response(data=None, message=None, **metadata):
     """創建成功響應"""
     return APIResponse.success(data, message, **metadata)
 
-
 def error_response(error_code: ErrorCode, message=None, details=None, **metadata):
     """創建錯誤響應"""
     return APIResponse.create_error(error_code, message, details, **metadata)
-
 
 def warning_response(data=None, message=None, **metadata):
     """創建警告響應"""
     return APIResponse.warning(data, message, **metadata)
 
-
 def partial_response(data=None, message=None, **metadata):
     """創建部分成功響應"""
     return APIResponse.partial(data, message, **metadata)
-
 
 def validate_parameters(
     data: dict[str, Any], rules: dict[str, dict[str, Any]]

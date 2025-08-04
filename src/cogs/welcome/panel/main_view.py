@@ -17,10 +17,25 @@ from ...core.logger import setup_module_logger
 if TYPE_CHECKING:
     from ..main.main import WelcomeCog
 
+# 匯入模態對話框組件
+from .components.modals import (
+    SetAvatarSizeModal,
+    SetAvatarXModal,
+    SetAvatarYModal,
+    SetChannelModal,
+    SetDescFontSizeModal,
+    SetDescModal,
+    SetDescYModal,
+    SetMsgModal,
+    SetTitleFontSizeModal,
+    SetTitleModal,
+    SetTitleYModal,
+)
+from .embeds.settings_embed import build_settings_embed
+
 # 設置日誌
 logger = setup_module_logger("welcome.panel")
 error_handler = create_error_handler("welcome.panel", logger)
-
 
 # 定義UI組件接口
 class IUIComponentFactory(Protocol):
@@ -32,7 +47,6 @@ class IUIComponentFactory(Protocol):
         cog: "WelcomeCog",
         panel_msg: discord.Message | None = None,
     ) -> discord.ui.Modal: ...
-
 
 class UIComponentFactory:
     """UI組件工廠實現"""
@@ -54,19 +68,6 @@ class UIComponentFactory:
         Returns:
             discord.ui.Modal: 對話框實例
         """
-        from .components.modals import (
-            SetAvatarSizeModal,
-            SetAvatarXModal,
-            SetAvatarYModal,
-            SetChannelModal,
-            SetDescFontSizeModal,
-            SetDescModal,
-            SetDescYModal,
-            SetMsgModal,
-            SetTitleFontSizeModal,
-            SetTitleModal,
-            SetTitleYModal,
-        )
 
         modal_map = {
             "channel": SetChannelModal,
@@ -86,7 +87,6 @@ class UIComponentFactory:
             raise ValueError(f"未知的對話框類型: {modal_type}")
 
         return modal_map[modal_type](cog, panel_msg)
-
 
 class SettingsView(discord.ui.View):
     """歡迎系統設定面板視圖 - 重構版本"""
@@ -172,7 +172,6 @@ class SettingsView(discord.ui.View):
             option = select.values[0]
 
             if "上傳背景圖片" in option:
-                # 特殊處理:上傳背景圖片
                 await interaction.response.send_message(
                     "請上傳一張背景圖片(PNG 或 JPG 格式,最大 5MB)", ephemeral=True
                 )
@@ -263,7 +262,7 @@ class SettingsView(discord.ui.View):
 
     @discord.ui.button(label="預覽效果", style=discord.ButtonStyle.primary, emoji="👁️")
     async def preview_button(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, _button: discord.ui.Button
     ):
         """
         預覽按鈕回調函數
@@ -325,7 +324,7 @@ class SettingsView(discord.ui.View):
 
     @discord.ui.button(label="關閉", style=discord.ButtonStyle.secondary, emoji="❌")
     async def close_button(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, _button: discord.ui.Button
     ):
         """
         關閉按鈕回調函數
@@ -351,8 +350,6 @@ class SettingsView(discord.ui.View):
             return
 
         try:
-            from ..panel.embeds.settings_embed import build_settings_embed
-
             # 取得設定
             settings = await self.cog.db.get_settings(self.panel_msg.guild.id)
 

@@ -1,6 +1,6 @@
 """成就事件監聽器測試模組.
 
-測試成就事件監聽器的完整功能：
+測試成就事件監聽器的完整功能:
 - 事件監聽和過濾
 - 事件資料處理
 - 事件持久化
@@ -51,13 +51,19 @@ class TestAchievementEventListener:
         return event_bus
 
     @pytest.fixture
-    async def event_listener(self, mock_bot, mock_achievement_service, mock_database_pool):
+    async def event_listener(
+        self, mock_bot, mock_achievement_service, mock_database_pool
+    ):
         """建立事件監聽器實例."""
         listener = AchievementEventListener(mock_bot)
 
         # 模擬初始化
-        with patch('src.cogs.achievement.main.tracker.get_global_event_bus') as mock_get_bus, \
-             patch('src.core.database.get_logger') as mock_get_logger:
+        with (
+            patch(
+                "src.cogs.achievement.main.tracker.get_global_event_bus"
+            ) as mock_get_bus,
+            patch("src.core.database.get_logger") as mock_get_logger,
+        ):
             mock_event_bus = AsyncMock(spec=EventBus)
             mock_get_bus.return_value = mock_event_bus
             mock_get_logger.return_value = MagicMock()
@@ -71,11 +77,15 @@ class TestAchievementEventListener:
     # =============================================================================
 
     @pytest.mark.asyncio
-    async def test_listener_initialization(self, mock_bot, mock_achievement_service, mock_database_pool):
+    async def test_listener_initialization(
+        self, mock_bot, mock_achievement_service, mock_database_pool
+    ):
         """測試事件監聽器初始化."""
         listener = AchievementEventListener(mock_bot)
 
-        with patch('src.cogs.achievement.main.tracker.get_global_event_bus') as mock_get_bus:
+        with patch(
+            "src.cogs.achievement.main.tracker.get_global_event_bus"
+        ) as mock_get_bus:
             mock_event_bus = AsyncMock(spec=EventBus)
             mock_get_bus.return_value = mock_event_bus
 
@@ -97,16 +107,24 @@ class TestAchievementEventListener:
 
         # 驗證所有必要的事件類型都存在
         expected_types = [
-            'MESSAGE_SENT', 'MESSAGE_EDITED', 'MESSAGE_DELETED',
-            'REACTION_ADDED', 'REACTION_REMOVED',
-            'VOICE_JOINED', 'VOICE_LEFT', 'VOICE_MOVED',
-            'MEMBER_JOINED', 'MEMBER_LEFT', 'MEMBER_UPDATED',
-            'COMMAND_USED', 'SLASH_COMMAND_USED'
+            "MESSAGE_SENT",
+            "MESSAGE_EDITED",
+            "MESSAGE_DELETED",
+            "REACTION_ADDED",
+            "REACTION_REMOVED",
+            "VOICE_JOINED",
+            "VOICE_LEFT",
+            "VOICE_MOVED",
+            "MEMBER_JOINED",
+            "MEMBER_LEFT",
+            "MEMBER_UPDATED",
+            "COMMAND_USED",
+            "SLASH_COMMAND_USED",
         ]
 
         for event_type in expected_types:
             assert event_type in event_types
-            assert event_types[event_type].startswith('achievement.')
+            assert event_types[event_type].startswith("achievement.")
 
     @pytest.mark.asyncio
     async def test_message_event_handling(self, event_listener):
@@ -124,16 +142,16 @@ class TestAchievementEventListener:
         mock_message.mentions = []
 
         # 模擬事件發布
-        with patch.object(event_listener.event_bus, 'publish') as mock_publish:
+        with patch.object(event_listener.event_bus, "publish") as mock_publish:
             await event_listener.on_message(mock_message)
 
             # 驗證事件發布
             mock_publish.assert_called_once()
             published_event = mock_publish.call_args[0][0]
 
-            assert published_event.event_type == 'achievement.message_sent'
-            assert published_event.data['user_id'] == 54321
-            assert published_event.data['guild_id'] == 12345
+            assert published_event.event_type == "achievement.message_sent"
+            assert published_event.data["user_id"] == 54321
+            assert published_event.data["guild_id"] == 12345
 
     @pytest.mark.asyncio
     async def test_voice_event_handling(self, event_listener):
@@ -153,15 +171,17 @@ class TestAchievementEventListener:
         mock_after.channel.name = "General"
 
         # 模擬事件發布
-        with patch.object(event_listener.event_bus, 'publish') as mock_publish:
-            await event_listener.on_voice_state_update(mock_member, mock_before, mock_after)
+        with patch.object(event_listener.event_bus, "publish") as mock_publish:
+            await event_listener.on_voice_state_update(
+                mock_member, mock_before, mock_after
+            )
 
             # 驗證事件發布
             mock_publish.assert_called_once()
             published_event = mock_publish.call_args[0][0]
 
-            assert published_event.event_type == 'achievement.voice_joined'
-            assert published_event.data['user_id'] == 12345
+            assert published_event.event_type == "achievement.voice_joined"
+            assert published_event.data["user_id"] == 12345
 
     @pytest.mark.asyncio
     async def test_bot_event_filtering(self, event_listener):
@@ -172,7 +192,7 @@ class TestAchievementEventListener:
         mock_message.guild = MagicMock()
 
         # 模擬事件發布
-        with patch.object(event_listener.event_bus, 'publish') as mock_publish:
+        with patch.object(event_listener.event_bus, "publish") as mock_publish:
             await event_listener.on_message(mock_message)
 
             # 驗證機器人事件不被發布
@@ -186,9 +206,7 @@ class TestAchievementEventListener:
     async def test_event_data_processor_initialization(self):
         """測試事件資料處理器初始化."""
         processor = EventDataProcessor(
-            batch_size=10,
-            batch_timeout=1.0,
-            max_memory_events=100
+            batch_size=10, batch_timeout=1.0, max_memory_events=100
         )
 
         assert processor.batch_size == 10
@@ -204,22 +222,22 @@ class TestAchievementEventListener:
 
         # 測試訊息事件標準化
         event_data = {
-            'user_id': 12345,
-            'guild_id': 67890,
-            'event_type': 'achievement.message_sent',
-            'event_data': {
-                'content_length': '50',  # 字串型別
-                'has_attachments': 'true',  # 字串型別
-                'mention_count': '3'  # 字串型別
+            "user_id": 12345,
+            "guild_id": 67890,
+            "event_type": "achievement.message_sent",
+            "event_data": {
+                "content_length": "50",  # 字串型別
+                "has_attachments": "true",  # 字串型別
+                "mention_count": "3",  # 字串型別
             },
-            'timestamp': time.time()
+            "timestamp": time.time(),
         }
 
         processed_event = await processor.process_event(event_data)
 
         assert processed_event is not None
-        assert processed_event.event_data['content_length'] == 50  # 轉換為整數
-        assert processed_event.event_data['mention_count'] == 3
+        assert processed_event.event_data["content_length"] == 50  # 轉換為整數
+        assert processed_event.event_data["mention_count"] == 3
 
     @pytest.mark.asyncio
     async def test_event_filtering(self):
@@ -234,18 +252,18 @@ class TestAchievementEventListener:
 
         # 測試通過過濾器的事件
         event_data = {
-            'user_id': 12345,
-            'guild_id': 67890,
-            'event_type': 'achievement.message_sent',
-            'event_data': {'is_bot': False},
-            'timestamp': time.time()
+            "user_id": 12345,
+            "guild_id": 67890,
+            "event_type": "achievement.message_sent",
+            "event_data": {"is_bot": False},
+            "timestamp": time.time(),
         }
 
         processed_event = await processor.process_event(event_data)
         assert processed_event is not None
 
         # 測試被過濾的事件
-        event_data['user_id'] = 99999
+        event_data["user_id"] = 99999
         processed_event = await processor.process_event(event_data)
         assert processed_event is None
 
@@ -258,11 +276,11 @@ class TestAchievementEventListener:
         events = []
         for i in range(5):
             event_data = {
-                'user_id': 12345 + i,
-                'guild_id': 67890,
-                'event_type': 'achievement.message_sent',
-                'event_data': {'is_bot': False},
-                'timestamp': time.time()
+                "user_id": 12345 + i,
+                "guild_id": 67890,
+                "event_type": "achievement.message_sent",
+                "event_data": {"is_bot": False},
+                "timestamp": time.time(),
             }
             events.append(event_data)
 
@@ -305,9 +323,9 @@ class TestAchievementEventListener:
         event_data = AchievementEventData(
             user_id=12345,
             guild_id=67890,
-            event_type='achievement.message_sent',
-            event_data={'content_length': 50},
-            timestamp=datetime.now()
+            event_type="achievement.message_sent",
+            event_data={"content_length": 50},
+            timestamp=datetime.now(),
         )
 
         # 測試建立事件
@@ -330,9 +348,9 @@ class TestAchievementEventListener:
             event = AchievementEventData(
                 user_id=12345 + i,
                 guild_id=67890,
-                event_type='achievement.message_sent',
-                event_data={'content_length': 50 + i},
-                timestamp=datetime.now()
+                event_type="achievement.message_sent",
+                event_data={"content_length": 50 + i},
+                timestamp=datetime.now(),
             )
             events.append(event)
 
@@ -351,15 +369,15 @@ class TestAchievementEventListener:
         # 模擬查詢結果
         mock_rows = [
             {
-                'id': 1,
-                'user_id': 12345,
-                'guild_id': 67890,
-                'event_type': 'achievement.message_sent',
-                'event_data': '{"content_length": 50}',
-                'timestamp': datetime.now(),
-                'channel_id': None,
-                'processed': False,
-                'correlation_id': None
+                "id": 1,
+                "user_id": 12345,
+                "guild_id": 67890,
+                "event_type": "achievement.message_sent",
+                "event_data": '{"content_length": 50}',
+                "timestamp": datetime.now(),
+                "channel_id": None,
+                "processed": False,
+                "correlation_id": None,
             }
         ]
         repository.execute_query = AsyncMock(return_value=mock_rows)
@@ -368,7 +386,7 @@ class TestAchievementEventListener:
         await repository.get_events_by_user(12345, limit=10)
 
         repository.execute_query.assert_called_once()
-        # 由於模擬返回的是原始資料，實際實作中會轉換為 AchievementEventData
+        # 由於模擬返回的是原始資料,實際實作中會轉換為 AchievementEventData
 
     # =============================================================================
     # Task 5.4: 效能測試和負載驗證
@@ -383,11 +401,11 @@ class TestAchievementEventListener:
         events = []
         for i in range(1000):
             event_data = {
-                'user_id': 12345 + (i % 100),
-                'guild_id': 67890,
-                'event_type': 'achievement.message_sent',
-                'event_data': {'is_bot': False, 'content_length': i},
-                'timestamp': time.time()
+                "user_id": 12345 + (i % 100),
+                "guild_id": 67890,
+                "event_type": "achievement.message_sent",
+                "event_data": {"is_bot": False, "content_length": i},
+                "timestamp": time.time(),
             }
             events.append(event_data)
 
@@ -417,14 +435,14 @@ class TestAchievementEventListener:
         test_events = []
         for i in range(50):
             event = Event(
-                event_type='achievement.message_sent',
+                event_type="achievement.message_sent",
                 data={
-                    'user_id': 12345 + i,
-                    'guild_id': 67890,
-                    'channel_id': 11111,
-                    'is_bot': False
+                    "user_id": 12345 + i,
+                    "guild_id": 67890,
+                    "channel_id": 11111,
+                    "is_bot": False,
                 },
-                timestamp=time.time()
+                timestamp=time.time(),
             )
             test_events.append(event)
 
@@ -433,7 +451,9 @@ class TestAchievementEventListener:
 
         # 併發處理事件
         start_time = time.time()
-        tasks = [event_listener._handle_achievement_event(event) for event in test_events]
+        tasks = [
+            event_listener._handle_achievement_event(event) for event in test_events
+        ]
         await asyncio.gather(*tasks, return_exceptions=True)
         processing_time = time.time() - start_time
 
@@ -442,7 +462,7 @@ class TestAchievementEventListener:
 
         # 驗證統計資訊
         stats = event_listener.get_event_stats()
-        assert stats['total_events'] >= 50
+        assert stats["total_events"] >= 50
 
     @pytest.mark.asyncio
     async def test_memory_usage_control(self):
@@ -452,30 +472,34 @@ class TestAchievementEventListener:
         # 添加超過限制的事件
         for i in range(20):
             event_data = {
-                'user_id': 12345 + i,
-                'guild_id': 67890,
-                'event_type': 'achievement.message_sent',
-                'event_data': {'is_bot': False},
-                'timestamp': time.time()
+                "user_id": 12345 + i,
+                "guild_id": 67890,
+                "event_type": "achievement.message_sent",
+                "event_data": {"is_bot": False},
+                "timestamp": time.time(),
             }
             await processor.add_to_batch(event_data)
 
         # 驗證記憶體限制
         stats = processor.get_processing_stats()
-        assert stats['pending_events_count'] <= 10
+        assert stats["pending_events_count"] <= 10
 
     # =============================================================================
     # Task 5.5: 整合測試和錯誤處理驗證
     # =============================================================================
 
     @pytest.mark.asyncio
-    async def test_end_to_end_integration(self, mock_bot, mock_achievement_service, mock_database_pool):
+    async def test_end_to_end_integration(
+        self, mock_bot, mock_achievement_service, mock_database_pool
+    ):
         """測試端到端整合."""
         # 建立完整的事件監聽器
         listener = AchievementEventListener(mock_bot)
 
         # 模擬初始化
-        with patch('src.cogs.achievement.main.tracker.get_global_event_bus') as mock_get_bus:
+        with patch(
+            "src.cogs.achievement.main.tracker.get_global_event_bus"
+        ) as mock_get_bus:
             mock_event_bus = AsyncMock(spec=EventBus)
             mock_get_bus.return_value = mock_event_bus
 
@@ -501,32 +525,30 @@ class TestAchievementEventListener:
 
         # 驗證統計更新
         stats = listener.get_event_stats()
-        assert 'total_events' in stats
-        assert 'event_types' in stats
+        assert "total_events" in stats
+        assert "event_types" in stats
 
     @pytest.mark.asyncio
     async def test_error_handling_in_event_processing(self, event_listener):
         """測試事件處理中的錯誤處理."""
         # 模擬處理器故障
-        event_listener.event_processor.add_to_batch = AsyncMock(side_effect=Exception("Test error"))
+        event_listener.event_processor.add_to_batch = AsyncMock(
+            side_effect=Exception("Test error")
+        )
 
         # 建立測試事件
         test_event = Event(
-            event_type='achievement.message_sent',
-            data={
-                'user_id': 12345,
-                'guild_id': 67890,
-                'is_bot': False
-            },
-            timestamp=time.time()
+            event_type="achievement.message_sent",
+            data={"user_id": 12345, "guild_id": 67890, "is_bot": False},
+            timestamp=time.time(),
         )
 
-        # 處理事件（不應該崩潰）
+        # 處理事件(不應該崩潰)
         await event_listener._handle_achievement_event(test_event)
 
         # 驗證錯誤統計
         stats = event_listener.get_event_stats()
-        assert stats['failed_events'] > 0
+        assert stats["failed_events"] > 0
 
     @pytest.mark.asyncio
     async def test_database_error_handling(self):
@@ -541,9 +563,9 @@ class TestAchievementEventListener:
         event_data = AchievementEventData(
             user_id=12345,
             guild_id=67890,
-            event_type='achievement.message_sent',
-            event_data={'content_length': 50},
-            timestamp=datetime.now()
+            event_type="achievement.message_sent",
+            event_data={"content_length": 50},
+            timestamp=datetime.now(),
         )
 
         # 應該拋出異常
@@ -558,13 +580,15 @@ class TestAchievementEventListener:
             AchievementEventData(
                 user_id=12345,
                 guild_id=67890,
-                event_type='achievement.message_sent',
-                event_data={'content_length': 50},
-                timestamp=datetime.now()
+                event_type="achievement.message_sent",
+                event_data={"content_length": 50},
+                timestamp=datetime.now(),
             )
         ]
 
-        event_listener.event_processor.flush_pending_events = AsyncMock(return_value=mock_pending_events)
+        event_listener.event_processor.flush_pending_events = AsyncMock(
+            return_value=mock_pending_events
+        )
         event_listener._persist_event_batch = AsyncMock()
 
         # 執行清理
@@ -583,9 +607,9 @@ class TestAchievementEventListener:
         valid_data = AchievementEventData(
             user_id=12345,
             guild_id=67890,
-            event_type='achievement.message_sent',
-            event_data={'content_length': 50, 'is_bot': False},
-            timestamp=datetime.now()
+            event_type="achievement.message_sent",
+            event_data={"content_length": 50, "is_bot": False},
+            timestamp=datetime.now(),
         )
 
         assert valid_data.is_achievement_relevant()
@@ -596,9 +620,9 @@ class TestAchievementEventListener:
             AchievementEventData(
                 user_id=12345,
                 guild_id=67890,
-                event_type='invalid.type',  # 不以 'achievement.' 開頭
-                event_data={'is_bot': False},
-                timestamp=datetime.now()
+                event_type="invalid.type",  # 不以 'achievement.' 開頭
+                event_data={"is_bot": False},
+                timestamp=datetime.now(),
             )
 
         # 未來時間戳
@@ -606,9 +630,9 @@ class TestAchievementEventListener:
             AchievementEventData(
                 user_id=12345,
                 guild_id=67890,
-                event_type='achievement.message_sent',
-                event_data={'is_bot': False},
-                timestamp=datetime.now() + timedelta(days=1)  # 未來時間
+                event_type="achievement.message_sent",
+                event_data={"is_bot": False},
+                timestamp=datetime.now() + timedelta(days=1),  # 未來時間
             )
 
     @pytest.mark.asyncio
@@ -617,15 +641,17 @@ class TestAchievementEventListener:
         from src.cogs.achievement.main.event_processor import create_rate_limit_filter
 
         # 建立頻率限制過濾器
-        rate_filter = create_rate_limit_filter(max_events_per_user=3, time_window_minutes=1)
+        rate_filter = create_rate_limit_filter(
+            max_events_per_user=3, time_window_minutes=1
+        )
 
         # 建立測試事件
         base_event = AchievementEventData(
             user_id=12345,
             guild_id=67890,
-            event_type='achievement.message_sent',
-            event_data={'is_bot': False},
-            timestamp=datetime.now()
+            event_type="achievement.message_sent",
+            event_data={"is_bot": False},
+            timestamp=datetime.now(),
         )
 
         # 測試頻率限制
@@ -634,7 +660,7 @@ class TestAchievementEventListener:
             result = rate_filter(base_event)
             results.append(result)
 
-        # 前 3 個應該通過，後 2 個被限制
+        # 前 3 個應該通過,後 2 個被限制
         assert sum(results) == 3
         assert results[:3] == [True, True, True]
         assert results[3:] == [False, False]
@@ -645,15 +671,15 @@ class TestAchievementEventListener:
 
         # 初始統計
         stats = processor.get_processing_stats()
-        assert stats['total_processed'] == 0
-        assert stats['filtered_out'] == 0
-        assert stats['success_rate'] == 1.0
+        assert stats["total_processed"] == 0
+        assert stats["filtered_out"] == 0
+        assert stats["success_rate"] == 1.0
 
         # 模擬處理一些事件後的統計
-        processor._stats['total_processed'] = 100
-        processor._stats['filtered_out'] = 10
-        processor._stats['validation_errors'] = 5
+        processor._stats["total_processed"] = 100
+        processor._stats["filtered_out"] = 10
+        processor._stats["validation_errors"] = 5
 
         stats = processor.get_processing_stats()
-        assert stats['total_processed'] == 100
-        assert stats['success_rate'] == 0.85  # (100-10-5)/100
+        assert stats["total_processed"] == 100
+        assert stats["success_rate"] == 0.85  # (100-10-5)/100

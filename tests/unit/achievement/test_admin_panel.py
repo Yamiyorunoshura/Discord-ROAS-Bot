@@ -1,6 +1,6 @@
 """測試成就系統管理面板控制器.
 
-這個測試模組涵蓋 AdminPanel 和 AdminPanelView 的所有核心功能：
+這個測試模組涵蓋 AdminPanel 和 AdminPanelView 的所有核心功能:
 - 管理面板初始化和狀態管理
 - 導航系統和權限檢查
 - UI 組件互動和錯誤處理
@@ -411,7 +411,7 @@ class TestAdminPanel:
 
     @pytest.mark.asyncio
     async def test_load_system_stats_with_cache(self, admin_panel):
-        """測試載入系統統計（有快取）."""
+        """測試載入系統統計(有快取)."""
         # 設置快取
         cached_stats = {"total_users": 100, "cached": True}
         admin_panel._cached_stats = cached_stats
@@ -425,7 +425,7 @@ class TestAdminPanel:
 
     @pytest.mark.asyncio
     async def test_load_system_stats_without_cache(self, admin_panel):
-        """測試載入系統統計（無快取）."""
+        """測試載入系統統計(無快取)."""
         with (
             patch.object(admin_panel, "_get_total_users", return_value=1250),
             patch.object(admin_panel, "_get_total_achievements", return_value=25),
@@ -470,7 +470,7 @@ class TestAdminPanel:
 
     @pytest.mark.asyncio
     async def test_get_total_users_no_guild(self, admin_panel, mock_bot):
-        """測試獲取總用戶數（無伺服器）."""
+        """測試獲取總用戶數(無伺服器)."""
         mock_bot.get_guild.return_value = None
 
         # 執行獲取
@@ -485,7 +485,7 @@ class TestAdminPanel:
         # 執行獲取
         achievement_count = await admin_panel._get_total_achievements()
 
-        # 驗證結果（示例數據）
+        # 驗證結果(示例數據)
         assert achievement_count == 25
 
     @pytest.mark.asyncio
@@ -494,7 +494,7 @@ class TestAdminPanel:
         # 執行獲取
         unlocked_count = await admin_panel._get_unlocked_achievements()
 
-        # 驗證結果（示例數據）
+        # 驗證結果(示例數據)
         assert unlocked_count == 128
 
     def test_is_session_expired_not_expired(self, admin_panel):
@@ -529,7 +529,7 @@ class TestAdminPanel:
 
     @pytest.mark.asyncio
     async def test_handle_error_not_responded(self, admin_panel, mock_interaction):
-        """測試處理錯誤（未回應）."""
+        """測試處理錯誤(未回應)."""
         mock_interaction.response.is_done.return_value = False
 
         # 執行錯誤處理
@@ -543,7 +543,7 @@ class TestAdminPanel:
 
     @pytest.mark.asyncio
     async def test_handle_error_already_responded(self, admin_panel, mock_interaction):
-        """測試處理錯誤（已回應）."""
+        """測試處理錯誤(已回應)."""
         mock_interaction.response.is_done.return_value = True
 
         # 執行錯誤處理
@@ -735,7 +735,7 @@ class TestAdminPanelView:
 
         # 驗證錯誤回應
         mock_interaction.response.send_message.assert_called_once_with(
-            "❌ 處理互動時發生錯誤，請稍後再試", ephemeral=True
+            "❌ 處理互動時發生錯誤,請稍後再試", ephemeral=True
         )
 
 

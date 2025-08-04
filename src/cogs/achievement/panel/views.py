@@ -1,6 +1,6 @@
 """成就系統頁面視圖模組.
 
-提供成就系統各頁面的視圖邏輯和資料處理：
+提供成就系統各頁面的視圖邏輯和資料處理:
 - 主頁面視圖
 - 個人成就視圖
 - 成就瀏覽視圖
@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import logging
+import random
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
@@ -22,11 +23,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# 常數定義
+MAX_DESCRIPTION_PREVIEW = 50  # 描述預覽最大長度
+RANK_FIRST = 1  # 第一名排名
+RANK_SECOND = 2  # 第二名排名
+RANK_THIRD = 3  # 第三名排名
+RANK_TOP_TEN = 10  # 前十名排名
 
 class BaseAchievementView(ABC):
     """成就系統基礎視圖類別.
 
-    定義所有成就頁面視圖的共同介面和基礎功能。
+    定義所有成就頁面視圖的共同介面和基礎功能.
     """
 
     def __init__(
@@ -78,9 +85,9 @@ class BaseAchievementView(ABC):
         try:
             self._cache = await self.load_data(**kwargs)
             self._cache_valid = True
-            logger.debug(f"【{self.__class__.__name__}】快取重新整理完成")
+            logger.debug(f"[{self.__class__.__name__}]快取重新整理完成")
         except Exception as e:
-            logger.error(f"【{self.__class__.__name__}】快取重新整理失敗: {e}")
+            logger.error(f"[{self.__class__.__name__}]快取重新整理失敗: {e}")
             self._cache_valid = False
             raise
 
@@ -102,20 +109,19 @@ class BaseAchievementView(ABC):
         self._cache.clear()
         self._cache_valid = False
 
-
 class MainView(BaseAchievementView):
     """主頁面視圖.
 
-    顯示成就系統的歡迎頁面和導航選項。
+    顯示成就系統的歡迎頁面和導航選項.
     """
 
-    async def build_embed(self, bot: discord.Client, **kwargs: Any) -> discord.Embed:
+    async def build_embed(self, bot: discord.Client, **_kwargs: Any) -> discord.Embed:
         """建立主頁面 Embed."""
         try:
             embed = StandardEmbedBuilder.create_info_embed(
                 "成就系統",
-                "🎯 **歡迎使用成就系統！**\n\n"
-                "這裡是您的成就中心，提供完整的成就管理功能：\n\n"
+                "🎯 **歡迎使用成就系統!**\n\n"
+                "這裡是您的成就中心,提供完整的成就管理功能:\n\n"
                 "🏅 **我的成就** - 查看您的個人成就進度\n"
                 "　• 已獲得的成就列表\n"
                 "　• 進行中的成就進度\n"
@@ -128,7 +134,7 @@ class MainView(BaseAchievementView):
                 "　• 總成就數排行\n"
                 "　• 成就點數排行\n"
                 "　• 分類成就排行\n\n"
-                "**操作指南：**\n"
+                "**操作指南:**\n"
                 "• 使用下方選單切換不同頁面\n"
                 "• 點擊 🔄 重新整理最新數據\n"
                 "• 點擊 ❌ 關閉面板",
@@ -145,27 +151,26 @@ class MainView(BaseAchievementView):
                         icon_url=user.display_avatar.url,
                     )
             except Exception as e:
-                logger.warning(f"【主頁面】設置用戶資訊失敗: {e}")
+                logger.warning(f"[主頁面]設置用戶資訊失敗: {e}")
 
             embed.set_footer(text="💡 使用選單切換不同頁面")
             return embed
 
         except Exception as e:
-            logger.error(f"【主頁面】建立 Embed 失敗: {e}")
+            logger.error(f"[主頁面]建立 Embed 失敗: {e}")
             return StandardEmbedBuilder.create_error_embed(
-                "載入失敗", "無法載入主頁面，請稍後再試"
+                "載入失敗", "無法載入主頁面,請稍後再試"
             )
 
-    async def load_data(self, **kwargs: Any) -> dict[str, Any]:
+    async def load_data(self, **_kwargs: Any) -> dict[str, Any]:
         """載入主頁面資料."""
         # 主頁面通常不需要額外資料
         return {"last_updated": "now", "page_type": "main"}
 
-
 class PersonalView(BaseAchievementView):
     """個人成就視圖.
 
-    顯示用戶的成就進度和已獲得的成就，支援分頁瀏覽和類別篩選。
+    顯示用戶的成就進度和已獲得的成就,支援分頁瀏覽和類別篩選.
     """
 
     def __init__(
@@ -255,9 +260,9 @@ class PersonalView(BaseAchievementView):
             return embed
 
         except Exception as e:
-            logger.error(f"【個人成就】建立 Embed 失敗: {e}")
+            logger.error(f"[個人成就]建立 Embed 失敗: {e}")
             return StandardEmbedBuilder.create_error_embed(
-                "載入失敗", "無法載入個人成就資料，請稍後再試"
+                "載入失敗", "無法載入個人成就資料,請稍後再試"
             )
 
     async def load_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -267,7 +272,7 @@ class PersonalView(BaseAchievementView):
             category_id = kwargs.get("category_id")
 
             logger.debug(
-                f"【個人成就】載入資料 - User: {self.user_id}, Page: {page}, Category: {category_id}"
+                f"[個人成就]載入資料 - User: {self.user_id}, Page: {page}, Category: {category_id}"
             )
 
             # 獲取用戶成就統計
@@ -275,7 +280,6 @@ class PersonalView(BaseAchievementView):
                 self.user_id
             )
 
-            # 獲取用戶已獲得的成就（分頁）
             offset = page * self._page_size
             user_achievements = await self.achievement_service.get_user_achievements(
                 user_id=self.user_id,
@@ -307,20 +311,20 @@ class PersonalView(BaseAchievementView):
                     }
                 )
 
-            # 獲取進行中的成就（實作真實的成就進度查詢）
             try:
                 # 嘗試從進度追蹤服務獲取真實進度數據
-                if hasattr(self, 'progress_tracker') and self.progress_tracker:
-                    in_progress = await self.progress_tracker.get_user_progress_achievements(
-                        user_id=interaction.user.id,
-                        guild_id=interaction.guild_id
+                if hasattr(self, "progress_tracker") and self.progress_tracker:
+                    in_progress = (
+                        await self.progress_tracker.get_user_progress_achievements(
+                            user_id=self.user_id, guild_id=self.guild_id
+                        )
                     )
                 else:
-                    # 如果沒有進度追蹤服務，使用模擬數據
+                    # 如果沒有進度追蹤服務,使用模擬數據
                     in_progress = await self._get_user_progress_achievements()
             except Exception as e:
                 # 記錄錯誤並使用模擬數據作為備用
-                logger.warning(f"獲取用戶進度數據失敗，使用模擬數據: {e}")
+                logger.warning(f"獲取用戶進度數據失敗,使用模擬數據: {e}")
                 in_progress = await self._get_user_progress_achievements()
 
             # 獲取分類名稱
@@ -347,7 +351,7 @@ class PersonalView(BaseAchievementView):
             }
 
         except Exception as e:
-            logger.error(f"【個人成就】載入資料失敗: {e}")
+            logger.error(f"[個人成就]載入資料失敗: {e}")
             raise
 
     def _create_progress_bar(self, current: int, target: int, length: int = 10) -> str:
@@ -373,7 +377,7 @@ class PersonalView(BaseAchievementView):
         return f"[{filled}{empty}]"
 
     async def _get_user_progress_achievements(self) -> list[dict[str, Any]]:
-        """獲取用戶進行中的成就（實作真實查詢機制）.
+        """獲取用戶進行中的成就(實作真實查詢機制).
 
         Returns:
             list[dict]: 進行中成就列表
@@ -381,27 +385,33 @@ class PersonalView(BaseAchievementView):
         # 實作真實的成就進度查詢
         try:
             # 嘗試從成就服務獲取用戶的進行中成就
-            if hasattr(self, 'achievement_service') and self.achievement_service:
-                in_progress_achievements = await self.achievement_service.get_user_in_progress_achievements(
-                    user_id=getattr(self, 'user_id', None) or self.interaction.user.id,
-                    guild_id=getattr(self, 'guild_id', None) or self.interaction.guild_id
+            if hasattr(self, "achievement_service") and self.achievement_service:
+                in_progress_achievements = (
+                    await self.achievement_service.get_user_in_progress_achievements(
+                        user_id=getattr(self, "user_id", None)
+                        or self.interaction.user.id,
+                        guild_id=getattr(self, "guild_id", None)
+                        or self.interaction.guild_id,
+                    )
                 )
 
                 # 轉換為預期的格式
                 result = []
                 for achievement in in_progress_achievements:
-                    result.append({
-                        "name": achievement.get("name", "未知成就"),
-                        "description": achievement.get("description", ""),
-                        "current": achievement.get("current_progress", 0),
-                        "target": achievement.get("target_value", 100),
-                        "category": achievement.get("category", "一般")
-                    })
+                    result.append(
+                        {
+                            "name": achievement.get("name", "未知成就"),
+                            "description": achievement.get("description", ""),
+                            "current": achievement.get("current_progress", 0),
+                            "target": achievement.get("target_value", 100),
+                            "category": achievement.get("category", "一般"),
+                        }
+                    )
 
                 return result
             else:
                 # 沒有成就服務時顯示無數據提示
-                logger.warning("成就服務不可用，顯示無數據提示")
+                logger.warning("成就服務不可用,顯示無數據提示")
                 return self._get_no_progress_data()
         except Exception as e:
             logger.error(f"獲取成就進度失敗: {e}")
@@ -412,7 +422,7 @@ class PersonalView(BaseAchievementView):
         return [
             {
                 "name": "暫無進行中的成就",
-                "description": "目前沒有正在進行的成就，請先參與活動或完成任務",
+                "description": "目前沒有正在進行的成就,請先參與活動或完成任務",
                 "current": 0,
                 "target": 1,
                 "category": "系統",
@@ -423,7 +433,7 @@ class PersonalView(BaseAchievementView):
         """設置當前頁面.
 
         Args:
-            page: 頁面號碼（從0開始）
+            page: 頁面號碼(從0開始)
         """
         self._current_page = max(0, min(page, self._total_pages - 1))
         self._cache_valid = False
@@ -432,7 +442,7 @@ class PersonalView(BaseAchievementView):
         """設置分類篩選.
 
         Args:
-            category_id: 分類ID，None表示不篩選
+            category_id: 分類ID,None表示不篩選
         """
         self._selected_category = category_id
         self._current_page = 0  # 重置到第一頁
@@ -458,12 +468,11 @@ class PersonalView(BaseAchievementView):
         """是否有上一頁."""
         return self._current_page > 0
 
-
 class BrowserView(BaseAchievementView):
     """成就瀏覽視圖.
 
-    顯示所有可用的成就，支援分類篩選和分頁瀏覽。
-    提供完整的成就資訊包括獲得條件、點數獎勵和用戶進度。
+    顯示所有可用的成就,支援分類篩選和分頁瀏覽.
+    提供完整的成就資訊包括獲得條件、點數獎勵和用戶進度.
     """
 
     def __init__(
@@ -495,7 +504,7 @@ class BrowserView(BaseAchievementView):
             # 基礎 Embed 設定
             category_name = data.get("category_name", "全部分類")
             title = f"成就瀏覽 - {category_name}"
-            description = "瀏覽所有可用的成就，了解獲得條件和獎勵"
+            description = "瀏覽所有可用的成就,了解獲得條件和獎勵"
 
             embed = StandardEmbedBuilder.create_info_embed(title, description)
 
@@ -534,7 +543,7 @@ class BrowserView(BaseAchievementView):
                 if earned_achievements:
                     earned_text = "\n".join(
                         [
-                            f"🏅 **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:50]}{'...' if len(ach['description']) > 50 else ''}_"
+                            f"🏅 **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_"
                             for ach in earned_achievements[:4]  # 最多顯示 4 個
                         ]
                     )
@@ -548,7 +557,7 @@ class BrowserView(BaseAchievementView):
                 if not_earned_achievements:
                     not_earned_text = "\n".join(
                         [
-                            f"⭕ **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:50]}{'...' if len(ach['description']) > 50 else ''}_\n   💡 條件: {self._format_criteria(ach.get('criteria', {}))}"
+                            f"⭕ **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_\n   💡 條件: {self._format_criteria(ach.get('criteria', {}))}"
                             for ach in not_earned_achievements[:4]  # 最多顯示 4 個
                         ]
                     )
@@ -571,9 +580,9 @@ class BrowserView(BaseAchievementView):
             return embed
 
         except Exception as e:
-            logger.error(f"【成就瀏覽】建立 Embed 失敗: {e}", exc_info=True)
+            logger.error(f"[成就瀏覽]建立 Embed 失敗: {e}", exc_info=True)
             return StandardEmbedBuilder.create_error_embed(
-                "載入失敗", "無法載入成就瀏覽資料，請稍後再試"
+                "載入失敗", "無法載入成就瀏覽資料,請稍後再試"
             )
 
     async def load_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -583,10 +592,9 @@ class BrowserView(BaseAchievementView):
             category_id = kwargs.get("category_id")
 
             logger.debug(
-                f"【成就瀏覽】載入資料 - Page: {page}, Category: {category_id}"
+                f"[成就瀏覽]載入資料 - Page: {page}, Category: {category_id}"
             )
 
-            # 獲取所有成就（按分類篩選）
             all_achievements = await self.achievement_service.list_achievements(
                 category_id=category_id, active_only=True
             )
@@ -616,7 +624,6 @@ class BrowserView(BaseAchievementView):
                 # 檢查用戶是否已獲得此成就
                 earned = achievement.id in earned_achievement_ids
 
-                # 獲取用戶對此成就的進度（如果存在）
                 progress = (
                     await self._get_achievement_progress(achievement.id)
                     if not earned
@@ -669,7 +676,7 @@ class BrowserView(BaseAchievementView):
             }
 
         except Exception as e:
-            logger.error(f"【成就瀏覽】載入資料失敗: {e}", exc_info=True)
+            logger.error(f"[成就瀏覽]載入資料失敗: {e}", exc_info=True)
             raise
 
     def _format_criteria(self, criteria: dict[str, Any]) -> str:
@@ -708,11 +715,10 @@ class BrowserView(BaseAchievementView):
         """
         try:
             # 實作真實的成就進度查詢
-            if hasattr(self, 'achievement_service') and self.achievement_service:
+            if hasattr(self, "achievement_service") and self.achievement_service:
                 try:
                     progress = await self.achievement_service.get_user_progress(
-                        user_id=self.user_id,
-                        achievement_id=achievement_id
+                        user_id=self.user_id, achievement_id=achievement_id
                     )
 
                     if progress:
@@ -721,7 +727,7 @@ class BrowserView(BaseAchievementView):
                             "target": progress.get("target_value", 100),
                             "percentage": progress.get("percentage", 0.0),
                             "last_updated": progress.get("last_updated"),
-                            "is_completed": progress.get("is_completed", False)
+                            "is_completed": progress.get("is_completed", False),
                         }
                 except AttributeError:
                     logger.warning("成就服務缺少 get_user_progress 方法")
@@ -729,8 +735,6 @@ class BrowserView(BaseAchievementView):
                     logger.error(f"查詢成就進度失敗: {e}")
 
             # 使用模擬進度數據作為備用
-            import random
-
             if random.choice([True, False]):  # 50% 機率有進度
                 return {
                     "current": random.randint(1, 80),
@@ -747,7 +751,7 @@ class BrowserView(BaseAchievementView):
         """設置當前頁面.
 
         Args:
-            page: 頁面號碼（從0開始）
+            page: 頁面號碼(從0開始)
         """
         self._current_page = max(0, min(page, self._total_pages - 1))
         self._cache_valid = False
@@ -756,7 +760,7 @@ class BrowserView(BaseAchievementView):
         """設置分類篩選.
 
         Args:
-            category_id: 分類ID，None表示不篩選
+            category_id: 分類ID,None表示不篩選
         """
         self._selected_category = category_id
         self._current_page = 0  # 重置到第一頁
@@ -782,11 +786,10 @@ class BrowserView(BaseAchievementView):
         """是否有上一頁."""
         return self._current_page > 0
 
-
 class BrowseView(BaseAchievementView):
     """成就瀏覽視圖.
 
-    顯示所有可用的成就和分類篩選。
+    顯示所有可用的成就和分類篩選.
     """
 
     async def build_embed(self, **kwargs: Any) -> discord.Embed:
@@ -797,7 +800,7 @@ class BrowseView(BaseAchievementView):
 
             embed = StandardEmbedBuilder.create_info_embed(
                 "成就瀏覽",
-                f"瀏覽所有可用的成就{'（' + data.get('categories', {}).get(selected_category, {}).get('name', '全部') + '）' if selected_category != 'all' else ''}",
+                f"瀏覽所有可用的成就{'(' + data.get('categories', {}).get(selected_category, {}).get('name', '全部') + ')' if selected_category != 'all' else ''}",
             )
 
             # 添加成就分類統計
@@ -838,21 +841,17 @@ class BrowseView(BaseAchievementView):
             return embed
 
         except Exception as e:
-            logger.error(f"【成就瀏覽】建立 Embed 失敗: {e}")
+            logger.error(f"[成就瀏覽]建立 Embed 失敗: {e}")
             return StandardEmbedBuilder.create_error_embed(
-                "載入失敗", "無法載入成就瀏覽資料，請稍後再試"
+                "載入失敗", "無法載入成就瀏覽資料,請稍後再試"
             )
 
-    async def load_data(self, **kwargs: Any) -> dict[str, Any]:
+    async def load_data(self, **_kwargs: Any) -> dict[str, Any]:
         """載入成就瀏覽資料."""
         try:
-            logger.debug(f"【成就瀏覽】載入資料 - Guild: {self.guild_id}")
+            logger.debug(f"[成就瀏覽]載入資料 - Guild: {self.guild_id}")
 
             # 模擬資料載入 - 實際應該呼叫 achievement_service
-            # categories = await self.achievement_service.get_categories(self.guild_id)
-            # achievements = await self.achievement_service.get_all_achievements(
-            #     self.guild_id, self.user_id
-            # )
 
             return {
                 "categories": {
@@ -880,14 +879,13 @@ class BrowseView(BaseAchievementView):
             }
 
         except Exception as e:
-            logger.error(f"【成就瀏覽】載入資料失敗: {e}")
+            logger.error(f"[成就瀏覽]載入資料失敗: {e}")
             raise
-
 
 class LeaderboardView(BaseAchievementView):
     """排行榜視圖.
 
-    顯示多種類型的成就排行榜，支援分頁瀏覽和類型切換。
+    顯示多種類型的成就排行榜,支援分頁瀏覽和類型切換.
     """
 
     def __init__(
@@ -924,7 +922,7 @@ class LeaderboardView(BaseAchievementView):
             title = f"🏆 成就排行榜 - {type_name}"
 
             embed = StandardEmbedBuilder.create_info_embed(
-                title, "查看伺服器成就排行榜，與其他用戶比較成就表現"
+                title, "查看伺服器成就排行榜,與其他用戶比較成就表現"
             )
 
             # 添加排行榜統計資訊
@@ -947,7 +945,7 @@ class LeaderboardView(BaseAchievementView):
 
             embed.add_field(
                 name="📄 頁面資訊",
-                value=f"第 {current_page + 1} 頁，共 {total_pages} 頁\n"
+                value=f"第 {current_page + 1} 頁,共 {total_pages} 頁\n"
                 f"顯示排名: {start_rank}-{end_rank}",
                 inline=True,
             )
@@ -997,14 +995,14 @@ class LeaderboardView(BaseAchievementView):
                 embed.add_field(name="🏅 排行榜", value="暫無排行榜資料", inline=False)
 
             # 設置 footer
-            embed.set_footer(text="💡 使用選單切換排行榜類型，使用按鈕進行分頁瀏覽")
+            embed.set_footer(text="💡 使用選單切換排行榜類型,使用按鈕進行分頁瀏覽")
 
             return embed
 
         except Exception as e:
-            logger.error(f"【排行榜】建立 Embed 失敗: {e}", exc_info=True)
+            logger.error(f"[排行榜]建立 Embed 失敗: {e}", exc_info=True)
             return StandardEmbedBuilder.create_error_embed(
-                "載入失敗", "無法載入排行榜資料，請稍後再試"
+                "載入失敗", "無法載入排行榜資料,請稍後再試"
             )
 
     async def load_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -1015,7 +1013,7 @@ class LeaderboardView(BaseAchievementView):
             category_id = kwargs.get("category_id")
 
             logger.debug(
-                f"【排行榜】載入資料 - Page: {page}, Type: {leaderboard_type}, Category: {category_id}"
+                f"[排行榜]載入資料 - Page: {page}, Type: {leaderboard_type}, Category: {category_id}"
             )
 
             # 計算偏移量
@@ -1069,7 +1067,6 @@ class LeaderboardView(BaseAchievementView):
             # 當前頁面的資料
             page_data = leaderboard_data[offset : offset + self._page_size]
 
-            # 獲取分類名稱（如果需要）
             category_name = None
             if category_id:
                 category = await self.achievement_service.get_category_by_id(
@@ -1089,7 +1086,7 @@ class LeaderboardView(BaseAchievementView):
             }
 
         except Exception as e:
-            logger.error(f"【排行榜】載入資料失敗: {e}", exc_info=True)
+            logger.error(f"[排行榜]載入資料失敗: {e}", exc_info=True)
             raise
 
     def _get_type_display_name(
@@ -1099,7 +1096,7 @@ class LeaderboardView(BaseAchievementView):
 
         Args:
             leaderboard_type: 排行榜類型
-            category_id: 分類 ID（如果適用）
+            category_id: 分類 ID(如果適用)
 
         Returns:
             str: 顯示名稱
@@ -1140,13 +1137,13 @@ class LeaderboardView(BaseAchievementView):
         Returns:
             str: 排名表情符號
         """
-        if rank == 1:
+        if rank == RANK_FIRST:
             return "🥇"
-        elif rank == 2:
+        elif rank == RANK_SECOND:
             return "🥈"
-        elif rank == 3:
+        elif rank == RANK_THIRD:
             return "🥉"
-        elif rank <= 10:
+        elif rank <= RANK_TOP_TEN:
             return "🏅"
         else:
             return "🔸"
@@ -1175,7 +1172,7 @@ class LeaderboardView(BaseAchievementView):
         """設置當前頁面.
 
         Args:
-            page: 頁面號碼（從0開始）
+            page: 頁面號碼(從0開始)
         """
         self._current_page = max(0, min(page, self._total_pages - 1))
         self._cache_valid = False
@@ -1187,7 +1184,7 @@ class LeaderboardView(BaseAchievementView):
 
         Args:
             leaderboard_type: 排行榜類型 ("count", "points", "category")
-            category_id: 分類 ID（僅在 category 類型時需要）
+            category_id: 分類 ID(僅在 category 類型時需要)
         """
         self._selected_type = leaderboard_type
         self._selected_category_id = category_id
@@ -1218,11 +1215,10 @@ class LeaderboardView(BaseAchievementView):
         """是否有上一頁."""
         return self._current_page > 0
 
-
 class ViewFactory:
     """視圖工廠類.
 
-    提供統一的視圖創建介面。
+    提供統一的視圖創建介面.
     """
 
     @staticmethod
@@ -1277,7 +1273,7 @@ class ViewFactory:
     def create_browser_view(
         achievement_service: AchievementService, guild_id: int, user_id: int
     ) -> BrowserView:
-        """創建成就瀏覽視圖（新名稱）.
+        """創建成就瀏覽視圖(新名稱).
 
         Args:
             achievement_service: 成就服務實例
@@ -1305,11 +1301,10 @@ class ViewFactory:
         """
         return LeaderboardView(achievement_service, guild_id, user_id)
 
-
 class ViewManager:
     """視圖管理器.
 
-    負責管理和快取視圖實例。
+    負責管理和快取視圖實例.
     """
 
     def __init__(

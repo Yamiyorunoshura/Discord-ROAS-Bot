@@ -2,15 +2,15 @@
 API標準化系統測試
 Discord ADR Bot v1.6 - API標準化架構測試
 
-測試覆蓋：
+測試覆蓋:
 - API響應格式
 - 錯誤處理
 - 參數驗證
 - 速率限制
 - API裝飾器
 
-作者：Discord ADR Bot 測試工程師
-版本：v1.6
+作者:Discord ADR Bot 測試工程師
+版本:v1.6
 """
 
 import time
@@ -49,9 +49,7 @@ class TestAPIResponse:
     def test_error_response_creation(self):
         """測試錯誤響應創建"""
         response = APIResponse.create_error(
-            ErrorCode.INVALID_PARAMETERS,
-            "參數錯誤",
-            {"field": "invalid"}
+            ErrorCode.INVALID_PARAMETERS, "參數錯誤", {"field": "invalid"}
         )
 
         assert response.status == ResponseStatus.ERROR
@@ -125,12 +123,16 @@ class TestAPIValidator:
 
     def test_validate_string_allowed_values(self):
         """測試字符串允許值"""
-        valid, error = APIValidator.validate_string("test", allowed_values=["test", "demo"])
+        valid, error = APIValidator.validate_string(
+            "test", allowed_values=["test", "demo"]
+        )
 
         assert valid is True
         assert error is None
 
-        valid, error = APIValidator.validate_string("invalid", allowed_values=["test", "demo"])
+        valid, error = APIValidator.validate_string(
+            "invalid", allowed_values=["test", "demo"]
+        )
 
         assert valid is False
         assert "必須是以下之一" in error
@@ -249,6 +251,7 @@ class TestAPIEndpointDecorator:
     @pytest.mark.asyncio
     async def test_api_endpoint_basic(self):
         """測試基本API端點裝飾器"""
+
         @api_endpoint("test_api", "測試API")
         async def test_function():
             return {"result": "success"}
@@ -262,6 +265,7 @@ class TestAPIEndpointDecorator:
     @pytest.mark.asyncio
     async def test_api_endpoint_with_api_response(self):
         """測試返回APIResponse的API端點"""
+
         @api_endpoint("test_api", "測試API")
         async def test_function():
             return APIResponse.success({"custom": "response"})
@@ -275,6 +279,7 @@ class TestAPIEndpointDecorator:
     @pytest.mark.asyncio
     async def test_api_endpoint_with_exception(self):
         """測試拋出異常的API端點"""
+
         @api_endpoint("test_api", "測試API")
         async def test_function():
             raise ValueError("測試錯誤")
@@ -293,7 +298,7 @@ class TestAPIEndpointDecorator:
 
         import discord
 
-        # 創建mock interaction，確保它被識別為discord.Interaction
+        # 創建mock interaction,確保它被識別為discord.Interaction
         mock_interaction = Mock(spec=discord.Interaction)
         mock_interaction.user.id = 12345
 
@@ -315,11 +320,14 @@ class TestAPIEndpointDecorator:
 
     def test_api_endpoint_metadata(self):
         """測試API端點元數據"""
-        @api_endpoint("test_api", "測試API", version=APIVersion.V1_1, rate_limit=(5, 60))
+
+        @api_endpoint(
+            "test_api", "測試API", version=APIVersion.V1_1, rate_limit=(5, 60)
+        )
         async def test_function():
             return {"result": "success"}
 
-        metadata = getattr(test_function, '_api_metadata', None)
+        metadata = getattr(test_function, "_api_metadata", None)
 
         assert metadata is not None
         assert metadata["name"] == "test_api"
@@ -373,18 +381,13 @@ class TestParameterValidation:
 
     def test_validate_parameters_success(self):
         """測試參數驗證成功"""
-        data = {
-            "name": "test",
-            "age": 25,
-            "active": True,
-            "tags": ["tag1", "tag2"]
-        }
+        data = {"name": "test", "age": 25, "active": True, "tags": ["tag1", "tag2"]}
 
         rules = {
             "name": {"type": "string", "min_length": 2, "max_length": 50},
             "age": {"type": "integer", "min_value": 0, "max_value": 150},
             "active": {"type": "boolean"},
-            "tags": {"type": "list", "min_items": 1, "max_items": 10}
+            "tags": {"type": "list", "min_items": 1, "max_items": 10},
         }
 
         result = validate_parameters(data, rules)
@@ -401,7 +404,7 @@ class TestParameterValidation:
 
         rules = {
             "name": {"type": "string"},
-            "age": {"type": "integer", "required": True}
+            "age": {"type": "integer", "required": True},
         }
 
         result = validate_parameters(data, rules)
@@ -417,7 +420,7 @@ class TestParameterValidation:
 
         rules = {
             "name": {"type": "string"},
-            "age": {"type": "integer", "required": False, "default": 18}
+            "age": {"type": "integer", "required": False, "default": 18},
         }
 
         result = validate_parameters(data, rules)
@@ -430,16 +433,16 @@ class TestParameterValidation:
         """測試參數驗證錯誤"""
         data = {
             "name": "a",  # 太短
-            "age": -5,    # 太小
+            "age": -5,  # 太小
             "active": "yes",  # 不是布爾值
-            "tags": []    # 太少項目
+            "tags": [],  # 太少項目
         }
 
         rules = {
             "name": {"type": "string", "min_length": 2},
             "age": {"type": "integer", "min_value": 0},
             "active": {"type": "boolean"},
-            "tags": {"type": "list", "min_items": 1}
+            "tags": {"type": "list", "min_items": 1},
         }
 
         result = validate_parameters(data, rules)
@@ -455,21 +458,18 @@ class TestParameterValidation:
 
     def test_validate_parameters_unknown_params(self):
         """測試未知參數"""
-        data = {
-            "name": "test",
-            "unknown_param": "value"
-        }
+        data = {"name": "test", "unknown_param": "value"}
 
-        rules = {
-            "name": {"type": "string"}
-        }
+        rules = {"name": {"type": "string"}}
 
         result = validate_parameters(data, rules)
 
         assert result.status == ResponseStatus.ERROR
         assert result.error["code"] == ErrorCode.VALIDATION_FAILED.value
         assert "unknown_param" in result.error["details"]["validation_errors"]
-        assert "未知參數" in result.error["details"]["validation_errors"]["unknown_param"]
+        assert (
+            "未知參數" in result.error["details"]["validation_errors"]["unknown_param"]
+        )
 
 
 if __name__ == "__main__":

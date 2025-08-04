@@ -74,6 +74,22 @@ check_python() {
     log_success "Python 版本: $PYTHON_VERSION"
 }
 
+check_openblas() {
+    log_step 1.5 5 "檢查 OpenBLAS 依賴 (NumPy)"
+    if python3 - << 'PY'
+import ctypes, sys
+try:
+    ctypes.cdll.LoadLibrary('libopenblas.so')
+except OSError:
+    sys.exit(1)
+PY
+    then
+        log_success "已偵測到 OpenBLAS"
+    else
+        log_warning "未找到 OpenBLAS，NumPy 可能無法獲得最佳效能。建議安裝 libopenblas-dev。"
+    fi
+}
+
 # 檢查並安裝 uv
 check_and_install_uv() {
     log_step 2 5 "檢查 uv 包管理器"
@@ -222,6 +238,7 @@ main() {
     
     # 檢查 Python
     check_python
+    check_openblas
     
     # 檢查並安裝 uv
     check_and_install_uv

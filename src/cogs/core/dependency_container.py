@@ -24,14 +24,12 @@ logger = logging.getLogger(__name__)
 # 類型變量
 T = TypeVar("T")
 
-
 class ServiceLifetime(Enum):
     """服務生命週期枚舉"""
 
     TRANSIENT = "transient"  # 每次請求都創建新實例
     SINGLETON = "singleton"  # 整個應用程序生命週期內只有一個實例
     SCOPED = "scoped"  # 在特定範圍內是單例
-
 
 class ServiceDescriptor:
     """服務描述符"""
@@ -50,24 +48,20 @@ class ServiceDescriptor:
         self.instance = instance
         self.lifetime = lifetime
 
-
 class DependencyResolutionError(Exception):
     """依賴解析錯誤"""
 
     pass
-
 
 class CircularDependencyError(DependencyResolutionError):
     """循環依賴錯誤"""
 
     pass
 
-
 class ServiceNotFoundError(DependencyResolutionError):
     """服務未找到錯誤"""
 
     pass
-
 
 class DependencyContainer:
     """
@@ -94,23 +88,22 @@ class DependencyContainer:
 
         async with self._lock:
             if not self._initialized:
-                logger.info("【依賴容器】正在初始化...")
+                logger.info("[依賴容器]正在初始化...")
 
                 # 註冊核心服務
                 await self._register_core_services()
 
                 self._initialized = True
-                logger.info("【依賴容器】初始化完成")
+                logger.info("[依賴容器]初始化完成")
 
     async def _register_core_services(self):
         """註冊核心服務"""
-        # 註冊連接池服務
-        from .database_pool import get_global_pool
+        from .database_pool import get_global_pool  # noqa: PLC0415
 
         pool = await get_global_pool()
         self.register_instance(type(pool), pool)
 
-        logger.info("【依賴容器】核心服務註冊完成")
+        logger.info("[依賴容器]核心服務註冊完成")
 
     def register_transient(
         self, service_type: type[T], implementation_type: type[T | None] | None = None
@@ -149,7 +142,7 @@ class DependencyContainer:
 
         self._services[service_type] = descriptor
         logger.debug(
-            f"【依賴容器】註冊工廠服務: {service_type.__name__} ({lifetime.value})"
+            f"[依賴容器]註冊工廠服務: {service_type.__name__} ({lifetime.value})"
         )
         return self
 
@@ -165,7 +158,7 @@ class DependencyContainer:
 
         self._services[service_type] = descriptor
         self._singletons[service_type] = instance
-        logger.debug(f"【依賴容器】註冊實例服務: {service_type.__name__}")
+        logger.debug(f"[依賴容器]註冊實例服務: {service_type.__name__}")
         return self
 
     def _register_service(
@@ -180,7 +173,7 @@ class DependencyContainer:
 
         self._services[service_type] = descriptor
         logger.debug(
-            f"【依賴容器】註冊服務: {service_type.__name__} -> {implementation_type.__name__} ({lifetime.value})"
+            f"[依賴容器]註冊服務: {service_type.__name__} -> {implementation_type.__name__} ({lifetime.value})"
         )
         return self
 
@@ -224,7 +217,7 @@ class DependencyContainer:
             if service_type not in self._singletons:
                 instance = await self._create_instance(descriptor)
                 self._singletons[service_type] = instance
-                logger.debug(f"【依賴容器】創建單例實例: {service_type.__name__}")
+                logger.debug(f"[依賴容器]創建單例實例: {service_type.__name__}")
 
             return self._singletons[service_type]
 
@@ -241,7 +234,7 @@ class DependencyContainer:
             instance = await self._create_instance(descriptor)
             scoped_dict[service_type] = instance
             logger.debug(
-                f"【依賴容器】創建作用域實例: {service_type.__name__} (scope: {scope})"
+                f"[依賴容器]創建作用域實例: {service_type.__name__} (scope: {scope})"
             )
 
         return scoped_dict[service_type]
@@ -251,7 +244,7 @@ class DependencyContainer:
     ) -> T:
         """解析瞬時服務"""
         instance = await self._create_instance(descriptor)
-        logger.debug(f"【依賴容器】創建瞬時實例: {service_type.__name__}")
+        logger.debug(f"[依賴容器]創建瞬時實例: {service_type.__name__}")
         return instance
 
     async def _create_instance(self, descriptor: ServiceDescriptor) -> Any:
@@ -287,13 +280,13 @@ class DependencyContainer:
         except Exception as e:
             raise DependencyResolutionError(
                 f"創建實例失敗 {descriptor.implementation_type.__name__}: {e}"
-            )
+            ) from e
 
     def clear_scope(self, scope: str):
         """清理作用域"""
         if scope in self._scoped_instances:
             del self._scoped_instances[scope]
-            logger.debug(f"【依賴容器】清理作用域: {scope}")
+            logger.debug(f"[依賴容器]清理作用域: {scope}")
 
     @asynccontextmanager
     async def create_scope(self, scope_name: str | None = None):
@@ -302,11 +295,11 @@ class DependencyContainer:
             scope_name = f"scope_{id(self)}"
 
         try:
-            logger.debug(f"【依賴容器】創建作用域: {scope_name}")
+            logger.debug(f"[依賴容器]創建作用域: {scope_name}")
             yield scope_name
         finally:
             self.clear_scope(scope_name)
-            logger.debug(f"【依賴容器】銷毀作用域: {scope_name}")
+            logger.debug(f"[依賴容器]銷毀作用域: {scope_name}")
 
     async def dispose(self):
         """釋放容器資源"""
@@ -323,16 +316,16 @@ class DependencyContainer:
                     try:
                         await instance.dispose()
                     except Exception as e:
-                        logger.warning(f"【依賴容器】釋放實例失敗: {e}")
+                        logger.warning(f"[依賴容器]釋放實例失敗: {e}")
 
             self._singletons.clear()
             self._services.clear()
             self._initialized = False
 
-            logger.info("【依賴容器】已釋放所有資源")
+            logger.info("[依賴容器]已釋放所有資源")
 
         except Exception as e:
-            logger.error(f"【依賴容器】釋放資源時發生錯誤: {e}")
+            logger.error(f"[依賴容器]釋放資源時發生錯誤: {e}")
 
     def get_service_info(self) -> dict[str, Any]:
         """獲取服務信息"""
@@ -357,28 +350,35 @@ class DependencyContainer:
             ],
         }
 
+class GlobalContainerManager:
+    """全局依賴容器管理器單例"""
 
-# 全局依賴容器實例
-_global_container: DependencyContainer | None = None
-_container_lock = asyncio.Lock()
+    _instance: DependencyContainer | None = None
+    _lock = asyncio.Lock()
 
+    @classmethod
+    async def get_instance(cls) -> DependencyContainer:
+        """獲取全局依賴容器實例"""
+        if cls._instance is None:
+            async with cls._lock:
+                if cls._instance is None:
+                    cls._instance = DependencyContainer()
+                    await cls._instance.initialize()
+        return cls._instance
+
+    @classmethod
+    async def dispose(cls):
+        """釋放全局依賴容器"""
+        if cls._instance is not None:
+            async with cls._lock:
+                if cls._instance is not None:
+                    await cls._instance.dispose()
+                    cls._instance = None
 
 async def get_global_container() -> DependencyContainer:
-    """獲取全局依賴容器實例"""
-    global _global_container
-
-    async with _container_lock:
-        if _global_container is None:
-            _global_container = DependencyContainer()
-            await _global_container.initialize()
-
-    return _global_container
-
+    """獲取全局依賴容器實例(兼容性函數)"""
+    return await GlobalContainerManager.get_instance()
 
 async def dispose_global_container():
-    """釋放全局依賴容器"""
-    global _global_container
-
-    if _global_container is not None:
-        await _global_container.dispose()
-        _global_container = None
+    """釋放全局依賴容器(兼容性函數)"""
+    await GlobalContainerManager.dispose()

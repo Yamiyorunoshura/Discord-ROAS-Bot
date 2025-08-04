@@ -1,12 +1,12 @@
 """成就系統服務容器和依賴注入配置.
 
-此模組提供成就系統服務的容器化管理，包含：
+此模組提供成就系統服務的容器化管理,包含:
 - 服務依賴注入配置
 - 服務生命週期管理
 - 統一的服務工廠方法
 - 錯誤處理和日誌記錄整合
 
-遵循依賴注入和容器化設計原則，提供清晰的服務邊界和依賴關係。
+遵循依賴注入和容器化設計原則,提供清晰的服務邊界和依賴關係.
 """
 
 from __future__ import annotations
@@ -32,11 +32,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class AchievementServiceContainer:
     """成就系統服務容器.
 
-    提供成就系統所有服務的容器化管理，包含：
+    提供成就系統所有服務的容器化管理,包含:
     - 服務實例管理和生命週期
     - 依賴注入和配置
     - 統一的服務存取介面
@@ -47,7 +46,7 @@ class AchievementServiceContainer:
 
         Args:
             database_pool: 資料庫連線池
-            bot: Discord 機器人實例（用於事件監聽器）
+            bot: Discord 機器人實例(用於事件監聽器)
         """
         self._database_pool = database_pool
         self._bot = bot
@@ -97,36 +96,34 @@ class AchievementServiceContainer:
                 repository=self._repository,
                 permission_service=self._admin_permission_service,
                 cache_service=self._cache_service,
-                audit_logger=self._audit_logger
+                audit_logger=self._audit_logger,
             )
 
             # 初始化 AchievementService
             self._achievement_service = AchievementService(
-                repository=self._repository,
-                cache_service=self._cache_service
+                repository=self._repository, cache_service=self._cache_service
             )
 
             # 初始化 ProgressTracker
             self._progress_tracker = ProgressTracker(self._repository)
 
-            # 初始化 TriggerEngine（需要 ProgressTracker 依賴）
+            # 初始化 TriggerEngine(需要 ProgressTracker 依賴)
             self._trigger_engine = TriggerEngine(
-                repository=self._repository,
-                progress_tracker=self._progress_tracker
+                repository=self._repository, progress_tracker=self._progress_tracker
             )
 
-            # 初始化事件監聽器（如果有 bot 實例）
+            # 初始化事件監聽器(如果有 bot 實例)
             if self._bot:
                 self._event_listener = AchievementEventListener(self._bot)
-                await self._event_listener.initialize(self._achievement_service, self._database_pool)
+                await self._event_listener.initialize(
+                    self._achievement_service, self._database_pool
+                )
 
             logger.info("成就系統服務初始化完成")
 
         except Exception as e:
             logger.error(
-                "成就系統服務初始化失敗",
-                extra={"error": str(e)},
-                exc_info=True
+                "成就系統服務初始化失敗", extra={"error": str(e)}, exc_info=True
             )
             raise
 
@@ -141,19 +138,13 @@ class AchievementServiceContainer:
             if self._admin_permission_service:
                 await self._admin_permission_service.cleanup()
 
-            # 清理服務實例（如果有需要的話）
             if self._achievement_service:
-                # AchievementService 有快取需要清理
                 await self._achievement_service.__aexit__(None, None, None)
 
             logger.info("成就系統服務清理完成")
 
         except Exception as e:
-            logger.error(
-                "成就系統服務清理失敗",
-                extra={"error": str(e)},
-                exc_info=True
-            )
+            logger.error("成就系統服務清理失敗", extra={"error": str(e)}, exc_info=True)
 
     @property
     def repository(self) -> AchievementRepository:
@@ -221,15 +212,16 @@ class AchievementServiceContainer:
             raise RuntimeError("服務容器尚未初始化")
         return self._cache_service
 
-
 class AchievementServiceFactory:
     """成就系統服務工廠.
 
-    提供統一的服務創建和配置方法。
+    提供統一的服務創建和配置方法.
     """
 
     @staticmethod
-    async def create_container(database_pool: DatabasePool) -> AchievementServiceContainer:
+    async def create_container(
+        database_pool: DatabasePool,
+    ) -> AchievementServiceContainer:
         """創建服務容器.
 
         Args:
@@ -244,7 +236,7 @@ class AchievementServiceFactory:
 
     @staticmethod
     async def create_achievement_service(
-        database_pool: DatabasePool
+        database_pool: DatabasePool,
     ) -> AchievementService:
         """創建 AchievementService 實例.
 
@@ -284,9 +276,10 @@ class AchievementServiceFactory:
         progress_tracker = ProgressTracker(repository)
         return TriggerEngine(repository, progress_tracker)
 
-
 # 整合到現有的依賴注入系統
-async def register_achievement_services(container: Container, database_pool: DatabasePool) -> None:
+async def register_achievement_services(
+    container: Container, database_pool: DatabasePool
+) -> None:
     """在主容器中註冊成就系統服務.
 
     Args:
@@ -295,25 +288,30 @@ async def register_achievement_services(container: Container, database_pool: Dat
     """
     try:
         # 創建成就服務容器
-        achievement_container = await AchievementServiceFactory.create_container(database_pool)
+        achievement_container = await AchievementServiceFactory.create_container(
+            database_pool
+        )
 
         # 註冊到主容器
-        container.register_singleton("achievement_repository", achievement_container.repository)
-        container.register_singleton("achievement_service", achievement_container.achievement_service)
-        container.register_singleton("progress_tracker", achievement_container.progress_tracker)
-        container.register_singleton("trigger_engine", achievement_container.trigger_engine)
+        container.register_singleton(
+            "achievement_repository", achievement_container.repository
+        )
+        container.register_singleton(
+            "achievement_service", achievement_container.achievement_service
+        )
+        container.register_singleton(
+            "progress_tracker", achievement_container.progress_tracker
+        )
+        container.register_singleton(
+            "trigger_engine", achievement_container.trigger_engine
+        )
         container.register_singleton("achievement_container", achievement_container)
 
         logger.info("成就系統服務已註冊到主容器")
 
     except Exception as e:
-        logger.error(
-            "成就系統服務註冊失敗",
-            extra={"error": str(e)},
-            exc_info=True
-        )
+        logger.error("成就系統服務註冊失敗", extra={"error": str(e)}, exc_info=True)
         raise
-
 
 __all__ = [
     "AchievementServiceContainer",

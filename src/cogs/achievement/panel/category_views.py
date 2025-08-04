@@ -1,6 +1,6 @@
 """分類管理相關的 Discord UI 視圖組件.
 
-此模組包含分類管理功能的所有 UI 組件：
+此模組包含分類管理功能的所有 UI 組件:
 - CreateCategoryModal: 分類新增模態框
 - CategorySelectionView: 分類選擇視圖
 - CategoryListView: 分類列表視圖
@@ -21,12 +21,15 @@ from discord import ui
 
 from src.cogs.core.base_cog import StandardEmbedBuilder
 
+# 運行時需要的 imports
+from ..services.admin_service import AchievementAdminService
+from .admin_panel import AdminPanelState, CategoryManagementView
+
 if TYPE_CHECKING:
     from ..database.models import AchievementCategory
     from .admin_panel import AdminPanel
 
 logger = logging.getLogger(__name__)
-
 
 class CreateCategoryModal(ui.Modal):
     """分類新增模態框."""
@@ -62,7 +65,7 @@ class CreateCategoryModal(ui.Modal):
         # 分類圖示
         self.icon_input = ui.TextInput(
             label="分類圖示 (表情符號)",
-            placeholder="輸入表情符號，如：💬、⚡、🏆",
+            placeholder="輸入表情符號,如:💬、⚡、🏆",
             max_length=10,
             required=False,
         )
@@ -71,7 +74,7 @@ class CreateCategoryModal(ui.Modal):
         # 顯示順序
         self.order_input = ui.TextInput(
             label="顯示順序",
-            placeholder="輸入數字，越小越前面 (如: 10, 20, 30)",
+            placeholder="輸入數字,越小越前面 (如: 10, 20, 30)",
             max_length=3,
             required=False,
         )
@@ -115,7 +118,7 @@ class CreateCategoryModal(ui.Modal):
             # 檢查名稱唯一性
             if await self._is_category_name_exists(name):
                 await interaction.followup.send(
-                    "❌ 分類名稱已存在，請使用其他名稱", ephemeral=True
+                    "❌ 分類名稱已存在,請使用其他名稱", ephemeral=True
                 )
                 return
 
@@ -132,7 +135,7 @@ class CreateCategoryModal(ui.Modal):
 
             # 建立預覽 embed
             embed = StandardEmbedBuilder.create_info_embed(
-                "分類建立預覽", "請確認以下分類資訊："
+                "分類建立預覽", "請確認以下分類資訊:"
             )
 
             embed.add_field(
@@ -170,7 +173,7 @@ class CreateCategoryModal(ui.Modal):
             )
 
         except Exception as e:
-            logger.error(f"【分類新增模態框】處理提交失敗: {e}")
+            logger.error(f"[分類新增模態框]處理提交失敗: {e}")
             await interaction.followup.send("❌ 處理分類新增時發生錯誤", ephemeral=True)
 
     async def _is_category_name_exists(self, name: str) -> bool:
@@ -182,8 +185,7 @@ class CreateCategoryModal(ui.Modal):
                 validation = await admin_service._check_category_name_uniqueness(name)
                 return not validation.is_valid
             else:
-                # 備用方案：無法檢查名稱唯一性時假設不重複
-                logger.warning("無法檢查分類名稱唯一性，假設名稱可用")
+                logger.warning("無法檢查分類名稱唯一性,假設名稱可用")
                 return False
         except Exception as e:
             logger.error(f"檢查分類名稱唯一性失敗: {e}")
@@ -192,7 +194,7 @@ class CreateCategoryModal(ui.Modal):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-            from ..services.admin_service import AchievementAdminService
+
 
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
@@ -200,7 +202,6 @@ class CreateCategoryModal(ui.Modal):
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
-
 
 class CreateCategoryConfirmView(ui.View):
     """分類建立確認視圖."""
@@ -218,7 +219,7 @@ class CreateCategoryConfirmView(ui.View):
 
     @ui.button(label="✅ 確認建立", style=discord.ButtonStyle.primary)
     async def confirm_create(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """確認建立分類."""
         try:
@@ -234,11 +235,11 @@ class CreateCategoryConfirmView(ui.View):
                 if validation.is_valid and category:
                     embed = StandardEmbedBuilder.create_success_embed(
                         "分類建立成功",
-                        f"✅ 分類「{category.name}」已成功建立！\n\n"
+                        f"✅ 分類「{category.name}」已成功建立!\n\n"
                         f"**分配的 ID**: {category.id}\n"
                         f"**顯示順序**: {category.display_order}\n"
                         f"**建立時間**: <t:{int(datetime.now().timestamp())}:f>\n\n"
-                        "分類已加入系統，可以開始用於成就分類。",
+                        "分類已加入系統,可以開始用於成就分類.",
                     )
                     embed.set_footer(text="操作已記錄到審計日誌")
                 else:
@@ -247,33 +248,31 @@ class CreateCategoryConfirmView(ui.View):
                         [f"• {error}" for error in validation.errors]
                     )
                     embed = StandardEmbedBuilder.create_error_embed(
-                        "分類建立失敗", f"❌ 分類建立時發生以下錯誤：\n\n{error_text}"
+                        "分類建立失敗", f"❌ 分類建立時發生以下錯誤:\n\n{error_text}"
                     )
             else:
-                # 備用方案：無法建立分類時顯示錯誤
                 embed = StandardEmbedBuilder.create_error_embed(
                     "分類建立失敗",
-                    "❌ 無法建立分類，管理服務不可用。\n\n"
-                    "請檢查系統狀態或聯繫管理員。",
+                    "❌ 無法建立分類,管理服務不可用.\n\n請檢查系統狀態或聯繫管理員.",
                 )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
             # 重新整理管理面板
-            from .admin_panel import AdminPanelState
+
 
             await self.admin_panel.handle_navigation(
                 interaction, AdminPanelState.ACHIEVEMENTS
             )
 
         except Exception as e:
-            logger.error(f"【建立確認視圖】建立分類失敗: {e}")
+            logger.error(f"[建立確認視圖]建立分類失敗: {e}")
             await interaction.followup.send("❌ 建立分類時發生錯誤", ephemeral=True)
 
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-            from ..services.admin_service import AchievementAdminService
+
 
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
@@ -284,14 +283,13 @@ class CreateCategoryConfirmView(ui.View):
 
     @ui.button(label="❌ 取消", style=discord.ButtonStyle.secondary)
     async def cancel_create(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """取消建立分類."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "操作已取消", "✅ 分類建立操作已被取消。"
+            "操作已取消", "✅ 分類建立操作已被取消."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
-
 
 class CategorySelectionView(ui.View):
     """分類選擇視圖."""
@@ -363,7 +361,7 @@ class CategorySelectionView(ui.View):
                 await self._handle_view_selected(interaction, selected_category)
 
         except Exception as e:
-            logger.error(f"【分類選擇視圖】處理分類選擇失敗: {e}")
+            logger.error(f"[分類選擇視圖]處理分類選擇失敗: {e}")
             await interaction.followup.send("❌ 處理分類選擇時發生錯誤", ephemeral=True)
 
     async def _handle_edit_selected(
@@ -376,7 +374,7 @@ class CategorySelectionView(ui.View):
             await interaction.response.send_modal(modal)
 
         except Exception as e:
-            logger.error(f"【分類選擇視圖】開啟編輯表單失敗: {e}")
+            logger.error(f"[分類選擇視圖]開啟編輯表單失敗: {e}")
             await interaction.followup.send("❌ 開啟編輯表單時發生錯誤", ephemeral=True)
 
     async def _handle_delete_selected(
@@ -396,21 +394,21 @@ class CategorySelectionView(ui.View):
             embed = StandardEmbedBuilder.create_warning_embed(
                 "確認刪除分類",
                 f"⚠️ 您即將刪除分類「{category.name}」\n\n"
-                "**分類資訊**：\n"
+                "**分類資訊**:\n"
                 f"• **ID**: {category.id}\n"
                 f"• **名稱**: {category.name}\n"
                 f"• **描述**: {category.description}\n"
                 f"• **排序**: {category.display_order}\n\n"
-                f"**使用情況**：\n"
+                f"**使用情況**:\n"
                 f"• {usage_info['description']}\n\n"
-                "❗ **此操作需要謹慎考慮！**",
+                "❗ **此操作需要謹慎考慮!**",
             )
 
             if usage_info["has_achievements"]:
                 embed.add_field(
                     name="⚠️ 注意事項",
-                    value=f"此分類有 {usage_info['achievement_count']} 個成就。\n"
-                    "刪除前需要重新分配這些成就到其他分類。",
+                    value=f"此分類有 {usage_info['achievement_count']} 個成就.\n"
+                    "刪除前需要重新分配這些成就到其他分類.",
                     inline=False,
                 )
 
@@ -419,7 +417,7 @@ class CategorySelectionView(ui.View):
             )
 
         except Exception as e:
-            logger.error(f"【分類選擇視圖】處理刪除選中分類失敗: {e}")
+            logger.error(f"[分類選擇視圖]處理刪除選中分類失敗: {e}")
             await interaction.followup.send("❌ 處理分類刪除時發生錯誤", ephemeral=True)
 
     async def _handle_view_selected(
@@ -441,7 +439,7 @@ class CategorySelectionView(ui.View):
             )
 
         except Exception as e:
-            logger.error(f"【分類選擇視圖】查看分類詳情失敗: {e}")
+            logger.error(f"[分類選擇視圖]查看分類詳情失敗: {e}")
             await interaction.followup.send("❌ 查看分類詳情時發生錯誤", ephemeral=True)
 
     async def _check_category_usage(self, category_id: int) -> dict:
@@ -449,11 +447,10 @@ class CategorySelectionView(ui.View):
         try:
             # 嘗試從管理服務獲取分類使用情況
             admin_service = await self._get_admin_service()
-            if admin_service and hasattr(admin_service, 'get_category_usage'):
+            if admin_service and hasattr(admin_service, "get_category_usage"):
                 usage_info = await admin_service.get_category_usage(category_id)
                 return usage_info
             else:
-                # 備用方案：無法檢查時假設分類為空
                 logger.warning(f"無法檢查分類 {category_id} 的使用情況")
                 return {
                     "has_achievements": False,
@@ -477,12 +474,11 @@ class CategorySelectionView(ui.View):
         try:
             # 嘗試從管理服務獲取詳細統計
             admin_service = await self._get_admin_service()
-            if admin_service and hasattr(admin_service, 'get_category_details'):
+            if admin_service and hasattr(admin_service, "get_category_details"):
                 details = await admin_service.get_category_details(category_id)
                 details["category"] = category
                 return details
             else:
-                # 備用方案：返回基本資訊
                 logger.warning(f"無法獲取分類 {category_id} 的詳細統計")
                 return {
                     "category": category,
@@ -560,7 +556,6 @@ class CategorySelectionView(ui.View):
 
         return embed
 
-
 class EditCategoryModal(ui.Modal):
     """分類編輯模態框."""
 
@@ -599,7 +594,7 @@ class EditCategoryModal(ui.Modal):
         # 分類圖示
         self.icon_input = ui.TextInput(
             label="分類圖示 (表情符號)",
-            placeholder="輸入表情符號，如：💬、⚡、🏆",
+            placeholder="輸入表情符號,如:💬、⚡、🏆",
             default=category.icon_emoji or "",
             max_length=10,
             required=False,
@@ -609,7 +604,7 @@ class EditCategoryModal(ui.Modal):
         # 顯示順序
         self.order_input = ui.TextInput(
             label="顯示順序",
-            placeholder="輸入數字，越小越前面",
+            placeholder="輸入數字,越小越前面",
             default=str(category.display_order),
             max_length=3,
             required=False,
@@ -663,19 +658,18 @@ class EditCategoryModal(ui.Modal):
                 changes["display_order"] = display_order
 
             if not changes:
-                await interaction.followup.send("ℹ️ 沒有檢測到任何變更", ephemeral=True)
+                await interaction.followup.send("i️ 沒有檢測到任何變更", ephemeral=True)
                 return
 
-            # 檢查名稱唯一性（如果名稱有變更）
             if "name" in changes and await self._is_category_name_exists(name):
                 await interaction.followup.send(
-                    "❌ 分類名稱已存在，請使用其他名稱", ephemeral=True
+                    "❌ 分類名稱已存在,請使用其他名稱", ephemeral=True
                 )
                 return
 
             # 建立變更預覽
             preview_embed = StandardEmbedBuilder.create_info_embed(
-                "分類編輯預覽", f"即將更新分類「{self.category.name}」，請確認變更："
+                "分類編輯預覽", f"即將更新分類「{self.category.name}」,請確認變更:"
             )
 
             # 顯示變更內容
@@ -710,11 +704,11 @@ class EditCategoryModal(ui.Modal):
             )
 
         except Exception as e:
-            logger.error(f"【分類編輯模態框】處理提交失敗: {e}")
+            logger.error(f"[分類編輯模態框]處理提交失敗: {e}")
             await interaction.followup.send("❌ 處理分類編輯時發生錯誤", ephemeral=True)
 
     async def _is_category_name_exists(self, name: str) -> bool:
-        """檢查分類名稱是否已存在（排除當前分類）."""
+        """檢查分類名稱是否已存在(排除當前分類)."""
         try:
             # 模擬檢查名稱唯一性
             existing_names = ["社交互動", "活躍度", "成長里程", "特殊事件"]
@@ -722,7 +716,6 @@ class EditCategoryModal(ui.Modal):
         except Exception as e:
             logger.error(f"檢查分類名稱唯一性失敗: {e}")
             return False
-
 
 class EditCategoryConfirmView(ui.View):
     """分類編輯確認視圖."""
@@ -747,7 +740,7 @@ class EditCategoryConfirmView(ui.View):
 
     @ui.button(label="✅ 確認更新", style=discord.ButtonStyle.primary)
     async def confirm_update(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """確認更新分類."""
         try:
@@ -763,10 +756,10 @@ class EditCategoryConfirmView(ui.View):
                 if validation.is_valid and category:
                     embed = StandardEmbedBuilder.create_success_embed(
                         "分類更新成功",
-                        f"✅ 分類「{category.name}」已成功更新！\n\n"
+                        f"✅ 分類「{category.name}」已成功更新!\n\n"
                         f"**更新項目**: {len(self.changes)} 個欄位\n"
                         f"**更新時間**: <t:{int(datetime.now().timestamp())}:f>\n\n"
-                        "變更已生效，新的分類資訊立即可用。",
+                        "變更已生效,新的分類資訊立即可用.",
                     )
                     embed.set_footer(text="操作已記錄到審計日誌")
                 else:
@@ -775,34 +768,33 @@ class EditCategoryConfirmView(ui.View):
                         [f"• {error}" for error in validation.errors]
                     )
                     embed = StandardEmbedBuilder.create_error_embed(
-                        "分類更新失敗", f"❌ 分類更新時發生以下錯誤：\n\n{error_text}"
+                        "分類更新失敗", f"❌ 分類更新時發生以下錯誤:\n\n{error_text}"
                     )
             else:
-                # 備用方案：無法更新分類
                 embed = StandardEmbedBuilder.create_error_embed(
                     "分類更新失敗",
                     f"❌ 無法更新分類「{self.category.name}」\n\n"
-                    "管理服務不可用，請稍後再試或聯繫系統管理員。",
+                    "管理服務不可用,請稍後再試或聯繫系統管理員.",
                 )
-                logger.warning(f"無法更新分類 {self.category.id}：管理服務不可用")
+                logger.warning(f"無法更新分類 {self.category.id}:管理服務不可用")
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
             # 重新整理管理面板
-            from .admin_panel import AdminPanelState
+
 
             await self.admin_panel.handle_navigation(
                 interaction, AdminPanelState.ACHIEVEMENTS
             )
 
         except Exception as e:
-            logger.error(f"【編輯確認視圖】更新分類失敗: {e}")
+            logger.error(f"[編輯確認視圖]更新分類失敗: {e}")
             await interaction.followup.send("❌ 更新分類時發生錯誤", ephemeral=True)
 
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-            from ..services.admin_service import AchievementAdminService
+
 
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
@@ -813,14 +805,13 @@ class EditCategoryConfirmView(ui.View):
 
     @ui.button(label="❌ 取消", style=discord.ButtonStyle.secondary)
     async def cancel_update(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """取消更新分類."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "操作已取消", "✅ 分類編輯操作已被取消。"
+            "操作已取消", "✅ 分類編輯操作已被取消."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
-
 
 class DeleteCategoryConfirmView(ui.View):
     """分類刪除確認視圖."""
@@ -845,9 +836,9 @@ class DeleteCategoryConfirmView(ui.View):
 
     @ui.button(label="🗑️ 安全刪除", style=discord.ButtonStyle.danger, disabled=False)
     async def safe_delete_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
-        """安全刪除分類（僅當無成就時）."""
+        """安全刪除分類(僅當無成就時)."""
         try:
             await interaction.response.defer(ephemeral=True)
 
@@ -855,13 +846,13 @@ class DeleteCategoryConfirmView(ui.View):
                 # 需要成就重新分配
                 embed = StandardEmbedBuilder.create_error_embed(
                     "無法安全刪除",
-                    f"❌ 分類「{self.category.name}」中有成就！\n\n"
+                    f"❌ 分類「{self.category.name}」中有成就!\n\n"
                     f"**成就數量**: {self.usage_info['achievement_count']} 個\n\n"
-                    "**解決方案**：\n"
+                    "**解決方案**:\n"
                     "1️⃣ 先將成就移動到其他分類\n"
                     "2️⃣ 使用「重新分配並刪除」選項\n"
                     "3️⃣ 或者取消此次操作\n\n"
-                    "⚠️ 分類刪除後無法復原！",
+                    "⚠️ 分類刪除後無法復原!",
                 )
                 await interaction.followup.send(embed=embed, ephemeral=True)
                 return
@@ -872,36 +863,36 @@ class DeleteCategoryConfirmView(ui.View):
             if success:
                 embed = StandardEmbedBuilder.create_success_embed(
                     "分類刪除成功",
-                    f"✅ 分類「{self.category.name}」已安全刪除！\n\n"
-                    f"**刪除詳情**：\n"
+                    f"✅ 分類「{self.category.name}」已安全刪除!\n\n"
+                    f"**刪除詳情**:\n"
                     f"• 分類 ID: {self.category.id}\n"
                     f"• 刪除時間: <t:{int(datetime.now().timestamp())}:f>\n"
                     f"• 影響成就: 0 個\n\n"
-                    "✅ 沒有成就受到影響。\n"
-                    "📝 此操作已記錄到審計日誌。",
+                    "✅ 沒有成就受到影響.\n"
+                    "📝 此操作已記錄到審計日誌.",
                 )
             else:
                 embed = StandardEmbedBuilder.create_error_embed(
                     "刪除失敗",
                     f"❌ 無法刪除分類「{self.category.name}」\n\n"
-                    "請檢查分類是否仍然存在或聯繫系統管理員。",
+                    "請檢查分類是否仍然存在或聯繫系統管理員.",
                 )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【刪除確認視圖】安全刪除分類失敗: {e}")
+            logger.error(f"[刪除確認視圖]安全刪除分類失敗: {e}")
             await interaction.followup.send("❌ 執行刪除操作時發生錯誤", ephemeral=True)
 
     @ui.button(label="📦 重新分配並刪除", style=discord.ButtonStyle.danger)
     async def reassign_and_delete_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """重新分配成就並刪除分類."""
         try:
             if not self.usage_info["has_achievements"]:
                 await interaction.response.send_message(
-                    "ℹ️ 此分類沒有成就，可以直接安全刪除", ephemeral=True
+                    "i️ 此分類沒有成就,可以直接安全刪除", ephemeral=True
                 )
                 return
 
@@ -913,7 +904,7 @@ class DeleteCategoryConfirmView(ui.View):
             embed = StandardEmbedBuilder.create_info_embed(
                 "成就重新分配",
                 f"分類「{self.category.name}」中有 {self.usage_info['achievement_count']} 個成就\n\n"
-                "請選擇目標分類來重新分配這些成就：",
+                "請選擇目標分類來重新分配這些成就:",
             )
 
             await interaction.response.send_message(
@@ -921,20 +912,20 @@ class DeleteCategoryConfirmView(ui.View):
             )
 
         except Exception as e:
-            logger.error(f"【刪除確認視圖】重新分配處理失敗: {e}")
+            logger.error(f"[刪除確認視圖]重新分配處理失敗: {e}")
             await interaction.response.send_message(
                 "❌ 處理成就重新分配時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="❌ 取消", style=discord.ButtonStyle.secondary)
     async def cancel_delete(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """取消刪除分類."""
         embed = StandardEmbedBuilder.create_info_embed(
             "操作已取消",
-            f"✅ 分類「{self.category.name}」的刪除操作已被取消。\n\n"
-            "分類保持原狀，未進行任何變更。",
+            f"✅ 分類「{self.category.name}」的刪除操作已被取消.\n\n"
+            "分類保持原狀,未進行任何變更.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -946,6 +937,8 @@ class DeleteCategoryConfirmView(ui.View):
             # 通過管理服務刪除分類
             admin_service = await self._get_admin_service()
             if admin_service:
+                # TODO: force 參數將在未來實現強制刪除功能時使用
+                _ = force  # 暫時標記參數將被使用
                 success, validation = await admin_service.delete_category(
                     self.category.id, self.admin_panel.admin_user_id, target_category_id
                 )
@@ -957,8 +950,7 @@ class DeleteCategoryConfirmView(ui.View):
 
                 return success
             else:
-                # 備用方案：無法刪除分類
-                logger.warning(f"無法刪除分類 {self.category.id}：管理服務不可用")
+                logger.warning(f"無法刪除分類 {self.category.id}:管理服務不可用")
                 return False
         except Exception as e:
             logger.error(f"刪除分類失敗: {e}")
@@ -967,7 +959,7 @@ class DeleteCategoryConfirmView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-            from ..services.admin_service import AchievementAdminService
+
 
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
@@ -975,7 +967,6 @@ class DeleteCategoryConfirmView(ui.View):
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
-
 
 class AchievementReassignView(ui.View):
     """成就重新分配視圖."""
@@ -997,7 +988,6 @@ class AchievementReassignView(ui.View):
 
     def _setup_target_category_select(self):
         """設置目標分類選擇下拉選單."""
-        # 嘗試獲取其他分類（排除當前要刪除的分類）
         other_categories = self._get_other_categories()
 
         options = []
@@ -1026,18 +1016,17 @@ class AchievementReassignView(ui.View):
         """獲取其他可用分類."""
         try:
             # 嘗試從管理面板獲取分類列表
-            if hasattr(self.admin_panel, 'categories') and self.admin_panel.categories:
+            if hasattr(self.admin_panel, "categories") and self.admin_panel.categories:
                 return [
                     {
                         "id": cat.id,
                         "name": cat.name,
-                        "emoji": getattr(cat, 'emoji', '📁')
+                        "emoji": getattr(cat, "emoji", "📁"),
                     }
                     for cat in self.admin_panel.categories
                     if cat.id != self.source_category.id
                 ]
             else:
-                # 備用方案：返回空列表
                 logger.warning("無法獲取其他分類列表")
                 return []
         except Exception as e:
@@ -1061,28 +1050,28 @@ class AchievementReassignView(ui.View):
                 if delete_success:
                     embed = StandardEmbedBuilder.create_success_embed(
                         "分類刪除成功",
-                        f"✅ 分類「{self.source_category.name}」已成功刪除！\n\n"
-                        f"**重新分配詳情**：\n"
+                        f"✅ 分類「{self.source_category.name}」已成功刪除!\n\n"
+                        f"**重新分配詳情**:\n"
                         f"• 移動成就數: {self.usage_info['achievement_count']} 個\n"
                         f"• 目標分類: ID {target_category_id}\n"
                         f"• 處理時間: <t:{int(datetime.now().timestamp())}:f>\n\n"
-                        "✅ 所有成就已安全轉移。\n"
-                        "📝 操作已完整記錄到審計日誌。",
+                        "✅ 所有成就已安全轉移.\n"
+                        "📝 操作已完整記錄到審計日誌.",
                     )
                 else:
                     embed = StandardEmbedBuilder.create_error_embed(
                         "部分失敗",
-                        "成就重新分配成功，但分類刪除失敗。\n請聯繫管理員處理。",
+                        "成就重新分配成功,但分類刪除失敗.\n請聯繫管理員處理.",
                     )
             else:
                 embed = StandardEmbedBuilder.create_error_embed(
-                    "重新分配失敗", "成就重新分配失敗，分類未被刪除。"
+                    "重新分配失敗", "成就重新分配失敗,分類未被刪除."
                 )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【成就重新分配視圖】處理目標選擇失敗: {e}")
+            logger.error(f"[成就重新分配視圖]處理目標選擇失敗: {e}")
             await interaction.followup.send(
                 "❌ 處理成就重新分配時發生錯誤", ephemeral=True
             )
@@ -1097,14 +1086,16 @@ class AchievementReassignView(ui.View):
                 achievement_count = self.usage_info.get("achievement_count", 0)
                 if achievement_count > 0:
                     # 嘗試獲取實際的成就ID列表
-                    if hasattr(admin_service, 'get_achievements_by_category'):
+                    if hasattr(admin_service, "get_achievements_by_category"):
                         achievements = await admin_service.get_achievements_by_category(
                             self.source_category.id
                         )
                         achievement_ids = [ach.id for ach in achievements]
                     else:
                         # 無法獲取成就列表
-                        logger.warning(f"無法獲取分類 {self.source_category.id} 的成就列表")
+                        logger.warning(
+                            f"無法獲取分類 {self.source_category.id} 的成就列表"
+                        )
                         return False
 
                     # 批量更新成就分類
@@ -1117,9 +1108,8 @@ class AchievementReassignView(ui.View):
                     return result.success_count > 0
                 return True  # 沒有成就需要重新分配
             else:
-                # 備用方案：無法重新分配成就
                 logger.warning(
-                    f"無法重新分配成就：從分類 {self.source_category.id} 到分類 {target_category_id}，"
+                    f"無法重新分配成就:從分類 {self.source_category.id} 到分類 {target_category_id},"
                     f"管理服務不可用"
                 )
                 return False
@@ -1136,7 +1126,7 @@ class AchievementReassignView(ui.View):
                 success, validation = await admin_service.delete_category(
                     self.source_category.id,
                     self.admin_panel.admin_user_id,
-                    None,  # 成就已經重新分配，無需指定目標
+                    None,  # 成就已經重新分配,無需指定目標
                 )
 
                 if not validation.is_valid:
@@ -1145,8 +1135,9 @@ class AchievementReassignView(ui.View):
 
                 return success
             else:
-                # 備用方案：無法刪除源分類
-                logger.warning(f"無法刪除源分類 {self.source_category.id}：管理服務不可用")
+                logger.warning(
+                    f"無法刪除源分類 {self.source_category.id}:管理服務不可用"
+                )
                 return False
         except Exception as e:
             logger.error(f"刪除源分類失敗: {e}")
@@ -1155,7 +1146,7 @@ class AchievementReassignView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-            from ..services.admin_service import AchievementAdminService
+
 
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
@@ -1163,7 +1154,6 @@ class AchievementReassignView(ui.View):
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
-
 
 class CategoryDetailView(ui.View):
     """分類詳細資訊視圖."""
@@ -1177,21 +1167,21 @@ class CategoryDetailView(ui.View):
 
     @ui.button(label="✏️ 編輯分類", style=discord.ButtonStyle.primary)
     async def edit_category_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """編輯分類按鈕."""
         try:
             modal = EditCategoryModal(self.admin_panel, self.category)
             await interaction.response.send_modal(modal)
         except Exception as e:
-            logger.error(f"【分類詳細視圖】開啟編輯表單失敗: {e}")
+            logger.error(f"[分類詳細視圖]開啟編輯表單失敗: {e}")
             await interaction.response.send_message(
                 "❌ 開啟編輯表單時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="📊 詳細統計", style=discord.ButtonStyle.secondary)
     async def view_statistics_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """查看詳細統計按鈕."""
         try:
@@ -1240,22 +1230,19 @@ class CategoryDetailView(ui.View):
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【分類詳細視圖】查看統計失敗: {e}")
+            logger.error(f"[分類詳細視圖]查看統計失敗: {e}")
             await interaction.response.send_message(
                 "❌ 載入統計數據時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="🔙 返回管理", style=discord.ButtonStyle.secondary)
     async def back_to_management_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """返回分類管理."""
-        from .admin_panel import AdminPanelState
-
         await self.admin_panel.handle_navigation(
             interaction, AdminPanelState.ACHIEVEMENTS
         )
-
 
 class CategoryListView(ui.View):
     """分類列表視圖."""
@@ -1266,23 +1253,23 @@ class CategoryListView(ui.View):
         self.admin_panel = admin_panel
         self.categories = categories
 
-    @ui.button(label="➕ 新增分類", style=discord.ButtonStyle.primary)
+    @ui.button(label="+ 新增分類", style=discord.ButtonStyle.primary)
     async def add_category_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """新增分類按鈕."""
         try:
             modal = CreateCategoryModal(self.admin_panel)
             await interaction.response.send_modal(modal)
         except Exception as e:
-            logger.error(f"【分類列表視圖】開啟新增表單失敗: {e}")
+            logger.error(f"[分類列表視圖]開啟新增表單失敗: {e}")
             await interaction.response.send_message(
                 "❌ 開啟新增表單時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="🔄 調整順序", style=discord.ButtonStyle.secondary)
     async def reorder_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """調整順序按鈕."""
         try:
@@ -1292,22 +1279,19 @@ class CategoryListView(ui.View):
                 embed=embed, view=reorder_view, ephemeral=True
             )
         except Exception as e:
-            logger.error(f"【分類列表視圖】開啟排序管理失敗: {e}")
+            logger.error(f"[分類列表視圖]開啟排序管理失敗: {e}")
             await interaction.response.send_message(
                 "❌ 開啟排序管理時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="🔙 返回管理", style=discord.ButtonStyle.secondary)
     async def back_to_management_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """返回分類管理."""
-        from .admin_panel import AdminPanelState
-
         await self.admin_panel.handle_navigation(
             interaction, AdminPanelState.ACHIEVEMENTS
         )
-
 
 class CategoryReorderView(ui.View):
     """分類排序視圖."""
@@ -1321,7 +1305,7 @@ class CategoryReorderView(ui.View):
     async def _create_reorder_embed(self) -> discord.Embed:
         """建立排序管理 Embed."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "🔄 分類排序管理", "調整分類的顯示順序，影響用戶界面中的分類排列"
+            "🔄 分類排序管理", "調整分類的顯示順序,影響用戶界面中的分類排列"
         )
 
         # 按當前顯示順序排序
@@ -1342,8 +1326,8 @@ class CategoryReorderView(ui.View):
         embed.add_field(
             name="🔧 排序說明",
             value=(
-                "• display_order 數值越小，顯示越前面\n"
-                "• 可以設定相同數值（系統會按 ID 排序）\n"
+                "• display_order 數值越小,顯示越前面\n"
+                "• 可以設定相同數值(系統會按 ID 排序)\n"
                 "• 建議使用 10, 20, 30... 預留調整空間\n"
                 "• 變更會即時生效"
             ),
@@ -1357,21 +1341,21 @@ class CategoryReorderView(ui.View):
 
     @ui.button(label="📝 手動設定順序", style=discord.ButtonStyle.primary)
     async def manual_reorder_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """手動設定順序按鈕."""
         try:
             modal = CategoryOrderModal(self.admin_panel, self.categories)
             await interaction.response.send_modal(modal)
         except Exception as e:
-            logger.error(f"【分類排序視圖】開啟手動排序失敗: {e}")
+            logger.error(f"[分類排序視圖]開啟手動排序失敗: {e}")
             await interaction.response.send_message(
                 "❌ 開啟手動排序時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="🔁 自動重排", style=discord.ButtonStyle.secondary)
     async def auto_reorder_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """自動重排按鈕."""
         try:
@@ -1383,31 +1367,29 @@ class CategoryReorderView(ui.View):
             if success:
                 embed = StandardEmbedBuilder.create_success_embed(
                     "自動重排完成",
-                    f"✅ 已自動重新排列 {len(self.categories)} 個分類的順序！\n\n"
-                    "**重排規則**：\n"
+                    f"✅ 已自動重新排列 {len(self.categories)} 個分類的順序!\n\n"
+                    "**重排規則**:\n"
                     "• 按照當前順序重新分配\n"
                     "• 使用 10, 20, 30... 的間隔\n"
                     "• 保持原有的相對順序\n\n"
-                    "變更已立即生效。",
+                    "變更已立即生效.",
                 )
             else:
                 embed = StandardEmbedBuilder.create_error_embed(
-                    "自動重排失敗", "無法完成自動重排，請嘗試手動設定。"
+                    "自動重排失敗", "無法完成自動重排,請嘗試手動設定."
                 )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【分類排序視圖】自動重排失敗: {e}")
+            logger.error(f"[分類排序視圖]自動重排失敗: {e}")
             await interaction.followup.send("❌ 執行自動重排時發生錯誤", ephemeral=True)
 
     @ui.button(label="🔙 返回管理", style=discord.ButtonStyle.secondary)
     async def back_to_management_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """返回分類管理."""
-        from .admin_panel import AdminPanelState
-
         await self.admin_panel.handle_navigation(
             interaction, AdminPanelState.ACHIEVEMENTS
         )
@@ -1418,7 +1400,7 @@ class CategoryReorderView(ui.View):
             # 通過管理服務重新排序分類
             admin_service = await self._get_admin_service()
             if admin_service:
-                # 按當前順序排序，然後重新分配順序號
+                # 按當前順序排序,然後重新分配順序號
                 sorted_categories = sorted(
                     self.categories, key=lambda x: x.display_order
                 )
@@ -1438,7 +1420,6 @@ class CategoryReorderView(ui.View):
 
                 return result.success_count > 0
             else:
-                # 備用方案：模擬自動重排操作
                 logger.info(f"模擬自動重排 {len(self.categories)} 個分類")
                 return True
         except Exception as e:
@@ -1448,7 +1429,7 @@ class CategoryReorderView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-            from ..services.admin_service import AchievementAdminService
+
 
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
@@ -1456,7 +1437,6 @@ class CategoryReorderView(ui.View):
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
-
 
 class CategoryOrderModal(ui.Modal):
     """分類順序設定模態框."""
@@ -1470,7 +1450,6 @@ class CategoryOrderModal(ui.Modal):
         # 按當前順序排序
         sorted_categories = sorted(categories, key=lambda x: x.display_order)
 
-        # 建立輸入欄位（最多顯示前5個分類）
         for _i, category in enumerate(sorted_categories[:5]):
             order_input = ui.TextInput(
                 label=f"{category.icon_emoji} {category.name}",
@@ -1507,18 +1486,18 @@ class CategoryOrderModal(ui.Modal):
             if success:
                 embed = StandardEmbedBuilder.create_success_embed(
                     "順序更新成功",
-                    f"✅ 已成功更新 {len(new_orders)} 個分類的顾示順序！\n\n"
-                    "變更已立即生效，用戶界面將按新順序顯示分類。",
+                    f"✅ 已成功更新 {len(new_orders)} 個分類的顾示順序!\n\n"
+                    "變更已立即生效,用戶界面將按新順序顯示分類.",
                 )
             else:
                 embed = StandardEmbedBuilder.create_error_embed(
-                    "順序更新失敗", "無法更新分類順序，請稍後再試。"
+                    "順序更新失敗", "無法更新分類順序,請稍後再試."
                 )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【分類順序模態框】處理提交失敗: {e}")
+            logger.error(f"[分類順序模態框]處理提交失敗: {e}")
             await interaction.followup.send("❌ 處理順序更新時發生錯誤", ephemeral=True)
 
     async def _update_category_orders(self, new_orders: list[int]) -> bool:
@@ -1533,7 +1512,6 @@ class CategoryOrderModal(ui.Modal):
                 )
                 category_orders = []
 
-                # 只處理前5個分類（對應表單中的輸入欄位）
                 for i, new_order in enumerate(new_orders):
                     if i < len(sorted_categories):
                         category = sorted_categories[i]
@@ -1548,7 +1526,6 @@ class CategoryOrderModal(ui.Modal):
 
                 return result.success_count > 0
             else:
-                # 備用方案：模擬更新順序操作
                 logger.info(f"模擬更新分類順序: {new_orders}")
                 return True
         except Exception as e:
@@ -1558,7 +1535,7 @@ class CategoryOrderModal(ui.Modal):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-            from ..services.admin_service import AchievementAdminService
+
 
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
@@ -1566,7 +1543,6 @@ class CategoryOrderModal(ui.Modal):
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
-
 
 class CategoryStatisticsView(ui.View):
     """分類統計視圖."""
@@ -1579,15 +1555,13 @@ class CategoryStatisticsView(ui.View):
 
     @ui.button(label="🔄 重新整理", style=discord.ButtonStyle.secondary)
     async def refresh_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """重新整理統計數據."""
         try:
             await interaction.response.defer(ephemeral=True)
 
             # 重新載入統計數據
-            from .admin_panel import CategoryManagementView
-
             temp_view = CategoryManagementView(self.admin_panel, {})
             new_stats = await temp_view._get_detailed_category_statistics()
 
@@ -1600,14 +1574,14 @@ class CategoryStatisticsView(ui.View):
             await interaction.followup.send(embed=embed, view=self, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【分類統計視圖】重新整理失敗: {e}")
+            logger.error(f"[分類統計視圖]重新整理失敗: {e}")
             await interaction.followup.send(
                 "❌ 重新整理統計數據時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="📊 匯出報告", style=discord.ButtonStyle.secondary)
     async def export_report_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """匯出統計報告."""
         try:
@@ -1624,23 +1598,21 @@ class CategoryStatisticsView(ui.View):
 
             embed.add_field(
                 name="💡 提示",
-                value="完整報告已記錄到系統日誌中，管理員可查閱詳細數據。",
+                value="完整報告已記錄到系統日誌中,管理員可查閱詳細數據.",
                 inline=False,
             )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【分類統計視圖】匯出報告失敗: {e}")
+            logger.error(f"[分類統計視圖]匯出報告失敗: {e}")
             await interaction.followup.send("❌ 生成統計報告時發生錯誤", ephemeral=True)
 
     @ui.button(label="🔙 返回管理", style=discord.ButtonStyle.secondary)
     async def back_to_management_button(
-        self, interaction: discord.Interaction, button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """返回分類管理."""
-        from .admin_panel import AdminPanelState
-
         await self.admin_panel.handle_navigation(
             interaction, AdminPanelState.ACHIEVEMENTS
         )

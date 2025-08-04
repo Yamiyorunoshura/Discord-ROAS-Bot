@@ -19,7 +19,7 @@
 import asyncio
 import hashlib
 import logging
-import os
+import random
 import statistics
 import time
 import weakref
@@ -27,13 +27,13 @@ from collections import defaultdict, deque
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import aiosqlite
 
 # 配置日誌
 logger = logging.getLogger(__name__)
-
 
 class ConnectionStatus(Enum):
     """連接狀態枚舉"""
@@ -44,7 +44,6 @@ class ConnectionStatus(Enum):
     FAILED = "failed"  # 失敗
     WARMING = "warming"  # 預熱中
 
-
 class PoolStrategy(Enum):
     """連接池策略枚舉"""
 
@@ -52,7 +51,6 @@ class PoolStrategy(Enum):
     LEAST_USED = "least_used"  # 最少使用
     RANDOM = "random"  # 隨機
     ADAPTIVE = "adaptive"  # 自適應
-
 
 @dataclass
 class PoolConfiguration:
@@ -74,7 +72,6 @@ class PoolConfiguration:
     enable_load_balancing: bool = True  # 啟用負載均衡
     enable_auto_recovery: bool = True  # 啟用自動恢復
     performance_monitoring: bool = True  # 啟用性能監控
-
 
 @dataclass
 class ConnectionMetrics:
@@ -115,9 +112,11 @@ class ConnectionMetrics:
         """空閒時間(秒)"""
         return time.time() - self.last_used
 
-
 class PoolMetrics:
     """連接池指標收集器"""
+
+    # 常數定義
+    RECENT_QUERY_WINDOW_SECONDS = 300  # 最近查詢統計時間窗口(5分鐘)
 
     def __init__(self):
         self.total_connections_created = 0
@@ -187,7 +186,7 @@ class PoolMetrics:
 
             # 計算最近查詢性能
             recent_queries = [
-                q for q in self.query_history if time.time() - q["timestamp"] < 300
+                q for q in self.query_history if time.time() - q["timestamp"] < self.RECENT_QUERY_WINDOW_SECONDS
             ]  # 最近5分鐘
             recent_avg_time = (
                 statistics.mean([q["duration"] for q in recent_queries])
@@ -221,7 +220,6 @@ class PoolMetrics:
                 else 0.0,
             }
 
-
 class LoadBalancer:
     """連接負載均衡器"""
 
@@ -245,16 +243,24 @@ class LoadBalancer:
             return None
 
         async with self._lock:
-            if self.strategy == PoolStrategy.ROUND_ROBIN:
-                return self._round_robin_select(available_connections)
-            elif self.strategy == PoolStrategy.LEAST_USED:
-                return self._least_used_select(available_connections)
-            elif self.strategy == PoolStrategy.RANDOM:
-                return self._random_select(available_connections)
-            elif self.strategy == PoolStrategy.ADAPTIVE:
-                return await self._adaptive_select(available_connections)
-            else:
-                return available_connections[0]
+            return await self._select_by_strategy(available_connections)
+
+    async def _select_by_strategy(
+        self, connections: list["PooledConnection"]
+    ) -> "PooledConnection":
+        """根據策略選擇連接"""
+        strategy_map = {
+            PoolStrategy.ROUND_ROBIN: lambda: self._round_robin_select(connections),
+            PoolStrategy.LEAST_USED: lambda: self._least_used_select(connections),
+            PoolStrategy.RANDOM: lambda: self._random_select(connections),
+        }
+
+        if self.strategy == PoolStrategy.ADAPTIVE:
+            return await self._adaptive_select(connections)
+        elif self.strategy in strategy_map:
+            return strategy_map[self.strategy]()
+        else:
+            return connections[0]
 
     def _round_robin_select(
         self, connections: list["PooledConnection"]
@@ -273,8 +279,6 @@ class LoadBalancer:
         self, connections: list["PooledConnection"]
     ) -> "PooledConnection":
         """隨機選擇"""
-        import random
-
         return random.choice(connections)
 
     async def _adaptive_select(
@@ -291,7 +295,7 @@ class LoadBalancer:
             load_score = conn.metrics.total_queries / (conn.metrics.age + 1)
             error_score = 1.0 - conn.metrics.success_rate
 
-            # 加權計算總分(越低越好)
+            # 根據權重計算綜合評分, 分數越低表示連接品質越好
             total_score = time_score * 0.4 + load_score * 0.3 + error_score * 0.3
 
             if total_score < best_score:
@@ -299,7 +303,6 @@ class LoadBalancer:
                 best_connection = conn
 
         return best_connection or connections[0]
-
 
 class ConnectionPrewarmer:
     """連接預熱器"""
@@ -347,9 +350,12 @@ class ConnectionPrewarmer:
         except Exception as e:
             logger.error(f"連接預熱失敗: {e}")
 
-
 class AutoRecovery:
     """自動恢復機制"""
+
+    # 常數定義
+    MIN_RECOVERY_INTERVAL_SECONDS = 60  # 恢復操作最小間隔時間(秒)
+    MAX_RECOVERY_ATTEMPTS = 3  # 最大恢復嘗試次數
 
     def __init__(self, pool_ref: weakref.ref, config: PoolConfiguration):
         self.pool_ref = pool_ref
@@ -367,11 +373,11 @@ class AutoRecovery:
             current_time = time.time()
 
             # 檢查恢復頻率限制
-            if current_time - self.last_recovery[db_path] < 60:  # 1分鐘內最多恢復一次
+            if current_time - self.last_recovery[db_path] < self.MIN_RECOVERY_INTERVAL_SECONDS:
                 return False
 
             # 檢查恢復次數限制
-            if self.recovery_attempts[db_path] >= 3:  # 最多嘗試3次
+            if self.recovery_attempts[db_path] >= self.MAX_RECOVERY_ATTEMPTS:
                 return False
 
             self.recovery_attempts[db_path] += 1
@@ -379,7 +385,7 @@ class AutoRecovery:
 
             return await self._perform_recovery(db_path, error)
 
-    async def _perform_recovery(self, db_path: str, error: Exception) -> bool:
+    async def _perform_recovery(self, db_path: str, _error: Exception) -> bool:
         """執行恢復操作"""
         pool = self.pool_ref()
         if pool is None:
@@ -415,9 +421,11 @@ class AutoRecovery:
             logger.error(f"自動恢復失敗: {e}")
             return False
 
-
 class PooledConnection:
     """池化連接包裝器"""
+
+    # 常數定義
+    MAX_ERROR_COUNT = 10  # 連接失效的最大錯誤次數
 
     def __init__(
         self, connection: aiosqlite.Connection, db_path: str, pool_ref: weakref.ref
@@ -474,7 +482,7 @@ class PooledConnection:
                     await pool.metrics.record_query_executed(duration, False)
                     await pool.metrics.record_connection_error(str(e))
 
-                logger.error(f"【連接池】連接 {self.connection_id} 查詢執行失敗: {e}")
+                logger.error(f"[連接池]連接 {self.connection_id} 查詢執行失敗: {e}")
                 raise
 
     async def executemany(
@@ -519,7 +527,7 @@ class PooledConnection:
                     await pool.metrics.record_connection_error(str(e))
 
                 logger.error(
-                    f"【連接池】連接 {self.connection_id} 批量查詢執行失敗: {e}"
+                    f"[連接池]連接 {self.connection_id} 批量查詢執行失敗: {e}"
                 )
                 raise
 
@@ -536,7 +544,7 @@ class PooledConnection:
                 self.metrics.status = ConnectionStatus.FAILED
                 self.metrics.error_count += 1
                 self.metrics.last_error = str(e)
-                logger.error(f"【連接池】連接 {self.connection_id} 提交事務失敗: {e}")
+                logger.error(f"[連接池]連接 {self.connection_id} 提交事務失敗: {e}")
                 raise
 
     async def rollback(self):
@@ -552,7 +560,7 @@ class PooledConnection:
                 self.metrics.status = ConnectionStatus.FAILED
                 self.metrics.error_count += 1
                 self.metrics.last_error = str(e)
-                logger.error(f"【連接池】連接 {self.connection_id} 回滾事務失敗: {e}")
+                logger.error(f"[連接池]連接 {self.connection_id} 回滾事務失敗: {e}")
                 raise
 
     async def health_check(self) -> bool:
@@ -574,7 +582,7 @@ class PooledConnection:
             self.metrics.status = ConnectionStatus.FAILED
             self.metrics.error_count += 1
             self.metrics.last_error = str(e)
-            logger.warning(f"【連接池】連接 {self.connection_id} 健康檢查失敗: {e}")
+            logger.warning(f"[連接池]連接 {self.connection_id} 健康檢查失敗: {e}")
             return False
 
     def is_expired(self, config: PoolConfiguration) -> bool:
@@ -591,8 +599,8 @@ class PooledConnection:
             self.metrics.status = ConnectionStatus.EXPIRED
             return True
 
-        # 檢查錯誤率
-        if self.metrics.error_count > 10:  # 錯誤次數過多
+                # 檢查錯誤率
+        if self.metrics.error_count > self.MAX_ERROR_COUNT:
             self.metrics.status = ConnectionStatus.FAILED
             return True
 
@@ -614,11 +622,10 @@ class PooledConnection:
                 if pool and pool.config.enable_metrics:
                     await pool.metrics.record_connection_closed()
 
-                logger.debug(f"【連接池】連接 {self.connection_id} 已關閉")
+                logger.debug(f"[連接池]連接 {self.connection_id} 已關閉")
 
             except Exception as e:
-                logger.error(f"【連接池】關閉連接 {self.connection_id} 失敗: {e}")
-
+                logger.error(f"[連接池]關閉連接 {self.connection_id} 失敗: {e}")
 
 class ConnectionHealthMonitor:
     """連接健康監控器"""
@@ -634,7 +641,7 @@ class ConnectionHealthMonitor:
         if self._monitor_task is None or self._monitor_task.done():
             self._stop_event.clear()
             self._monitor_task = asyncio.create_task(self._monitor_loop())
-            logger.debug("【連接池】健康監控已啟動")
+            logger.debug("[連接池]健康監控已啟動")
 
     async def stop_monitoring(self):
         """停止監控"""
@@ -647,7 +654,7 @@ class ConnectionHealthMonitor:
                 with suppress(asyncio.CancelledError):
                     await self._monitor_task
 
-            logger.debug("【連接池】健康監控已停止")
+            logger.debug("[連接池]健康監控已停止")
 
     async def _monitor_loop(self):
         """監控循環"""
@@ -660,7 +667,7 @@ class ConnectionHealthMonitor:
             except TimeoutError:
                 continue  # 正常的超時,繼續監控
             except Exception as e:
-                logger.error(f"【連接池】監控循環錯誤: {e}")
+                logger.error(f"[連接池]監控循環錯誤: {e}")
                 await asyncio.sleep(10)  # 錯誤後等待10秒再繼續
 
     async def _check_all_connections(self):
@@ -699,12 +706,11 @@ class ConnectionHealthMonitor:
                         new_conn = await pool._create_connection(db_path)
                         if new_conn:
                             logger.debug(
-                                f"【連接池】補充連接: {new_conn.connection_id}"
+                                f"[連接池]補充連接: {new_conn.connection_id}"
                             )
                     except Exception as e:
-                        logger.error(f"【連接池】補充連接失敗: {e}")
+                        logger.error(f"[連接池]補充連接失敗: {e}")
                         break
-
 
 class DatabaseConnectionPool:
     """資料庫連接池"""
@@ -728,11 +734,11 @@ class DatabaseConnectionPool:
         if not self._initialized:
             await self.health_monitor.start_monitoring()
             self._initialized = True
-            logger.info("【連接池】資料庫連接池已初始化")
+            logger.info("[連接池]資料庫連接池已初始化")
 
     async def close(self):
         """關閉連接池"""
-        logger.info("【連接池】正在關閉連接池...")
+        logger.info("[連接池]正在關閉連接池...")
 
         # 停止健康監控
         await self.health_monitor.stop_monitoring()
@@ -746,7 +752,7 @@ class DatabaseConnectionPool:
         self._locks.clear()
         self._initialized = False
 
-        logger.info("【連接池】連接池已關閉")
+        logger.info("[連接池]連接池已關閉")
 
     async def get_connection(self, db_path: str) -> PooledConnection:
         """獲取連接"""
@@ -776,7 +782,7 @@ class DatabaseConnectionPool:
                 if new_conn:
                     new_conn.in_use = True
 
-                    # 觸發預熱(如果是第一個連接)
+                    # 當創建第一個連接時啟動連接預熱機制
                     if len(connections) == 1:
                         await self.prewarmer.start_prewarming(db_path)
 
@@ -791,7 +797,7 @@ class DatabaseConnectionPool:
         """歸還連接"""
         if connection:
             connection.in_use = False
-            logger.debug(f"【連接池】連接 {connection.connection_id} 已歸還")
+            logger.debug(f"[連接池]連接 {connection.connection_id} 已歸還")
 
     async def _create_connection(self, db_path: str) -> PooledConnection:
         """創建新連接"""
@@ -801,10 +807,8 @@ class DatabaseConnectionPool:
         while retry_count < self.config.retry_attempts:
             try:
                 # 確保資料庫目錄存在
-                os.makedirs(
-                    os.path.dirname(db_path) if os.path.dirname(db_path) else ".",
-                    exist_ok=True,
-                )
+                db_dir = Path(db_path).parent
+                db_dir.mkdir(parents=True, exist_ok=True)
 
                 # 創建連接
                 connection = await asyncio.wait_for(
@@ -832,7 +836,7 @@ class DatabaseConnectionPool:
                     await self.metrics.record_connection_created()
 
                 logger.debug(
-                    f"【連接池】新連接已創建: {pooled_conn.connection_id} for {db_path}"
+                    f"[連接池]新連接已創建: {pooled_conn.connection_id} for {db_path}"
                 )
 
                 return pooled_conn
@@ -845,18 +849,21 @@ class DatabaseConnectionPool:
                     await self.metrics.record_connection_error(str(e))
 
                 logger.warning(
-                    f"【連接池】創建連接失敗 (嘗試 {retry_count}/{self.config.retry_attempts}): {e}"
+                    f"[連接池]創建連接失敗 (嘗試 {retry_count}/{self.config.retry_attempts}): {e}"
                 )
 
                 if retry_count < self.config.retry_attempts:
                     await asyncio.sleep(self.config.retry_delay * retry_count)
                 # 嘗試自動恢復
                 elif await self.auto_recovery.attempt_recovery(db_path, e):
-                    logger.info("【連接池】自動恢復成功,重試創建連接")
+                    logger.info("[連接池]自動恢復成功,重試創建連接")
                     retry_count = 0  # 重置重試計數
                     continue
 
-        raise RuntimeError(f"無法創建資料庫連接 {db_path}: {last_error}")
+        if last_error:
+            raise RuntimeError(f"無法創建資料庫連接 {db_path}: {last_error}") from last_error
+        else:
+            raise RuntimeError(f"無法創建資料庫連接 {db_path}: 所有重試均已耗盡")
 
     async def _remove_connection(self, db_path: str, connection: PooledConnection):
         """移除連接"""
@@ -866,10 +873,10 @@ class DatabaseConnectionPool:
 
             await connection.close()
 
-            logger.debug(f"【連接池】連接已移除: {connection.connection_id}")
+            logger.debug(f"[連接池]連接已移除: {connection.connection_id}")
 
         except Exception as e:
-            logger.error(f"【連接池】移除連接失敗: {e}")
+            logger.error(f"[連接池]移除連接失敗: {e}")
 
     @asynccontextmanager
     async def get_connection_context(self, db_path: str):
@@ -942,35 +949,42 @@ class DatabaseConnectionPool:
 
         return status
 
+class GlobalPoolManager:
+    """全域連接池管理器單例"""
 
-# 全域連接池實例
-_global_pool: DatabaseConnectionPool | None = None
-_pool_lock = asyncio.Lock()
+    _instance: DatabaseConnectionPool | None = None
+    _lock = asyncio.Lock()
 
+    @classmethod
+    async def get_instance(cls, test_mode: bool = False) -> DatabaseConnectionPool:
+        """獲取全域連接池實例"""
+        if cls._instance is None:
+            async with cls._lock:
+                if cls._instance is None:
+                    config = PoolConfiguration()
+                    if test_mode:
+                        config.max_connections = 5
+                        config.min_connections = 1
+                        config.health_check_interval = 5
+
+                    cls._instance = DatabaseConnectionPool(config)
+                    await cls._instance.initialize()
+
+        return cls._instance
+
+    @classmethod
+    async def close(cls):
+        """關閉全域連接池"""
+        if cls._instance is not None:
+            async with cls._lock:
+                if cls._instance is not None:
+                    await cls._instance.close()
+                    cls._instance = None
 
 async def get_global_pool(test_mode: bool = False) -> DatabaseConnectionPool:
-    """獲取全域連接池"""
-    global _global_pool
-
-    async with _pool_lock:
-        if _global_pool is None:
-            config = PoolConfiguration()
-            if test_mode:
-                config.max_connections = 5
-                config.min_connections = 1
-                config.health_check_interval = 5
-
-            _global_pool = DatabaseConnectionPool(config)
-            await _global_pool.initialize()
-
-    return _global_pool
-
+    """獲取全域連接池(兼容性函數)"""
+    return await GlobalPoolManager.get_instance(test_mode)
 
 async def close_global_pool():
-    """關閉全域連接池"""
-    global _global_pool
-
-    async with _pool_lock:
-        if _global_pool is not None:
-            await _global_pool.close()
-            _global_pool = None
+    """關閉全域連接池(兼容性函數)"""
+    await GlobalPoolManager.close()

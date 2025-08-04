@@ -1,6 +1,6 @@
 """通知系統核心測試模組.
 
-測試 AchievementNotifier 類別的所有功能，包括：
+測試 AchievementNotifier 類別的所有功能,包括:
 - 私訊通知發送
 - 伺服器公告發送
 - 通知偏好處理
@@ -59,14 +59,16 @@ class TestAchievementNotifier:
             guild_id=987654321,
             dm_notifications=True,
             server_announcements=True,
-            notification_types=[]
+            notification_types=[],
         )
 
-        repository.get_global_notification_settings.return_value = GlobalNotificationSettings(
-            guild_id=987654321,
-            announcement_enabled=True,
-            announcement_channel_id=555666777,
-            rate_limit_seconds=60
+        repository.get_global_notification_settings.return_value = (
+            GlobalNotificationSettings(
+                guild_id=987654321,
+                announcement_enabled=True,
+                announcement_channel_id=555666777,
+                rate_limit_seconds=60,
+            )
         )
 
         repository.mark_achievement_notified.return_value = True
@@ -77,7 +79,7 @@ class TestAchievementNotifier:
             achievement_id=1,
             notification_type="dm",
             sent_at=datetime.now(),
-            delivery_status="sent"
+            delivery_status="sent",
         )
 
         return repository
@@ -96,7 +98,7 @@ class TestAchievementNotifier:
             badge_url="https://example.com/badge.png",
             is_active=True,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
 
     @pytest.fixture
@@ -107,7 +109,7 @@ class TestAchievementNotifier:
             user_id=123456789,
             achievement_id=1,
             earned_at=datetime.now(),
-            notified=False
+            notified=False,
         )
 
     @pytest.fixture
@@ -119,7 +121,7 @@ class TestAchievementNotifier:
             max_concurrent_notifications=5,
             notification_timeout=10.0,
             default_retry_limit=2,
-            rate_limit_window=30
+            rate_limit_window=30,
         )
         await notifier.start()
         yield notifier
@@ -132,10 +134,7 @@ class TestAchievementNotifier:
     @pytest.mark.asyncio
     async def test_notifier_initialization(self, mock_bot, mock_repository):
         """測試通知器初始化."""
-        notifier = AchievementNotifier(
-            bot=mock_bot,
-            repository=mock_repository
-        )
+        notifier = AchievementNotifier(bot=mock_bot, repository=mock_repository)
 
         assert notifier._bot == mock_bot
         assert notifier._repository == mock_repository
@@ -145,10 +144,7 @@ class TestAchievementNotifier:
     @pytest.mark.asyncio
     async def test_notifier_start_stop(self, mock_bot, mock_repository):
         """測試通知器啟動和停止."""
-        notifier = AchievementNotifier(
-            bot=mock_bot,
-            repository=mock_repository
-        )
+        notifier = AchievementNotifier(bot=mock_bot, repository=mock_repository)
 
         # 測試啟動
         await notifier.start()
@@ -165,10 +161,7 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_send_direct_message_notification_success(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement
+        self, notifier, sample_achievement, sample_user_achievement
     ):
         """測試成功發送私訊通知."""
         # 模擬用戶和私訊發送
@@ -182,7 +175,7 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.DIRECT_MESSAGE
+            notification_type=NotificationType.DIRECT_MESSAGE,
         )
 
         # 驗證結果
@@ -194,17 +187,14 @@ class TestAchievementNotifier:
 
         # 驗證 embed 參數
         call_args = mock_user.send.call_args
-        assert 'embed' in call_args.kwargs
-        embed = call_args.kwargs['embed']
-        assert embed.title == "🎉 成就解鎖！"
+        assert "embed" in call_args.kwargs
+        embed = call_args.kwargs["embed"]
+        assert embed.title == "🎉 成就解鎖!"
         assert sample_achievement.name in embed.description
 
     @pytest.mark.asyncio
     async def test_send_direct_message_notification_user_not_found(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement
+        self, notifier, sample_achievement, sample_user_achievement
     ):
         """測試用戶不存在時的私訊通知處理."""
         # 模擬用戶不存在
@@ -219,7 +209,7 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.DIRECT_MESSAGE
+            notification_type=NotificationType.DIRECT_MESSAGE,
         )
 
         # 驗證失敗結果
@@ -228,16 +218,15 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_send_direct_message_notification_forbidden(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement
+        self, notifier, sample_achievement, sample_user_achievement
     ):
         """測試無法發送私訊時的處理."""
         # 模擬私訊被禁止
         mock_user = MagicMock(spec=discord.User)
         mock_user.send = AsyncMock(
-            side_effect=discord.Forbidden(MagicMock(), "Cannot send messages to this user")
+            side_effect=discord.Forbidden(
+                MagicMock(), "Cannot send messages to this user"
+            )
         )
         notifier._bot.get_user.return_value = mock_user
 
@@ -247,7 +236,7 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.DIRECT_MESSAGE
+            notification_type=NotificationType.DIRECT_MESSAGE,
         )
 
         # 驗證失敗結果
@@ -260,10 +249,7 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_send_server_announcement_notification_success(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement
+        self, notifier, sample_achievement, sample_user_achievement
     ):
         """測試成功發送伺服器公告通知."""
         # 模擬頻道和訊息發送
@@ -271,7 +257,7 @@ class TestAchievementNotifier:
         mock_channel.send = AsyncMock()
         notifier._bot.get_channel.return_value = mock_channel
 
-        # 模擬用戶（用於提及）
+        # 模擬用戶(用於提及)
         mock_user = MagicMock(spec=discord.User)
         mock_user.mention = "<@123456789>"
         notifier._bot.get_user.return_value = mock_user
@@ -282,7 +268,7 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.SERVER_ANNOUNCEMENT
+            notification_type=NotificationType.SERVER_ANNOUNCEMENT,
         )
 
         # 驗證結果
@@ -293,25 +279,23 @@ class TestAchievementNotifier:
 
         # 驗證訊息內容
         call_args = mock_channel.send.call_args
-        assert 'content' in call_args.kwargs
-        assert 'embed' in call_args.kwargs
-        assert "<@123456789>" in call_args.kwargs['content']
-        assert sample_achievement.name in call_args.kwargs['content']
+        assert "content" in call_args.kwargs
+        assert "embed" in call_args.kwargs
+        assert "<@123456789>" in call_args.kwargs["content"]
+        assert sample_achievement.name in call_args.kwargs["content"]
 
     @pytest.mark.asyncio
     async def test_send_server_announcement_notification_disabled(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement,
-        mock_repository
+        self, notifier, sample_achievement, sample_user_achievement, mock_repository
     ):
         """測試伺服器公告功能未啟用時的處理."""
         # 設定公告功能為關閉
-        mock_repository.get_global_notification_settings.return_value = GlobalNotificationSettings(
-            guild_id=987654321,
-            announcement_enabled=False,
-            announcement_channel_id=555666777
+        mock_repository.get_global_notification_settings.return_value = (
+            GlobalNotificationSettings(
+                guild_id=987654321,
+                announcement_enabled=False,
+                announcement_channel_id=555666777,
+            )
         )
 
         # 發送公告通知
@@ -320,7 +304,7 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.SERVER_ANNOUNCEMENT
+            notification_type=NotificationType.SERVER_ANNOUNCEMENT,
         )
 
         # 驗證失敗結果
@@ -333,20 +317,18 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_notification_preferences_dm_disabled(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement,
-        mock_repository
+        self, notifier, sample_achievement, sample_user_achievement, mock_repository
     ):
         """測試私訊通知被關閉時的處理."""
         # 設定私訊通知為關閉
-        mock_repository.get_notification_preferences.return_value = NotificationPreference(
-            user_id=123456789,
-            guild_id=987654321,
-            dm_notifications=False,
-            server_announcements=True,
-            notification_types=[]
+        mock_repository.get_notification_preferences.return_value = (
+            NotificationPreference(
+                user_id=123456789,
+                guild_id=987654321,
+                dm_notifications=False,
+                server_announcements=True,
+                notification_types=[],
+            )
         )
 
         # 嘗試發送私訊通知
@@ -355,28 +337,26 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.DIRECT_MESSAGE
+            notification_type=NotificationType.DIRECT_MESSAGE,
         )
 
-        # 驗證私訊通知被跳過（保持 PENDING 狀態）
+        # 驗證私訊通知被跳過(保持 PENDING 狀態)
         assert result.dm_status == NotificationStatus.PENDING
 
     @pytest.mark.asyncio
     async def test_notification_preferences_announcements_disabled(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement,
-        mock_repository
+        self, notifier, sample_achievement, sample_user_achievement, mock_repository
     ):
         """測試伺服器公告被關閉時的處理."""
         # 設定伺服器公告為關閉
-        mock_repository.get_notification_preferences.return_value = NotificationPreference(
-            user_id=123456789,
-            guild_id=987654321,
-            dm_notifications=True,
-            server_announcements=False,
-            notification_types=[]
+        mock_repository.get_notification_preferences.return_value = (
+            NotificationPreference(
+                user_id=123456789,
+                guild_id=987654321,
+                dm_notifications=True,
+                server_announcements=False,
+                notification_types=[],
+            )
         )
 
         # 嘗試發送公告通知
@@ -385,10 +365,10 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.SERVER_ANNOUNCEMENT
+            notification_type=NotificationType.SERVER_ANNOUNCEMENT,
         )
 
-        # 驗證公告通知被跳過（保持 PENDING 狀態）
+        # 驗證公告通知被跳過(保持 PENDING 狀態)
         assert result.announcement_status == NotificationStatus.PENDING
 
     # =============================================================================
@@ -397,28 +377,27 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_rate_limiting(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement
+        self, notifier, sample_achievement, sample_user_achievement
     ):
         """測試頻率限制機制."""
         # 快速發送多個通知
         results = []
-        for _i in range(6):  # 超過限制（5個/分鐘）
+        for _i in range(6):  # 超過限制(5個/分鐘)
             result = await notifier.notify_achievement(
                 user_id=123456789,
                 guild_id=987654321,
                 achievement=sample_achievement,
                 user_achievement=sample_user_achievement,
-                notification_type=NotificationType.DIRECT_MESSAGE
+                notification_type=NotificationType.DIRECT_MESSAGE,
             )
             results.append(result)
 
         # 檢查是否有請求被頻率限制
         rate_limited_count = sum(
-            1 for result in results
-            if result.dm_status == NotificationStatus.FAILED and "頻率限制" in (result.dm_error or "")
+            1
+            for result in results
+            if result.dm_status == NotificationStatus.FAILED
+            and "頻率限制" in (result.dm_error or "")
         )
 
         assert rate_limited_count > 0
@@ -429,10 +408,7 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_batch_notification_processing(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement
+        self, notifier, sample_achievement, sample_user_achievement
     ):
         """測試批量通知處理."""
         # 建立多個通知資料
@@ -443,7 +419,7 @@ class TestAchievementNotifier:
                 guild_id=987654321,
                 achievement=sample_achievement,
                 user_achievement=sample_user_achievement,
-                notification_type=NotificationType.DIRECT_MESSAGE
+                notification_type=NotificationType.DIRECT_MESSAGE,
             )
             notifications.append(notification_data)
 
@@ -492,18 +468,14 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_notification_timeout(
-        self,
-        mock_bot,
-        mock_repository,
-        sample_achievement,
-        sample_user_achievement
+        self, mock_bot, mock_repository, sample_achievement, sample_user_achievement
     ):
         """測試通知發送超時處理."""
         # 建立短超時的通知器
         notifier = AchievementNotifier(
             bot=mock_bot,
             repository=mock_repository,
-            notification_timeout=0.1  # 很短的超時時間
+            notification_timeout=0.1,  # 很短的超時時間
         )
 
         await notifier.start()
@@ -520,7 +492,7 @@ class TestAchievementNotifier:
                 guild_id=987654321,
                 achievement=sample_achievement,
                 user_achievement=sample_user_achievement,
-                notification_type=NotificationType.DIRECT_MESSAGE
+                notification_type=NotificationType.DIRECT_MESSAGE,
             )
 
             # 驗證超時錯誤
@@ -536,10 +508,7 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_create_notification_handler_integration(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement
+        self, notifier, sample_achievement, sample_user_achievement
     ):
         """測試通知處理器橋接函數整合."""
         # 建立通知處理器
@@ -552,7 +521,7 @@ class TestAchievementNotifier:
             "achievement": sample_achievement,
             "user_achievement": sample_user_achievement,
             "trigger_reason": "測試觸發",
-            "source_event": "test_event"
+            "source_event": "test_event",
         }
 
         # 模擬用戶
@@ -568,11 +537,7 @@ class TestAchievementNotifier:
 
     @pytest.mark.asyncio
     async def test_notification_event_recording(
-        self,
-        notifier,
-        sample_achievement,
-        sample_user_achievement,
-        mock_repository
+        self, notifier, sample_achievement, sample_user_achievement, mock_repository
     ):
         """測試通知事件記錄功能."""
         # 模擬成功的私訊發送
@@ -586,7 +551,7 @@ class TestAchievementNotifier:
             guild_id=987654321,
             achievement=sample_achievement,
             user_achievement=sample_user_achievement,
-            notification_type=NotificationType.DIRECT_MESSAGE
+            notification_type=NotificationType.DIRECT_MESSAGE,
         )
 
         # 驗證事件記錄被調用

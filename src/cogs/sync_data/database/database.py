@@ -12,6 +12,7 @@ from typing import Any, Protocol
 import discord
 from discord.ext import commands
 
+from ...core.config import get_settings
 from ...core.database_pool import get_global_pool
 from ...core.error_handler import create_error_handler
 from ...core.logger import setup_module_logger
@@ -19,7 +20,6 @@ from ...core.logger import setup_module_logger
 # 設置模塊日誌記錄器
 logger = setup_module_logger("sync_data.database")
 error_handler = create_error_handler("sync_data.database", logger)
-
 
 # ────────────────────────────
 # 服務接口定義
@@ -90,13 +90,8 @@ class ISyncDataDatabase(Protocol):
         """獲取最後一次同步記錄"""
         ...
 
-
-# 使用統一配置系統獲取資料庫路徑
-from src.core.config import get_settings
-
 # 獲取配置實例
 _settings = get_settings()
-
 
 class SyncDataDatabaseService:
     """
@@ -178,16 +173,16 @@ class SyncDataDatabaseService:
                 """)
 
                 await conn.commit()
-            logger.info("【資料同步】資料庫初始化完成")
+            logger.info("[資料同步]資料庫初始化完成")
 
         except Exception as exc:
-            logger.error(f"【資料同步】資料庫初始化失敗: {exc}")
+            logger.error(f"[資料同步]資料庫初始化失敗: {exc}")
             raise
 
     async def close(self):
         """關閉資料庫連接(現在由全局連接池管理)"""
         # 連接池由全局管理器處理,這裡不需要手動關閉
-        logger.info("【資料同步】資料庫連接已由全局連接池管理")
+        logger.info("[資料同步]資料庫連接已由全局連接池管理")
 
     async def execute(self, query: str, params: tuple = ()):
         """
@@ -203,7 +198,7 @@ class SyncDataDatabaseService:
                 await conn.execute(query, params)
                 await conn.commit()
         except Exception as exc:
-            logger.error(f"【資料同步】執行 SQL 指令失敗:{exc}")
+            logger.error(f"[資料同步]執行 SQL 指令失敗:{exc}")
             raise
 
     async def fetchone(self, query: str, params: tuple = ()) -> dict[str, Any | None]:
@@ -228,7 +223,7 @@ class SyncDataDatabaseService:
                     )
                 return None
         except Exception as exc:
-            logger.error(f"【資料同步】查詢單筆資料失敗:{exc}")
+            logger.error(f"[資料同步]查詢單筆資料失敗:{exc}")
             return None
 
     async def fetchall(self, query: str, params: tuple = ()) -> list[dict[str, Any]]:
@@ -252,7 +247,7 @@ class SyncDataDatabaseService:
                     return [dict(zip(columns, row, strict=False)) for row in rows]
                 return []
         except Exception as exc:
-            logger.error(f"【資料同步】查詢多筆資料失敗:{exc}")
+            logger.error(f"[資料同步]查詢多筆資料失敗:{exc}")
             return []
 
     async def fetchval(self, query: str, params: tuple = ()) -> Any | None:
@@ -273,7 +268,7 @@ class SyncDataDatabaseService:
                 row = await cursor.fetchone()
                 return row[0] if row else None
         except Exception as exc:
-            logger.error(f"【資料同步】查詢單個值失敗:{exc}")
+            logger.error(f"[資料同步]查詢單個值失敗:{exc}")
             return None
 
     async def get_guild_roles(self, guild_id: int) -> list[dict[str, Any]]:
@@ -292,7 +287,7 @@ class SyncDataDatabaseService:
                 (guild_id,),
             )
         except Exception as exc:
-            logger.error(f"【資料同步】獲取伺服器角色失敗:{exc}")
+            logger.error(f"[資料同步]獲取伺服器角色失敗:{exc}")
             return []
 
     async def insert_or_replace_role(self, role: discord.Role):
@@ -322,7 +317,7 @@ class SyncDataDatabaseService:
                 ),
             )
         except Exception as exc:
-            logger.error(f"【資料同步】插入角色資料失敗:{exc}")
+            logger.error(f"[資料同步]插入角色資料失敗:{exc}")
             raise
 
     async def delete_role(self, role_id: int):
@@ -335,7 +330,7 @@ class SyncDataDatabaseService:
         try:
             await self.execute("DELETE FROM roles WHERE role_id = ?", (role_id,))
         except Exception as exc:
-            logger.error(f"【資料同步】刪除角色資料失敗:{exc}")
+            logger.error(f"[資料同步]刪除角色資料失敗:{exc}")
             raise
 
     async def get_guild_channels(self, guild_id: int) -> list[dict[str, Any]]:
@@ -354,7 +349,7 @@ class SyncDataDatabaseService:
                 (guild_id,),
             )
         except Exception as exc:
-            logger.error(f"【資料同步】獲取伺服器頻道失敗:{exc}")
+            logger.error(f"[資料同步]獲取伺服器頻道失敗:{exc}")
             return []
 
     async def insert_or_replace_channel(self, channel: discord.abc.GuildChannel):
@@ -382,7 +377,7 @@ class SyncDataDatabaseService:
                 ),
             )
         except Exception as exc:
-            logger.error(f"【資料同步】插入頻道資料失敗:{exc}")
+            logger.error(f"[資料同步]插入頻道資料失敗:{exc}")
             raise
 
     async def delete_channel(self, channel_id: int):
@@ -397,7 +392,7 @@ class SyncDataDatabaseService:
                 "DELETE FROM channels WHERE channel_id = ?", (channel_id,)
             )
         except Exception as exc:
-            logger.error(f"【資料同步】刪除頻道資料失敗:{exc}")
+            logger.error(f"[資料同步]刪除頻道資料失敗:{exc}")
             raise
 
     async def log_sync_result(
@@ -447,7 +442,7 @@ class SyncDataDatabaseService:
                 ),
             )
         except Exception as exc:
-            logger.error(f"【資料同步】記錄同步結果失敗:{exc}")
+            logger.error(f"[資料同步]記錄同步結果失敗:{exc}")
             raise
 
     async def get_sync_history(
@@ -474,7 +469,7 @@ class SyncDataDatabaseService:
                 (guild_id, limit),
             )
         except Exception as exc:
-            logger.error(f"【資料同步】獲取同步歷史失敗:{exc}")
+            logger.error(f"[資料同步]獲取同步歷史失敗:{exc}")
             return []
 
     async def cleanup_old_logs(self, days: int = 30):
@@ -490,7 +485,7 @@ class SyncDataDatabaseService:
                 "DELETE FROM sync_data_log WHERE start_time < ?", (cutoff_date,)
             )
         except Exception as exc:
-            logger.error(f"【資料同步】清理舊記錄失敗:{exc}")
+            logger.error(f"[資料同步]清理舊記錄失敗:{exc}")
             raise
 
     async def validate_data_integrity(self, guild_id: int) -> dict[str, Any]:
@@ -539,7 +534,7 @@ class SyncDataDatabaseService:
             return result
 
         except Exception as exc:
-            logger.error(f"【資料同步】驗證資料完整性失敗:{exc}")
+            logger.error(f"[資料同步]驗證資料完整性失敗:{exc}")
             return {
                 "guild_id": guild_id,
                 "roles_count": 0,
@@ -575,7 +570,6 @@ class SyncDataDatabaseService:
                 exc, f"獲取伺服器 {guild_id} 最後同步記錄", "DATABASE_ERROR"
             )
             return None
-
 
 # ────────────────────────────
 # 向後相容性支援

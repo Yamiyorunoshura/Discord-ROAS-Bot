@@ -1,13 +1,13 @@
 """成就進度追蹤服務.
 
-此模組實作成就進度追蹤系統，提供：
+此模組實作成就進度追蹤系統,提供:
 - 用戶成就進度更新和計算
 - 進度驗證和邊界檢查
 - 批量進度更新處理
 - 進度歷史追蹤和分析
 - 自動成就完成檢測
 
-進度追蹤器遵循以下設計原則：
+進度追蹤器遵循以下設計原則:
 - 支援多種成就類型的進度計算
 - 提供原子性的進度更新操作
 - 整合業務規則驗證和邏輯檢查
@@ -31,11 +31,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class ProgressTracker:
     """成就進度追蹤服務.
 
-    提供成就進度追蹤和更新的核心功能，包含：
+    提供成就進度追蹤和更新的核心功能,包含:
     - 進度更新和計算邏輯
     - 自動成就完成檢測
     - 批量進度更新處理
@@ -70,16 +69,16 @@ class ProgressTracker:
         achievement_id: int,
         increment_value: float = 1.0,
         progress_data: dict[str, Any] | None = None,
-        force_value: float | None = None
+        force_value: float | None = None,
     ) -> AchievementProgress:
         """更新用戶成就進度.
 
         Args:
             user_id: 用戶 ID
             achievement_id: 成就 ID
-            increment_value: 進度增量值（預設 1.0）
+            increment_value: 進度增量值(預設 1.0)
             progress_data: 額外的進度資料
-            force_value: 強制設定的進度值（覆蓋增量）
+            force_value: 強制設定的進度值(覆蓋增量)
 
         Returns:
             更新後的進度記錄
@@ -95,22 +94,23 @@ class ProgressTracker:
         if not achievement.is_active:
             logger.warning(
                 "嘗試更新非啟用成就的進度",
-                extra={
-                    "user_id": user_id,
-                    "achievement_id": achievement_id
-                }
+                extra={"user_id": user_id, "achievement_id": achievement_id},
             )
             raise ValueError(f"成就 {achievement_id} 未啟用")
 
         try:
             # 取得當前進度
-            current_progress = await self._repository.get_user_progress(user_id, achievement_id)
+            current_progress = await self._repository.get_user_progress(
+                user_id, achievement_id
+            )
 
             # 計算新的進度值
             if force_value is not None:
                 new_value = force_value
             else:
-                current_value = current_progress.current_value if current_progress else 0.0
+                current_value = (
+                    current_progress.current_value if current_progress else 0.0
+                )
                 new_value = current_value + increment_value
 
             # 確保進度值不為負數
@@ -118,9 +118,11 @@ class ProgressTracker:
 
             # 合併進度資料
             merged_progress_data = self._merge_progress_data(
-                existing_data=current_progress.progress_data if current_progress else None,
+                existing_data=current_progress.progress_data
+                if current_progress
+                else None,
                 new_data=progress_data,
-                achievement_type=achievement.type
+                achievement_type=achievement.type,
             )
 
             # 更新進度
@@ -128,7 +130,7 @@ class ProgressTracker:
                 user_id=user_id,
                 achievement_id=achievement_id,
                 current_value=new_value,
-                progress_data=merged_progress_data
+                progress_data=merged_progress_data,
             )
 
             logger.info(
@@ -137,10 +139,12 @@ class ProgressTracker:
                     "user_id": user_id,
                     "achievement_id": achievement_id,
                     "achievement_name": achievement.name,
-                    "old_value": current_progress.current_value if current_progress else 0.0,
+                    "old_value": current_progress.current_value
+                    if current_progress
+                    else 0.0,
                     "new_value": new_value,
-                    "is_completed": updated_progress.is_completed
-                }
+                    "is_completed": updated_progress.is_completed,
+                },
             )
 
             return updated_progress
@@ -153,9 +157,9 @@ class ProgressTracker:
                     "achievement_id": achievement_id,
                     "increment_value": increment_value,
                     "force_value": force_value,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
@@ -163,7 +167,7 @@ class ProgressTracker:
         self,
         existing_data: dict[str, Any] | None,
         new_data: dict[str, Any] | None,
-        achievement_type: AchievementType
+        achievement_type: AchievementType,
     ) -> dict[str, Any] | None:
         """合併進度資料.
 
@@ -201,7 +205,7 @@ class ProgressTracker:
         """更新時間型成就的進度資料.
 
         Args:
-            progress_data: 進度資料字典（會被直接修改）
+            progress_data: 進度資料字典(會被直接修改)
         """
         current_date = datetime.now().date().isoformat()
 
@@ -219,7 +223,7 @@ class ProgressTracker:
         """更新計數型成就的進度資料.
 
         Args:
-            progress_data: 進度資料字典（會被直接修改）
+            progress_data: 進度資料字典(會被直接修改)
         """
         current_date = datetime.now().date().isoformat()
 
@@ -237,8 +241,7 @@ class ProgressTracker:
     # =============================================================================
 
     async def batch_update_progress(
-        self,
-        progress_updates: list[tuple[int, int, float, dict[str, Any]]]
+        self, progress_updates: list[tuple[int, int, float, dict[str, Any]]]
     ) -> list[AchievementProgress]:
         """批量更新用戶成就進度.
 
@@ -263,7 +266,7 @@ class ProgressTracker:
                     user_id=user_id,
                     achievement_id=achievement_id,
                     increment_value=increment_value,
-                    progress_data=progress_data
+                    progress_data=progress_data,
                 )
                 updated_progresses.append(progress)
             except Exception as e:
@@ -277,8 +280,8 @@ class ProgressTracker:
                 extra={
                     "total": len(progress_updates),
                     "success": len(updated_progresses),
-                    "errors": errors
-                }
+                    "errors": errors,
+                },
             )
 
         logger.info(
@@ -286,8 +289,8 @@ class ProgressTracker:
             extra={
                 "total": len(progress_updates),
                 "success": len(updated_progresses),
-                "failed": len(errors)
-            }
+                "failed": len(errors),
+            },
         )
 
         return updated_progresses
@@ -297,10 +300,7 @@ class ProgressTracker:
     # =============================================================================
 
     async def calculate_achievement_progress(
-        self,
-        user_id: int,
-        achievement: Achievement,
-        current_metrics: dict[str, Any]
+        self, user_id: int, achievement: Achievement, current_metrics: dict[str, Any]
     ) -> float:
         """計算用戶對特定成就的進度值.
 
@@ -345,17 +345,14 @@ class ProgressTracker:
                     "user_id": user_id,
                     "achievement_id": achievement.id,
                     "achievement_type": achievement_type.value,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
     async def _calculate_counter_progress(
-        self,
-        user_id: int,
-        criteria: dict[str, Any],
-        current_metrics: dict[str, Any]
+        self, _user_id: int, criteria: dict[str, Any], current_metrics: dict[str, Any]
     ) -> float:
         """計算計數型成就進度."""
         counter_field = criteria.get("counter_field")
@@ -365,10 +362,7 @@ class ProgressTracker:
         return float(current_metrics.get(counter_field, 0))
 
     async def _calculate_milestone_progress(
-        self,
-        user_id: int,
-        criteria: dict[str, Any],
-        current_metrics: dict[str, Any]
+        self, user_id: int, criteria: dict[str, Any], current_metrics: dict[str, Any]  # noqa: ARG002
     ) -> float:
         """計算里程碑型成就進度."""
         milestone_type = criteria.get("milestone_type")
@@ -380,10 +374,7 @@ class ProgressTracker:
         return float(metric_value)
 
     async def _calculate_time_based_progress(
-        self,
-        user_id: int,
-        achievement_id: int,
-        criteria: dict[str, Any]
+        self, user_id: int, achievement_id: int, criteria: dict[str, Any]
     ) -> float:
         """計算時間型成就進度."""
         # 取得現有進度資料
@@ -405,7 +396,7 @@ class ProgressTracker:
         """計算連續天數.
 
         Args:
-            streak_dates: 日期字串列表（ISO 格式）
+            streak_dates: 日期字串列表(ISO 格式)
 
         Returns:
             連續天數
@@ -431,10 +422,7 @@ class ProgressTracker:
         return consecutive_days
 
     async def _calculate_conditional_progress(
-        self,
-        user_id: int,
-        criteria: dict[str, Any],
-        current_metrics: dict[str, Any]
+        self, user_id: int, criteria: dict[str, Any], current_metrics: dict[str, Any]
     ) -> float:
         """計算條件型成就進度."""
         conditions = criteria.get("conditions", [])
@@ -468,10 +456,7 @@ class ProgressTracker:
     # =============================================================================
 
     async def validate_progress_update(
-        self,
-        user_id: int,
-        achievement_id: int,
-        new_value: float
+        self, user_id: int, achievement_id: int, new_value: float
     ) -> tuple[bool, str | None]:
         """驗證進度更新的有效性.
 
@@ -513,9 +498,9 @@ class ProgressTracker:
                     "user_id": user_id,
                     "achievement_id": achievement_id,
                     "new_value": new_value,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             return False, f"驗證過程發生錯誤: {e!s}"
 
@@ -543,7 +528,9 @@ class ProgressTracker:
 
             # 計算平均進度
             if progresses:
-                avg_progress = sum(p.progress_percentage for p in progresses) / total_progresses
+                avg_progress = (
+                    sum(p.progress_percentage for p in progresses) / total_progresses
+                )
             else:
                 avg_progress = 0.0
 
@@ -551,8 +538,7 @@ class ProgressTracker:
             incomplete_progresses = [p for p in progresses if not p.is_completed]
             if incomplete_progresses:
                 closest_to_completion = max(
-                    incomplete_progresses,
-                    key=lambda p: p.progress_percentage
+                    incomplete_progresses, key=lambda p: p.progress_percentage
                 )
             else:
                 closest_to_completion = None
@@ -564,35 +550,26 @@ class ProgressTracker:
                 "average_progress": round(avg_progress, 2),
                 "closest_to_completion": {
                     "achievement_id": closest_to_completion.achievement_id,
-                    "progress_percentage": closest_to_completion.progress_percentage
-                } if closest_to_completion else None
+                    "progress_percentage": closest_to_completion.progress_percentage,
+                }
+                if closest_to_completion
+                else None,
             }
 
-            logger.debug(
-                "取得用戶進度摘要",
-                extra={
-                    "user_id": user_id,
-                    **summary
-                }
-            )
+            logger.debug("取得用戶進度摘要", extra={"user_id": user_id, **summary})
 
             return summary
 
         except Exception as e:
             logger.error(
                 "取得用戶進度摘要失敗",
-                extra={
-                    "user_id": user_id,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"user_id": user_id, "error": str(e)},
+                exc_info=True,
             )
             raise
 
     async def find_users_near_completion(
-        self,
-        achievement_id: int,
-        threshold_percentage: float = 80.0
+        self, achievement_id: int, threshold_percentage: float = 80.0
     ) -> list[tuple[int, float]]:
         """找出接近完成特定成就的用戶.
 
@@ -605,9 +582,11 @@ class ProgressTracker:
         """
         try:
             # 使用新添加的 repository 方法查詢接近完成的用戶
-            users_near_completion = await self.repository.get_users_near_achievement_completion(
-                achievement_id=achievement_id,
-                threshold_percentage=threshold_percentage
+            users_near_completion = (
+                await self.repository.get_users_near_achievement_completion(
+                    achievement_id=achievement_id,
+                    threshold_percentage=threshold_percentage,
+                )
             )
 
             logger.debug(
@@ -615,8 +594,8 @@ class ProgressTracker:
                 extra={
                     "achievement_id": achievement_id,
                     "threshold_percentage": threshold_percentage,
-                    "user_count": len(users_near_completion)
-                }
+                    "user_count": len(users_near_completion),
+                },
             )
 
             return users_near_completion
@@ -627,12 +606,11 @@ class ProgressTracker:
                 extra={
                     "achievement_id": achievement_id,
                     "threshold_percentage": threshold_percentage,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
-
 
 __all__ = [
     "ProgressTracker",

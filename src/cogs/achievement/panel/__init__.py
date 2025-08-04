@@ -2,4 +2,4 @@
 
 from .achievement_panel import AchievementPanel
 
-__all__ = ['AchievementPanel']
+__all__ = ["AchievementPanel"]

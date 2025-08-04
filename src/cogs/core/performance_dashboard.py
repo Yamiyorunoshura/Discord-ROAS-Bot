@@ -29,8 +29,22 @@ from discord.ext import commands
 
 from .base_cog import StandardEmbedBuilder, StandardPanelView
 
-logger = logging.getLogger(__name__)
+# 性能監控閾值常數
+CRITICAL_CPU_THRESHOLD = 90
+CRITICAL_MEMORY_THRESHOLD = 95
+CRITICAL_DISK_THRESHOLD = 98
+WARNING_CPU_MIN_THRESHOLD = 80
+WARNING_CPU_MAX_THRESHOLD = 90
+WARNING_MEMORY_MIN_THRESHOLD = 85
+WARNING_MEMORY_MAX_THRESHOLD = 95
+WARNING_DISK_MIN_THRESHOLD = 90
+WARNING_DISK_MAX_THRESHOLD = 98
+RECOMMENDATION_CPU_THRESHOLD = 70
+RECOMMENDATION_MEMORY_THRESHOLD = 80
+RECOMMENDATION_DISK_THRESHOLD = 85
+HIGH_BOT_LATENCY_THRESHOLD = 0.5
 
+logger = logging.getLogger(__name__)
 
 class PerformanceDashboardView(StandardPanelView):
     """性能監控儀表板視圖"""
@@ -335,7 +349,7 @@ class PerformanceDashboardView(StandardPanelView):
                     )
             else:
                 embed.add_field(
-                    name="ℹ️ 緩存狀態",
+                    name="i️ 緩存狀態",
                     value="緩存管理器未啟用或無可用數據",
                     inline=False,
                 )
@@ -403,7 +417,7 @@ class PerformanceDashboardView(StandardPanelView):
                 )
             else:
                 embed.add_field(
-                    name="ℹ️ 資料庫狀態",
+                    name="i️ 資料庫狀態",
                     value="資料庫連接池未啟用或無可用數據",
                     inline=False,
                 )
@@ -469,7 +483,7 @@ class PerformanceDashboardView(StandardPanelView):
                     )
             else:
                 embed.add_field(
-                    name="ℹ️ 事件匯流排狀態",
+                    name="i️ 事件匯流排狀態",
                     value="事件匯流排未啟用或無可用數據",
                     inline=False,
                 )
@@ -611,7 +625,6 @@ class PerformanceDashboardView(StandardPanelView):
 
     async def _get_bot_info(self) -> dict[str, Any]:
         """獲取Bot信息"""
-        # 計算運行時間(簡化版本)
         uptime_str = "未知"
         try:
             start_time = getattr(self.bot, "start_time", None)
@@ -654,11 +667,15 @@ class PerformanceDashboardView(StandardPanelView):
         system_info = await self._get_system_info()
 
         issues = []
-        if system_info["cpu_percent"] > 80:
+        CPU_HIGH_THRESHOLD = 80
+        MEMORY_HIGH_THRESHOLD = 90
+        DISK_HIGH_THRESHOLD = 95
+
+        if system_info["cpu_percent"] > CPU_HIGH_THRESHOLD:
             issues.append("CPU 使用率過高")
-        if system_info["memory_percent"] > 90:
+        if system_info["memory_percent"] > MEMORY_HIGH_THRESHOLD:
             issues.append("記憶體使用率過高")
-        if system_info["disk_percent"] > 95:
+        if system_info["disk_percent"] > DISK_HIGH_THRESHOLD:
             issues.append("磁碟空間不足")
 
         if not issues:
@@ -808,31 +825,31 @@ class PerformanceDashboardView(StandardPanelView):
             system_info = await self._get_system_info()
 
             # 檢查關鍵警報
-            if system_info["cpu_percent"] > 90:
-                alerts["critical"].append("CPU 使用率超過 90%")
-            if system_info["memory_percent"] > 95:
-                alerts["critical"].append("記憶體使用率超過 95%")
-            if system_info["disk_percent"] > 98:
-                alerts["critical"].append("磁碟空間不足 2%")
+            if system_info["cpu_percent"] > CRITICAL_CPU_THRESHOLD:
+                alerts["critical"].append(f"CPU 使用率超過 {CRITICAL_CPU_THRESHOLD}%")
+            if system_info["memory_percent"] > CRITICAL_MEMORY_THRESHOLD:
+                alerts["critical"].append(f"記憶體使用率超過 {CRITICAL_MEMORY_THRESHOLD}%")
+            if system_info["disk_percent"] > CRITICAL_DISK_THRESHOLD:
+                alerts["critical"].append(f"磁碟空間不足 {100-CRITICAL_DISK_THRESHOLD}%")
 
             # 檢查警告
-            if 80 <= system_info["cpu_percent"] <= 90:
+            if WARNING_CPU_MIN_THRESHOLD <= system_info["cpu_percent"] <= WARNING_CPU_MAX_THRESHOLD:
                 alerts["warnings"].append("CPU 使用率較高")
-            if 85 <= system_info["memory_percent"] <= 95:
+            if WARNING_MEMORY_MIN_THRESHOLD <= system_info["memory_percent"] <= WARNING_MEMORY_MAX_THRESHOLD:
                 alerts["warnings"].append("記憶體使用率較高")
-            if 90 <= system_info["disk_percent"] <= 98:
+            if WARNING_DISK_MIN_THRESHOLD <= system_info["disk_percent"] <= WARNING_DISK_MAX_THRESHOLD:
                 alerts["warnings"].append("磁碟空間不足")
 
             # 生成建議
-            if system_info["cpu_percent"] > 70:
+            if system_info["cpu_percent"] > RECOMMENDATION_CPU_THRESHOLD:
                 alerts["recommendations"].append("考慮優化 CPU 密集型任務")
-            if system_info["memory_percent"] > 80:
+            if system_info["memory_percent"] > RECOMMENDATION_MEMORY_THRESHOLD:
                 alerts["recommendations"].append("考慮增加記憶體或優化記憶體使用")
-            if system_info["disk_percent"] > 85:
+            if system_info["disk_percent"] > RECOMMENDATION_DISK_THRESHOLD:
                 alerts["recommendations"].append("清理磁碟空間或擴展存儲")
 
             # Bot 相關建議
-            if self.bot.latency > 0.5:  # 500ms
+            if self.bot.latency > HIGH_BOT_LATENCY_THRESHOLD:
                 alerts["warnings"].append("Bot 延遲較高")
                 alerts["recommendations"].append("檢查網路連接或 Discord API 狀態")
 
@@ -872,7 +889,6 @@ class PerformanceDashboardView(StandardPanelView):
         if self.auto_refresh_task and not self.auto_refresh_task.done():
             self.auto_refresh_task.cancel()
         await super().on_timeout()
-
 
 class PerformanceDashboard:
     """性能監控儀表板管理器"""

@@ -1,8 +1,8 @@
 """成就系統資料模型單元測試.
 
-測試成就系統所有 Pydantic 模型的驗證邏輯、序列化和反序列化功能。
+測試成就系統所有 Pydantic 模型的驗證邏輯、序列化和反序列化功能.
 
-測試涵蓋：
+測試涵蓋:
 - 模型驗證規則
 - 邊界條件測試
 - 錯誤處理
@@ -54,10 +54,7 @@ class TestAchievementCategory:
     def test_valid_category_creation(self):
         """測試有效的分類建立."""
         category = AchievementCategory(
-            name="social",
-            description="社交相關成就",
-            display_order=1,
-            icon_emoji="👥"
+            name="social", description="社交相關成就", display_order=1, icon_emoji="👥"
         )
 
         assert category.name == "social"
@@ -92,14 +89,14 @@ class TestAchievementCategory:
         with pytest.raises(ValueError):
             AchievementCategory(
                 name="a" * 51,  # 超過 50 字元限制
-                description="test"
+                description="test",
             )
 
         # description 太長
         with pytest.raises(ValueError):
             AchievementCategory(
                 name="test",
-                description="a" * 201  # 超過 200 字元限制
+                description="a" * 201,  # 超過 200 字元限制
             )
 
     def test_category_display_order_validation(self):
@@ -121,7 +118,7 @@ class TestAchievementCategory:
             display_order=1,
             icon_emoji="👥",
             created_at=datetime(2024, 1, 1, 12, 0, 0),
-            updated_at=datetime(2024, 1, 2, 12, 0, 0)
+            updated_at=datetime(2024, 1, 2, 12, 0, 0),
         )
 
         # 測試序列化
@@ -148,7 +145,7 @@ class TestAchievement:
             criteria={"target_value": 100, "counter_field": "interactions"},
             points=500,
             role_reward="社交專家",
-            is_hidden=False
+            is_hidden=False,
         )
 
         assert achievement.name == "社交達人"
@@ -162,14 +159,14 @@ class TestAchievement:
 
     def test_achievement_criteria_validation(self):
         """測試成就條件驗證."""
-        # 有效條件（Counter 類型需要 counter_field）
+        # 有效條件(Counter 類型需要 counter_field)
         valid_criteria = {"target_value": 100, "counter_field": "interactions"}
         achievement = Achievement(
             name="test",
             description="test",
             category_id=1,
             type=AchievementType.COUNTER,
-            criteria=valid_criteria
+            criteria=valid_criteria,
         )
         assert achievement.criteria == valid_criteria
 
@@ -180,7 +177,7 @@ class TestAchievement:
                 description="test",
                 category_id=1,
                 type=AchievementType.COUNTER,
-                criteria={"other_field": 100}
+                criteria={"other_field": 100},
             )
 
         # target_value 不是數值
@@ -190,7 +187,7 @@ class TestAchievement:
                 description="test",
                 category_id=1,
                 type=AchievementType.COUNTER,
-                criteria={"target_value": "not_a_number"}
+                criteria={"target_value": "not_a_number"},
             )
 
         # target_value 不是正數
@@ -200,7 +197,7 @@ class TestAchievement:
                 description="test",
                 category_id=1,
                 type=AchievementType.COUNTER,
-                criteria={"target_value": -10}
+                criteria={"target_value": -10},
             )
 
     def test_achievement_type_specific_validation(self):
@@ -209,7 +206,7 @@ class TestAchievement:
             "name": "test",
             "description": "test",
             "category_id": 1,
-            "criteria": {"target_value": 100}
+            "criteria": {"target_value": 100},
         }
 
         # COUNTER 類型需要 counter_field
@@ -235,20 +232,19 @@ class TestAchievement:
             "description": "test",
             "category_id": 1,
             "type": AchievementType.COUNTER,
-            "criteria": {"target_value": 100, "counter_field": "test"}
+            "criteria": {"target_value": 100, "counter_field": "test"},
         }
 
         # 有效的 URL
-        valid_urls = [
-            "https://example.com/badge.png",
-            "http://example.com/badge.png"
-        ]
+        valid_urls = ["https://example.com/badge.png", "http://example.com/badge.png"]
         for url in valid_urls:
             achievement = Achievement(badge_url=url, **base_data)
             assert achievement.badge_url == url
 
         # 無效的 URL
-        with pytest.raises(ValueError, match="徽章 URL 必須以 http:// 或 https:// 開頭"):
+        with pytest.raises(
+            ValueError, match="徽章 URL 必須以 http:// 或 https:// 開頭"
+        ):
             Achievement(badge_url="ftp://example.com/badge.png", **base_data)
 
     def test_achievement_points_validation(self):
@@ -258,7 +254,7 @@ class TestAchievement:
             "description": "test",
             "category_id": 1,
             "type": AchievementType.COUNTER,
-            "criteria": {"target_value": 100, "counter_field": "test"}
+            "criteria": {"target_value": 100, "counter_field": "test"},
         }
 
         # 有效點數
@@ -281,7 +277,7 @@ class TestAchievement:
             description="test",
             category_id=1,
             type=AchievementType.COUNTER,
-            criteria=criteria
+            criteria=criteria,
         )
 
         # 測試 JSON 序列化
@@ -296,7 +292,7 @@ class TestAchievement:
             name="test",
             description="test",
             category_id=1,
-            type=AchievementType.COUNTER
+            type=AchievementType.COUNTER,
         )
         assert restored.criteria == criteria
 
@@ -307,7 +303,7 @@ class TestAchievement:
             "description": "test",
             "category_id": 1,
             "type": AchievementType.COUNTER,
-            "criteria": {"target_value": 100, "counter_field": "test"}
+            "criteria": {"target_value": 100, "counter_field": "test"},
         }
 
         # 有效的身分組獎勵
@@ -329,7 +325,7 @@ class TestAchievement:
             "description": "test",
             "category_id": 1,
             "type": AchievementType.COUNTER,
-            "criteria": {"target_value": 100, "counter_field": "test"}
+            "criteria": {"target_value": 100, "counter_field": "test"},
         }
 
         # 明確設定為隱藏
@@ -353,14 +349,12 @@ class TestAchievement:
             type=AchievementType.CONDITIONAL,
             criteria={
                 "target_value": 1,
-                "conditions": [
-                    {"type": "special_event", "value": "completed"}
-                ]
+                "conditions": [{"type": "special_event", "value": "completed"}],
             },
             points=1000,
             role_reward="神秘探索者",
             is_hidden=True,
-            badge_url="https://example.com/mystery_badge.png"
+            badge_url="https://example.com/mystery_badge.png",
         )
 
         assert achievement.name == "神秘成就"
@@ -376,10 +370,7 @@ class TestUserAchievement:
     def test_valid_user_achievement_creation(self):
         """測試有效的用戶成就建立."""
         user_achievement = UserAchievement(
-            user_id=123456789,
-            achievement_id=1,
-            earned_at=datetime.now(),
-            notified=True
+            user_id=123456789, achievement_id=1, earned_at=datetime.now(), notified=True
         )
 
         assert user_achievement.user_id == 123456789
@@ -418,7 +409,7 @@ class TestAchievementProgress:
             achievement_id=1,
             current_value=75.0,
             target_value=100.0,
-            progress_data={"streak": 5}
+            progress_data={"streak": 5},
         )
 
         assert progress.user_id == 123456789
@@ -439,31 +430,24 @@ class TestAchievementProgress:
     def test_progress_value_validation(self):
         """測試進度值驗證."""
         # 負的當前值
-        with pytest.raises(ValueError, match="Input should be greater than or equal to 0"):
+        with pytest.raises(
+            ValueError, match="Input should be greater than or equal to 0"
+        ):
             AchievementProgress(
-                user_id=1,
-                achievement_id=1,
-                current_value=-10,
-                target_value=100
+                user_id=1, achievement_id=1, current_value=-10, target_value=100
             )
 
         # 負的目標值
         with pytest.raises(ValueError, match="Input should be greater than 0"):
             AchievementProgress(
-                user_id=1,
-                achievement_id=1,
-                current_value=50,
-                target_value=-100
+                user_id=1, achievement_id=1, current_value=50, target_value=-100
             )
 
     def test_progress_percentage_calculation(self):
         """測試進度百分比計算."""
         # 正常情況
         progress = AchievementProgress(
-            user_id=1,
-            achievement_id=1,
-            current_value=75.0,
-            target_value=100.0
+            user_id=1, achievement_id=1, current_value=75.0, target_value=100.0
         )
         assert progress.progress_percentage == 75.0
 
@@ -482,10 +466,7 @@ class TestAchievementProgress:
     def test_progress_completion_check(self):
         """測試完成狀態檢查."""
         progress = AchievementProgress(
-            user_id=1,
-            achievement_id=1,
-            current_value=75.0,
-            target_value=100.0
+            user_id=1, achievement_id=1, current_value=75.0, target_value=100.0
         )
 
         # 未完成
@@ -503,10 +484,7 @@ class TestAchievementProgress:
         """測試進度資料 JSON 方法."""
         progress_data = {"daily_count": [5, 8, 12], "streak": 3}
         progress = AchievementProgress(
-            user_id=1,
-            achievement_id=1,
-            target_value=100.0,
-            progress_data=progress_data
+            user_id=1, achievement_id=1, target_value=100.0, progress_data=progress_data
         )
 
         # 測試 JSON 序列化
@@ -521,10 +499,7 @@ class TestAchievementProgress:
 
         # 測試從 JSON 建立
         restored = AchievementProgress.from_progress_data_json(
-            json_str,
-            user_id=1,
-            achievement_id=1,
-            target_value=100.0
+            json_str, user_id=1, achievement_id=1, target_value=100.0
         )
         assert restored.progress_data == progress_data
 
@@ -589,7 +564,7 @@ class TestModelIntegration:
             "display_order": 1,
             "icon_emoji": "👥",
             "created_at": datetime.now(),
-            "updated_at": datetime.now()
+            "updated_at": datetime.now(),
         }
 
         category = AchievementCategory(**db_row)
@@ -604,7 +579,7 @@ class TestModelIntegration:
             category_id=1,
             type=AchievementType.COUNTER,
             criteria={"target_value": 100, "counter_field": "test"},
-            points=100
+            points=100,
         )
 
         # 序列化為 JSON

@@ -2,17 +2,16 @@
 🔧 依賴注入容器測試
 Discord ADR Bot v1.6 - 依賴注入容器測試套件
 
-測試範圍：
+測試範圍:
 - 服務註冊測試
 - 服務解析測試
 - 生命週期管理測試
 - 作用域測試
 - 錯誤處理測試
 
-作者：Discord ADR Bot 測試專家
-版本：v1.6
+作者:Discord ADR Bot 測試專家
+版本:v1.6
 """
-
 
 import pytest
 import pytest_asyncio
@@ -37,7 +36,7 @@ class TestServiceDescriptor:
         descriptor = ServiceDescriptor(
             service_type=str,
             implementation_type=str,
-            lifetime=ServiceLifetime.SINGLETON
+            lifetime=ServiceLifetime.SINGLETON,
         )
 
         assert descriptor.service_type == str
@@ -48,12 +47,12 @@ class TestServiceDescriptor:
 
     def test_service_descriptor_with_factory(self):
         """測試帶工廠方法的服務描述符"""
+
         def factory():
             return "test"
+
         descriptor = ServiceDescriptor(
-            service_type=str,
-            factory=factory,
-            lifetime=ServiceLifetime.TRANSIENT
+            service_type=str, factory=factory, lifetime=ServiceLifetime.TRANSIENT
         )
 
         assert descriptor.service_type == str
@@ -81,6 +80,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_register_transient_service(self, container):
         """測試註冊瞬時服務"""
+
         class TestService:
             def __init__(self):
                 self.value = "test"
@@ -99,6 +99,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_register_singleton_service(self, container):
         """測試註冊單例服務"""
+
         class TestService:
             def __init__(self):
                 self.value = "test"
@@ -117,6 +118,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_register_scoped_service(self, container):
         """測試註冊作用域服務"""
+
         class TestService:
             def __init__(self):
                 self.value = "test"
@@ -135,6 +137,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_register_factory_service(self, container):
         """測試註冊工廠方法服務"""
+
         def test_factory():
             return "factory_result"
 
@@ -146,6 +149,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_register_async_factory_service(self, container):
         """測試註冊異步工廠方法服務"""
+
         async def async_factory():
             return "async_factory_result"
 
@@ -167,6 +171,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_service_not_found_error(self, container):
         """測試服務未找到錯誤"""
+
         class UnregisteredService:
             pass
 
@@ -178,6 +183,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_circular_dependency_detection(self, container):
         """測試循環依賴檢測"""
+
         class ServiceA:
             pass
 
@@ -196,6 +202,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_service_with_async_initialize(self, container):
         """測試帶異步初始化的服務"""
+
         class AsyncInitService:
             def __init__(self):
                 self.initialized = False
@@ -211,6 +218,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_scope_management(self, container):
         """測試作用域管理"""
+
         class ScopedService:
             def __init__(self):
                 self.value = "scoped"
@@ -222,12 +230,13 @@ class TestDependencyContainer:
             instance2 = await container.resolve(ScopedService, scope=scope_name)
             assert instance1 is instance2
 
-        # 作用域銷毀後，應該清理實例
+        # 作用域銷毀後,應該清理實例
         assert "test_scope" not in container._scoped_instances
 
     @pytest.mark.asyncio
     async def test_clear_scope(self, container):
         """測試清理作用域"""
+
         class ScopedService:
             pass
 
@@ -244,6 +253,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_service_info(self, container):
         """測試服務信息獲取"""
+
         class TestService:
             pass
 
@@ -265,6 +275,7 @@ class TestDependencyContainer:
     @pytest.mark.asyncio
     async def test_container_dispose(self, container):
         """測試容器釋放"""
+
         class DisposableService:
             def __init__(self):
                 self.disposed = False
@@ -327,6 +338,7 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_creation_error_handling(self, container):
         """測試創建實例時的錯誤處理"""
+
         class FailingService:
             def __init__(self):
                 raise ValueError("Construction failed")
@@ -343,10 +355,7 @@ class TestErrorHandling:
     async def test_missing_implementation_type(self, container):
         """測試缺少實現類型的錯誤"""
         # 手動創建一個沒有實現類型的描述符
-        descriptor = ServiceDescriptor(
-            service_type=str,
-            implementation_type=None
-        )
+        descriptor = ServiceDescriptor(service_type=str, implementation_type=None)
         container._services[str] = descriptor
 
         with pytest.raises(DependencyResolutionError) as exc_info:

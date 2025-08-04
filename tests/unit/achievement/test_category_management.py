@@ -1,6 +1,6 @@
 """成就分類管理功能單元測試.
 
-此模組測試分類管理的所有核心功能：
+此模組測試分類管理的所有核心功能:
 - 分類 CRUD 操作
 - 分類排序功能
 - 資料驗證
@@ -145,7 +145,7 @@ class TestCategoryManagement:
             sample_category_data, 123
         )
 
-        # 驗證結果 - 因為名稱重複，validation 的 errors 會被擴展，但 is_valid 可能仍是 True
+        # 驗證結果 - 因為名稱重複,validation 的 errors 會被擴展,但 is_valid 可能仍是 True
         assert category is None
         assert "分類名稱已存在" in validation.errors
 
@@ -219,13 +219,13 @@ class TestCategoryManagement:
     async def test_delete_category_with_reassignment(
         self, admin_service, sample_category
     ):
-        """測試刪除有成就的分類（重新分配）."""
+        """測試刪除有成就的分類(重新分配)."""
         # 配置分類有成就
         target_category = AchievementCategory(
             id=2, name="目標分類", description="目標描述"
         )
 
-        # 配置模擬 - 為第一次調用返回 sample_category，為第二次調用返回 target_category
+        # 配置模擬 - 為第一次調用返回 sample_category,為第二次調用返回 target_category
         mock_calls = [sample_category, target_category]
         admin_service._get_achievement_category = AsyncMock(side_effect=mock_calls)
 
@@ -238,7 +238,7 @@ class TestCategoryManagement:
         admin_service._invalidate_achievement_cache = AsyncMock()
         admin_service._log_admin_action = AsyncMock()
 
-        # 執行測試（提供目標分類）
+        # 執行測試(提供目標分類)
         success, validation = await admin_service.delete_category(
             1, 123, target_category_id=2
         )
@@ -261,13 +261,13 @@ class TestCategoryManagement:
             return_value={"has_achievements": True, "achievement_count": 5}
         )
 
-        # 執行測試（未提供目標分類）
+        # 執行測試(未提供目標分類)
         success, validation = await admin_service.delete_category(1, 123)
 
         # 驗證結果
         assert success is False
         assert validation.is_valid is False
-        assert "分類中有 5 個成就，需要指定重新分配的目標分類" in validation.errors
+        assert "分類中有 5 個成就,需要指定重新分配的目標分類" in validation.errors
 
     # 分類排序測試
     async def test_reorder_categories_success(self, admin_service):
@@ -386,7 +386,7 @@ class TestCategoryManagement:
         validation = await admin_service._check_category_name_uniqueness("測試分類")
 
         assert validation.is_valid is False
-        assert "分類名稱「測試分類」已存在" in validation.errors
+        assert "分類名稱"測試分類"已存在" in validation.errors
 
     async def test_check_category_name_uniqueness_update_same_category(
         self, admin_service, sample_category
@@ -394,7 +394,7 @@ class TestCategoryManagement:
         """測試更新同一分類時的名稱唯一性檢查."""
         admin_service._get_category_by_name = AsyncMock(return_value=sample_category)
 
-        # 更新同一分類，名稱相同應該通過
+        # 更新同一分類,名稱相同應該通過
         validation = await admin_service._check_category_name_uniqueness(
             "測試分類", exclude_id=1
         )
@@ -423,7 +423,7 @@ class TestCategoryManagement:
 
     # 獲取所有分類測試
     async def test_get_all_categories_without_stats(self, admin_service):
-        """測試獲取所有分類（不含統計）."""
+        """測試獲取所有分類(不含統計)."""
         categories = [
             AchievementCategory(
                 id=1, name="分類1", description="描述1", display_order=10
@@ -441,7 +441,7 @@ class TestCategoryManagement:
         assert result[1].name == "分類2"
 
     async def test_get_all_categories_with_stats(self, admin_service):
-        """測試獲取所有分類（包含統計）."""
+        """測試獲取所有分類(包含統計)."""
         categories = [
             AchievementCategory(
                 id=1, name="分類1", description="描述1", display_order=10

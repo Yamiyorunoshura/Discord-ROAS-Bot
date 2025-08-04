@@ -12,7 +12,6 @@ from src.core.config import get_settings
 
 logger = setup_module_logger("welcome.config")
 
-
 @dataclass
 class WelcomeConfig:
     """歡迎系統配置實現"""
@@ -57,7 +56,7 @@ class WelcomeConfig:
 
     @property
     def default_backgrounds_dir(self) -> str:
-        """默認背景圖片目錄（專案內靜態資源）"""
+        """默認背景圖片目錄(專案內靜態資源)"""
         settings = get_settings()
         return str(settings.assets_dir / "backgrounds")
 

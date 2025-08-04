@@ -1,6 +1,6 @@
 """Bot 核心測試模組.
 
-此模組測試 bot.py 的核心功能，包括：
+此模組測試 bot.py 的核心功能,包括:
 - ModuleLoadResult 類別
 - StartupManager 類別
 - ADRBot 機器人類別
@@ -66,7 +66,7 @@ class TestStartupManager:
         MagicMock()
         self.mock_bot.load_extension = AsyncMock()
 
-        with patch('time.time', side_effect=[0, 0.5]):
+        with patch("time.time", side_effect=[0, 0.5]):
             result = await self.startup_manager.load_cog("test.cog")
 
         assert result.success is True
@@ -76,9 +76,11 @@ class TestStartupManager:
     @pytest.mark.asyncio
     async def test_load_cog_failure(self):
         """測試載入 Cog 失敗."""
-        self.mock_bot.load_extension = AsyncMock(side_effect=ImportError("Module not found"))
+        self.mock_bot.load_extension = AsyncMock(
+            side_effect=ImportError("Module not found")
+        )
 
-        with patch('time.time', side_effect=[0, 0.1]):
+        with patch("time.time", side_effect=[0, 0.1]):
             result = await self.startup_manager.load_cog("bad.cog")
 
         assert result.success is False
@@ -95,7 +97,7 @@ class TestADRBot:
         self.mock_settings.get_database_url.return_value = "sqlite:///:memory:"
         self.mock_settings.is_feature_enabled.return_value = True
 
-        with patch('src.core.bot.get_logger'):
+        with patch("src.core.bot.get_logger"):
             self.bot = ADRBot(self.mock_settings)
 
     def test_bot_initialization(self):
@@ -121,7 +123,7 @@ class TestADRBot:
         self.bot.user.name = "TestBot"
         self.bot.guilds = [MagicMock(), MagicMock()]
 
-        with patch.object(self.bot.logger, 'info') as mock_log:
+        with patch.object(self.bot.logger, "info") as mock_log:
             await self.bot.on_ready()
 
             # 驗證日誌記錄
@@ -130,7 +132,7 @@ class TestADRBot:
     @pytest.mark.asyncio
     async def test_setup_hook(self):
         """測試設置掛鉤."""
-        with patch.object(self.bot, 'load_all_modules') as mock_load:
+        with patch.object(self.bot, "load_all_modules") as mock_load:
             mock_load.return_value = []
 
             await self.bot.setup_hook()
@@ -140,10 +142,12 @@ class TestADRBot:
     @pytest.mark.asyncio
     async def test_load_all_modules(self):
         """測試載入所有模組."""
-        with patch.object(self.bot.startup_manager, 'load_enabled_modules') as mock_load:
+        with patch.object(
+            self.bot.startup_manager, "load_enabled_modules"
+        ) as mock_load:
             mock_load.return_value = [
                 ModuleLoadResult("test1", True, 0.1),
-                ModuleLoadResult("test2", True, 0.2)
+                ModuleLoadResult("test2", True, 0.2),
             ]
 
             results = await self.bot.load_all_modules()
@@ -167,7 +171,7 @@ class TestADRBot:
         self.bot.container = MagicMock()
         self.bot.container.cleanup = AsyncMock()
 
-        with patch('src.core.bot.commands.Bot.close') as mock_close:
+        with patch("src.core.bot.commands.Bot.close") as mock_close:
             mock_close.return_value = AsyncMock()
 
             await self.bot.close()
@@ -185,9 +189,10 @@ class TestBotCreationAndRunning:
         mock_settings.TOKEN = "test_token"
         mock_settings.get_database_url.return_value = "sqlite:///:memory:"
 
-        with patch('src.core.bot.get_settings', return_value=mock_settings), \
-             patch('src.core.bot.ADRBot') as mock_bot_class:
-
+        with (
+            patch("src.core.bot.get_settings", return_value=mock_settings),
+            patch("src.core.bot.ADRBot") as mock_bot_class,
+        ):
             mock_bot = AsyncMock()
             mock_bot_class.return_value = mock_bot
 
@@ -201,7 +206,7 @@ class TestBotCreationAndRunning:
         custom_settings = MagicMock()
         custom_settings.TOKEN = "custom_token"
 
-        with patch('src.core.bot.ADRBot') as mock_bot_class:
+        with patch("src.core.bot.ADRBot") as mock_bot_class:
             mock_bot = AsyncMock()
             mock_bot_class.return_value = mock_bot
 
@@ -215,9 +220,10 @@ class TestBotCreationAndRunning:
         mock_settings = MagicMock()
         mock_settings.TOKEN = "test_token"
 
-        with patch('src.core.bot.get_settings', return_value=mock_settings), \
-             patch('src.core.bot.ADRBot') as mock_bot_class:
-
+        with (
+            patch("src.core.bot.get_settings", return_value=mock_settings),
+            patch("src.core.bot.ADRBot") as mock_bot_class,
+        ):
             mock_bot = AsyncMock()
             mock_bot.start.side_effect = discord.ConnectionClosed(None, None)
             mock_bot_class.return_value = mock_bot
@@ -236,23 +242,21 @@ class TestBotIntegration:
         mock_settings.get_database_url.return_value = "sqlite:///:memory:"
         mock_settings.is_feature_enabled.return_value = True
 
-        with patch('src.core.bot.get_logger'), \
-             patch('src.core.bot.get_container'):
-
+        with patch("src.core.bot.get_logger"), patch("src.core.bot.get_container"):
             bot = ADRBot(mock_settings)
 
             # 測試初始化
             assert bot.settings == mock_settings
 
             # 測試設置
-            with patch.object(bot, 'load_all_modules', return_value=[]):
+            with patch.object(bot, "load_all_modules", return_value=[]):
                 await bot.setup_hook()
 
             # 測試清理
             bot.container = MagicMock()
             bot.container.cleanup = AsyncMock()
 
-            with patch('src.core.bot.commands.Bot.close'):
+            with patch("src.core.bot.commands.Bot.close"):
                 await bot.close()
 
             bot.container.cleanup.assert_called_once()
@@ -262,13 +266,13 @@ class TestBotIntegration:
         mock_settings = MagicMock()
         mock_settings.get_database_url.return_value = "sqlite:///:memory:"
 
-        with patch('src.core.bot.get_logger'):
+        with patch("src.core.bot.get_logger"):
             bot = ADRBot(mock_settings)
 
             # 驗證基本配置
             assert bot.command_prefix is not None
             assert bot.intents is not None
-            assert hasattr(bot, 'startup_manager')
+            assert hasattr(bot, "startup_manager")
 
     @pytest.mark.asyncio
     async def test_error_handling_integration(self):
@@ -276,7 +280,7 @@ class TestBotIntegration:
         mock_settings = MagicMock()
         mock_settings.get_database_url.return_value = "sqlite:///:memory:"
 
-        with patch('src.core.bot.get_logger'):
+        with patch("src.core.bot.get_logger"):
             bot = ADRBot(mock_settings)
 
             # 測試命令錯誤處理
@@ -284,4 +288,4 @@ class TestBotIntegration:
             commands.CommandNotFound()
 
             # 應該有錯誤處理器
-            assert hasattr(bot, 'on_command_error') or hasattr(bot, 'error_handler')
+            assert hasattr(bot, "on_command_error") or hasattr(bot, "error_handler")

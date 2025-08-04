@@ -27,7 +27,6 @@ class ErrorSeverity(Enum):
     HIGH = "HIGH"  # 嚴重錯誤,主要功能受影響
     CRITICAL = "CRITICAL"  # 致命錯誤,系統無法正常運行
 
-
 # 錯誤分類常數
 class ErrorCodes:
     """錯誤代碼分類"""
@@ -41,7 +40,6 @@ class ErrorCodes:
     PANEL_ERROR = (601, 699)  # 面板錯誤
     API_ERROR = (701, 799)  # API 錯誤
     CACHE_ERROR = (801, 899)  # 快取錯誤
-
 
 # 錯誤恢復策略
 class RecoveryStrategy:
@@ -65,11 +63,14 @@ class RecoveryStrategy:
                     await asyncio.sleep(self.retry_delay * (attempt + 1))
                     continue
                 else:
-                    raise last_error
-
+                    raise last_error from None
 
 class ErrorStatistics:
     """錯誤統計"""
+
+    # 常數定義
+    MAX_ERROR_HISTORY = 1000  # 最大錯誤歷史記錄數量
+    TRIM_ERROR_HISTORY = 500  # 歷史記錄修剪後的保留數量
 
     def __init__(self):
         self.error_counts: dict[str, int] = {}
@@ -82,8 +83,8 @@ class ErrorStatistics:
         self.error_history.append((datetime.utcnow(), error_type, tracking_id))
 
         # 保持歷史記錄在合理範圍內
-        if len(self.error_history) > 1000:
-            self.error_history = self.error_history[-500:]
+        if len(self.error_history) > self.MAX_ERROR_HISTORY:
+            self.error_history = self.error_history[-self.TRIM_ERROR_HISTORY:]
 
     def get_error_rate(self, minutes: int = 60) -> dict[str, int]:
         """獲取指定時間內的錯誤率"""
@@ -101,7 +102,6 @@ class ErrorStatistics:
         self.error_counts.clear()
         self.error_history.clear()
         self.last_reset = datetime.utcnow()
-
 
 class ErrorHandler:
     """統一錯誤處理器"""
@@ -175,26 +175,24 @@ class ErrorHandler:
         Returns:
             Tuple[ErrorSeverity, int]: 嚴重程度和錯誤代碼
         """
-        error_type = type(error).__name__
+        # 使用字典映射減少 return 語句數量
+        error_patterns = [
+            (lambda e: isinstance(e, discord.NotFound | discord.Forbidden), (ErrorSeverity.LOW, 301)),
+            (lambda e: isinstance(e, discord.HTTPException | ConnectionError), (ErrorSeverity.MEDIUM, 201)),
+            (lambda e: isinstance(e, asyncio.TimeoutError | TimeoutError), (ErrorSeverity.MEDIUM, 202)),
+            (lambda e: isinstance(e, MemoryError | SystemError), (ErrorSeverity.CRITICAL, 1)),
+            (lambda e: "database" in type(e).__name__.lower(), (ErrorSeverity.HIGH, 101)),
+            (lambda e: "permission" in type(e).__name__.lower(), (ErrorSeverity.LOW, 301)),
+        ]
 
-        # 根據錯誤類型分類
-        if isinstance(error, discord.NotFound | discord.Forbidden):
-            return ErrorSeverity.LOW, 301
-        elif isinstance(error, discord.HTTPException | ConnectionError):
-            return ErrorSeverity.MEDIUM, 201
-        elif isinstance(error, asyncio.TimeoutError | TimeoutError):
-            return ErrorSeverity.MEDIUM, 202
-        elif isinstance(error, MemoryError | SystemError):
-            return ErrorSeverity.CRITICAL, 1
-        elif "database" in error_type.lower():
-            return ErrorSeverity.HIGH, 101
-        elif "permission" in error_type.lower():
-            return ErrorSeverity.LOW, 301
-        else:
-            return ErrorSeverity.MEDIUM, 999
+        for condition, result in error_patterns:
+            if condition(error):
+                return result
+
+        return ErrorSeverity.MEDIUM, 999
 
     def format_user_friendly_message(
-        self, error: Exception, severity: ErrorSeverity, tracking_id: str
+        self, error: Exception, severity: ErrorSeverity, _tracking_id: str
     ) -> str:
         """
         格式化用戶友好的錯誤訊息
@@ -207,26 +205,42 @@ class ErrorHandler:
         Returns:
             str: 用戶友好的錯誤訊息
         """
-        # 根據錯誤類型提供具體建議
-        if isinstance(error, discord.NotFound):
-            return "❌ 找不到指定的資源,可能已被刪除或移動."
-        elif isinstance(error, discord.Forbidden):
-            return "❌ 機器人沒有執行此操作的權限,請檢查權限設定."
-        elif isinstance(error, discord.HTTPException | ConnectionError):
-            return "❌ 網路連線發生問題,請稍後再試."
-        elif isinstance(error, asyncio.TimeoutError | TimeoutError):
-            return "❌ 操作超時,請稍後再試."
-        elif "database" in type(error).__name__.lower():
+        # 優先根據錯誤類型返回訊息
+        error_type_message = self._get_error_type_message(error)
+        if error_type_message:
+            return error_type_message
+
+        # 根據嚴重程度返回訊息
+        return self._get_severity_message(severity)
+
+    def _get_error_type_message(self, error: Exception) -> str | None:
+        """根據錯誤類型獲取訊息"""
+        error_type_messages = {
+            discord.NotFound: "❌ 找不到指定的資源,可能已被刪除或移動.",
+            discord.Forbidden: "❌ 機器人沒有執行此操作的權限,請檢查權限設定.",
+            (discord.HTTPException, ConnectionError): "❌ 網路連線發生問題,請稍後再試.",
+            (asyncio.TimeoutError, TimeoutError): "❌ 操作超時,請稍後再試.",
+        }
+
+        for error_types, message in error_type_messages.items():
+            if isinstance(error, error_types):
+                return message
+
+        # 檢查是否為資料庫錯誤
+        if "database" in type(error).__name__.lower():
             return "❌ 資料庫連線發生問題,正在嘗試恢復."
-        # 根據嚴重程度提供不同訊息
-        elif severity == ErrorSeverity.LOW:
-            return "❌ 發生輕微錯誤,功能可能受到輕微影響."
-        elif severity == ErrorSeverity.MEDIUM:
-            return "❌ 發生錯誤,部分功能可能暫時無法使用."
-        elif severity == ErrorSeverity.HIGH:
-            return "❌ 發生嚴重錯誤,主要功能可能受到影響."
-        else:  # CRITICAL
-            return "❌ 發生致命錯誤,系統可能無法正常運行."
+
+        return None
+
+    def _get_severity_message(self, severity: ErrorSeverity) -> str:
+        """根據嚴重程度獲取訊息"""
+        severity_messages = {
+            ErrorSeverity.LOW: "❌ 發生輕微錯誤,功能可能受到輕微影響.",
+            ErrorSeverity.MEDIUM: "❌ 發生錯誤,部分功能可能暫時無法使用.",
+            ErrorSeverity.HIGH: "❌ 發生嚴重錯誤,主要功能可能受到影響.",
+            ErrorSeverity.CRITICAL: "❌ 發生致命錯誤,系統可能無法正常運行.",
+        }
+        return severity_messages.get(severity, severity_messages[ErrorSeverity.MEDIUM])
 
     def format_error_message(
         self,
@@ -292,7 +306,7 @@ class ErrorHandler:
 
         # 格式化日誌訊息
         error_msg = (
-            f"[{severity.value}] 【{self.module_name}】{context} ({tracking_id})"
+            f"[{severity.value}] [{self.module_name}]{context} ({tracking_id})"
         )
 
         if extra_info:
@@ -309,7 +323,9 @@ class ErrorHandler:
         # 執行錯誤回調
         for callback in self.error_callbacks.get(severity, []):
             try:
-                asyncio.create_task(callback(error, tracking_id, extra_info))
+                task = asyncio.create_task(callback(error, tracking_id, extra_info))
+                # 避免未處理的任務異常警告
+                task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
             except Exception as callback_error:
                 self.logger.error(f"錯誤回調失敗: {callback_error}")
 
@@ -364,7 +380,7 @@ class ErrorHandler:
             else:
                 severity = ErrorSeverity.MEDIUM
 
-            # 嘗試恢復(如果指定了恢復策略)
+            # 當指定了恢復策略時嘗試進行錯誤恢復
             if recovery_strategy and recovery_strategy in self.recovery_strategies:
                 try:
                     self.logger.info(f"嘗試使用 {recovery_strategy} 策略恢復錯誤")
@@ -389,21 +405,24 @@ class ErrorHandler:
             try:
                 if isinstance(interaction_or_ctx, discord.Interaction):
                     if interaction_or_ctx.response.is_done():
-                        asyncio.create_task(
+                        task = asyncio.create_task(
                             interaction_or_ctx.followup.send(
                                 formatted_msg, ephemeral=True
                             )
                         )
+                        task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
                     else:
-                        asyncio.create_task(
+                        task = asyncio.create_task(
                             interaction_or_ctx.response.send_message(
                                 formatted_msg, ephemeral=True
                             )
                         )
+                        task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
                 elif isinstance(interaction_or_ctx, commands.Context):
-                    asyncio.create_task(
+                    task = asyncio.create_task(
                         interaction_or_ctx.reply(formatted_msg, mention_author=False)
                     )
+                    task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
             except Exception:
                 # 如果連錯誤訊息都發送失敗,只記錄到日誌
                 self.logger.error(f"無法發送錯誤訊息:{tracking_id}")
@@ -422,7 +441,6 @@ class ErrorHandler:
         """重置錯誤統計"""
         self.statistics.reset_statistics()
 
-
 def create_error_handler(
     module_name: str, logger: logging.Logger | None = None
 ) -> ErrorHandler:
@@ -437,7 +455,6 @@ def create_error_handler(
         ErrorHandler: 錯誤處理器實例
     """
     return ErrorHandler(module_name, logger)
-
 
 # 常用的錯誤處理裝飾器
 def error_handler(

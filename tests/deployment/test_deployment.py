@@ -27,7 +27,7 @@ class DeploymentTester:
             "docker-compose.yml",
             "docker-compose.dev.yml",
             "docker-compose.prod.yml",
-            ".dockerignore"
+            ".dockerignore",
         ]
 
     def test_docker_files_exist(self) -> dict[str, Any]:
@@ -38,7 +38,7 @@ class DeploymentTester:
             file_path = self.project_root / docker_file
             results[docker_file] = {
                 "exists": file_path.exists(),
-                "path": str(file_path)
+                "path": str(file_path),
             }
 
         return results
@@ -51,16 +51,21 @@ class DeploymentTester:
             return {"valid": False, "error": "Dockerfile 不存在"}
 
         try:
-            # 使用 docker build 進行語法檢查（dry run）
-            result = subprocess.run([
-                "docker", "build", "--dry-run", "-f", str(dockerfile_path), "."
-            ], check=False, capture_output=True, text=True, cwd=self.project_root, timeout=60)
+            # 使用 docker build 進行語法檢查(dry run)
+            result = subprocess.run(
+                ["docker", "build", "--dry-run", "-f", str(dockerfile_path), "."],
+                check=False,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                timeout=60,
+            )
 
             return {
                 "valid": result.returncode == 0,
                 "stdout": result.stdout,
                 "stderr": result.stderr,
-                "return_code": result.returncode
+                "return_code": result.returncode,
             }
 
         except subprocess.TimeoutExpired:
@@ -77,7 +82,7 @@ class DeploymentTester:
         compose_files = [
             "docker-compose.yml",
             "docker-compose.dev.yml",
-            "docker-compose.prod.yml"
+            "docker-compose.prod.yml",
         ]
 
         for compose_file in compose_files:
@@ -86,37 +91,42 @@ class DeploymentTester:
             if not file_path.exists():
                 results[compose_file] = {
                     "valid": False,
-                    "error": f"{compose_file} 不存在"
+                    "error": f"{compose_file} 不存在",
                 }
                 continue
 
             try:
                 # 使用 docker-compose config 進行語法檢查
-                result = subprocess.run([
-                    "docker-compose", "-f", str(file_path), "config"
-                ], check=False, capture_output=True, text=True, cwd=self.project_root, timeout=30)
+                result = subprocess.run(
+                    ["docker-compose", "-f", str(file_path), "config"],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    cwd=self.project_root,
+                    timeout=30,
+                )
 
                 results[compose_file] = {
                     "valid": result.returncode == 0,
                     "stdout": result.stdout[:500] if result.stdout else "",
                     "stderr": result.stderr[:500] if result.stderr else "",
-                    "return_code": result.returncode
+                    "return_code": result.returncode,
                 }
 
             except subprocess.TimeoutExpired:
                 results[compose_file] = {
                     "valid": False,
-                    "error": f"{compose_file} 語法檢查超時"
+                    "error": f"{compose_file} 語法檢查超時",
                 }
             except FileNotFoundError:
                 results[compose_file] = {
                     "valid": False,
-                    "error": "docker-compose 未安裝或不在 PATH 中"
+                    "error": "docker-compose 未安裝或不在 PATH 中",
                 }
             except Exception as e:
                 results[compose_file] = {
                     "valid": False,
-                    "error": f"{compose_file} 語法檢查失敗: {e!s}"
+                    "error": f"{compose_file} 語法檢查失敗: {e!s}",
                 }
 
         return results
@@ -134,22 +144,20 @@ class DeploymentTester:
 
         for yaml_file in yaml_files:
             try:
-                with open(yaml_file, encoding='utf-8') as f:
+                with open(yaml_file, encoding="utf-8") as f:
                     yaml.safe_load(f)
 
-                results[str(yaml_file.relative_to(self.project_root))] = {
-                    "valid": True
-                }
+                results[str(yaml_file.relative_to(self.project_root))] = {"valid": True}
 
             except yaml.YAMLError as e:
                 results[str(yaml_file.relative_to(self.project_root))] = {
                     "valid": False,
-                    "error": f"YAML 語法錯誤: {e!s}"
+                    "error": f"YAML 語法錯誤: {e!s}",
                 }
             except Exception as e:
                 results[str(yaml_file.relative_to(self.project_root))] = {
                     "valid": False,
-                    "error": f"文件讀取失敗: {e!s}"
+                    "error": f"文件讀取失敗: {e!s}",
                 }
 
         return results
@@ -167,9 +175,9 @@ class DeploymentTester:
             script_files.extend(self.scripts_path.glob(pattern))
 
         for script_file in script_files:
-            if script_file.suffix == '.sh':
+            if script_file.suffix == ".sh":
                 result = self._test_shell_script(script_file)
-            elif script_file.suffix == '.py':
+            elif script_file.suffix == ".py":
                 result = self._test_python_script(script_file)
             else:
                 result = {"valid": True, "skipped": "未知腳本類型"}
@@ -182,9 +190,13 @@ class DeploymentTester:
         """測試 Shell 腳本語法"""
         try:
             # 使用 bash -n 進行語法檢查
-            result = subprocess.run([
-                "bash", "-n", str(script_path)
-            ], check=False, capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                ["bash", "-n", str(script_path)],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
 
             if result.returncode == 0:
                 # 檢查腳本權限
@@ -192,13 +204,10 @@ class DeploymentTester:
                 return {
                     "valid": True,
                     "executable": is_executable,
-                    "warning": "腳本不可執行" if not is_executable else None
+                    "warning": "腳本不可執行" if not is_executable else None,
                 }
             else:
-                return {
-                    "valid": False,
-                    "error": result.stderr or "Shell 腳本語法錯誤"
-                }
+                return {"valid": False, "error": result.stderr or "Shell 腳本語法錯誤"}
 
         except FileNotFoundError:
             return {"valid": False, "error": "Bash 未安裝或不在 PATH 中"}
@@ -208,18 +217,18 @@ class DeploymentTester:
     def _test_python_script(self, script_path: Path) -> dict[str, Any]:
         """測試 Python 腳本語法"""
         try:
-            with open(script_path, encoding='utf-8') as f:
+            with open(script_path, encoding="utf-8") as f:
                 content = f.read()
 
             # 編譯檢查語法
-            compile(content, str(script_path), 'exec')
+            compile(content, str(script_path), "exec")
 
             return {"valid": True}
 
         except SyntaxError as e:
             return {
                 "valid": False,
-                "error": f"Python 語法錯誤: {e.msg} (行 {e.lineno})"
+                "error": f"Python 語法錯誤: {e.msg} (行 {e.lineno})",
             }
         except Exception as e:
             return {"valid": False, "error": f"Python 腳本檢查失敗: {e!s}"}
@@ -231,47 +240,45 @@ class DeploymentTester:
         env_templates = [
             ".env.example",
             ".env.development.template",
-            ".env.production.template"
+            ".env.production.template",
         ]
 
         for env_file in env_templates:
             file_path = self.project_root / env_file
 
             if not file_path.exists():
-                results[env_file] = {
-                    "exists": False,
-                    "recommended": True
-                }
+                results[env_file] = {"exists": False, "recommended": True}
                 continue
 
             try:
-                with open(file_path, encoding='utf-8') as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 # 檢查是否包含敏感資料
                 sensitive_patterns = [
-                    r'TOKEN=\w+',  # 實際 token
-                    r'PASSWORD=\w+',  # 實際密碼
-                    r'SECRET=\w+',  # 實際密鑰
+                    r"TOKEN=\w+",  # 實際 token
+                    r"PASSWORD=\w+",  # 實際密碼
+                    r"SECRET=\w+",  # 實際密鑰
                 ]
 
                 issues = []
                 for pattern in sensitive_patterns:
                     import re
+
                     if re.search(pattern, content):
                         issues.append(f"包含敏感資料模式: {pattern}")
 
                 results[env_file] = {
                     "exists": True,
                     "valid": len(issues) == 0,
-                    "issues": issues
+                    "issues": issues,
                 }
 
             except Exception as e:
                 results[env_file] = {
                     "exists": True,
                     "valid": False,
-                    "error": f"文件檢查失敗: {e!s}"
+                    "error": f"文件檢查失敗: {e!s}",
                 }
 
         return results
@@ -284,53 +291,57 @@ class DeploymentTester:
             return {"error": "GitHub workflows 目錄不存在"}
 
         results = {}
-        workflow_files = list(workflows_path.glob("*.yml")) + list(workflows_path.glob("*.yaml"))
+        workflow_files = list(workflows_path.glob("*.yml")) + list(
+            workflows_path.glob("*.yaml")
+        )
 
         for workflow_file in workflow_files:
             try:
-                with open(workflow_file, encoding='utf-8') as f:
+                with open(workflow_file, encoding="utf-8") as f:
                     workflow_data = yaml.safe_load(f)
 
                 # 基本結構檢查
-                required_fields = ['name', 'on', 'jobs']
-                missing_fields = [field for field in required_fields if field not in workflow_data]
+                required_fields = ["name", "on", "jobs"]
+                missing_fields = [
+                    field for field in required_fields if field not in workflow_data
+                ]
 
                 issues = []
                 if missing_fields:
                     issues.append(f"缺少必要欄位: {missing_fields}")
 
                 # 檢查 jobs 結構
-                jobs = workflow_data.get('jobs', {})
+                jobs = workflow_data.get("jobs", {})
                 if not jobs:
                     issues.append("沒有定義任何 job")
 
                 for job_name, job_data in jobs.items():
-                    if 'runs-on' not in job_data:
+                    if "runs-on" not in job_data:
                         issues.append(f"Job '{job_name}' 缺少 runs-on")
-                    if 'steps' not in job_data:
+                    if "steps" not in job_data:
                         issues.append(f"Job '{job_name}' 缺少 steps")
 
                 results[str(workflow_file.relative_to(self.project_root))] = {
                     "valid": len(issues) == 0,
                     "issues": issues,
-                    "jobs_count": len(jobs)
+                    "jobs_count": len(jobs),
                 }
 
             except yaml.YAMLError as e:
                 results[str(workflow_file.relative_to(self.project_root))] = {
                     "valid": False,
-                    "error": f"YAML 格式錯誤: {e!s}"
+                    "error": f"YAML 格式錯誤: {e!s}",
                 }
             except Exception as e:
                 results[str(workflow_file.relative_to(self.project_root))] = {
                     "valid": False,
-                    "error": f"工作流程檢查失敗: {e!s}"
+                    "error": f"工作流程檢查失敗: {e!s}",
                 }
 
         return results
 
     def test_docker_build(self) -> dict[str, Any]:
-        """測試 Docker 映像建置（僅語法檢查，不實際建置）"""
+        """測試 Docker 映像建置(僅語法檢查,不實際建置)"""
         try:
             client = docker.from_env()
 
@@ -352,39 +363,33 @@ class DeploymentTester:
                     rm=True,
                     forcerm=True,
                     decode=True,
-                    tag="discord-bot-test:syntax-check"
+                    tag="discord-bot-test:syntax-check",
                 )
 
                 # 檢查建置日誌中的錯誤
                 errors = []
                 for log in build_logs:
-                    if 'error' in log:
-                        errors.append(log['error'])
-                    elif 'stream' in log and 'error' in log['stream'].lower():
-                        errors.append(log['stream'])
+                    if "error" in log:
+                        errors.append(log["error"])
+                    elif "stream" in log and "error" in log["stream"].lower():
+                        errors.append(log["stream"])
 
                 return {
                     "buildable": len(errors) == 0,
                     "errors": errors[:5],  # 只保留前 5 個錯誤
-                    "note": "這是語法檢查，未完成完整建置"
+                    "note": "這是語法檢查,未完成完整建置",
                 }
 
             except DockerException as e:
-                return {
-                    "buildable": False,
-                    "error": f"Docker 建置檢查失敗: {e!s}"
-                }
+                return {"buildable": False, "error": f"Docker 建置檢查失敗: {e!s}"}
 
         except DockerException:
             return {
                 "buildable": False,
-                "error": "無法連接到 Docker，請確認 Docker 服務正在運行"
+                "error": "無法連接到 Docker,請確認 Docker 服務正在運行",
             }
         except Exception as e:
-            return {
-                "buildable": False,
-                "error": f"Docker 建置測試失敗: {e!s}"
-            }
+            return {"buildable": False, "error": f"Docker 建置測試失敗: {e!s}"}
 
 
 # Pytest 測試函數
@@ -399,8 +404,7 @@ def test_docker_files_exist(deployment_tester):
     results = deployment_tester.test_docker_files_exist()
 
     missing_files = [
-        file_name for file_name, result in results.items()
-        if not result["exists"]
+        file_name for file_name, result in results.items() if not result["exists"]
     ]
 
     # Dockerfile 和 docker-compose.yml 是必須的
@@ -415,9 +419,11 @@ def test_dockerfile_syntax_valid(deployment_tester):
     result = deployment_tester.test_dockerfile_syntax()
 
     if "error" in result and "Docker 未安裝" in result["error"]:
-        pytest.skip("Docker 未安裝，跳過 Dockerfile 語法檢查")
+        pytest.skip("Docker 未安裝,跳過 Dockerfile 語法檢查")
 
-    assert result["valid"], f"Dockerfile 語法錯誤: {result.get('stderr', result.get('error', ''))}"
+    assert result["valid"], (
+        f"Dockerfile 語法錯誤: {result.get('stderr', result.get('error', ''))}"
+    )
 
 
 def test_docker_compose_syntax_valid(deployment_tester):
@@ -426,10 +432,11 @@ def test_docker_compose_syntax_valid(deployment_tester):
 
     # 檢查是否有 docker-compose 可用
     if any("docker-compose 未安裝" in r.get("error", "") for r in results.values()):
-        pytest.skip("docker-compose 未安裝，跳過語法檢查")
+        pytest.skip("docker-compose 未安裝,跳過語法檢查")
 
     invalid_files = [
-        file_name for file_name, result in results.items()
+        file_name
+        for file_name, result in results.items()
         if not result.get("valid", False) and "不存在" not in result.get("error", "")
     ]
 
@@ -441,7 +448,8 @@ def test_yaml_files_valid(deployment_tester):
     results = deployment_tester.test_yaml_configuration_files()
 
     invalid_files = [
-        file_name for file_name, result in results.items()
+        file_name
+        for file_name, result in results.items()
         if not result.get("valid", False)
     ]
 
@@ -456,7 +464,8 @@ def test_deployment_scripts_valid(deployment_tester):
         pytest.skip(f"腳本測試跳過: {results['error']}")
 
     invalid_scripts = [
-        script_name for script_name, result in results.items()
+        script_name
+        for script_name, result in results.items()
         if not result.get("valid", False)
     ]
 
@@ -468,7 +477,8 @@ def test_environment_templates_safe(deployment_tester):
     results = deployment_tester.test_environment_file_templates()
 
     unsafe_files = [
-        file_name for file_name, result in results.items()
+        file_name
+        for file_name, result in results.items()
         if result.get("exists", False) and not result.get("valid", True)
     ]
 
@@ -483,11 +493,14 @@ def test_github_workflows_valid(deployment_tester):
         pytest.skip(f"GitHub workflows 測試跳過: {results['error']}")
 
     invalid_workflows = [
-        workflow_name for workflow_name, result in results.items()
+        workflow_name
+        for workflow_name, result in results.items()
         if not result.get("valid", False)
     ]
 
-    assert len(invalid_workflows) == 0, f"以下 GitHub workflow 無效: {invalid_workflows}"
+    assert len(invalid_workflows) == 0, (
+        f"以下 GitHub workflow 無效: {invalid_workflows}"
+    )
 
 
 if __name__ == "__main__":

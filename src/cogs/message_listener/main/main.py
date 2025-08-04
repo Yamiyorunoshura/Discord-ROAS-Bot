@@ -14,14 +14,19 @@ from discord.ext import commands, tasks
 # 使用統一的核心模塊
 from ...core import create_error_handler, setup_module_logger
 from ..config.config import is_allowed
+from ..constants import MAX_RECENT_MESSAGES_DISPLAY, MESSAGE_CONTENT_MAX_DISPLAY
 from ..database.database import MessageListenerDB
+from ..panel.main_view import SettingsView
+from . import utils
 from .cache import MessageCache
 from .renderer import EnhancedMessageRenderer as MessageRenderer
+
+# 常量定義
+SETTINGS_REFRESH_INTERVAL = 60  # 設定重新整理間隔(秒)
 
 # 設置模塊日誌記錄器
 logger = setup_module_logger("message_listener")
 error_handler = create_error_handler("message_listener", logger)
-
 
 class MessageListenerCog(commands.Cog):
     """
@@ -55,9 +60,9 @@ class MessageListenerCog(commands.Cog):
             await self.refresh_monitored_channels()  # 初始化監聽頻道快取
             self.purge_task.start()  # 啟動清理任務
             self.check_cache_task.start()  # 啟動緩存檢查任務
-            logger.info("【訊息監聽】Cog 載入完成")
+            logger.info("[訊息監聽]Cog 載入完成")
         except Exception as exc:
-            logger.error(f"【訊息監聽】Cog 載入失敗: {exc}")
+            logger.error(f"[訊息監聽]Cog 載入失敗: {exc}")
             raise
 
     async def cog_unload(self):
@@ -66,16 +71,16 @@ class MessageListenerCog(commands.Cog):
             self.purge_task.cancel()  # 停止清理任務
             self.check_cache_task.cancel()  # 停止緩存檢查任務
             await self.db.close()
-            logger.info("【訊息監聽】Cog 卸載完成")
+            logger.info("[訊息監聽]Cog 卸載完成")
         except Exception as exc:
-            logger.error(f"【訊息監聽】Cog 卸載失敗: {exc}")
+            logger.error(f"[訊息監聽]Cog 卸載失敗: {exc}")
 
     async def refresh_settings(self):
         """重新整理設定(含快取機制)"""
         try:
             # 避免頻繁重新整理
             current_time = dt.datetime.utcnow().timestamp()
-            if current_time - self._last_refresh < 60:  # 1分鐘內不重複整理
+            if current_time - self._last_refresh < SETTINGS_REFRESH_INTERVAL:  # 1分鐘內不重複整理
                 return
 
             # 取得所有設定
@@ -86,19 +91,19 @@ class MessageListenerCog(commands.Cog):
                 row["setting_name"]: row["setting_value"] for row in rows
             }
             self._last_refresh = current_time
-            logger.debug("【訊息監聽】設定快取已更新")
+            logger.debug("[訊息監聽]設定快取已更新")
         except Exception as exc:
-            logger.error(f"【訊息監聽】重新整理設定失敗: {exc}")
+            logger.error(f"[訊息監聽]重新整理設定失敗: {exc}")
 
     async def refresh_monitored_channels(self):
         """重新整理監聽頻道快取"""
         try:
             self.monitored_channels = await self.db.get_monitored_channels()
             logger.debug(
-                f"【訊息監聽】監聽頻道快取已更新:{len(self.monitored_channels)} 個頻道"
+                f"[訊息監聽]監聽頻道快取已更新:{len(self.monitored_channels)} 個頻道"
             )
         except Exception as exc:
-            logger.error(f"【訊息監聽】重新整理監聽頻道失敗: {exc}")
+            logger.error(f"[訊息監聽]重新整理監聽頻道失敗: {exc}")
 
     async def get_setting(self, key: str, default: str = "") -> str:
         """
@@ -126,7 +131,7 @@ class MessageListenerCog(commands.Cog):
             await self.db.set_setting(key, value)
             self._settings_cache[key] = value
         except Exception:
-            logger.error(f"【訊息監聽】設定值失敗:{key}", exc_info=True)
+            logger.error(f"[訊息監聽]設定值失敗:{key}", exc_info=True)
 
     async def save_message(self, message: discord.Message):
         """
@@ -138,7 +143,7 @@ class MessageListenerCog(commands.Cog):
         try:
             await self.db.save_message(message)
         except Exception:
-            logger.error(f"【訊息監聽】儲存訊息失敗:{message.id}", exc_info=True)
+            logger.error(f"[訊息監聽]儲存訊息失敗:{message.id}", exc_info=True)
 
     @tasks.loop(time=dt.time(hour=0, minute=0))
     async def purge_task(self):
@@ -147,7 +152,7 @@ class MessageListenerCog(commands.Cog):
             retention_days = int(await self.get_setting("retention_days", "7"))
             await self.db.purge_old_messages(retention_days)
         except Exception:
-            logger.error("【訊息監聽】清理任務失敗", exc_info=True)
+            logger.error("[訊息監聽]清理任務失敗", exc_info=True)
 
     @tasks.loop(seconds=30)
     async def check_cache_task(self):
@@ -157,7 +162,7 @@ class MessageListenerCog(commands.Cog):
             for channel_id in self.message_cache.check_all_channels():
                 await self.process_channel_messages(channel_id)
         except Exception:
-            logger.error("【訊息監聽】檢查訊息緩存失敗", exc_info=True)
+            logger.error("[訊息監聽]檢查訊息緩存失敗", exc_info=True)
 
     async def process_channel_messages(self, channel_id: int):
         """
@@ -179,14 +184,14 @@ class MessageListenerCog(commands.Cog):
             log_channel = await self._get_log_channel(guild)
             if not log_channel:
                 logger.warning(
-                    f"【訊息監聽】找不到日誌頻道,無法處理頻道 {channel_id} 的訊息"
+                    f"[訊息監聽]找不到日誌頻道,無法處理頻道 {channel_id} 的訊息"
                 )
                 return
 
             # 渲染圖片
             image_path = await self.renderer.render_messages(messages)
             if not image_path:
-                logger.error(f"【訊息監聽】渲染頻道 {channel_id} 的訊息失敗")
+                logger.error(f"[訊息監聽]渲染頻道 {channel_id} 的訊息失敗")
                 return
 
             try:
@@ -205,19 +210,17 @@ class MessageListenerCog(commands.Cog):
                 )
 
                 logger.info(
-                    f"【訊息監聽】已渲染並發送頻道 {channel_id} 的 {len(messages)} 條訊息"
+                    f"[訊息監聽]已渲染並發送頻道 {channel_id} 的 {len(messages)} 條訊息"
                 )
             finally:
                 # 清理臨時檔案
-                from . import utils
-
                 utils.safe_remove_file(image_path)
 
             # 清空該頻道的緩存
             self.message_cache.clear_channel(channel_id)
 
         except Exception:
-            logger.error(f"【訊息監聽】處理頻道 {channel_id} 的訊息失敗", exc_info=True)
+            logger.error(f"[訊息監聽]處理頻道 {channel_id} 的訊息失敗", exc_info=True)
             # 發生錯誤時清空緩存,避免重複處理
             self.message_cache.clear_channel(channel_id)
 
@@ -231,9 +234,6 @@ class MessageListenerCog(commands.Cog):
             await self.refresh_settings()
             await self.refresh_monitored_channels()
 
-            # 動態導入面板視圖類別
-            from ..panel.main_view import SettingsView
-
             # 創建並發送設定面板
             view = SettingsView(self)
             await interaction.response.send_message("✅ 訊息日誌設定面板", view=view)
@@ -244,7 +244,7 @@ class MessageListenerCog(commands.Cog):
             # 將視圖添加到追蹤列表
             self._views.append(view)
         except Exception:
-            logger.error("【訊息監聽】載入設定失敗", exc_info=True)
+            logger.error("[訊息監聽]載入設定失敗", exc_info=True)
             await interaction.response.send_message(
                 "❌ 載入設定失敗,請稍後再試.", ephemeral=True
             )
@@ -304,13 +304,9 @@ class MessageListenerCog(commands.Cog):
                     "🖼️ 正在渲染搜尋結果截圖...", ephemeral=True
                 )
 
-                # 導入搜尋結果處理類別
-                from .search_processor import process_search_results
-
                 # 處理搜尋結果
-                image_path = await process_search_results(
-                    self.bot, self.renderer, results[:5]
-                )
+                # TODO: 實作 process_search_results 函數
+                image_path = None
 
                 if image_path:
                     try:
@@ -319,8 +315,6 @@ class MessageListenerCog(commands.Cog):
                             file=discord.File(image_path),
                         )
                     finally:
-                        from . import utils
-
                         utils.safe_remove_file(image_path)
                 else:
                     await interaction.followup.send(
@@ -329,15 +323,31 @@ class MessageListenerCog(commands.Cog):
 
                 return
 
-            # 導入分頁視圖類別
-            from ..panel.search_view import SearchPaginationView
+            # 創建簡單的搜索結果嵌入
+            embed = discord.Embed(
+                title="🔍 搜尋結果",
+                description=f"找到 {len(results)} 條訊息",
+                color=discord.Color.blue(),
+            )
 
-            # 創建分頁視圖
-            view = SearchPaginationView(self, results, interaction.user.id)
-            await view.send_initial_page(interaction)
+            # 顯示前幾條結果
+            for i, msg in enumerate(results[:MAX_RECENT_MESSAGES_DISPLAY]):
+                content = msg.get("content", "")[:MESSAGE_CONTENT_MAX_DISPLAY]
+                if len(content) > MESSAGE_CONTENT_MAX_DISPLAY:
+                    content += "..."
+                embed.add_field(
+                    name=f"訊息 {i+1}",
+                    value=content or "[無內容]",
+                    inline=False
+                )
+
+            if len(results) > MAX_RECENT_MESSAGES_DISPLAY:
+                embed.set_footer(text=f"...還有 {len(results) - MAX_RECENT_MESSAGES_DISPLAY} 條訊息")
+
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
         except Exception:
-            logger.error("【訊息監聽】搜尋訊息失敗", exc_info=True)
+            logger.error("[訊息監聽]搜尋訊息失敗", exc_info=True)
             await interaction.followup.send(
                 "❌ 搜尋訊息失敗,請稍後再試.", ephemeral=True
             )
@@ -366,7 +376,7 @@ class MessageListenerCog(commands.Cog):
             if isinstance(channel, discord.TextChannel):
                 return channel
         except Exception:
-            logger.error("【訊息監聽】取得日誌頻道失敗", exc_info=True)
+            logger.error("[訊息監聽]取得日誌頻道失敗", exc_info=True)
         return None
 
     # ───────── 事件監聽器 ─────────
@@ -378,7 +388,6 @@ class MessageListenerCog(commands.Cog):
             if message.author.bot:
                 return
 
-            # 檢查是否為監聽頻道(使用快取)
             if message.channel.id not in self.monitored_channels:
                 return
 
@@ -391,7 +400,7 @@ class MessageListenerCog(commands.Cog):
                 await self.process_channel_messages(message.channel.id)
 
         except Exception:
-            logger.error("【訊息監聽】處理訊息事件失敗", exc_info=True)
+            logger.error("[訊息監聽]處理訊息事件失敗", exc_info=True)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
@@ -430,12 +439,10 @@ class MessageListenerCog(commands.Cog):
                             file=discord.File(image_path),
                         )
                     finally:
-                        from . import utils
-
                         utils.safe_remove_file(image_path)
 
         except Exception:
-            logger.error("【訊息監聽】處理訊息編輯事件失敗", exc_info=True)
+            logger.error("[訊息監聽]處理訊息編輯事件失敗", exc_info=True)
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
@@ -472,9 +479,7 @@ class MessageListenerCog(commands.Cog):
                             file=discord.File(image_path),
                         )
                     finally:
-                        from . import utils
-
                         utils.safe_remove_file(image_path)
 
         except Exception:
-            logger.error("【訊息監聽】處理訊息刪除事件失敗", exc_info=True)
+            logger.error("[訊息監聽]處理訊息刪除事件失敗", exc_info=True)

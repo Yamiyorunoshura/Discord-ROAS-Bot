@@ -1,12 +1,12 @@
 """TriggerEngine 單元測試.
 
-此模組測試觸發引擎的核心功能，包含：
+此模組測試觸發引擎的核心功能,包含:
 - 成就觸發條件檢查測試
 - 自動觸發機制測試
 - 事件處理測試
 - 批量觸發檢查測試
 
-遵循 AAA 模式（Arrange, Act, Assert）和測試最佳實踐。
+遵循 AAA 模式(Arrange, Act, Assert)和測試最佳實踐.
 """
 
 from datetime import datetime, timedelta
@@ -59,11 +59,15 @@ class TestTriggerEngine:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_check_achievement_trigger_already_earned(self, trigger_engine, repository):
+    async def test_check_achievement_trigger_already_earned(
+        self, trigger_engine, repository
+    ):
         """測試檢查已獲得成就的觸發條件."""
         # Arrange
         category = await create_test_category(repository, "earned_cat")
-        achievement = await create_test_achievement(repository, category.id, "earned_ach")
+        achievement = await create_test_achievement(
+            repository, category.id, "earned_ach"
+        )
         user_id = 123456789
 
         # 先頒發成就
@@ -73,7 +77,7 @@ class TestTriggerEngine:
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=create_trigger_context()
+            trigger_context=create_trigger_context(),
         )
 
         # Assert
@@ -85,7 +89,9 @@ class TestTriggerEngine:
         """測試檢查未啟用成就的觸發條件."""
         # Arrange
         category = await create_test_category(repository, "inactive_trigger_cat")
-        achievement = await create_test_achievement(repository, category.id, "inactive_trigger")
+        achievement = await create_test_achievement(
+            repository, category.id, "inactive_trigger"
+        )
 
         # 停用成就
         await repository.update_achievement(achievement.id, {"is_active": False})
@@ -96,7 +102,7 @@ class TestTriggerEngine:
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=create_trigger_context()
+            trigger_context=create_trigger_context(),
         )
 
         # Assert
@@ -116,7 +122,7 @@ class TestTriggerEngine:
             criteria={"target_value": 50, "counter_field": "messages"},
             points=100,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -124,16 +130,14 @@ class TestTriggerEngine:
 
         # 設定進度達到目標值
         await repository.update_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            current_value=50.0
+            user_id=user_id, achievement_id=achievement.id, current_value=50.0
         )
 
         # Act
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=create_trigger_context()
+            trigger_context=create_trigger_context(),
         )
 
         # Assert
@@ -153,7 +157,7 @@ class TestTriggerEngine:
             criteria={"target_value": 100, "counter_field": "messages"},
             points=100,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -161,16 +165,14 @@ class TestTriggerEngine:
 
         # 設定進度未達到目標值
         await repository.update_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            current_value=30.0
+            user_id=user_id, achievement_id=achievement.id, current_value=30.0
         )
 
         # Act
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=create_trigger_context()
+            trigger_context=create_trigger_context(),
         )
 
         # Assert
@@ -190,20 +192,20 @@ class TestTriggerEngine:
             criteria={"target_value": 25, "milestone_type": "level"},
             points=200,
             role_reward="里程碑達人",
-            is_hidden=False
+            is_hidden=False,
         )
         achievement = await repository.create_achievement(achievement)
 
         user_id = 123456789
 
-        # 設定觸發上下文，包含達到的里程碑值
+        # 設定觸發上下文,包含達到的里程碑值
         trigger_context = create_trigger_context(user_id=user_id, level=30)
 
         # Act
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -223,7 +225,7 @@ class TestTriggerEngine:
             criteria={"target_value": 7, "time_unit": "days"},
             points=300,
             role_reward="時間管理大師",
-            is_hidden=True
+            is_hidden=True,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -240,14 +242,14 @@ class TestTriggerEngine:
             user_id=user_id,
             achievement_id=achievement.id,
             current_value=7.0,
-            progress_data={"streak_dates": streak_dates}
+            progress_data={"streak_dates": streak_dates},
         )
 
         # Act
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=create_trigger_context()
+            trigger_context=create_trigger_context(),
         )
 
         # Assert
@@ -255,7 +257,9 @@ class TestTriggerEngine:
         assert "連續 7 天達到目標" in reason
 
     @pytest.mark.asyncio
-    async def test_check_conditional_trigger_all_conditions_met(self, trigger_engine, repository):
+    async def test_check_conditional_trigger_all_conditions_met(
+        self, trigger_engine, repository
+    ):
         """測試條件型成就所有條件滿足的觸發檢查."""
         # Arrange
         category = await create_test_category(repository, "conditional_trigger_cat")
@@ -269,23 +273,23 @@ class TestTriggerEngine:
                 "require_all": True,
                 "conditions": [
                     {"type": "metric_threshold", "metric": "level", "threshold": 10},
-                    {"type": "metric_threshold", "metric": "messages", "threshold": 50}
-                ]
+                    {"type": "metric_threshold", "metric": "messages", "threshold": 50},
+                ],
             },
-            points=400
+            points=400,
         )
         achievement = await repository.create_achievement(achievement)
 
         user_id = 123456789
 
-        # 設定觸發上下文，滿足所有條件
+        # 設定觸發上下文,滿足所有條件
         trigger_context = create_trigger_context(user_id=user_id, level=15, messages=60)
 
         # Act
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -293,7 +297,9 @@ class TestTriggerEngine:
         assert "滿足所有條件" in reason
 
     @pytest.mark.asyncio
-    async def test_check_conditional_trigger_partial_conditions(self, trigger_engine, repository):
+    async def test_check_conditional_trigger_partial_conditions(
+        self, trigger_engine, repository
+    ):
         """測試條件型成就部分條件滿足的觸發檢查."""
         # Arrange
         category = await create_test_category(repository, "partial_conditional_cat")
@@ -307,23 +313,27 @@ class TestTriggerEngine:
                 "require_all": True,
                 "conditions": [
                     {"type": "metric_threshold", "metric": "level", "threshold": 10},
-                    {"type": "metric_threshold", "metric": "messages", "threshold": 100}
-                ]
+                    {
+                        "type": "metric_threshold",
+                        "metric": "messages",
+                        "threshold": 100,
+                    },
+                ],
             },
-            points=400
+            points=400,
         )
         achievement = await repository.create_achievement(achievement)
 
         user_id = 123456789
 
-        # 設定觸發上下文，只滿足部分條件
+        # 設定觸發上下文,只滿足部分條件
         trigger_context = create_trigger_context(user_id=user_id, level=15, messages=30)
 
         # Act
         should_trigger, reason = await trigger_engine.check_achievement_trigger(
             user_id=user_id,
             achievement_id=achievement.id,
-            trigger_context=trigger_context
+            trigger_context=trigger_context,
         )
 
         # Assert
@@ -342,15 +352,13 @@ class TestTriggerEngine:
             "type": "metric_threshold",
             "metric": "score",
             "threshold": 80,
-            "operator": ">="
+            "operator": ">=",
         }
         trigger_context = {"score": 85}
 
         # Act
         is_satisfied, reason = await trigger_engine._evaluate_single_condition(
-            user_id=123456789,
-            condition=condition,
-            trigger_context=trigger_context
+            user_id=123456789, condition=condition, trigger_context=trigger_context
         )
 
         # Assert
@@ -358,11 +366,15 @@ class TestTriggerEngine:
         assert "score >= 80 (實際: 85)" in reason
 
     @pytest.mark.asyncio
-    async def test_evaluate_achievement_dependency_condition(self, trigger_engine, repository):
+    async def test_evaluate_achievement_dependency_condition(
+        self, trigger_engine, repository
+    ):
         """測試成就依賴條件評估."""
         # Arrange
         category = await create_test_category(repository, "dependency_cat")
-        prerequisite_achievement = await create_test_achievement(repository, category.id, "prerequisite")
+        prerequisite_achievement = await create_test_achievement(
+            repository, category.id, "prerequisite"
+        )
 
         user_id = 123456789
 
@@ -371,14 +383,12 @@ class TestTriggerEngine:
 
         condition = {
             "type": "achievement_dependency",
-            "achievement_id": prerequisite_achievement.id
+            "achievement_id": prerequisite_achievement.id,
         }
 
         # Act
         is_satisfied, reason = await trigger_engine._evaluate_single_condition(
-            user_id=user_id,
-            condition=condition,
-            trigger_context={}
+            user_id=user_id, condition=condition, trigger_context={}
         )
 
         # Assert
@@ -396,14 +406,12 @@ class TestTriggerEngine:
         condition = {
             "type": "time_range",
             "start_time": start_time,
-            "end_time": end_time
+            "end_time": end_time,
         }
 
         # Act
         is_satisfied, reason = await trigger_engine._evaluate_single_condition(
-            user_id=123456789,
-            condition=condition,
-            trigger_context={}
+            user_id=123456789, condition=condition, trigger_context={}
         )
 
         # Assert
@@ -425,7 +433,7 @@ class TestTriggerEngine:
             category_id=category.id,
             type=AchievementType.COUNTER,
             criteria={"target_value": 1, "counter_field": "messages"},
-            points=100
+            points=100,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -433,16 +441,14 @@ class TestTriggerEngine:
 
         # 設定進度達到目標值
         await repository.update_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            current_value=1.0
+            user_id=user_id, achievement_id=achievement.id, current_value=1.0
         )
 
         # Act
         newly_earned = await trigger_engine.process_automatic_triggers(
             user_id=user_id,
             trigger_event="message_sent",
-            event_data=create_trigger_context(user_id=user_id, messages=1)
+            event_data=create_trigger_context(user_id=user_id, messages=1),
         )
 
         # Assert
@@ -451,9 +457,7 @@ class TestTriggerEngine:
 
     @pytest.mark.asyncio
     async def test_process_automatic_triggers_no_eligible_achievements(
-        self,
-        trigger_engine,
-        repository
+        self, trigger_engine, repository
     ):
         """測試自動觸發處理無符合條件的成就."""
         # Arrange
@@ -464,7 +468,7 @@ class TestTriggerEngine:
             category_id=category.id,
             type=AchievementType.COUNTER,
             criteria={"target_value": 100, "counter_field": "messages"},
-            points=100
+            points=100,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -472,16 +476,14 @@ class TestTriggerEngine:
 
         # 設定進度未達到目標值
         await repository.update_progress(
-            user_id=user_id,
-            achievement_id=achievement.id,
-            current_value=10.0
+            user_id=user_id, achievement_id=achievement.id, current_value=10.0
         )
 
         # Act
         newly_earned = await trigger_engine.process_automatic_triggers(
             user_id=user_id,
             trigger_event="message_sent",
-            event_data=create_trigger_context(user_id=user_id, messages=10)
+            event_data=create_trigger_context(user_id=user_id, messages=10),
         )
 
         # Assert
@@ -503,14 +505,18 @@ class TestTriggerEngine:
             repository, category.id, "time", AchievementType.TIME_BASED
         )
 
-        all_achievements = [counter_achievement, milestone_achievement, time_achievement]
+        all_achievements = [
+            counter_achievement,
+            milestone_achievement,
+            time_achievement,
+        ]
 
-        # Act - 過濾訊息發送事件相關的成就（應該只有計數型）
+        # Act - 過濾訊息發送事件相關的成就(應該只有計數型)
         message_achievements = trigger_engine._filter_achievements_by_event(
             all_achievements, "message_sent"
         )
 
-        # Act - 過濾每日登入事件相關的成就（應該只有時間型）
+        # Act - 過濾每日登入事件相關的成就(應該只有時間型)
         login_achievements = trigger_engine._filter_achievements_by_event(
             all_achievements, "daily_login"
         )
@@ -537,7 +543,7 @@ class TestTriggerEngine:
             category_id=category.id,
             type=AchievementType.COUNTER,
             criteria={"target_value": 5, "counter_field": "actions"},
-            points=100
+            points=100,
         )
         achievement = await repository.create_achievement(achievement)
 
@@ -552,7 +558,7 @@ class TestTriggerEngine:
         results = await trigger_engine.batch_check_triggers_for_users(
             user_ids=user_ids,
             trigger_event="interaction",
-            event_data=create_trigger_context(actions=1)
+            event_data=create_trigger_context(actions=1),
         )
 
         # Assert
@@ -566,7 +572,9 @@ class TestTriggerEngine:
     # ==========================================================================
 
     @pytest.mark.asyncio
-    async def test_handle_trigger_event_success(self, trigger_engine, repository, progress_tracker):
+    async def test_handle_trigger_event_success(
+        self, trigger_engine, repository, progress_tracker
+    ):
         """測試處理觸發事件成功."""
         # Arrange
         category = await create_test_category(repository, "event_handler_cat")
@@ -580,7 +588,7 @@ class TestTriggerEngine:
         # Act
         await trigger_engine.handle_trigger_event("message_sent", event_data)
 
-        # Assert - 驗證進度已被更新（通過檢查是否有進度記錄）
+        # Assert - 驗證進度已被更新(通過檢查是否有進度記錄)
         progress = await repository.get_user_progress(user_id, achievement.id)
         assert progress is not None
         assert progress.current_value > 0
@@ -591,7 +599,7 @@ class TestTriggerEngine:
         # Arrange
         event_data = {"action": "test"}  # 沒有 user_id
 
-        # Act & Assert - 應該不會拋出異常，但會記錄警告
+        # Act & Assert - 應該不會拋出異常,但會記錄警告
         await trigger_engine.handle_trigger_event("test_event", event_data)
 
     @pytest.mark.asyncio
@@ -606,7 +614,7 @@ class TestTriggerEngine:
             category_id=category.id,
             type=AchievementType.COUNTER,
             criteria={"target_value": 10},
-            points=100
+            points=100,
         )
 
         milestone_achievement = Achievement(
@@ -615,7 +623,7 @@ class TestTriggerEngine:
             category_id=category.id,
             type=AchievementType.MILESTONE,
             criteria={"target_value": 50, "milestone_type": "exp"},
-            points=200
+            points=200,
         )
 
         # Act

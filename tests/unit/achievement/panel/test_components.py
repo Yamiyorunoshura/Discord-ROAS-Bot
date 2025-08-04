@@ -1,6 +1,6 @@
 """成就系統面板組件測試.
 
-測試成就面板的 UI 組件功能：
+測試成就面板的 UI 組件功能:
 - 頁面選擇器組件
 - 導航按鈕組件
 - 分類選擇器組件
@@ -51,7 +51,7 @@ class TestPageSelector:
 
     @pytest.mark.asyncio
     async def test_page_selector_callback_success(self, mock_panel):
-        """測試頁面選擇器回調成功。"""
+        """測試頁面選擇器回調成功."""
         selector = PageSelector(mock_panel)
         selector.values = ["personal"]
 
@@ -63,7 +63,7 @@ class TestPageSelector:
 
     @pytest.mark.asyncio
     async def test_page_selector_callback_error(self, mock_panel):
-        """測試頁面選擇器回調錯誤處理。"""
+        """測試頁面選擇器回調錯誤處理."""
         selector = PageSelector(mock_panel)
         selector.values = ["personal"]
 
@@ -93,7 +93,7 @@ class TestNavigationButton:
             label="返回主頁",
             emoji="🏠",
             target_page="main",
-            style=discord.ButtonStyle.primary
+            style=discord.ButtonStyle.primary,
         )
 
         assert button.panel is mock_panel
@@ -104,12 +104,8 @@ class TestNavigationButton:
 
     @pytest.mark.asyncio
     async def test_navigation_button_callback_success(self, mock_panel):
-        """測試導航按鈕回調成功。"""
-        button = NavigationButton(
-            mock_panel,
-            label="測試",
-            target_page="test"
-        )
+        """測試導航按鈕回調成功."""
+        button = NavigationButton(mock_panel, label="測試", target_page="test")
 
         mock_interaction = MagicMock()
 
@@ -119,12 +115,8 @@ class TestNavigationButton:
 
     @pytest.mark.asyncio
     async def test_navigation_button_callback_error(self, mock_panel):
-        """測試導航按鈕回調錯誤處理。"""
-        button = NavigationButton(
-            mock_panel,
-            label="測試",
-            target_page="test"
-        )
+        """測試導航按鈕回調錯誤處理."""
+        button = NavigationButton(mock_panel, label="測試", target_page="test")
 
         mock_interaction = MagicMock()
         mock_panel.change_page.side_effect = Exception("Navigation failed")
@@ -156,7 +148,7 @@ class TestRefreshButton:
 
     @pytest.mark.asyncio
     async def test_refresh_button_callback_success(self, mock_panel):
-        """測試重新整理按鈕回調成功。"""
+        """測試重新整理按鈕回調成功."""
         button = RefreshButton(mock_panel)
         mock_interaction = MagicMock()
 
@@ -166,7 +158,7 @@ class TestRefreshButton:
 
     @pytest.mark.asyncio
     async def test_refresh_button_callback_error(self, mock_panel):
-        """測試重新整理按鈕回調錯誤處理。"""
+        """測試重新整理按鈕回調錯誤處理."""
         button = RefreshButton(mock_panel)
         mock_interaction = MagicMock()
         mock_panel.refresh_callback.side_effect = Exception("Refresh failed")
@@ -198,7 +190,7 @@ class TestCloseButton:
 
     @pytest.mark.asyncio
     async def test_close_button_callback_success(self, mock_panel):
-        """測試關閉按鈕回調成功。"""
+        """測試關閉按鈕回調成功."""
         button = CloseButton(mock_panel)
         mock_interaction = MagicMock()
 
@@ -208,7 +200,7 @@ class TestCloseButton:
 
     @pytest.mark.asyncio
     async def test_close_button_callback_error(self, mock_panel):
-        """測試關閉按鈕回調錯誤處理。"""
+        """測試關閉按鈕回調錯誤處理."""
         button = CloseButton(mock_panel)
         mock_interaction = MagicMock()
         mock_panel.close_callback.side_effect = Exception("Close failed")
@@ -236,7 +228,7 @@ class TestAchievementCategorySelector:
         return [
             {"id": 1, "name": "活動成就", "count": 8},
             {"id": 2, "name": "社交成就", "count": 6},
-            {"id": 3, "name": "時間成就", "count": 4}
+            {"id": 3, "name": "時間成就", "count": 4},
         ]
 
     def test_category_selector_initialization(self, mock_panel, sample_categories):
@@ -252,8 +244,10 @@ class TestAchievementCategorySelector:
         assert selector.options[0].label == "全部"
 
     @pytest.mark.asyncio
-    async def test_category_selector_callback_success(self, mock_panel, sample_categories):
-        """測試分類選擇器回調成功。"""
+    async def test_category_selector_callback_success(
+        self, mock_panel, sample_categories
+    ):
+        """測試分類選擇器回調成功."""
         selector = AchievementCategorySelector(mock_panel, sample_categories)
         selector.values = ["1"]
 
@@ -261,14 +255,16 @@ class TestAchievementCategorySelector:
 
         await selector.callback(mock_interaction)
 
-        mock_panel.set_page_data.assert_called_once_with("browse", {
-            "selected_category": "1"
-        })
+        mock_panel.set_page_data.assert_called_once_with(
+            "browse", {"selected_category": "1"}
+        )
         mock_panel.refresh_callback.assert_called_once_with(mock_interaction)
 
     @pytest.mark.asyncio
-    async def test_category_selector_callback_error(self, mock_panel, sample_categories):
-        """測試分類選擇器回調錯誤處理。"""
+    async def test_category_selector_callback_error(
+        self, mock_panel, sample_categories
+    ):
+        """測試分類選擇器回調錯誤處理."""
         selector = AchievementCategorySelector(mock_panel, sample_categories)
         selector.values = ["1"]
 
@@ -296,10 +292,7 @@ class TestAchievementStatusButton:
     def test_status_button_initialization(self, mock_panel):
         """測試狀態篩選按鈕初始化."""
         button = AchievementStatusButton(
-            mock_panel,
-            status="earned",
-            label="已獲得",
-            emoji="✅"
+            mock_panel, status="earned", label="已獲得", emoji="✅"
         )
 
         assert button.panel is mock_panel
@@ -310,12 +303,8 @@ class TestAchievementStatusButton:
 
     @pytest.mark.asyncio
     async def test_status_button_callback_success(self, mock_panel):
-        """測試狀態篩選按鈕回調成功。"""
-        button = AchievementStatusButton(
-            mock_panel,
-            status="earned",
-            label="已獲得"
-        )
+        """測試狀態篩選按鈕回調成功."""
+        button = AchievementStatusButton(mock_panel, status="earned", label="已獲得")
 
         mock_interaction = MagicMock()
 
@@ -327,12 +316,8 @@ class TestAchievementStatusButton:
 
     @pytest.mark.asyncio
     async def test_status_button_callback_error(self, mock_panel):
-        """測試狀態篩選按鈕回調錯誤處理。"""
-        button = AchievementStatusButton(
-            mock_panel,
-            status="earned",
-            label="已獲得"
-        )
+        """測試狀態篩選按鈕回調錯誤處理."""
+        button = AchievementStatusButton(mock_panel, status="earned", label="已獲得")
 
         mock_interaction = MagicMock()
         mock_panel.refresh_callback.side_effect = Exception("Refresh failed")
@@ -351,19 +336,16 @@ class TestComponentFactory:
         return MagicMock()
 
     def test_create_page_selector(self, mock_panel):
-        """測試創建頁面選擇器。"""
+        """測試創建頁面選擇器."""
         selector = ComponentFactory.create_page_selector(mock_panel)
 
         assert isinstance(selector, PageSelector)
         assert selector.panel is mock_panel
 
     def test_create_navigation_button(self, mock_panel):
-        """測試創建導航按鈕。"""
+        """測試創建導航按鈕."""
         button = ComponentFactory.create_navigation_button(
-            mock_panel,
-            "測試按鈕",
-            "test_page",
-            "🧪"
+            mock_panel, "測試按鈕", "test_page", "🧪"
         )
 
         assert isinstance(button, NavigationButton)
@@ -373,21 +355,21 @@ class TestComponentFactory:
         assert button.emoji == "🧪"
 
     def test_create_refresh_button(self, mock_panel):
-        """測試創建重新整理按鈕。"""
+        """測試創建重新整理按鈕."""
         button = ComponentFactory.create_refresh_button(mock_panel)
 
         assert isinstance(button, RefreshButton)
         assert button.panel is mock_panel
 
     def test_create_close_button(self, mock_panel):
-        """測試創建關閉按鈕。"""
+        """測試創建關閉按鈕."""
         button = ComponentFactory.create_close_button(mock_panel)
 
         assert isinstance(button, CloseButton)
         assert button.panel is mock_panel
 
     def test_create_category_selector(self, mock_panel):
-        """測試創建分類選擇器。"""
+        """測試創建分類選擇器."""
         categories = [{"id": 1, "name": "測試", "count": 5}]
         selector = ComponentFactory.create_category_selector(mock_panel, categories)
 
@@ -395,7 +377,7 @@ class TestComponentFactory:
         assert selector.panel is mock_panel
 
     def test_create_status_buttons(self, mock_panel):
-        """測試創建狀態篩選按鈕組。"""
+        """測試創建狀態篩選按鈕組."""
         buttons = ComponentFactory.create_status_buttons(mock_panel)
 
         assert len(buttons) == 3
@@ -421,14 +403,14 @@ class TestComponentManager:
         return ComponentManager(mock_panel)
 
     def test_component_manager_initialization(self, mock_panel):
-        """測試組件管理器初始化。"""
+        """測試組件管理器初始化."""
         manager = ComponentManager(mock_panel)
 
         assert manager.panel is mock_panel
         assert len(manager._components) == 0
 
     def test_register_component(self, component_manager):
-        """測試註冊組件。"""
+        """測試註冊組件."""
         mock_component = MagicMock()
 
         component_manager.register_component("test_component", mock_component)
@@ -437,7 +419,7 @@ class TestComponentManager:
         assert component_manager._components["test_component"] is mock_component
 
     def test_get_component_exists(self, component_manager):
-        """測試獲取存在的組件。"""
+        """測試獲取存在的組件."""
         mock_component = MagicMock()
         component_manager.register_component("test_component", mock_component)
 
@@ -446,13 +428,13 @@ class TestComponentManager:
         assert result is mock_component
 
     def test_get_component_not_exists(self, component_manager):
-        """測試獲取不存在的組件。"""
+        """測試獲取不存在的組件."""
         result = component_manager.get_component("nonexistent")
 
         assert result is None
 
     def test_update_component_state(self, component_manager):
-        """測試更新組件狀態。"""
+        """測試更新組件狀態."""
         mock_component = MagicMock()
         mock_component.disabled = False
         mock_component.label = "原標籤"
@@ -460,16 +442,14 @@ class TestComponentManager:
         component_manager.register_component("test_component", mock_component)
 
         component_manager.update_component_state(
-            "test_component",
-            disabled=True,
-            label="新標籤"
+            "test_component", disabled=True, label="新標籤"
         )
 
         assert mock_component.disabled is True
         assert mock_component.label == "新標籤"
 
     def test_update_component_state_invalid_attribute(self, component_manager):
-        """測試更新組件無效屬性。"""
+        """測試更新組件無效屬性."""
         mock_component = MagicMock()
         del mock_component.nonexistent_attr  # 確保屬性不存在
 
@@ -477,12 +457,11 @@ class TestComponentManager:
 
         # 應該不會拋出異常
         component_manager.update_component_state(
-            "test_component",
-            nonexistent_attr="value"
+            "test_component", nonexistent_attr="value"
         )
 
     def test_clear_components(self, component_manager):
-        """測試清除所有組件。"""
+        """測試清除所有組件."""
         mock_component1 = MagicMock()
         mock_component2 = MagicMock()
 
@@ -501,7 +480,7 @@ class TestComponentIntegration:
 
     @pytest.mark.asyncio
     async def test_complete_page_navigation_flow(self):
-        """測試完整的頁面導航流程。"""
+        """測試完整的頁面導航流程."""
         mock_panel = MagicMock()
         mock_panel.change_page = AsyncMock()
 
@@ -518,12 +497,14 @@ class TestComponentIntegration:
         mock_panel.change_page.assert_called_once_with(mock_interaction, "personal")
 
     def test_component_factory_integration(self):
-        """測試組件工廠整合。"""
+        """測試組件工廠整合."""
         mock_panel = MagicMock()
 
         # 創建所有類型的組件
         page_selector = ComponentFactory.create_page_selector(mock_panel)
-        nav_button = ComponentFactory.create_navigation_button(mock_panel, "測試", "test")
+        nav_button = ComponentFactory.create_navigation_button(
+            mock_panel, "測試", "test"
+        )
         refresh_button = ComponentFactory.create_refresh_button(mock_panel)
         close_button = ComponentFactory.create_close_button(mock_panel)
         status_buttons = ComponentFactory.create_status_buttons(mock_panel)
@@ -536,6 +517,12 @@ class TestComponentIntegration:
         assert len(status_buttons) == 3
 
         # 驗證所有組件都關聯到同一個面板
-        components = [page_selector, nav_button, refresh_button, close_button, *status_buttons]
+        components = [
+            page_selector,
+            nav_button,
+            refresh_button,
+            close_button,
+            *status_buttons,
+        ]
         for component in components:
             assert component.panel is mock_panel

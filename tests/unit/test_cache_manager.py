@@ -2,16 +2,16 @@
 多級緩存管理系統測試
 Discord ADR Bot v1.6 - 緩存架構測試
 
-測試覆蓋：
+測試覆蓋:
 - 緩存條目和統計
-- 內存緩存後端（L1）
-- 持久化緩存後端（L2）
+- 內存緩存後端(L1)
+- 持久化緩存後端(L2)
 - 多級緩存管理器
 - 緩存策略和淘汰
 - 便利函數和裝飾器
 
-作者：Discord ADR Bot 測試工程師
-版本：v1.6
+作者:Discord ADR Bot 測試工程師
+版本:v1.6
 """
 
 import asyncio
@@ -47,11 +47,7 @@ class TestCacheEntry:
 
     def test_cache_entry_creation(self):
         """測試緩存條目創建"""
-        entry = CacheEntry(
-            key="test_key",
-            value="test_value",
-            ttl=3600
-        )
+        entry = CacheEntry(key="test_key", value="test_value", ttl=3600)
 
         assert entry.key == "test_key"
         assert entry.value == "test_value"
@@ -65,7 +61,7 @@ class TestCacheEntry:
         entry = CacheEntry(
             key="test_key",
             value="test_value",
-            ttl=0.1  # 0.1秒過期
+            ttl=0.1,  # 0.1秒過期
         )
 
         assert not entry.is_expired()
@@ -185,16 +181,16 @@ class TestMemoryCacheBackend:
             entry = CacheEntry(key=f"key{i}", value=f"value{i}")
             await memory_cache.set(f"key{i}", entry)
 
-        # 訪問第一個條目，使其成為最近使用
+        # 訪問第一個條目,使其成為最近使用
         await memory_cache.get("key0")
 
-        # 添加新條目，應該淘汰key1（最久未使用）
+        # 添加新條目,應該淘汰key1(最久未使用)
         new_entry = CacheEntry(key="new_key", value="new_value")
         await memory_cache.set("new_key", new_entry)
 
         # 驗證淘汰結果
-        assert await memory_cache.get("key0") is not None  # 最近訪問，保留
-        assert await memory_cache.get("key1") is None      # 最久未使用，被淘汰
+        assert await memory_cache.get("key0") is not None  # 最近訪問,保留
+        assert await memory_cache.get("key1") is None  # 最久未使用,被淘汰
         assert await memory_cache.get("key2") is not None  # 保留
         assert await memory_cache.get("new_key") is not None  # 新條目
 
@@ -254,11 +250,8 @@ class TestPersistentCacheBackend:
         entry = CacheEntry(key="persistent", value="data")
         await persistent_cache.set("persistent", entry)
 
-        # 創建新的緩存實例（模擬重啟）
-        new_cache = PersistentCacheBackend(
-            db_path=persistent_cache.db_path,
-            max_size=5
-        )
+        # 創建新的緩存實例(模擬重啟)
+        new_cache = PersistentCacheBackend(db_path=persistent_cache.db_path, max_size=5)
 
         # 數據應該仍然存在
         retrieved = await new_cache.get("persistent")
@@ -319,10 +312,7 @@ class TestMultiLevelCache:
         temp_file.close()
 
         cache = MultiLevelCache(
-            l1_max_size=2,
-            l2_max_size=5,
-            default_ttl=3600,
-            db_path=temp_file.name
+            l1_max_size=2, l2_max_size=5, default_ttl=3600, db_path=temp_file.name
         )
 
         yield cache
@@ -348,7 +338,7 @@ class TestMultiLevelCache:
         # 在L2設置數據
         await multi_cache.set("test", "value", level=CacheLevel.L2)
 
-        # 從多級緩存獲取（應該將數據提升到L1）
+        # 從多級緩存獲取(應該將數據提升到L1)
         retrieved = await multi_cache.get("test")
         assert retrieved == "value"
 
@@ -443,6 +433,7 @@ class TestConvenienceFunctions:
 
         # 清理可能存在的緩存文件
         import os
+
         cache_files = ["data/cache.db", "cache.db"]
         for cache_file in cache_files:
             try:
@@ -501,7 +492,7 @@ class TestConvenienceFunctions:
         assert result1 == 3
         assert call_count == 1
 
-        # 第二次調用（應該使用緩存）
+        # 第二次調用(應該使用緩存)
         result2 = await expensive_function(1, 2)
         assert result2 == 3
         assert call_count == 1  # 沒有再次調用函數

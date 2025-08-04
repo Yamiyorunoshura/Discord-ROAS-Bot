@@ -10,7 +10,6 @@ import discord
 if TYPE_CHECKING:
     from ..main_view import SyncDataMainView
 
-
 class PageSelectDropdown(discord.ui.Select):
     """頁面選擇下拉選單"""
 

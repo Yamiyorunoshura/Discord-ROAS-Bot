@@ -1,6 +1,6 @@
 """成就系統管理員權限服務.
 
-此模組負責處理成就系統管理面板的權限檢查：
+此模組負責處理成就系統管理面板的權限檢查:
 - 整合現有的 PermissionSystem
 - 提供管理員權限檢查裝飾器
 - 處理權限檢查失敗的錯誤和用戶回饋
@@ -26,16 +26,14 @@ from src.cogs.core.permission_system import (
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
-
 class AdminPermissionService:
     """成就系統管理員權限服務.
 
-    整合現有的 PermissionSystem，為成就系統管理面板提供：
+    整合現有的 PermissionSystem,為成就系統管理面板提供:
     - 嚴格的管理員權限檢查
     - 統一的錯誤處理和用戶回饋
     - 完整的審計日誌記錄
@@ -45,7 +43,7 @@ class AdminPermissionService:
         """初始化管理員權限服務.
 
         Args:
-            permission_system: 權限系統實例，如果未提供將創建新實例
+            permission_system: 權限系統實例,如果未提供將創建新實例
         """
         self._permission_system = permission_system or PermissionSystem()
         self._audit_enabled = True
@@ -86,27 +84,29 @@ class AdminPermissionService:
 
             # 增強審計日誌
             if result.audit_log:
-                result.audit_log.update({
-                    "service": "AdminPermissionService",
-                    "discord_user": {
-                        "id": user.id,
-                        "name": user.display_name,
-                        "discriminator": user.discriminator,
-                    },
-                    "guild_context": {
-                        "id": user.guild.id if user.guild else None,
-                        "name": user.guild.name if user.guild else None,
-                    },
-                })
+                result.audit_log.update(
+                    {
+                        "service": "AdminPermissionService",
+                        "discord_user": {
+                            "id": user.id,
+                            "name": user.display_name,
+                            "discriminator": user.discriminator,
+                        },
+                        "guild_context": {
+                            "id": user.guild.id if user.guild else None,
+                            "name": user.guild.name if user.guild else None,
+                        },
+                    }
+                )
 
             logger.debug(
-                f"【權限檢查】用戶 {user.id} 對操作 '{action}' 的檢查結果: {result.allowed}"
+                f"[權限檢查]用戶 {user.id} 對操作 '{action}' 的檢查結果: {result.allowed}"
             )
 
             return result
 
         except Exception as e:
-            logger.error(f"【權限檢查】檢查用戶 {user.id} 權限時發生錯誤: {e}")
+            logger.error(f"[權限檢查]檢查用戶 {user.id} 權限時發生錯誤: {e}")
             return PermissionCheck(
                 allowed=False,
                 reason=f"權限檢查系統錯誤: {e!s}",
@@ -137,7 +137,7 @@ class AdminPermissionService:
             f"❌ 您沒有權限執行此操作\n\n"
             f"**需要權限**: {required_role.value.title()}\n"
             f"**嘗試操作**: {action}\n\n"
-            f"請聯繫伺服器管理員獲取相應權限。",
+            f"請聯繫伺服器管理員獲取相應權限.",
         )
 
     async def handle_permission_denied(
@@ -168,11 +168,11 @@ class AdminPermissionService:
 
             # 記錄權限拒絕事件
             logger.warning(
-                f"【權限拒絕】用戶 {interaction.user.id} 嘗試 '{action}' 但權限不足: {result.reason}"
+                f"[權限拒絕]用戶 {interaction.user.id} 嘗試 '{action}' 但權限不足: {result.reason}"
             )
 
         except Exception as e:
-            logger.error(f"【權限處理】處理權限拒絕回應時發生錯誤: {e}")
+            logger.error(f"[權限處理]處理權限拒絕回應時發生錯誤: {e}")
 
     def require_admin_permission(
         self,
@@ -181,7 +181,7 @@ class AdminPermissionService:
     ) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T | None]]]:
         """管理員權限檢查裝飾器.
 
-        用於裝飾需要管理員權限的 Discord 指令或互動處理函數。
+        用於裝飾需要管理員權限的 Discord 指令或互動處理函數.
 
         Args:
             action: 操作描述
@@ -198,7 +198,7 @@ class AdminPermissionService:
         """
 
         def decorator(
-            func: Callable[..., Awaitable[T]]
+            func: Callable[..., Awaitable[T]],
         ) -> Callable[..., Awaitable[T | None]]:
             @wraps(func)
             async def wrapper(*args: Any, **kwargs: Any) -> T | None:
@@ -215,23 +215,29 @@ class AdminPermissionService:
                     interaction = kwargs.get("interaction")
 
                 if not interaction:
-                    logger.error(f"【權限裝飾器】無法從 {func.__name__} 的參數中找到 discord.Interaction")
+                    logger.error(
+                        f"[權限裝飾器]無法從 {func.__name__} 的參數中找到 discord.Interaction"
+                    )
                     return None
 
                 # 檢查是否在伺服器中且用戶是成員
-                if not interaction.guild or not isinstance(interaction.user, discord.Member):
+                if not interaction.guild or not isinstance(
+                    interaction.user, discord.Member
+                ):
                     embed = StandardEmbedBuilder.create_error_embed(
                         "使用限制",
-                        "❌ 此功能只能在伺服器中使用，且需要完整的成員身份。"
+                        "❌ 此功能只能在伺服器中使用,且需要完整的成員身份.",
                     )
 
                     try:
                         if interaction.response.is_done():
                             await interaction.followup.send(embed=embed, ephemeral=True)
                         else:
-                            await interaction.response.send_message(embed=embed, ephemeral=True)
+                            await interaction.response.send_message(
+                                embed=embed, ephemeral=True
+                            )
                     except Exception as e:
-                        logger.error(f"【權限裝飾器】發送使用限制訊息失敗: {e}")
+                        logger.error(f"[權限裝飾器]發送使用限制訊息失敗: {e}")
 
                     return None
 
@@ -241,7 +247,7 @@ class AdminPermissionService:
                     try:
                         context = context_builder(interaction)
                     except Exception as e:
-                        logger.warning(f"【權限裝飾器】上下文構建失敗: {e}")
+                        logger.warning(f"[權限裝飾器]上下文構建失敗: {e}")
 
                 # 執行權限檢查
                 result = await self.check_admin_permission(
@@ -250,30 +256,35 @@ class AdminPermissionService:
                     context=context,
                 )
 
-                # 如果權限檢查失敗，處理拒絕情況
+                # 如果權限檢查失敗,處理拒絕情況
                 if not result.allowed:
                     await self.handle_permission_denied(interaction, result, action)
                     return None
 
-                # 權限檢查通過，執行原函數
+                # 權限檢查通過,執行原函數
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    logger.error(f"【權限裝飾器】執行被裝飾函數 {func.__name__} 時發生錯誤: {e}")
+                    logger.error(
+                        f"[權限裝飾器]執行被裝飾函數 {func.__name__} 時發生錯誤: {e}"
+                    )
 
                     # 發送執行錯誤回應
                     embed = StandardEmbedBuilder.create_error_embed(
-                        "執行錯誤",
-                        f"❌ 執行操作時發生錯誤\n\n錯誤詳情: {str(e)[:200]}"
+                        "執行錯誤", f"❌ 執行操作時發生錯誤\n\n錯誤詳情: {str(e)[:200]}"
                     )
 
                     try:
                         if interaction.response.is_done():
                             await interaction.followup.send(embed=embed, ephemeral=True)
                         else:
-                            await interaction.response.send_message(embed=embed, ephemeral=True)
+                            await interaction.response.send_message(
+                                embed=embed, ephemeral=True
+                            )
                     except Exception as send_error:
-                        logger.error(f"【權限裝飾器】發送執行錯誤訊息失敗: {send_error}")
+                        logger.error(
+                            f"[權限裝飾器]發送執行錯誤訊息失敗: {send_error}"
+                        )
 
                     return None
 
@@ -301,27 +312,40 @@ class AdminPermissionService:
         base_stats = self._permission_system.get_permission_stats()
 
         # 添加管理員權限服務特定的統計
-        base_stats.update({
-            "service": "AdminPermissionService",
-            "audit_enabled": self._audit_enabled,
-        })
+        base_stats.update(
+            {
+                "service": "AdminPermissionService",
+                "audit_enabled": self._audit_enabled,
+            }
+        )
 
         return base_stats
 
     async def cleanup(self) -> None:
         """清理權限服務資源."""
         try:
-            # 清理權限系統審計日誌（可選）
-            if hasattr(self._permission_system, 'clear_audit_logs'):
+            if hasattr(self._permission_system, "clear_audit_logs"):
                 self._permission_system.clear_audit_logs()
 
-            logger.info("【管理員權限服務】清理完成")
+            logger.info("[管理員權限服務]清理完成")
         except Exception as e:
-            logger.error(f"【管理員權限服務】清理時發生錯誤: {e}")
+            logger.error(f"[管理員權限服務]清理時發生錯誤: {e}")
 
+class _AdminPermissionServiceSingleton:
+    """管理員權限服務單例類."""
 
-# 創建全域實例（可選）
-_admin_permission_service: AdminPermissionService | None = None
+    _instance: AdminPermissionService | None = None
+
+    @classmethod
+    def get_instance(cls) -> AdminPermissionService:
+        """取得管理員權限服務實例.
+
+        Returns:
+            AdminPermissionService: 管理員權限服務實例
+        """
+        if cls._instance is None:
+            cls._instance = AdminPermissionService()
+        return cls._instance
 
 
 def get_admin_permission_service() -> AdminPermissionService:
@@ -330,11 +354,7 @@ def get_admin_permission_service() -> AdminPermissionService:
     Returns:
         AdminPermissionService: 管理員權限服務實例
     """
-    global _admin_permission_service
-    if _admin_permission_service is None:
-        _admin_permission_service = AdminPermissionService()
-    return _admin_permission_service
-
+    return _AdminPermissionServiceSingleton.get_instance()
 
 def require_achievement_admin(
     action: str = "成就管理操作",
@@ -342,7 +362,7 @@ def require_achievement_admin(
 ) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T | None]]]:
     """成就系統管理員權限檢查裝飾器的便捷函數.
 
-    這是 get_admin_permission_service().require_admin_permission() 的簡化版本。
+    這是 get_admin_permission_service().require_admin_permission() 的簡化版本.
 
     Args:
         action: 操作描述

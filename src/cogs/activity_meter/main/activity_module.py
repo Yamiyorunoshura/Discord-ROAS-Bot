@@ -19,7 +19,6 @@ from .renderer import ActivityRenderer
 
 logger = logging.getLogger("activity_module")
 
-
 @dataclass
 class ActivityData:
     """活躍度數據結構"""
@@ -32,18 +31,15 @@ class ActivityData:
     rank: int | None = None
     level: int | None = None
 
-
 class ActivityAPIError(Exception):
     """Activity API 錯誤"""
 
     pass
 
-
 class UserNotFoundError(ActivityAPIError):
     """用戶不存在錯誤"""
 
     pass
-
 
 class ActivityModule:
     """

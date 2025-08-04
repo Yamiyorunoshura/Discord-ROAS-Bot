@@ -1,6 +1,6 @@
 """成就系統效能服務單元測試.
 
-測試 AchievementPerformanceService 的所有效能功能，包括：
+測試 AchievementPerformanceService 的所有效能功能,包括:
 - 效能服務初始化和配置
 - 快取整合和管理
 - 效能監控和分析
@@ -9,7 +9,7 @@
 - 統計和報告
 - 錯誤處理和恢復
 
-使用模擬物件進行快速測試執行。
+使用模擬物件進行快速測試執行.
 """
 
 from datetime import datetime, timedelta
@@ -61,14 +61,19 @@ async def mock_performance_analyzer():
 
 
 @pytest_asyncio.fixture
-async def performance_service(mock_repository, mock_cache_manager, mock_performance_monitor, mock_performance_analyzer):
+async def performance_service(
+    mock_repository,
+    mock_cache_manager,
+    mock_performance_monitor,
+    mock_performance_analyzer,
+):
     """測試用效能服務."""
     service = AchievementPerformanceService(
         repository=mock_repository,
         cache_manager=mock_cache_manager,
         performance_monitor=mock_performance_monitor,
         performance_analyzer=mock_performance_analyzer,
-        enable_auto_optimization=True
+        enable_auto_optimization=True,
     )
 
     async with service:
@@ -86,7 +91,7 @@ async def sample_achievement():
         type=AchievementType.COUNTER,
         criteria={"target_value": 100},
         points=500,
-        is_active=True
+        is_active=True,
     )
 
 
@@ -96,14 +101,14 @@ async def sample_achievements_list():
     achievements = []
     for i in range(10):
         achievement = Achievement(
-            id=i+1,
-            name=f"測試成就 {i+1}",
-            description=f"測試成就描述 {i+1}",
+            id=i + 1,
+            name=f"測試成就 {i + 1}",
+            description=f"測試成就描述 {i + 1}",
             category_id=1,
             type=AchievementType.COUNTER,
-            criteria={"target_value": (i+1) * 10},
-            points=(i+1) * 100,
-            is_active=True
+            criteria={"target_value": (i + 1) * 10},
+            points=(i + 1) * 100,
+            is_active=True,
         )
         achievements.append(achievement)
     return achievements
@@ -115,10 +120,17 @@ class TestPerformanceServiceInitialization:
     @pytest.mark.asyncio
     async def test_service_initialization_with_defaults(self, mock_repository):
         """測試使用預設組件初始化服務."""
-        with patch('src.cogs.achievement.services.performance_service.CacheManager') as mock_cache_cls, \
-             patch('src.cogs.achievement.services.performance_service.AchievementPerformanceMonitor') as mock_monitor_cls, \
-             patch('src.cogs.achievement.services.performance_service.PerformanceAnalyzer') as mock_analyzer_cls:
-
+        with (
+            patch(
+                "src.cogs.achievement.services.performance_service.CacheManager"
+            ) as mock_cache_cls,
+            patch(
+                "src.cogs.achievement.services.performance_service.AchievementPerformanceMonitor"
+            ) as mock_monitor_cls,
+            patch(
+                "src.cogs.achievement.services.performance_service.PerformanceAnalyzer"
+            ) as mock_analyzer_cls,
+        ):
             service = AchievementPerformanceService(mock_repository)
 
             # 驗證預設組件建立
@@ -132,14 +144,20 @@ class TestPerformanceServiceInitialization:
             assert service._batch_size == 100
 
     @pytest.mark.asyncio
-    async def test_service_initialization_with_custom_components(self, mock_repository, mock_cache_manager, mock_performance_monitor, mock_performance_analyzer):
+    async def test_service_initialization_with_custom_components(
+        self,
+        mock_repository,
+        mock_cache_manager,
+        mock_performance_monitor,
+        mock_performance_analyzer,
+    ):
         """測試使用自訂組件初始化服務."""
         service = AchievementPerformanceService(
             repository=mock_repository,
             cache_manager=mock_cache_manager,
             performance_monitor=mock_performance_monitor,
             performance_analyzer=mock_performance_analyzer,
-            enable_auto_optimization=False
+            enable_auto_optimization=False,
         )
 
         # 驗證組件指派
@@ -150,13 +168,19 @@ class TestPerformanceServiceInitialization:
         assert service._enable_auto_optimization is False
 
     @pytest.mark.asyncio
-    async def test_async_context_manager(self, mock_repository, mock_cache_manager, mock_performance_monitor, mock_performance_analyzer):
+    async def test_async_context_manager(
+        self,
+        mock_repository,
+        mock_cache_manager,
+        mock_performance_monitor,
+        mock_performance_analyzer,
+    ):
         """測試異步上下文管理器."""
         service = AchievementPerformanceService(
             repository=mock_repository,
             cache_manager=mock_cache_manager,
             performance_monitor=mock_performance_monitor,
-            performance_analyzer=mock_performance_analyzer
+            performance_analyzer=mock_performance_analyzer,
         )
 
         async with service as ctx_service:
@@ -174,7 +198,13 @@ class TestOptimizedDataOperations:
     """測試優化的資料操作."""
 
     @pytest.mark.asyncio
-    async def test_get_achievement_with_cache(self, performance_service, sample_achievement, mock_cache_manager, mock_repository):
+    async def test_get_achievement_with_cache(
+        self,
+        performance_service,
+        sample_achievement,
+        mock_cache_manager,
+        mock_repository,
+    ):
         """測試帶快取的成就查詢."""
         achievement_id = 1
 
@@ -188,7 +218,13 @@ class TestOptimizedDataOperations:
         mock_repository.get_achievement_by_id.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_get_achievement_cache_miss(self, performance_service, sample_achievement, mock_cache_manager, mock_repository):
+    async def test_get_achievement_cache_miss(
+        self,
+        performance_service,
+        sample_achievement,
+        mock_cache_manager,
+        mock_repository,
+    ):
         """測試快取未命中時的成就查詢."""
         achievement_id = 1
 
@@ -204,7 +240,9 @@ class TestOptimizedDataOperations:
         mock_cache_manager.set.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_batch_get_achievements(self, performance_service, sample_achievements_list, mock_repository):
+    async def test_batch_get_achievements(
+        self, performance_service, sample_achievements_list, mock_repository
+    ):
         """測試批量獲取成就優化."""
         achievement_ids = [1, 2, 3, 4, 5]
         expected_achievements = sample_achievements_list[:5]
@@ -212,37 +250,45 @@ class TestOptimizedDataOperations:
         # 模擬批量查詢
         mock_repository.get_achievements_batch.return_value = expected_achievements
 
-        results = await performance_service.get_achievements_batch_optimized(achievement_ids)
+        results = await performance_service.get_achievements_batch_optimized(
+            achievement_ids
+        )
 
         assert len(results) == 5
         assert results == expected_achievements
         mock_repository.get_achievements_batch.assert_called_once_with(achievement_ids)
 
     @pytest.mark.asyncio
-    async def test_get_user_achievements_with_pagination(self, performance_service, mock_repository):
+    async def test_get_user_achievements_with_pagination(
+        self, performance_service, mock_repository
+    ):
         """測試帶分頁的用戶成就查詢優化."""
         user_id = 123456789
         page_size = 20
         offset = 0
 
         expected_achievements = [
-            UserAchievement(id=i, user_id=user_id, achievement_id=i, earned_at=datetime.now(), notified=False)
+            UserAchievement(
+                id=i,
+                user_id=user_id,
+                achievement_id=i,
+                earned_at=datetime.now(),
+                notified=False,
+            )
             for i in range(page_size)
         ]
 
-        mock_repository.get_user_achievements_paginated.return_value = expected_achievements
+        mock_repository.get_user_achievements_paginated.return_value = (
+            expected_achievements
+        )
 
         results = await performance_service.get_user_achievements_optimized(
-            user_id=user_id,
-            page_size=page_size,
-            offset=offset
+            user_id=user_id, page_size=page_size, offset=offset
         )
 
         assert len(results) == page_size
         mock_repository.get_user_achievements_paginated.assert_called_once_with(
-            user_id=user_id,
-            limit=page_size,
-            offset=offset
+            user_id=user_id, limit=page_size, offset=offset
         )
 
 
@@ -250,13 +296,15 @@ class TestPerformanceMonitoring:
     """測試效能監控功能."""
 
     @pytest.mark.asyncio
-    async def test_get_performance_metrics(self, performance_service, mock_performance_monitor):
+    async def test_get_performance_metrics(
+        self, performance_service, mock_performance_monitor
+    ):
         """測試取得效能指標."""
         expected_metrics = {
             "cache_hit_rate": 0.85,
             "avg_response_time": 50.2,
             "queries_per_second": 120.5,
-            "memory_usage": 0.65
+            "memory_usage": 0.65,
         }
 
         mock_performance_monitor.get_current_metrics.return_value = expected_metrics
@@ -267,13 +315,15 @@ class TestPerformanceMonitoring:
         mock_performance_monitor.get_current_metrics.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_performance_alert_handling(self, performance_service, mock_performance_monitor):
+    async def test_performance_alert_handling(
+        self, performance_service, mock_performance_monitor
+    ):
         """測試效能警報處理."""
         alert_data = {
             "type": "high_response_time",
             "value": 500.0,
             "threshold": 100.0,
-            "timestamp": datetime.now()
+            "timestamp": datetime.now(),
         }
 
         # 模擬效能警報
@@ -286,13 +336,15 @@ class TestPerformanceMonitoring:
         mock_performance_monitor.get_alerts.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_performance_trend_analysis(self, performance_service, mock_performance_analyzer):
+    async def test_performance_trend_analysis(
+        self, performance_service, mock_performance_analyzer
+    ):
         """測試效能趨勢分析."""
         trend_data = {
             "period": "last_24h",
             "cache_efficiency_trend": "improving",
             "response_time_trend": "stable",
-            "throughput_trend": "increasing"
+            "throughput_trend": "increasing",
         }
 
         mock_performance_analyzer.analyze_trends.return_value = trend_data
@@ -300,14 +352,22 @@ class TestPerformanceMonitoring:
         trends = await performance_service.analyze_performance_trends(period="last_24h")
 
         assert trends == trend_data
-        mock_performance_analyzer.analyze_trends.assert_called_once_with(period="last_24h")
+        mock_performance_analyzer.analyze_trends.assert_called_once_with(
+            period="last_24h"
+        )
 
 
 class TestCacheOptimization:
     """測試快取優化功能."""
 
     @pytest.mark.asyncio
-    async def test_cache_warming(self, performance_service, sample_achievements_list, mock_cache_manager, mock_repository):
+    async def test_cache_warming(
+        self,
+        performance_service,
+        sample_achievements_list,
+        mock_cache_manager,
+        mock_repository,
+    ):
         """測試快取預熱."""
         popular_achievement_ids = [1, 2, 3, 4, 5]
         popular_achievements = sample_achievements_list[:5]
@@ -321,7 +381,9 @@ class TestCacheOptimization:
         assert mock_cache_manager.set.call_count == len(popular_achievements)
 
     @pytest.mark.asyncio
-    async def test_cache_invalidation_strategy(self, performance_service, mock_cache_manager):
+    async def test_cache_invalidation_strategy(
+        self, performance_service, mock_cache_manager
+    ):
         """測試快取失效策略."""
         achievement_id = 1
 
@@ -331,7 +393,9 @@ class TestCacheOptimization:
         mock_cache_manager.invalidate_pattern.assert_called()
 
     @pytest.mark.asyncio
-    async def test_adaptive_cache_sizing(self, performance_service, mock_cache_manager, mock_performance_monitor):
+    async def test_adaptive_cache_sizing(
+        self, performance_service, mock_cache_manager, mock_performance_monitor
+    ):
         """測試自適應快取大小調整."""
         # 模擬記憶體使用過高
         mock_performance_monitor.get_memory_usage.return_value = 0.85
@@ -346,15 +410,23 @@ class TestAutoOptimization:
     """測試自動優化功能."""
 
     @pytest.mark.asyncio
-    async def test_auto_optimization_trigger(self, performance_service, mock_performance_analyzer):
+    async def test_auto_optimization_trigger(
+        self, performance_service, mock_performance_analyzer
+    ):
         """測試自動優化觸發."""
         # 模擬效能分析結果建議優化
         optimization_suggestions = [
-            {"type": "increase_cache_size", "target": "user_achievements", "value": 2000},
-            {"type": "adjust_ttl", "target": "achievements", "value": 600}
+            {
+                "type": "increase_cache_size",
+                "target": "user_achievements",
+                "value": 2000,
+            },
+            {"type": "adjust_ttl", "target": "achievements", "value": 600},
         ]
 
-        mock_performance_analyzer.get_optimization_suggestions.return_value = optimization_suggestions
+        mock_performance_analyzer.get_optimization_suggestions.return_value = (
+            optimization_suggestions
+        )
 
         await performance_service.run_auto_optimization()
 
@@ -365,11 +437,10 @@ class TestAutoOptimization:
     async def test_auto_optimization_disabled(self, mock_repository):
         """測試停用自動優化時的行為."""
         service = AchievementPerformanceService(
-            repository=mock_repository,
-            enable_auto_optimization=False
+            repository=mock_repository, enable_auto_optimization=False
         )
 
-        with patch.object(service, '_apply_optimization') as mock_apply:
+        with patch.object(service, "_apply_optimization") as mock_apply:
             await service.run_auto_optimization()
 
             # 驗證優化未被執行
@@ -381,7 +452,7 @@ class TestAutoOptimization:
         # 設定最近才執行過優化
         performance_service._last_optimization = datetime.now() - timedelta(minutes=5)
 
-        with patch.object(performance_service, '_apply_optimization') as mock_apply:
+        with patch.object(performance_service, "_apply_optimization") as mock_apply:
             await performance_service.run_auto_optimization()
 
             # 驗證因為冷卻期間而未執行優化
@@ -397,7 +468,7 @@ class TestBatchOperations:
         award_requests = [
             {"user_id": 123, "achievement_id": 1},
             {"user_id": 124, "achievement_id": 1},
-            {"user_id": 125, "achievement_id": 2}
+            {"user_id": 125, "achievement_id": 2},
         ]
 
         await performance_service.batch_award_achievements(award_requests)
@@ -411,7 +482,7 @@ class TestBatchOperations:
         progress_updates = [
             {"user_id": 123, "achievement_id": 1, "current_value": 50},
             {"user_id": 123, "achievement_id": 2, "current_value": 25},
-            {"user_id": 124, "achievement_id": 1, "current_value": 75}
+            {"user_id": 124, "achievement_id": 1, "current_value": 75},
         ]
 
         await performance_service.batch_update_progress(progress_updates)
@@ -422,7 +493,7 @@ class TestBatchOperations:
     @pytest.mark.asyncio
     async def test_batch_operation_chunking(self, performance_service, mock_repository):
         """測試批量操作分塊處理."""
-        # 建立大量資料（超過批量大小）
+        # 建立大量資料(超過批量大小)
         large_batch = [
             {"user_id": i, "achievement_id": 1, "current_value": 10}
             for i in range(250)  # 超過預設批量大小 100
@@ -431,14 +502,22 @@ class TestBatchOperations:
         await performance_service.batch_update_progress(large_batch)
 
         # 驗證被分塊處理
-        assert mock_repository.batch_update_progress.call_count >= 3  # 250/100 = 3 chunks
+        assert (
+            mock_repository.batch_update_progress.call_count >= 3
+        )  # 250/100 = 3 chunks
 
 
 class TestErrorHandlingAndRecovery:
     """測試錯誤處理和恢復功能."""
 
     @pytest.mark.asyncio
-    async def test_cache_failure_fallback(self, performance_service, sample_achievement, mock_cache_manager, mock_repository):
+    async def test_cache_failure_fallback(
+        self,
+        performance_service,
+        sample_achievement,
+        mock_cache_manager,
+        mock_repository,
+    ):
         """測試快取失敗時的回退機制."""
         achievement_id = 1
 
@@ -453,10 +532,14 @@ class TestErrorHandlingAndRecovery:
         mock_repository.get_achievement_by_id.assert_called_once_with(achievement_id)
 
     @pytest.mark.asyncio
-    async def test_performance_monitoring_failure_handling(self, performance_service, mock_performance_monitor):
+    async def test_performance_monitoring_failure_handling(
+        self, performance_service, mock_performance_monitor
+    ):
         """測試效能監控失敗處理."""
         # 模擬監控服務異常
-        mock_performance_monitor.get_current_metrics.side_effect = Exception("監控服務異常")
+        mock_performance_monitor.get_current_metrics.side_effect = Exception(
+            "監控服務異常"
+        )
 
         metrics = await performance_service.get_performance_metrics()
 
@@ -465,7 +548,9 @@ class TestErrorHandlingAndRecovery:
         assert isinstance(metrics, dict)
 
     @pytest.mark.asyncio
-    async def test_auto_recovery_after_failure(self, performance_service, mock_cache_manager):
+    async def test_auto_recovery_after_failure(
+        self, performance_service, mock_cache_manager
+    ):
         """測試失敗後的自動恢復機制."""
         # 模擬快取服務恢復
         mock_cache_manager.is_healthy.return_value = False
@@ -476,12 +561,14 @@ class TestErrorHandlingAndRecovery:
         mock_cache_manager.restart.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_graceful_degradation(self, performance_service, mock_performance_monitor):
+    async def test_graceful_degradation(
+        self, performance_service, mock_performance_monitor
+    ):
         """測試優雅降級."""
         # 模擬部分服務不可用
         mock_performance_monitor.is_available.return_value = False
 
-        # 服務應該仍然可用，但功能受限
+        # 服務應該仍然可用,但功能受限
         result = await performance_service.get_service_status()
 
         assert result["status"] == "degraded"
@@ -492,52 +579,58 @@ class TestPerformanceReporting:
     """測試效能報告功能."""
 
     @pytest.mark.asyncio
-    async def test_generate_performance_report(self, performance_service, mock_performance_analyzer):
+    async def test_generate_performance_report(
+        self, performance_service, mock_performance_analyzer
+    ):
         """測試生成效能報告."""
         expected_report = {
             "report_period": "last_24h",
             "summary": {
                 "total_queries": 10000,
                 "avg_response_time": 45.2,
-                "cache_hit_rate": 0.88
+                "cache_hit_rate": 0.88,
             },
-            "recommendations": [
-                "增加用戶成就快取大小",
-                "優化資料庫查詢索引"
-            ]
+            "recommendations": ["增加用戶成就快取大小", "優化資料庫查詢索引"],
         }
 
         mock_performance_analyzer.generate_report.return_value = expected_report
 
-        report = await performance_service.generate_performance_report(period="last_24h")
+        report = await performance_service.generate_performance_report(
+            period="last_24h"
+        )
 
         assert report == expected_report
-        mock_performance_analyzer.generate_report.assert_called_once_with(period="last_24h")
+        mock_performance_analyzer.generate_report.assert_called_once_with(
+            period="last_24h"
+        )
 
     @pytest.mark.asyncio
-    async def test_export_performance_data(self, performance_service, mock_performance_monitor):
+    async def test_export_performance_data(
+        self, performance_service, mock_performance_monitor
+    ):
         """測試匯出效能資料."""
         export_format = "json"
-        time_range = {"start": datetime.now() - timedelta(hours=24), "end": datetime.now()}
+        time_range = {
+            "start": datetime.now() - timedelta(hours=24),
+            "end": datetime.now(),
+        }
 
         expected_data = {
             "metrics": [
                 {"timestamp": "2024-01-01T10:00:00", "response_time": 45.2},
-                {"timestamp": "2024-01-01T11:00:00", "response_time": 48.1}
+                {"timestamp": "2024-01-01T11:00:00", "response_time": 48.1},
             ]
         }
 
         mock_performance_monitor.export_data.return_value = expected_data
 
         data = await performance_service.export_performance_data(
-            format=export_format,
-            time_range=time_range
+            format=export_format, time_range=time_range
         )
 
         assert data == expected_data
         mock_performance_monitor.export_data.assert_called_once_with(
-            format=export_format,
-            time_range=time_range
+            format=export_format, time_range=time_range
         )
 
 

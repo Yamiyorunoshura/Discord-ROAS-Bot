@@ -1,6 +1,6 @@
 """成就系統管理面板視圖組件.
 
-此模組包含管理面板的各種視圖組件：
+此模組包含管理面板的各種視圖組件:
 - 管理面板的專用視圖類別
 - 可重用的 UI 組件
 - 管理操作的專用表單
@@ -25,22 +25,21 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class AdminActionType(Enum):
     """管理操作類型枚舉."""
-    VIEW = "view"              # 查看操作
-    CREATE = "create"          # 創建操作
-    EDIT = "edit"             # 編輯操作
-    DELETE = "delete"         # 刪除操作
-    RESET = "reset"           # 重置操作
-    EXPORT = "export"         # 導出操作
-    IMPORT = "import"         # 導入操作
 
+    VIEW = "view"  # 查看操作
+    CREATE = "create"  # 創建操作
+    EDIT = "edit"  # 編輯操作
+    DELETE = "delete"  # 刪除操作
+    RESET = "reset"  # 重置操作
+    EXPORT = "export"  # 導出操作
+    IMPORT = "import"  # 導入操作
 
 class ConfirmationView(ui.View):
     """通用確認對話框視圖.
 
-    用於需要用戶確認的管理操作。
+    用於需要用戶確認的管理操作.
     """
 
     def __init__(
@@ -58,7 +57,7 @@ class ConfirmationView(ui.View):
             description: 確認描述
             confirm_callback: 確認回調函數
             cancel_callback: 取消回調函數
-            timeout: 超時時間（秒）
+            timeout: 超時時間(秒)
         """
         super().__init__(timeout=timeout)
         self.title = title
@@ -69,9 +68,7 @@ class ConfirmationView(ui.View):
 
     @ui.button(label="✅ 確認", style=discord.ButtonStyle.danger)
     async def confirm_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """處理確認按鈕."""
         try:
@@ -82,16 +79,14 @@ class ConfirmationView(ui.View):
                 await self.confirm_callback(interaction)
 
         except Exception as e:
-            logger.error(f"【確認對話框】確認操作失敗: {e}")
+            logger.error(f"[確認對話框]確認操作失敗: {e}")
             await interaction.response.send_message(
                 "❌ 執行確認操作時發生錯誤", ephemeral=True
             )
 
     @ui.button(label="❌ 取消", style=discord.ButtonStyle.secondary)
     async def cancel_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """處理取消按鈕."""
         try:
@@ -103,25 +98,23 @@ class ConfirmationView(ui.View):
             else:
                 # 默認取消處理
                 embed = StandardEmbedBuilder.create_info_embed(
-                    "操作已取消",
-                    "✅ 操作已被用戶取消。"
+                    "操作已取消", "✅ 操作已被用戶取消."
                 )
                 await interaction.response.edit_message(embed=embed, view=None)
 
         except Exception as e:
-            logger.error(f"【確認對話框】取消操作失敗: {e}")
+            logger.error(f"[確認對話框]取消操作失敗: {e}")
 
     async def on_timeout(self) -> None:
         """處理超時."""
         self.result = None
         self.stop()
-        logger.debug(f"【確認對話框】'{self.title}' 對話框超時")
-
+        logger.debug(f"[確認對話框]'{self.title}' 對話框超時")
 
 class AdminStatsView(ui.View):
     """管理統計視圖.
 
-    顯示成就系統的詳細統計數據。
+    顯示成就系統的詳細統計數據.
     """
 
     def __init__(self, admin_panel: AdminPanel):
@@ -135,9 +128,7 @@ class AdminStatsView(ui.View):
 
     @ui.button(label="📊 詳細統計", style=discord.ButtonStyle.primary)
     async def detailed_stats_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """顯示詳細統計數據."""
         try:
@@ -154,46 +145,40 @@ class AdminStatsView(ui.View):
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
-            logger.error(f"【統計視圖】載入詳細統計失敗: {e}")
-            await interaction.followup.send(
-                "❌ 載入統計數據時發生錯誤", ephemeral=True
-            )
+            logger.error(f"[統計視圖]載入詳細統計失敗: {e}")
+            await interaction.followup.send("❌ 載入統計數據時發生錯誤", ephemeral=True)
 
     @ui.button(label="📈 趨勢分析", style=discord.ButtonStyle.secondary)
     async def trend_analysis_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """顯示趨勢分析."""
         embed = StandardEmbedBuilder.create_info_embed(
             "📈 趨勢分析",
             "**功能開發中**\n\n"
-            "此功能將提供：\n"
+            "此功能將提供:\n"
             "• 成就解鎖趨勢\n"
             "• 用戶活躍度分析\n"
             "• 成就受歡迎程度\n"
             "• 時間序列圖表\n\n"
-            "⚠️ 此功能正在開發中，將在未來版本中實現。"
+            "⚠️ 此功能正在開發中,將在未來版本中實現.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @ui.button(label="📤 導出報告", style=discord.ButtonStyle.secondary)
     async def export_report_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """導出統計報告."""
         embed = StandardEmbedBuilder.create_info_embed(
             "📤 導出報告",
             "**功能開發中**\n\n"
-            "此功能將提供：\n"
+            "此功能將提供:\n"
             "• CSV 格式統計報告\n"
             "• PDF 格式摘要報告\n"
             "• 自定義報告範圍\n"
             "• 定期報告生成\n\n"
-            "⚠️ 此功能正在開發中，將在未來版本中實現。"
+            "⚠️ 此功能正在開發中,將在未來版本中實現.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -202,11 +187,10 @@ class AdminStatsView(ui.View):
         try:
             # 嘗試從管理服務獲取詳細統計
             admin_service = await self._get_admin_service()
-            if admin_service and hasattr(admin_service, 'get_detailed_stats'):
+            if admin_service and hasattr(admin_service, "get_detailed_stats"):
                 return await admin_service.get_detailed_stats()
             else:
-                # 備用方案：返回基本統計
-                logger.warning("無法獲取詳細統計數據，使用基本統計")
+                logger.warning("無法獲取詳細統計數據,使用基本統計")
                 return {
                     "user_stats": {
                         "total_users": 0,
@@ -226,17 +210,19 @@ class AdminStatsView(ui.View):
                         "avg_response_time": 0,
                         "total_events_processed": 0,
                         "error_rate": 0.0,
-                    }
+                    },
                 }
         except Exception as e:
-            logger.error(f"【統計視圖】載入詳細統計失敗: {e}")
+            logger.error(f"[統計視圖]載入詳細統計失敗: {e}")
             return {}
 
-    async def _create_detailed_stats_embed(self, stats: dict[str, Any]) -> discord.Embed:
+    async def _create_detailed_stats_embed(
+        self, stats: dict[str, Any]
+    ) -> discord.Embed:
         """創建詳細統計 embed."""
         embed = StandardEmbedBuilder.create_info_embed(
             "📊 詳細統計報告",
-            f"截至 <t:{int(discord.utils.utcnow().timestamp())}:f> 的詳細統計數據"
+            f"截至 <t:{int(discord.utils.utcnow().timestamp())}:f> 的詳細統計數據",
         )
 
         # 用戶統計
@@ -249,7 +235,7 @@ class AdminStatsView(ui.View):
                 f"**本週活躍**: {user_stats.get('active_users_week', 0):,}\n"
                 f"**本週新增**: {user_stats.get('new_users_week', 0):,}"
             ),
-            inline=True
+            inline=True,
         )
 
         # 成就統計
@@ -262,7 +248,7 @@ class AdminStatsView(ui.View):
                 f"**本週解鎖**: {achievement_stats.get('unlocked_week', 0):,}\n"
                 f"**最受歡迎**: {achievement_stats.get('most_popular', 'N/A')}"
             ),
-            inline=True
+            inline=True,
         )
 
         # 系統統計
@@ -275,19 +261,18 @@ class AdminStatsView(ui.View):
                 f"**處理事件數**: {system_stats.get('total_events_processed', 0):,}\n"
                 f"**錯誤率**: {system_stats.get('error_rate', 0):.1f}%"
             ),
-            inline=False
+            inline=False,
         )
 
-        embed.color = 0xff6b35
+        embed.color = 0xFF6B35
         embed.set_footer(text="數據每5分鐘更新 | 所有時間均為UTC")
 
         return embed
 
-
 class AdminMaintenanceView(ui.View):
     """管理維護視圖.
 
-    提供系統維護和管理工具。
+    提供系統維護和管理工具.
     """
 
     def __init__(self, admin_panel: AdminPanel):
@@ -301,41 +286,39 @@ class AdminMaintenanceView(ui.View):
 
     @ui.button(label="🔄 重建快取", style=discord.ButtonStyle.secondary)
     async def rebuild_cache_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """重建系統快取."""
+
         # 創建確認對話框
         async def confirm_rebuild(confirm_interaction: discord.Interaction):
             await confirm_interaction.response.defer(ephemeral=True)
 
-            # 執行快取重建（示例）
             embed = StandardEmbedBuilder.create_success_embed(
                 "快取重建完成",
-                "✅ 系統快取已成功重建。\n\n"
+                "✅ 系統快取已成功重建.\n\n"
                 "**操作詳情**:\n"
                 "• 清除了所有快取數據\n"
                 "• 重新載入了成就定義\n"
                 "• 更新了用戶進度快取\n\n"
-                "系統性能已優化。"
+                "系統性能已優化.",
             )
             await confirm_interaction.followup.send(embed=embed, ephemeral=True)
 
         confirmation_view = ConfirmationView(
             title="重建快取",
-            description="確定要重建系統快取嗎？這可能需要幾分鐘時間。",
-            confirm_callback=confirm_rebuild
+            description="確定要重建系統快取嗎?這可能需要幾分鐘時間.",
+            confirm_callback=confirm_rebuild,
         )
 
         embed = StandardEmbedBuilder.create_warning_embed(
             "🔄 重建快取",
-            "確定要重建系統快取嗎？\n\n"
+            "確定要重建系統快取嗎?\n\n"
             "**注意事項**:\n"
             "• 此操作會清除所有快取數據\n"
             "• 可能會暫時影響系統性能\n"
             "• 操作預計需要 2-5 分鐘\n"
-            "• 建議在低峰時間執行"
+            "• 建議在低峰時間執行",
         )
 
         await interaction.response.send_message(
@@ -344,14 +327,11 @@ class AdminMaintenanceView(ui.View):
 
     @ui.button(label="📋 系統檢查", style=discord.ButtonStyle.primary)
     async def system_check_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """執行系統健康檢查."""
         await interaction.response.defer(ephemeral=True)
 
-        # 執行系統檢查（示例）
         check_results = await self._perform_system_check()
 
         # 創建檢查結果 embed
@@ -361,20 +341,18 @@ class AdminMaintenanceView(ui.View):
 
     @ui.button(label="🧹 清理數據", style=discord.ButtonStyle.danger)
     async def cleanup_data_button(
-        self,
-        interaction: discord.Interaction,
-        button: ui.Button
+        self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
         """清理過期數據."""
         embed = StandardEmbedBuilder.create_warning_embed(
             "🧹 數據清理",
             "**高級功能 - 開發中**\n\n"
-            "此功能將提供：\n"
+            "此功能將提供:\n"
             "• 清理過期的成就進度\n"
             "• 移除無效的用戶記錄\n"
             "• 壓縮日誌文件\n"
             "• 優化資料庫\n\n"
-            "⚠️ 此功能涉及數據操作，正在仔細開發中。"
+            "⚠️ 此功能涉及數據操作,正在仔細開發中.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -383,37 +361,41 @@ class AdminMaintenanceView(ui.View):
         try:
             # 嘗試從管理服務執行系統檢查
             admin_service = await self._get_admin_service()
-            if admin_service and hasattr(admin_service, 'perform_system_check'):
+            if admin_service and hasattr(admin_service, "perform_system_check"):
                 return await admin_service.perform_system_check()
             else:
-                # 備用方案：返回基本檢查結果
-                logger.warning("無法執行完整系統檢查，返回基本狀態")
+                logger.warning("無法執行完整系統檢查,返回基本狀態")
                 return {
                     "database": {"status": "unknown", "response_time": 0},
                     "cache": {"status": "unknown", "hit_rate": 0.0},
-                    "achievement_service": {"status": "unknown", "last_update": "無資料"},
+                    "achievement_service": {
+                        "status": "unknown",
+                        "last_update": "無資料",
+                    },
                     "permission_system": {"status": "unknown", "checks_today": 0},
                     "disk_space": {"status": "unknown", "usage": 0.0},
                     "memory": {"status": "unknown", "usage": 0.0},
                 }
         except Exception as e:
-            logger.error(f"【維護視圖】系統檢查失敗: {e}")
+            logger.error(f"[維護視圖]系統檢查失敗: {e}")
             return {"error": str(e)}
 
-    async def _create_system_check_embed(self, results: dict[str, Any]) -> discord.Embed:
+    async def _create_system_check_embed(
+        self, results: dict[str, Any]
+    ) -> discord.Embed:
         """創建系統檢查結果 embed."""
         embed = StandardEmbedBuilder.create_info_embed(
             "📋 系統健康檢查報告",
-            f"檢查時間: <t:{int(discord.utils.utcnow().timestamp())}:f>"
+            f"檢查時間: <t:{int(discord.utils.utcnow().timestamp())}:f>",
         )
 
         if "error" in results:
             embed.add_field(
                 name="❌ 檢查失敗",
                 value=f"系統檢查時發生錯誤: {results['error']}",
-                inline=False
+                inline=False,
             )
-            embed.color = 0xff0000
+            embed.color = 0xFF0000
             return embed
 
         # 狀態圖示映射
@@ -421,7 +403,7 @@ class AdminMaintenanceView(ui.View):
             "healthy": "🟢",
             "warning": "🟡",
             "error": "🔴",
-            "unknown": "⚪"
+            "unknown": "⚪",
         }
 
         # 檢查各個組件
@@ -438,7 +420,7 @@ class AdminMaintenanceView(ui.View):
                 embed.add_field(
                     name=f"{icon} {component.replace('_', ' ').title()}",
                     value="\n".join(details) if details else "正常運行",
-                    inline=True
+                    inline=True,
                 )
 
         # 設置整體顏色
@@ -455,16 +437,15 @@ class AdminMaintenanceView(ui.View):
         )
 
         if all_healthy:
-            embed.color = 0x00ff00  # 綠色
+            embed.color = 0x00FF00  # 綠色
         elif has_warning:
-            embed.color = 0xffff00  # 黃色
+            embed.color = 0xFFFF00  # 黃色
         else:
-            embed.color = 0xff0000  # 紅色
+            embed.color = 0xFF0000  # 紅色
 
         embed.set_footer(text="建議定期執行系統檢查以確保最佳性能")
 
         return embed
-
 
 # 導出主要組件
 __all__ = [

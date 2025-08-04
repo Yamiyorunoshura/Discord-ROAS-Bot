@@ -6,12 +6,16 @@
 """
 
 import logging
+from datetime import datetime, timedelta
 from typing import Any
 
 import discord
 
-logger = logging.getLogger("activity_meter")
+from ...config import config
+from ...database.database import ActivityDatabase
+from .permission_manager import PermissionManager
 
+logger = logging.getLogger("activity_meter")
 
 class ActivityMeterError(Exception):
     """活躍度系統錯誤基類"""
@@ -20,7 +24,6 @@ class ActivityMeterError(Exception):
         self.error_code = error_code
         self.message = message
         super().__init__(f"[{error_code}] {message}")
-
 
 class PageManager:
     """
@@ -59,7 +62,6 @@ class PageManager:
                 raise ActivityMeterError("E202", f"頁面不存在: {page_name}")
 
             # 檢查用戶權限
-            from .permission_manager import PermissionManager
 
             permission_manager = PermissionManager()
             if not permission_manager.can_access_page(interaction.user, page_name):
@@ -80,7 +82,7 @@ class PageManager:
 
         except Exception as e:
             logger.error(f"頁面切換失敗: {e}")
-            raise ActivityMeterError("E202", f"頁面切換失敗: {e!s}")
+            raise ActivityMeterError("E202", f"頁面切換失敗: {e!s}") from e
 
     async def load_page(self, page_name: str, interaction: discord.Interaction):
         """
@@ -116,7 +118,6 @@ class PageManager:
     async def _load_settings_data(self, interaction: discord.Interaction):
         """載入設定頁面數據"""
         # 獲取當前設定
-        from ...database.database import ActivityDatabase
 
         db = ActivityDatabase()
 
@@ -133,10 +134,6 @@ class PageManager:
 
     async def _load_preview_data(self, interaction: discord.Interaction):
         """載入預覽頁面數據"""
-        from datetime import datetime
-
-        from ...config import config
-        from ...database.database import ActivityDatabase
 
         db = ActivityDatabase()
 
@@ -155,10 +152,6 @@ class PageManager:
 
     async def _load_stats_data(self, interaction: discord.Interaction):
         """載入統計頁面數據"""
-        from datetime import datetime, timedelta
-
-        from ...config import config
-        from ...database.database import ActivityDatabase
 
         db = ActivityDatabase()
 

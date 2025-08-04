@@ -1,12 +1,12 @@
 """成就系統測試基礎工具.
 
-此模組提供成就系統測試的基礎工具和Mock對象，包含：
+此模組提供成就系統測試的基礎工具和Mock對象,包含:
 - Discord.py Mock 對象
 - 測試資料生成器
 - 測試配置管理
 - 公共測試工具函數
 
-為整個測試套件提供統一的測試基礎設施。
+為整個測試套件提供統一的測試基礎設施.
 """
 
 from __future__ import annotations
@@ -37,7 +37,12 @@ class MockDiscordUser:
 class MockDiscordMember(MockDiscordUser):
     """Mock Discord 成員對象."""
 
-    def __init__(self, user_id: int | None = None, name: str | None = None, guild_id: int | None = None):
+    def __init__(
+        self,
+        user_id: int | None = None,
+        name: str | None = None,
+        guild_id: int | None = None,
+    ):
         super().__init__(user_id, name)
         self.guild_id = guild_id or 67890
         self.joined_at = datetime.utcnow() - timedelta(days=30)
@@ -76,7 +81,7 @@ class MockDiscordInteraction:
         self,
         user: MockDiscordUser = None,
         guild: MockDiscordGuild = None,
-        channel_id: int | None = None
+        channel_id: int | None = None,
     ):
         self.id = int(datetime.utcnow().timestamp() * 1000)  # 模擬雪花ID
         self.user = user or MockDiscordUser()
@@ -106,7 +111,7 @@ class TestDataGenerator:
         achievement_id: int | None = None,
         name: str | None = None,
         category_id: int | None = None,
-        **kwargs
+        **kwargs,
     ) -> dict[str, Any]:
         """創建成就測試資料."""
         return {
@@ -122,14 +127,12 @@ class TestDataGenerator:
             "role_reward": kwargs.get("role_reward"),
             "is_hidden": kwargs.get("is_hidden", False),
             "created_at": kwargs.get("created_at", datetime.utcnow()),
-            "updated_at": kwargs.get("updated_at", datetime.utcnow())
+            "updated_at": kwargs.get("updated_at", datetime.utcnow()),
         }
 
     @staticmethod
     def create_category_data(
-        category_id: int | None = None,
-        name: str | None = None,
-        **kwargs
+        category_id: int | None = None, name: str | None = None, **kwargs
     ) -> dict[str, Any]:
         """創建分類測試資料."""
         return {
@@ -140,14 +143,12 @@ class TestDataGenerator:
             "icon_emoji": kwargs.get("icon_emoji", "🏆"),
             "is_active": kwargs.get("is_active", True),
             "created_at": kwargs.get("created_at", datetime.utcnow()),
-            "updated_at": kwargs.get("updated_at", datetime.utcnow())
+            "updated_at": kwargs.get("updated_at", datetime.utcnow()),
         }
 
     @staticmethod
     def create_user_achievement_data(
-        user_id: int | None = None,
-        achievement_id: int | None = None,
-        **kwargs
+        user_id: int | None = None, achievement_id: int | None = None, **kwargs
     ) -> dict[str, Any]:
         """創建用戶成就測試資料."""
         return {
@@ -155,14 +156,12 @@ class TestDataGenerator:
             "achievement_id": achievement_id or 1,
             "earned_at": kwargs.get("earned_at", datetime.utcnow()),
             "notified": kwargs.get("notified", True),
-            "progress_snapshot": kwargs.get("progress_snapshot", {})
+            "progress_snapshot": kwargs.get("progress_snapshot", {}),
         }
 
     @staticmethod
     def create_user_progress_data(
-        user_id: int | None = None,
-        achievement_id: int | None = None,
-        **kwargs
+        user_id: int | None = None, achievement_id: int | None = None, **kwargs
     ) -> dict[str, Any]:
         """創建用戶進度測試資料."""
         return {
@@ -171,7 +170,7 @@ class TestDataGenerator:
             "current_value": kwargs.get("current_value", 5.0),
             "target_value": kwargs.get("target_value", 10.0),
             "progress_data": kwargs.get("progress_data", {}),
-            "last_updated": kwargs.get("last_updated", datetime.utcnow())
+            "last_updated": kwargs.get("last_updated", datetime.utcnow()),
         }
 
 
@@ -205,39 +204,26 @@ class MockAchievementService:
     async def get_user_achievements(self, user_id: int) -> list[dict[str, Any]]:
         """獲取用戶成就."""
         return [
-            ua for ua in self.user_achievements.values()
-            if ua["user_id"] == user_id
+            ua for ua in self.user_achievements.values() if ua["user_id"] == user_id
         ]
 
     async def get_user_progress(self, user_id: int) -> list[dict[str, Any]]:
         """獲取用戶進度."""
-        return [
-            up for up in self.user_progress.values()
-            if up["user_id"] == user_id
-        ]
+        return [up for up in self.user_progress.values() if up["user_id"] == user_id]
 
     async def grant_user_achievement(
-        self,
-        user_id: int,
-        achievement_id: int,
-        notify: bool = True
+        self, user_id: int, achievement_id: int, notify: bool = True
     ) -> dict[str, Any]:
         """授予用戶成就."""
         user_achievement = TestDataGenerator.create_user_achievement_data(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            notified=notify
+            user_id=user_id, achievement_id=achievement_id, notified=notify
         )
 
         key = f"{user_id}:{achievement_id}"
         self.user_achievements[key] = user_achievement
         return user_achievement
 
-    async def revoke_user_achievement(
-        self,
-        user_id: int,
-        achievement_id: int
-    ) -> bool:
+    async def revoke_user_achievement(self, user_id: int, achievement_id: int) -> bool:
         """撤銷用戶成就."""
         key = f"{user_id}:{achievement_id}"
         if key in self.user_achievements:
@@ -246,10 +232,7 @@ class MockAchievementService:
         return False
 
     async def update_user_progress(
-        self,
-        user_id: int,
-        achievement_id: int,
-        new_value: float
+        self, user_id: int, achievement_id: int, new_value: float
     ) -> dict[str, Any]:
         """更新用戶進度."""
         key = f"{user_id}:{achievement_id}"
@@ -260,9 +243,7 @@ class MockAchievementService:
             progress["last_updated"] = datetime.utcnow()
         else:
             progress = TestDataGenerator.create_user_progress_data(
-                user_id=user_id,
-                achievement_id=achievement_id,
-                current_value=new_value
+                user_id=user_id, achievement_id=achievement_id, current_value=new_value
             )
             self.user_progress[key] = progress
 
@@ -272,13 +253,13 @@ class MockAchievementService:
         """重置用戶資料."""
         # 移除用戶的所有成就和進度
         achievements_to_remove = [
-            key for key, ua in self.user_achievements.items()
+            key
+            for key, ua in self.user_achievements.items()
             if ua["user_id"] == user_id
         ]
 
         progress_to_remove = [
-            key for key, up in self.user_progress.items()
-            if up["user_id"] == user_id
+            key for key, up in self.user_progress.items() if up["user_id"] == user_id
         ]
 
         for key in achievements_to_remove:
@@ -291,7 +272,7 @@ class MockAchievementService:
             "user_id": user_id,
             "achievements_removed": len(achievements_to_remove),
             "progress_removed": len(progress_to_remove),
-            "reset_at": datetime.utcnow()
+            "reset_at": datetime.utcnow(),
         }
 
 
@@ -334,7 +315,9 @@ class MockDatabaseService:
         self.execute_calls = []
         self.transaction_active = False
 
-    async def execute_query(self, query: str, params: tuple | None = None) -> list[dict[str, Any]]:
+    async def execute_query(
+        self, query: str, params: tuple | None = None
+    ) -> list[dict[str, Any]]:
         """執行查詢."""
         self.query_calls.append((query, params))
         return []
@@ -376,14 +359,13 @@ class AsyncTestCase:
         self.test_member = MockDiscordMember(
             user_id=self.test_user.id,
             name=self.test_user.name,
-            guild_id=self.test_guild.id
+            guild_id=self.test_guild.id,
         )
         self.test_guild.add_member(self.test_member)
 
         # 創建測試互動
         self.test_interaction = MockDiscordInteraction(
-            user=self.test_user,
-            guild=self.test_guild
+            user=self.test_user, guild=self.test_guild
         )
 
         # 添加測試資料
@@ -397,16 +379,13 @@ class AsyncTestCase:
         """設置測試資料."""
         # 添加測試分類
         category = TestDataGenerator.create_category_data(
-            category_id=1,
-            name="測試分類"
+            category_id=1, name="測試分類"
         )
         self.mock_achievement_service.add_category(category)
 
         # 添加測試成就
         achievement = TestDataGenerator.create_achievement_data(
-            achievement_id=1,
-            name="測試成就",
-            category_id=1
+            achievement_id=1, name="測試成就", category_id=1
         )
         self.mock_achievement_service.add_achievement(achievement)
 
@@ -421,19 +400,15 @@ class TestAssertions:
     @staticmethod
     def assert_audit_event_logged(audit_logger, event_type, user_id=None):
         """斷言審計事件已記錄."""
-        if not hasattr(audit_logger, '_event_buffer'):
+        if not hasattr(audit_logger, "_event_buffer"):
             raise AssertionError("審計日誌記錄器沒有事件緩衝區")
 
         events = audit_logger._event_buffer
-        matching_events = [
-            e for e in events
-            if e.event_type == event_type
-        ]
+        matching_events = [e for e in events if e.event_type == event_type]
 
         if user_id:
             matching_events = [
-                e for e in matching_events
-                if e.context and e.context.user_id == user_id
+                e for e in matching_events if e.context and e.context.user_id == user_id
             ]
 
         assert len(matching_events) > 0, f"沒有找到匹配的審計事件: {event_type}"
@@ -441,19 +416,15 @@ class TestAssertions:
     @staticmethod
     def assert_history_recorded(history_manager, action, executor_id=None):
         """斷言歷史操作已記錄."""
-        if not hasattr(history_manager, '_history_buffer'):
+        if not hasattr(history_manager, "_history_buffer"):
             raise AssertionError("歷史管理器沒有歷史緩衝區")
 
         records = history_manager._history_buffer
-        matching_records = [
-            r for r in records
-            if r.action == action
-        ]
+        matching_records = [r for r in records if r.action == action]
 
         if executor_id:
             matching_records = [
-                r for r in matching_records
-                if r.executor_id == executor_id
+                r for r in matching_records if r.executor_id == executor_id
             ]
 
         assert len(matching_records) > 0, f"沒有找到匹配的歷史記錄: {action}"
@@ -461,7 +432,7 @@ class TestAssertions:
     @staticmethod
     def assert_cache_invalidated(cache_service, cache_type, key=None):
         """斷言快取已失效."""
-        if not hasattr(cache_service, 'invalidation_calls'):
+        if not hasattr(cache_service, "invalidation_calls"):
             raise AssertionError("快取服務沒有失效調用記錄")
 
         calls = cache_service.invalidation_calls
@@ -471,8 +442,7 @@ class TestAssertions:
             assert expected_key in calls, f"快取鍵 {expected_key} 沒有被失效"
         else:
             matching_calls = [
-                call for call in calls
-                if call.startswith(f"{cache_type}:")
+                call for call in calls if call.startswith(f"{cache_type}:")
             ]
             assert len(matching_calls) > 0, f"沒有找到 {cache_type} 類型的快取失效調用"
 
@@ -486,32 +456,33 @@ class TestAssertions:
     def assert_interaction_response_called(interaction, method_name="send_message"):
         """斷言互動回應已調用."""
         if method_name == "send_message":
-            assert interaction.response.send_message.called, "互動回應的 send_message 沒有被調用"
+            assert interaction.response.send_message.called, (
+                "互動回應的 send_message 沒有被調用"
+            )
         elif method_name == "defer":
             assert interaction.response.defer.called, "互動回應的 defer 沒有被調用"
         elif method_name == "edit_message":
-            assert interaction.response.edit_message.called, "互動回應的 edit_message 沒有被調用"
+            assert interaction.response.edit_message.called, (
+                "互動回應的 edit_message 沒有被調用"
+            )
 
 
 # 測試配置
 TEST_CONFIG = {
     "database": {
         "url": ":memory:",  # 使用記憶體資料庫進行測試
-        "echo": False
+        "echo": False,
     },
-    "cache": {
-        "enabled": True,
-        "default_ttl": 300
-    },
+    "cache": {"enabled": True, "default_ttl": 300},
     "security": {
         "enabled": True,
         "require_approval": False,  # 測試時不需要審批
-        "audit_logging": True
+        "audit_logging": True,
     },
     "logging": {
         "level": "DEBUG",
-        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    }
+        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    },
 }
 
 
@@ -573,10 +544,7 @@ pytest_plugins = [
 def pytest_configure(config):
     """Pytest 配置."""
     # 配置日誌
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format=TEST_CONFIG["logging"]["format"]
-    )
+    logging.basicConfig(level=logging.DEBUG, format=TEST_CONFIG["logging"]["format"])
 
     # 禁用一些不必要的日誌
     logging.getLogger("discord").setLevel(logging.WARNING)

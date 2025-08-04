@@ -15,10 +15,18 @@ from ....core.logger import setup_module_logger
 if TYPE_CHECKING:
     from ...main.main import WelcomeCog
 
+# 避免循環引用,延遲匯入
+from ..embeds.settings_embed import build_settings_embed
+
 # 設置日誌
 logger = setup_module_logger("welcome.modals")
 error_handler = create_error_handler("welcome.modals", logger)
 
+# 常數定義
+MIN_FONT_SIZE = 10
+MAX_FONT_SIZE = 100
+MIN_AVATAR_SIZE = 30
+MAX_AVATAR_SIZE = 200
 
 class BaseModal(discord.ui.Modal):
     """設定對話框的基礎類別 - 重構版本"""
@@ -64,8 +72,6 @@ class BaseModal(discord.ui.Modal):
             # 更新面板
             if self.panel_msg and self.panel_msg.guild:
                 try:
-                    from ..embeds.settings_embed import build_settings_embed
-
                     # 取得設定
                     settings = await self.cog.db.get_settings(self.panel_msg.guild.id)
 
@@ -89,7 +95,6 @@ class BaseModal(discord.ui.Modal):
                 f"對話框後續處理失敗 - {self.__class__.__name__}",
                 interaction,
             )
-
 
 class SetChannelModal(BaseModal):
     """設定歡迎頻道對話框"""
@@ -166,7 +171,6 @@ class SetChannelModal(BaseModal):
         # 共用處理
         await self._after_update(interaction)
 
-
 class SetTitleModal(BaseModal):
     """設定圖片標題對話框"""
 
@@ -197,7 +201,6 @@ class SetTitleModal(BaseModal):
         # 共用處理
         await self._after_update(interaction)
 
-
 class SetDescModal(BaseModal):
     """設定圖片內容對話框"""
 
@@ -206,7 +209,7 @@ class SetDescModal(BaseModal):
 
         self.desc_txt = discord.ui.TextInput(
             label="圖片內容",
-            placeholder="例如:很高興見到你～",
+            placeholder="例如:很高興見到你~",
             required=True,
             max_length=200,
             style=discord.TextStyle.paragraph,
@@ -228,7 +231,6 @@ class SetDescModal(BaseModal):
 
         # 共用處理
         await self._after_update(interaction)
-
 
 class SetMsgModal(BaseModal):
     """設定歡迎訊息對話框"""
@@ -260,7 +262,6 @@ class SetMsgModal(BaseModal):
 
         # 共用處理
         await self._after_update(interaction)
-
 
 class SetAvatarXModal(BaseModal):
     """調整頭像 X 位置對話框"""
@@ -296,7 +297,6 @@ class SetAvatarXModal(BaseModal):
         # 共用處理
         await self._after_update(interaction)
 
-
 class SetAvatarYModal(BaseModal):
     """調整頭像 Y 位置對話框"""
 
@@ -330,7 +330,6 @@ class SetAvatarYModal(BaseModal):
 
         # 共用處理
         await self._after_update(interaction)
-
 
 class SetTitleYModal(BaseModal):
     """調整標題 Y 位置對話框"""
@@ -366,7 +365,6 @@ class SetTitleYModal(BaseModal):
         # 共用處理
         await self._after_update(interaction)
 
-
 class SetDescYModal(BaseModal):
     """調整內容 Y 位置對話框"""
 
@@ -401,7 +399,6 @@ class SetDescYModal(BaseModal):
         # 共用處理
         await self._after_update(interaction)
 
-
 class SetTitleFontSizeModal(BaseModal):
     """調整標題字體大小對話框"""
 
@@ -433,9 +430,9 @@ class SetTitleFontSizeModal(BaseModal):
 
         # 檢查字體大小範圍
         font_size = int(self.size_txt.value)
-        if font_size < 10 or font_size > 100:
+        if font_size < MIN_FONT_SIZE or font_size > MAX_FONT_SIZE:
             await interaction.response.send_message(
-                "❌ 字體大小必須在 10 到 100 之間", ephemeral=True
+                f"❌ 字體大小必須在 {MIN_FONT_SIZE} 到 {MAX_FONT_SIZE} 之間", ephemeral=True
             )
             return
 
@@ -446,7 +443,6 @@ class SetTitleFontSizeModal(BaseModal):
 
         # 共用處理
         await self._after_update(interaction)
-
 
 class SetDescFontSizeModal(BaseModal):
     """調整內容字體大小對話框"""
@@ -479,9 +475,9 @@ class SetDescFontSizeModal(BaseModal):
 
         # 檢查字體大小範圍
         font_size = int(self.size_txt.value)
-        if font_size < 10 or font_size > 100:
+        if font_size < MIN_FONT_SIZE or font_size > MAX_FONT_SIZE:
             await interaction.response.send_message(
-                "❌ 字體大小必須在 10 到 100 之間", ephemeral=True
+                f"❌ 字體大小必須在 {MIN_FONT_SIZE} 到 {MAX_FONT_SIZE} 之間", ephemeral=True
             )
             return
 
@@ -492,7 +488,6 @@ class SetDescFontSizeModal(BaseModal):
 
         # 共用處理
         await self._after_update(interaction)
-
 
 class SetAvatarSizeModal(BaseModal):
     """調整頭像大小對話框"""
@@ -527,9 +522,9 @@ class SetAvatarSizeModal(BaseModal):
 
             # 檢查頭像大小範圍
             avatar_size = int(self.size_txt.value)
-            if avatar_size < 30 or avatar_size > 200:
+            if avatar_size < MIN_AVATAR_SIZE or avatar_size > MAX_AVATAR_SIZE:
                 await interaction.response.send_message(
-                    "❌ 頭像大小必須在 30 到 200 之間", ephemeral=True
+                    f"❌ 頭像大小必須在 {MIN_AVATAR_SIZE} 到 {MAX_AVATAR_SIZE} 之間", ephemeral=True
                 )
                 return
 

@@ -19,6 +19,15 @@ from typing import Any
 
 import psutil
 
+# 常數定義
+MAX_PERFORMANCE_ISSUES = 5
+DEFAULT_LOG_ANALYSIS_HOURS = 24
+HIGH_CPU_THRESHOLD = 80
+CRITICAL_MEMORY_THRESHOLD = 90
+HIGH_CPU_RECOMMENDATION_THRESHOLD = 70
+HIGH_MEMORY_RECOMMENDATION_THRESHOLD = 80
+SLOW_RESPONSE_TIME_THRESHOLD = 1000
+
 
 @dataclass
 class PerformanceMetrics:
@@ -31,7 +40,6 @@ class PerformanceMetrics:
     response_time_ms: float | None = None
     active_connections: int | None = None
     error_rate: float | None = None
-
 
 class PerformanceMonitor:
     """性能監控器"""
@@ -112,7 +120,6 @@ class PerformanceMonitor:
             else None,
         }
 
-
 class LogAnalyzer:
     """日誌分析器"""
 
@@ -145,7 +152,7 @@ class LogAnalyzer:
         }
 
         try:
-            with open(log_path, encoding="utf-8") as f:
+            with log_path.open(encoding="utf-8") as f:
                 for line in f:
                     analysis["total_lines"] += 1
 
@@ -155,7 +162,8 @@ class LogAnalyzer:
                         self._categorize_error(line, analysis["error_categories"])
 
                         # 收集最近的錯誤
-                        if len(analysis["recent_errors"]) < 10:
+                        MAX_RECENT_ERRORS = 10
+                        if len(analysis["recent_errors"]) < MAX_RECENT_ERRORS:
                             analysis["recent_errors"].append(line.strip())
 
                     elif "WARNING" in line:
@@ -169,7 +177,7 @@ class LogAnalyzer:
                             keyword in line.lower()
                             for keyword in ["slow", "timeout", "memory", "cpu"]
                         )
-                        and len(analysis["performance_issues"]) < 5
+                        and len(analysis["performance_issues"]) < MAX_PERFORMANCE_ISSUES
                     ):
                         analysis["performance_issues"].append(line.strip())
 
@@ -205,7 +213,8 @@ class LogAnalyzer:
             report["log_files"][log_file.name] = analysis
 
             # 檢查健康狀況
-            if analysis.get("error_count", 0) > 10:  # 1小時內超過10個錯誤
+            ERROR_THRESHOLD = 10
+            if analysis.get("error_count", 0) > ERROR_THRESHOLD:  # 1小時內超過10個錯誤
                 report["overall_status"] = "warning"
                 report["issues"].append(
                     f"{log_file.name}: 錯誤率過高 ({analysis['error_count']} 錯誤/小時)"
@@ -222,7 +231,6 @@ class LogAnalyzer:
             )
 
         return report
-
 
 class DiscordBotLogger:
     """Discord 機器人日誌管理器"""
@@ -499,9 +507,11 @@ class DiscordBotLogger:
             perf_msg += f" | 額外指標: {additional_metrics}"
 
         # 根據耗時判斷日誌等級
-        if duration_ms > 5000:  # 超過5秒
+        WARNING_THRESHOLD = 5000  # 5秒
+        INFO_THRESHOLD = 1000     # 1秒
+        if duration_ms > WARNING_THRESHOLD:
             logger.warning(perf_msg)
-        elif duration_ms > 1000:  # 超過1秒
+        elif duration_ms > INFO_THRESHOLD:
             logger.info(perf_msg)
         else:
             logger.debug(perf_msg)
@@ -567,7 +577,7 @@ class DiscordBotLogger:
         stats["total_size_mb"] = round(stats["total_size_mb"], 2)
         return stats
 
-    def analyze_logs(self, hours: int = 24) -> dict[str, Any]:
+    def analyze_logs(self, hours: int = DEFAULT_LOG_ANALYSIS_HOURS) -> dict[str, Any]:  # noqa: ARG002
         """
         分析日誌內容
 
@@ -577,6 +587,7 @@ class DiscordBotLogger:
         Returns:
             Dict[str, Any]: 分析結果
         """
+        # TODO: 未來可能會用到 hours 參數來限制分析時間範圍
         return self.log_analyzer.generate_health_report()
 
     def get_health_status(self) -> dict[str, Any]:
@@ -596,10 +607,10 @@ class DiscordBotLogger:
             overall_status = "warning"
 
         # 檢查性能指標
-        if performance_summary.get("average_cpu_percent", 0) > 80:
+        if performance_summary.get("average_cpu_percent", 0) > HIGH_CPU_THRESHOLD:
             overall_status = "warning"
 
-        if performance_summary.get("average_memory_percent", 0) > 90:
+        if performance_summary.get("average_memory_percent", 0) > CRITICAL_MEMORY_THRESHOLD:
             overall_status = "critical"
 
         return {
@@ -618,13 +629,13 @@ class DiscordBotLogger:
         """生成系統建議"""
         recommendations = []
 
-        if performance.get("average_cpu_percent", 0) > 70:
+        if performance.get("average_cpu_percent", 0) > HIGH_CPU_RECOMMENDATION_THRESHOLD:
             recommendations.append("CPU 使用率較高,建議檢查是否有性能瓶頸")
 
-        if performance.get("average_memory_percent", 0) > 80:
+        if performance.get("average_memory_percent", 0) > HIGH_MEMORY_RECOMMENDATION_THRESHOLD:
             recommendations.append("記憶體使用率較高,建議檢查記憶體洩漏")
 
-        if performance.get("average_response_time_ms", 0) > 1000:
+        if performance.get("average_response_time_ms", 0) > SLOW_RESPONSE_TIME_THRESHOLD:
             recommendations.append("響應時間較慢,建議優化處理邏輯")
 
         if log_analysis.get("issues"):
@@ -635,10 +646,20 @@ class DiscordBotLogger:
 
         return recommendations
 
+class LoggerManager:
+    """日誌管理器管理器"""
 
-# 全域日誌管理器實例
-_logger_manager: DiscordBotLogger | None = None
+    def __init__(self):
+        self._logger_manager: DiscordBotLogger | None = None
 
+    def get_logger_manager(self) -> DiscordBotLogger:
+        """獲取日誌管理器實例"""
+        if self._logger_manager is None:
+            self._logger_manager = DiscordBotLogger()
+        return self._logger_manager
+
+# 全域管理器實例
+_logger_manager_instance = LoggerManager()
 
 def get_logger_manager() -> DiscordBotLogger:
     """
@@ -647,11 +668,7 @@ def get_logger_manager() -> DiscordBotLogger:
     Returns:
         DiscordBotLogger: 日誌管理器實例
     """
-    global _logger_manager
-    if _logger_manager is None:
-        _logger_manager = DiscordBotLogger()
-    return _logger_manager
-
+    return _logger_manager_instance.get_logger_manager()
 
 def setup_module_logger(module_name: str, **kwargs) -> logging.Logger:
     """

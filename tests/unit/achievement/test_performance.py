@@ -1,7 +1,7 @@
 """成就系統效能優化測試.
 
-測試效能分析器、快取管理器、優化的資料庫操作等功能。
-根據 Story 5.1 Task 9 的要求實作。
+測試效能分析器、快取管理器、優化的資料庫操作等功能.
+根據 Story 5.1 Task 9 的要求實作.
 """
 
 import asyncio
@@ -45,14 +45,11 @@ def sample_achievements():
             description="Test description 1",
             category_id=1,
             type=AchievementType.COUNTER,
-            criteria={
-                "target_value": 10,
-                "counter_field": "message_count"
-            },
+            criteria={"target_value": 10, "counter_field": "message_count"},
             points=100,
             is_active=True,
             role_reward=None,
-            is_hidden=False
+            is_hidden=False,
         ),
         Achievement(
             id=2,
@@ -60,15 +57,12 @@ def sample_achievements():
             description="Test description 2",
             category_id=1,
             type=AchievementType.MILESTONE,
-            criteria={
-                "target_value": 5,
-                "milestone_type": "level"
-            },
+            criteria={"target_value": 5, "milestone_type": "level"},
             points=50,
             is_active=True,
             role_reward="特殊會員",
-            is_hidden=True
-        )
+            is_hidden=True,
+        ),
     ]
 
 
@@ -85,14 +79,19 @@ class TestPerformanceAnalyzer:
         repository.get_user_progress.return_value = None
         repository.get_user_progresses.return_value = []
         repository.get_user_achievement_stats.return_value = {
-            "total_achievements": 0, "total_points": 0, "categories": {}
+            "total_achievements": 0,
+            "total_points": 0,
+            "categories": {},
         }
         repository.get_global_achievement_stats.return_value = {
-            "total_achievements": 2, "active_achievements": 2,
-            "total_user_achievements": 0, "unique_users": 0
+            "total_achievements": 2,
+            "active_achievements": 2,
+            "total_user_achievements": 0,
+            "unique_users": 0,
         }
         repository.get_popular_achievements.return_value = [
-            (sample_achievements[0], 5), (sample_achievements[1], 3)
+            (sample_achievements[0], 5),
+            (sample_achievements[1], 3),
         ]
 
         return repository
@@ -166,7 +165,7 @@ class TestPerformanceAnalyzer:
                 rows_examined=1000,
                 rows_returned=10,
                 memory_usage_mb=5.0,
-                query_sql="SELECT * FROM achievements"
+                query_sql="SELECT * FROM achievements",
             ),
             QueryPerformanceMetric(
                 query_type=QueryType.USER_ACHIEVEMENTS,
@@ -174,8 +173,8 @@ class TestPerformanceAnalyzer:
                 rows_examined=5000,
                 rows_returned=20,
                 memory_usage_mb=15.0,
-                query_sql="SELECT * FROM user_achievements"
-            )
+                query_sql="SELECT * FROM user_achievements",
+            ),
         ]
 
         bottlenecks = await analyzer._identify_bottlenecks()
@@ -197,7 +196,7 @@ class TestCacheManager:
         """測試快取配置."""
         return {
             CacheType.ACHIEVEMENT: CacheConfig(max_size=10, ttl_seconds=60),
-            CacheType.USER_ACHIEVEMENT: CacheConfig(max_size=20, ttl_seconds=30)
+            CacheType.USER_ACHIEVEMENT: CacheConfig(max_size=20, ttl_seconds=30),
         }
 
     @pytest.fixture
@@ -286,16 +285,13 @@ class TestAchievementPerformanceMonitor:
         return AchievementPerformanceMonitor(
             cache_manager=mock_cache_manager,
             slow_query_threshold=100.0,
-            enable_detailed_logging=False
+            enable_detailed_logging=False,
         )
 
     async def test_track_query_operation(self, monitor):
         """測試查詢操作追蹤."""
         await monitor.track_query_operation(
-            operation="test_query",
-            duration_ms=150.0,
-            success=True,
-            user_id=123
+            operation="test_query", duration_ms=150.0, success=True, user_id=123
         )
 
         # 檢查查詢統計
@@ -309,10 +305,7 @@ class TestAchievementPerformanceMonitor:
     async def test_track_cache_operation(self, monitor):
         """測試快取操作追蹤."""
         await monitor.track_cache_operation(
-            cache_type=CacheType.ACHIEVEMENT,
-            operation="get",
-            hit=True,
-            duration_ms=5.0
+            cache_type=CacheType.ACHIEVEMENT, operation="get", hit=True, duration_ms=5.0
         )
 
         # 檢查指標歷史
@@ -326,7 +319,7 @@ class TestAchievementPerformanceMonitor:
         # 測試正常記憶體使用
         await monitor.track_memory_usage(50.0, "normal_operation")
 
-        # 測試高記憶體使用（應該觸發警報）
+        # 測試高記憶體使用(應該觸發警報)
         await monitor.track_memory_usage(90.0, "high_usage_operation")
 
         # 檢查是否有警報產生
@@ -347,7 +340,7 @@ class TestAchievementPerformanceMonitor:
         health_status = monitor._calculate_health_status()
 
         assert health_status in ["excellent", "good", "fair", "poor", "critical"]
-        # 基於這些統計，應該是 "good" 或更好
+        # 基於這些統計,應該是 "good" 或更好
         assert health_status in ["excellent", "good"]
 
 
@@ -365,16 +358,21 @@ class TestAchievementPerformanceService:
         """效能服務實例."""
         # 配置模擬資料
         mock_repository.get_achievement_by_id.return_value = sample_achievements[0]
-        mock_repository.list_achievements_optimized.return_value = (sample_achievements, len(sample_achievements))
+        mock_repository.list_achievements_optimized.return_value = (
+            sample_achievements,
+            len(sample_achievements),
+        )
         mock_repository.get_user_achievements_optimized.return_value = ([], 0)
         mock_repository.get_achievements_by_ids.return_value = sample_achievements
         mock_repository.get_user_progress_batch.return_value = []
-        mock_repository.get_popular_achievements.return_value = [(a, 5) for a in sample_achievements]
+        mock_repository.get_popular_achievements.return_value = [
+            (a, 5) for a in sample_achievements
+        ]
         mock_repository.get_query_stats.return_value = {
             "total_queries": 10,
             "slow_queries": 1,
             "avg_query_time": 45.0,
-            "slow_query_ratio": 0.1
+            "slow_query_ratio": 0.1,
         }
 
         # 創建快取管理器
@@ -384,12 +382,14 @@ class TestAchievementPerformanceService:
         from src.cogs.achievement.services.achievement_monitor import (
             AchievementPerformanceMonitor,
         )
+
         monitor = AchievementPerformanceMonitor(cache_manager=cache_manager)
 
         # 創建效能分析器
         from src.cogs.achievement.services.performance_analyzer import (
             PerformanceAnalyzer,
         )
+
         analyzer = PerformanceAnalyzer(mock_repository)
 
         # 創建服務
@@ -397,7 +397,7 @@ class TestAchievementPerformanceService:
             repository=mock_repository,
             cache_manager=cache_manager,
             performance_monitor=monitor,
-            performance_analyzer=analyzer
+            performance_analyzer=analyzer,
         )
 
         return service
@@ -462,22 +462,21 @@ class TestPerformanceIntegration:
             "total_queries": 10,
             "slow_queries": 1,
             "avg_query_time": 45.0,
-            "slow_query_ratio": 0.1
+            "slow_query_ratio": 0.1,
         }
         mock_repository.get_popular_achievements.return_value = [(mock_achievement, 5)]
 
         # 創建效能服務
         cache_manager = CacheManager(cache_dir=str(tmp_path))
         service = AchievementPerformanceService(
-            repository=mock_repository,
-            cache_manager=cache_manager
+            repository=mock_repository, cache_manager=cache_manager
         )
 
         # 1. 執行查詢操作
         result = await service.get_achievement_optimized(1)
         assert result == mock_achievement
 
-        # 2. 檢查快取是否生效（第二次查詢應該從快取取得）
+        # 2. 檢查快取是否生效(第二次查詢應該從快取取得)
         result2 = await service.get_achievement_optimized(1)
         assert result2 == mock_achievement
 

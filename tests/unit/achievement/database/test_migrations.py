@@ -1,6 +1,6 @@
 """成就系統遷移腳本單元測試.
 
-測試資料庫遷移功能，包括：
+測試資料庫遷移功能,包括:
 - 表格建立
 - 索引建立
 - 觸發器建立
@@ -8,7 +8,7 @@
 - Schema 驗證
 - 遷移回滾
 
-使用記憶體內 SQLite 進行快速測試執行。
+使用記憶體內 SQLite 進行快速測試執行.
 """
 
 from pathlib import Path
@@ -37,9 +37,10 @@ async def test_settings():
 @pytest_asyncio.fixture
 async def test_pool(test_settings):
     """測試用資料庫連線池."""
-    # 使用臨時檔案而非記憶體資料庫，因為需要 Path 物件
+    # 使用臨時檔案而非記憶體資料庫,因為需要 Path 物件
     import tempfile
-    temp_file = Path(tempfile.mktemp(suffix='.db'))
+
+    temp_file = Path(tempfile.mktemp(suffix=".db"))
 
     pool = DatabasePool(temp_file, test_settings)
     await pool.initialize()
@@ -91,7 +92,7 @@ class TestAchievementMigrations:
     async def test_create_achievements_table(self, migrations):
         """測試建立成就表格."""
         async with migrations.pool.get_connection() as conn:
-            # 先建立分類表格（依賴關係）
+            # 先建立分類表格(依賴關係)
             await migrations._create_achievement_categories_table(conn)
             await migrations._create_achievements_table(conn)
 
@@ -108,9 +109,17 @@ class TestAchievementMigrations:
             column_names = [col[1] for col in columns]
 
             expected_columns = [
-                'id', 'name', 'description', 'category_id', 'type',
-                'criteria', 'points', 'badge_url', 'is_active',
-                'created_at', 'updated_at'
+                "id",
+                "name",
+                "description",
+                "category_id",
+                "type",
+                "criteria",
+                "points",
+                "badge_url",
+                "is_active",
+                "created_at",
+                "updated_at",
             ]
             for col in expected_columns:
                 assert col in column_names
@@ -159,8 +168,13 @@ class TestAchievementMigrations:
             column_names = [col[1] for col in columns]
 
             expected_columns = [
-                'id', 'user_id', 'achievement_id', 'current_value',
-                'target_value', 'progress_data', 'last_updated'
+                "id",
+                "user_id",
+                "achievement_id",
+                "current_value",
+                "target_value",
+                "progress_data",
+                "last_updated",
             ]
             for col in expected_columns:
                 assert col in column_names
@@ -178,19 +192,19 @@ class TestAchievementMigrations:
 
             # 檢查索引是否建立
             expected_indexes = [
-                'idx_achievements_category',
-                'idx_achievements_active',
-                'idx_achievements_type',
-                'idx_user_achievements_user',
-                'idx_user_achievements_achievement',
-                'idx_achievement_progress_user',
-                'idx_achievement_progress_achievement',
+                "idx_achievements_category",
+                "idx_achievements_active",
+                "idx_achievements_type",
+                "idx_user_achievements_user",
+                "idx_user_achievements_achievement",
+                "idx_achievement_progress_user",
+                "idx_achievement_progress_achievement",
             ]
 
             for index_name in expected_indexes:
                 cursor = await conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='index' AND name=?",
-                    (index_name,)
+                    (index_name,),
                 )
                 result = await cursor.fetchone()
                 assert result is not None, f"索引 {index_name} 未建立"
@@ -207,22 +221,22 @@ class TestAchievementMigrations:
 
             # 檢查觸發器是否建立
             expected_triggers = [
-                'trg_achievements_updated_at',
-                'trg_achievement_categories_updated_at',
-                'trg_achievement_progress_updated_at',
+                "trg_achievements_updated_at",
+                "trg_achievement_categories_updated_at",
+                "trg_achievement_progress_updated_at",
             ]
 
             for trigger_name in expected_triggers:
                 cursor = await conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='trigger' AND name=?",
-                    (trigger_name,)
+                    (trigger_name,),
                 )
                 result = await cursor.fetchone()
                 assert result is not None, f"觸發器 {trigger_name} 未建立"
 
     @pytest.mark.asyncio
     async def test_verify_schema_success(self, migrations):
-        """測試 Schema 驗證（成功案例）."""
+        """測試 Schema 驗證(成功案例)."""
         # 執行所有遷移
         await migrations.run_all_migrations()
 
@@ -232,7 +246,7 @@ class TestAchievementMigrations:
 
     @pytest.mark.asyncio
     async def test_verify_schema_missing_table(self, migrations):
-        """測試 Schema 驗證（缺少表格）."""
+        """測試 Schema 驗證(缺少表格)."""
         async with migrations.pool.get_connection() as conn:
             # 只建立部分表格
             await migrations._create_achievement_categories_table(conn)
@@ -245,7 +259,7 @@ class TestAchievementMigrations:
 
     @pytest.mark.asyncio
     async def test_verify_schema_empty_categories(self, migrations):
-        """測試 Schema 驗證（分類表格為空）."""
+        """測試 Schema 驗證(分類表格為空)."""
         async with migrations.pool.get_connection() as conn:
             # 建立表格但不插入預設資料
             await conn.execute("""
@@ -296,7 +310,7 @@ class TestAchievementMigrations:
             """)
             await conn.commit()
 
-        # 驗證 Schema 應該失敗（因為沒有預設分類資料）
+        # 驗證 Schema 應該失敗(因為沒有預設分類資料)
         result = await migrations.verify_schema()
         assert result is False
 
@@ -329,7 +343,7 @@ class TestAchievementMigrations:
             # 插入分類
             cursor = await conn.execute(
                 "INSERT INTO achievement_categories (name, description, display_order) VALUES (?, ?, ?)",
-                ("test_category", "測試分類", 1)
+                ("test_category", "測試分類", 1),
             )
             category_id = cursor.lastrowid
             await conn.commit()
@@ -337,23 +351,29 @@ class TestAchievementMigrations:
             # 插入成就
             cursor = await conn.execute(
                 "INSERT INTO achievements (name, description, category_id, type, criteria) VALUES (?, ?, ?, ?, ?)",
-                ("test_achievement", "測試成就", category_id, "counter", '{"target_value": 100}')
+                (
+                    "test_achievement",
+                    "測試成就",
+                    category_id,
+                    "counter",
+                    '{"target_value": 100}',
+                ),
             )
             achievement_id = cursor.lastrowid
             await conn.commit()
 
-            # 插入用戶成就（應該成功）
+            # 插入用戶成就(應該成功)
             await conn.execute(
                 "INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)",
-                (123456, achievement_id)
+                (123456, achievement_id),
             )
             await conn.commit()
 
-            # 嘗試插入無效的 achievement_id（應該失敗）
+            # 嘗試插入無效的 achievement_id(應該失敗)
             with pytest.raises(Exception):  # SQLite 外鍵約束錯誤
                 await conn.execute(
                     "INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)",
-                    (123456, 99999)  # 不存在的成就 ID
+                    (123456, 99999),  # 不存在的成就 ID
                 )
                 await conn.commit()
 
@@ -366,7 +386,7 @@ class TestAchievementMigrations:
             # 插入分類
             cursor = await conn.execute(
                 "INSERT INTO achievement_categories (name, description, display_order) VALUES (?, ?, ?)",
-                ("test_category", "測試分類", 1)
+                ("test_category", "測試分類", 1),
             )
             category_id = cursor.lastrowid
             await conn.commit()
@@ -374,7 +394,13 @@ class TestAchievementMigrations:
             # 插入成就
             cursor = await conn.execute(
                 "INSERT INTO achievements (name, description, category_id, type, criteria) VALUES (?, ?, ?, ?, ?)",
-                ("test_achievement", "測試成就", category_id, "counter", '{"target_value": 100}')
+                (
+                    "test_achievement",
+                    "測試成就",
+                    category_id,
+                    "counter",
+                    '{"target_value": 100}',
+                ),
             )
             achievement_id = cursor.lastrowid
             await conn.commit()
@@ -382,35 +408,35 @@ class TestAchievementMigrations:
             # 取得初始時間戳
             cursor = await conn.execute(
                 "SELECT created_at, updated_at FROM achievements WHERE id = ?",
-                (achievement_id,)
+                (achievement_id,),
             )
             initial_timestamps = await cursor.fetchone()
 
             # 小延遲確保時間戳不同
             import asyncio
+
             await asyncio.sleep(0.01)
 
-            # 更新成就（應該觸發 updated_at 更新）
+            # 更新成就(應該觸發 updated_at 更新)
             await conn.execute(
                 "UPDATE achievements SET name = ? WHERE id = ?",
-                ("更新後的測試成就", achievement_id)
+                ("更新後的測試成就", achievement_id),
             )
             await conn.commit()
 
             # 檢查 updated_at 是否被觸發器更新
             cursor = await conn.execute(
                 "SELECT created_at, updated_at FROM achievements WHERE id = ?",
-                (achievement_id,)
+                (achievement_id,),
             )
             updated_timestamps = await cursor.fetchone()
 
-            # created_at 應該保持不變，updated_at 應該被更新
+            # created_at 應該保持不變,updated_at 應該被更新
             assert updated_timestamps[0] == initial_timestamps[0]  # created_at 不變
-            # 由於觸發器使用 CURRENT_TIMESTAMP，可能因為精度問題導致相同
+            # 由於觸發器使用 CURRENT_TIMESTAMP,可能因為精度問題導致相同
             # 我們檢查名稱是否正確更新以驗證觸發器運行
             cursor = await conn.execute(
-                "SELECT name FROM achievements WHERE id = ?",
-                (achievement_id,)
+                "SELECT name FROM achievements WHERE id = ?", (achievement_id,)
             )
             updated_name = await cursor.fetchone()
             assert updated_name[0] == "更新後的測試成就"
@@ -430,10 +456,12 @@ class TestInitializeAchievementDatabase:
         assert await migrations.verify_schema() is True
 
     @pytest.mark.asyncio
-    async def test_initialize_achievement_database_with_verification_failure(self, test_pool):
+    async def test_initialize_achievement_database_with_verification_failure(
+        self, test_pool
+    ):
         """測試初始化時驗證失敗的情況."""
         # 使用 mock 讓驗證失敗
-        with patch.object(AchievementMigrations, 'verify_schema', return_value=False):
+        with patch.object(AchievementMigrations, "verify_schema", return_value=False):
             with pytest.raises(RuntimeError, match="成就資料庫 Schema 驗證失敗"):
                 await initialize_achievement_database(test_pool)
 
@@ -447,7 +475,7 @@ class TestMigrationErrorHandling:
         migrations = AchievementMigrations(test_pool)
 
         # 模擬資料庫錯誤
-        with patch.object(migrations.pool, 'get_connection') as mock_get_conn:
+        with patch.object(migrations.pool, "get_connection") as mock_get_conn:
             mock_conn = AsyncMock()
             mock_conn.execute.side_effect = Exception("資料庫連接錯誤")
             mock_get_conn.return_value.__aenter__.return_value = mock_conn
@@ -465,7 +493,7 @@ class TestMigrationErrorHandling:
             await migrations._create_achievements_table(conn)
             # 故意不執行其他遷移
 
-        # 再次執行完整遷移（應該能處理已存在的表格）
+        # 再次執行完整遷移(應該能處理已存在的表格)
         await migrations.run_all_migrations()
 
         # 驗證最終結果正確

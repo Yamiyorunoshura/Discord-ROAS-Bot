@@ -1,12 +1,12 @@
 """成就觸發條件配置.
 
-此模組定義成就系統的觸發條件配置，提供：
+此模組定義成就系統的觸發條件配置,提供:
 - 標準化的觸發條件定義
 - 條件模板和預設值
 - 觸發邏輯配置
 - 條件驗證規則
 
-觸發條件遵循以下設計原則：
+觸發條件遵循以下設計原則:
 - 支援多種成就類型的條件定義
 - 提供靈活的條件組合機制
 - 支援複雜的依賴關係
@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, ClassVar
 
 from ..database.models import AchievementType
 
@@ -25,11 +25,11 @@ from ..database.models import AchievementType
 class TriggerCondition:
     """觸發條件定義.
 
-    表示單一觸發條件的定義，包含條件類型、參數和評估邏輯。
+    表示單一觸發條件的定義,包含條件類型、參數和評估邏輯.
     """
 
     condition_type: str
-    """條件類型（如 metric_threshold、achievement_dependency）"""
+    """條件類型(如 metric_threshold、achievement_dependency)"""
 
     parameters: dict[str, Any] = field(default_factory=dict)
     """條件參數"""
@@ -37,12 +37,11 @@ class TriggerCondition:
     description: str = ""
     """條件描述"""
 
-
 @dataclass
 class AchievementTriggerConfig:
     """成就觸發配置.
 
-    定義特定成就的完整觸發配置，包含條件、邏輯和依賴關係。
+    定義特定成就的完整觸發配置,包含條件、邏輯和依賴關係.
     """
 
     achievement_type: AchievementType
@@ -52,28 +51,29 @@ class AchievementTriggerConfig:
     """觸發條件列表"""
 
     logic_operator: str = "AND"
-    """條件邏輯運算子（AND/OR）"""
+    """條件邏輯運算子(AND/OR)"""
 
     dependencies: list[int] = field(default_factory=list)
     """依賴的成就 ID 列表"""
 
     priority: int = 0
-    """觸發優先級（數值越高優先級越高）"""
-
+    """觸發優先級(數值越高優先級越高)"""
 
 class TriggerConditionTemplates:
     """觸發條件模板.
 
-    提供常用的觸發條件模板，簡化成就配置過程。
+    提供常用的觸發條件模板,簡化成就配置過程.
     """
 
     @staticmethod
-    def message_count_threshold(target_count: int, time_window: str | None = None) -> TriggerCondition:
+    def message_count_threshold(
+        target_count: int, time_window: str | None = None
+    ) -> TriggerCondition:
         """建立訊息數量閾值條件."""
         parameters = {
             "metric": "message_count",
             "threshold": target_count,
-            "operator": ">="
+            "operator": ">=",
         }
 
         if time_window:
@@ -82,7 +82,7 @@ class TriggerConditionTemplates:
         return TriggerCondition(
             condition_type="metric_threshold",
             parameters=parameters,
-            description=f"發送 {target_count} 則訊息"
+            description=f"發送 {target_count} 則訊息",
         )
 
     @staticmethod
@@ -93,9 +93,9 @@ class TriggerConditionTemplates:
             parameters={
                 "activity_type": "daily_active",
                 "target_days": days,
-                "consecutive": True
+                "consecutive": True,
             },
-            description=f"連續活躍 {days} 天"
+            description=f"連續活躍 {days} 天",
         )
 
     @staticmethod
@@ -104,7 +104,7 @@ class TriggerConditionTemplates:
         return TriggerCondition(
             condition_type="achievement_dependency",
             parameters={"achievement_id": achievement_id},
-            description=f"需要先獲得成就 {achievement_id}"
+            description=f"需要先獲得成就 {achievement_id}",
         )
 
     @staticmethod
@@ -112,11 +112,8 @@ class TriggerConditionTemplates:
         """建立時間範圍條件."""
         return TriggerCondition(
             condition_type="time_range",
-            parameters={
-                "start_time": start_time,
-                "end_time": end_time
-            },
-            description=f"在時間範圍 {start_time} - {end_time} 內"
+            parameters={"start_time": start_time, "end_time": end_time},
+            description=f"在時間範圍 {start_time} - {end_time} 內",
         )
 
     @staticmethod
@@ -125,7 +122,7 @@ class TriggerConditionTemplates:
         return TriggerCondition(
             condition_type="guild_role",
             parameters={"role_id": role_id},
-            description=f"需要擁有角色 {role_id}"
+            description=f"需要擁有角色 {role_id}",
         )
 
     @staticmethod
@@ -136,16 +133,15 @@ class TriggerConditionTemplates:
             parameters={
                 "channel_id": channel_id,
                 "activity_count": activity_count,
-                "operator": ">="
+                "operator": ">=",
             },
-            description=f"在頻道 {channel_id} 中活動 {activity_count} 次"
+            description=f"在頻道 {channel_id} 中活動 {activity_count} 次",
         )
-
 
 class DefaultTriggerConfigs:
     """預設觸發配置.
 
-    提供常見成就類型的預設觸發配置模板。
+    提供常見成就類型的預設觸發配置模板.
     """
 
     @staticmethod
@@ -153,11 +149,9 @@ class DefaultTriggerConfigs:
         """新手訊息員成就配置."""
         return AchievementTriggerConfig(
             achievement_type=AchievementType.COUNTER,
-            conditions=[
-                TriggerConditionTemplates.message_count_threshold(10)
-            ],
+            conditions=[TriggerConditionTemplates.message_count_threshold(10)],
             logic_operator="AND",
-            priority=1
+            priority=1,
         )
 
     @staticmethod
@@ -165,44 +159,45 @@ class DefaultTriggerConfigs:
         """活躍成員成就配置."""
         return AchievementTriggerConfig(
             achievement_type=AchievementType.TIME_BASED,
-            conditions=[
-                TriggerConditionTemplates.consecutive_days_active(7)
-            ],
+            conditions=[TriggerConditionTemplates.consecutive_days_active(7)],
             logic_operator="AND",
-            priority=2
+            priority=2,
         )
 
     @staticmethod
-    def get_milestone_achiever_config(prerequisite_achievement_id: int) -> AchievementTriggerConfig:
+    def get_milestone_achiever_config(
+        prerequisite_achievement_id: int,
+    ) -> AchievementTriggerConfig:
         """里程碑達成者成就配置."""
         return AchievementTriggerConfig(
             achievement_type=AchievementType.CONDITIONAL,
             conditions=[
-                TriggerConditionTemplates.achievement_dependency(prerequisite_achievement_id),
-                TriggerConditionTemplates.message_count_threshold(100)
+                TriggerConditionTemplates.achievement_dependency(
+                    prerequisite_achievement_id
+                ),
+                TriggerConditionTemplates.message_count_threshold(100),
             ],
             logic_operator="AND",
             dependencies=[prerequisite_achievement_id],
-            priority=3
+            priority=3,
         )
-
 
 class TriggerConditionValidator:
     """觸發條件驗證器.
 
-    驗證觸發條件配置的正確性和完整性。
+    驗證觸發條件配置的正確性和完整性.
     """
 
-    SUPPORTED_CONDITION_TYPES = {
+    SUPPORTED_CONDITION_TYPES: ClassVar[set[str]] = {
         "metric_threshold",
         "achievement_dependency",
         "time_range",
         "consecutive_activity",
         "guild_role",
-        "channel_activity"
+        "channel_activity",
     }
 
-    SUPPORTED_OPERATORS = {">=", ">", "<=", "<", "==", "!="}
+    SUPPORTED_OPERATORS: ClassVar[set[str]] = {">=", ">", "<=", "<", "==", "!="}
 
     @classmethod
     def validate_condition(cls, condition: TriggerCondition) -> list[str]:
@@ -212,7 +207,7 @@ class TriggerConditionValidator:
             condition: 要驗證的條件
 
         Returns:
-            驗證錯誤列表（空列表表示無錯誤）
+            驗證錯誤列表(空列表表示無錯誤)
         """
         errors = []
 
@@ -240,7 +235,7 @@ class TriggerConditionValidator:
             config: 要驗證的配置
 
         Returns:
-            驗證錯誤列表（空列表表示無錯誤）
+            驗證錯誤列表(空列表表示無錯誤)
         """
         errors = []
 
@@ -324,7 +319,6 @@ class TriggerConditionValidator:
             errors.append("target_days 必須是正整數")
 
         return errors
-
 
 __all__ = [
     "AchievementTriggerConfig",

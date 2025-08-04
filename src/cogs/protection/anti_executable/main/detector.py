@@ -11,13 +11,17 @@ from urllib.parse import unquote, urlparse
 import aiohttp
 import discord
 
-from ..config.config import *
+from ..config.config import (
+    DANGEROUS_EXTENSIONS,
+    MAGIC_SIGNATURES,
+    MAX_FILE_SIZE,
+    STRICT_EXTENSIONS,
+)
 
 if TYPE_CHECKING:
     from .main import AntiExecutable
 
 logger = logging.getLogger("anti_executable")
-
 
 class ExecutableDetector:
     """可執行檔案檢測器"""

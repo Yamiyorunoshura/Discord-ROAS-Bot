@@ -50,7 +50,6 @@ class WhitelistModal(ui.Modal):
             f"✅ 已添加白名單網域:{domain}", ephemeral=True
         )
 
-
 class BlacklistModal(ui.Modal):
     """黑名單添加對話框"""
 
@@ -90,7 +89,6 @@ class BlacklistModal(ui.Modal):
         await interaction.response.send_message(
             f"✅ 已添加黑名單網域:{domain}", ephemeral=True
         )
-
 
 class RemoveModal(ui.Modal):
     """移除網域對話框"""

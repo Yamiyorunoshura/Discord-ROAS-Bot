@@ -16,7 +16,6 @@ class BaseModal(ui.Modal):
         super().__init__(**kwargs)
         self.main_view = view
 
-
 # 設定對話框
 class SettingsModal(BaseModal):
     """設定對話框"""
@@ -96,13 +95,12 @@ class SettingsModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"更新設定失敗:{exc}")
 
-
 # 白名單對話框
 class AddWhitelistModal(BaseModal):
     """新增白名單對話框"""
 
     def __init__(self, view: AntiExecutableMainView):
-        super().__init__(view=view, title="➕ 新增白名單項目")
+        super().__init__(view=view, title="+ 新增白名單項目")
 
         self.add_item(
             ui.TextInput(
@@ -146,12 +144,11 @@ class AddWhitelistModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"新增白名單失敗:{exc}")
 
-
 class RemoveWhitelistModal(BaseModal):
     """移除白名單對話框"""
 
     def __init__(self, view: AntiExecutableMainView):
-        super().__init__(view=view, title="➖ 移除白名單項目")
+        super().__init__(view=view, title="- 移除白名單項目")
 
         self.add_item(
             ui.TextInput(
@@ -192,13 +189,12 @@ class RemoveWhitelistModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"移除白名單失敗:{exc}")
 
-
 # 黑名單對話框
 class AddBlacklistModal(BaseModal):
     """新增黑名單對話框"""
 
     def __init__(self, view: AntiExecutableMainView):
-        super().__init__(view=view, title="➕ 新增黑名單項目")
+        super().__init__(view=view, title="+ 新增黑名單項目")
 
         self.add_item(
             ui.TextInput(
@@ -242,12 +238,11 @@ class AddBlacklistModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"新增黑名單失敗:{exc}")
 
-
 class RemoveBlacklistModal(BaseModal):
     """移除黑名單對話框"""
 
     def __init__(self, view: AntiExecutableMainView):
-        super().__init__(view=view, title="➖ 移除黑名單項目")
+        super().__init__(view=view, title="- 移除黑名單項目")
 
         self.add_item(
             ui.TextInput(
@@ -288,13 +283,12 @@ class RemoveBlacklistModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"移除黑名單失敗:{exc}")
 
-
 # 格式管理對話框
 class AddFormatModal(BaseModal):
     """新增格式對話框"""
 
     def __init__(self, view: AntiExecutableMainView):
-        super().__init__(view=view, title="➕ 新增檔案格式")
+        super().__init__(view=view, title="+ 新增檔案格式")
 
         self.add_item(
             ui.TextInput(
@@ -345,12 +339,11 @@ class AddFormatModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"新增格式失敗:{exc}")
 
-
 class RemoveFormatModal(BaseModal):
     """移除格式對話框"""
 
     def __init__(self, view: AntiExecutableMainView):
-        super().__init__(view=view, title="➖ 移除檔案格式")
+        super().__init__(view=view, title="- 移除檔案格式")
 
         self.add_item(
             ui.TextInput(

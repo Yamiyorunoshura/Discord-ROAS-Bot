@@ -1,13 +1,13 @@
 """成就系統核心業務邏輯服務.
 
-此模組實作成就系統的核心業務邏輯，提供：
+此模組實作成就系統的核心業務邏輯,提供:
 - 完整的成就 CRUD 操作
 - 成就查詢和篩選功能
 - 業務規則驗證和邏輯處理
 - 快取策略和效能優化
 - 統一的錯誤處理和日誌記錄
 
-服務層遵循以下設計原則：
+服務層遵循以下設計原則:
 - 使用 Repository Pattern 隔離資料存取
 - 支援異步操作和上下文管理
 - 提供完整的型別註解和文檔
@@ -20,14 +20,14 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..database.models import (
-        Achievement,
-        AchievementCategory,
-        AchievementType,
-        UserAchievement,
-    )
     from ..database.repository import AchievementRepository
 
+from ..database.models import (
+    Achievement,
+    AchievementCategory,
+    AchievementType,
+    UserAchievement,
+)
 from .cache_service import AchievementCacheService
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class AchievementService:
     """成就系統核心業務邏輯服務.
 
-    提供成就系統的所有業務邏輯操作，包含：
+    提供成就系統的所有業務邏輯操作,包含:
     - 成就和分類的 CRUD 操作
     - 用戶成就獲得和進度管理
     - 業務規則驗證和邏輯處理
@@ -46,22 +46,20 @@ class AchievementService:
     def __init__(
         self,
         repository: AchievementRepository,
-        cache_service: AchievementCacheService | None = None
+        cache_service: AchievementCacheService | None = None,
     ):
         """初始化成就服務.
 
         Args:
             repository: 成就資料存取庫
-            cache_service: 快取服務實例（可選，預設會建立新實例）
+            cache_service: 快取服務實例(可選,預設會建立新實例)
         """
         self._repository = repository
         self._cache_service = cache_service or AchievementCacheService()
 
         logger.info(
             "AchievementService 初始化完成",
-            extra={
-                "cache_service": "provided" if cache_service else "created"
-            }
+            extra={"cache_service": "provided" if cache_service else "created"},
         )
 
     async def __aenter__(self) -> AchievementService:
@@ -98,19 +96,20 @@ class AchievementService:
     # Achievement Category 業務邏輯
     # =============================================================================
 
-    async def create_category(self, category: AchievementCategory) -> AchievementCategory:
+    async def create_category(
+        self, category: AchievementCategory
+    ) -> AchievementCategory:
         """建立新的成就分類.
 
         Args:
             category: 成就分類資料
 
         Returns:
-            建立後的成就分類（包含 ID）
+            建立後的成就分類(包含 ID)
 
         Raises:
             ValueError: 分類名稱已存在或資料無效
         """
-        # 業務規則驗證：檢查分類名稱是否已存在
         existing_category = await self._repository.get_category_by_name(category.name)
         if existing_category:
             raise ValueError(f"分類名稱 '{category.name}' 已存在")
@@ -119,14 +118,16 @@ class AchievementService:
             created_category = await self._repository.create_category(category)
 
             # 無效化相關快取
-            self._invalidate_cache_by_operation("create_category", category_id=created_category.id)
+            self._invalidate_cache_by_operation(
+                "create_category", category_id=created_category.id
+            )
 
             logger.info(
                 "成就分類建立成功",
                 extra={
                     "category_id": created_category.id,
-                    "category_name": created_category.name
-                }
+                    "category_name": created_category.name,
+                },
             )
 
             return created_category
@@ -134,11 +135,8 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "成就分類建立失敗",
-                extra={
-                    "category_name": category.name,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"category_name": category.name, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -170,22 +168,21 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得成就分類失敗",
-                extra={
-                    "category_id": category_id,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"category_id": category_id, "error": str(e)},
+                exc_info=True,
             )
             raise
 
-    async def list_categories(self, active_only: bool = True) -> list[AchievementCategory]:
+    async def list_categories(
+        self, active_only: bool = True
+    ) -> list[AchievementCategory]:
         """取得所有成就分類列表.
 
         Args:
             active_only: 是否只取得啟用的分類
 
         Returns:
-            成就分類列表，按 display_order 排序
+            成就分類列表,按 display_order 排序
         """
         cache_key = self._get_cache_key("categories", active_only)
 
@@ -202,10 +199,7 @@ class AchievementService:
 
             logger.debug(
                 "取得成就分類列表",
-                extra={
-                    "count": len(categories),
-                    "active_only": active_only
-                }
+                extra={"count": len(categories), "active_only": active_only},
             )
 
             return categories
@@ -213,18 +207,13 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得成就分類列表失敗",
-                extra={
-                    "active_only": active_only,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"active_only": active_only, "error": str(e)},
+                exc_info=True,
             )
             raise
 
     async def update_category(
-        self,
-        category_id: int,
-        updates: dict[str, Any]
+        self, category_id: int, updates: dict[str, Any]
     ) -> AchievementCategory | None:
         """更新成就分類.
 
@@ -233,7 +222,7 @@ class AchievementService:
             updates: 要更新的欄位字典
 
         Returns:
-            更新後的分類物件或 None（如果分類不存在）
+            更新後的分類物件或 None(如果分類不存在)
 
         Raises:
             ValueError: 更新資料無效或違反業務規則
@@ -241,9 +230,10 @@ class AchievementService:
         if not updates:
             raise ValueError("更新資料不能為空")
 
-        # 業務規則驗證：檢查名稱衝突
-        if 'name' in updates:
-            existing_category = await self._repository.get_category_by_name(updates['name'])
+        if "name" in updates:
+            existing_category = await self._repository.get_category_by_name(
+                updates["name"]
+            )
             if existing_category and existing_category.id != category_id:
                 raise ValueError(f"分類名稱 '{updates['name']}' 已存在")
 
@@ -253,7 +243,9 @@ class AchievementService:
                 return None
 
             # 無效化相關快取
-            self._invalidate_cache_by_operation("update_category", category_id=category_id)
+            self._invalidate_cache_by_operation(
+                "update_category", category_id=category_id
+            )
 
             # 取得更新後的分類
             updated_category = await self.get_category_by_id(category_id)
@@ -262,8 +254,8 @@ class AchievementService:
                 "成就分類更新成功",
                 extra={
                     "category_id": category_id,
-                    "updated_fields": list(updates.keys())
-                }
+                    "updated_fields": list(updates.keys()),
+                },
             )
 
             return updated_category
@@ -271,12 +263,8 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "成就分類更新失敗",
-                extra={
-                    "category_id": category_id,
-                    "updates": updates,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"category_id": category_id, "updates": updates, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -287,38 +275,327 @@ class AchievementService:
             category_id: 分類 ID
 
         Returns:
-            True 如果刪除成功，否則 False
+            True 如果刪除成功,否則 False
 
         Raises:
             ValueError: 分類下還有成就時不能刪除
         """
-        # 業務規則驗證：檢查是否有成就使用此分類
         achievements = await self.list_achievements(category_id=category_id)
         if achievements:
-            raise ValueError(f"分類 {category_id} 下還有 {len(achievements)} 個成就，無法刪除")
+            raise ValueError(
+                f"分類 {category_id} 下還有 {len(achievements)} 個成就,無法刪除"
+            )
 
         try:
             success = await self._repository.delete_category(category_id)
 
             if success:
                 # 無效化相關快取
-                self._invalidate_cache_by_operation("delete_category", category_id=category_id)
-
-                logger.info(
-                    "成就分類刪除成功",
-                    extra={"category_id": category_id}
+                self._invalidate_cache_by_operation(
+                    "delete_category", category_id=category_id
                 )
+
+                logger.info("成就分類刪除成功", extra={"category_id": category_id})
 
             return success
 
         except Exception as e:
             logger.error(
                 "成就分類刪除失敗",
+                extra={"category_id": category_id, "error": str(e)},
+                exc_info=True,
+            )
+            raise
+
+    # =============================================================================
+    # 分類樹業務邏輯
+    # =============================================================================
+
+    async def get_achievement_categories(self, _guild_id: int | None = None) -> list[AchievementCategory]:
+        """取得成就分類列表(API 兼容方法).
+
+        Args:
+            guild_id: 伺服器 ID(目前未使用,保留供未來擴展)
+
+        Returns:
+            成就分類列表
+        """
+        return await self.list_categories(active_only=True)
+
+    async def get_achievements_by_category(
+        self, _guild_id: int | None, category: str | int
+    ) -> list[Achievement]:
+        """根據分類取得成就列表(API 兼容方法).
+
+        Args:
+            guild_id: 伺服器 ID(目前未使用,保留供未來擴展)
+            category: 分類名稱或分類 ID
+
+        Returns:
+            成就列表
+        """
+        # 處理分類參數
+        category_id = None
+        if isinstance(category, int):
+            category_id = category
+        elif isinstance(category, str):
+            if category.isdigit():
+                category_id = int(category)
+            else:
+                # 根據名稱查找分類
+                category_obj = await self._repository.get_category_by_name(category)
+                if category_obj:
+                    category_id = category_obj.id
+
+        return await self.list_achievements(category_id=category_id, active_only=True)
+
+    async def get_root_categories(self) -> list[AchievementCategory]:
+        """取得所有根分類.
+
+        Returns:
+            根分類列表
+        """
+        cache_key = self._get_cache_key("root_categories")
+
+        # 檢查快取
+        cached_result = self._cache_service.get("category", cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        try:
+            root_categories = await self._repository.get_root_categories()
+
+            # 存入快取
+            self._cache_service.set("category", cache_key, root_categories)
+
+            logger.debug(
+                "取得根分類列表",
+                extra={"count": len(root_categories)},
+            )
+
+            return root_categories
+
+        except Exception as e:
+            logger.error(
+                "取得根分類列表失敗",
+                extra={"error": str(e)},
+                exc_info=True,
+            )
+            raise
+
+    async def get_child_categories(self, parent_id: int) -> list[AchievementCategory]:
+        """取得子分類.
+
+        Args:
+            parent_id: 父分類 ID
+
+        Returns:
+            子分類列表
+        """
+        cache_key = self._get_cache_key("child_categories", parent_id)
+
+        # 檢查快取
+        cached_result = self._cache_service.get("category", cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        try:
+            child_categories = await self._repository.get_child_categories(parent_id)
+
+            # 存入快取
+            self._cache_service.set("category", cache_key, child_categories)
+
+            logger.debug(
+                "取得子分類列表",
+                extra={"parent_id": parent_id, "count": len(child_categories)},
+            )
+
+            return child_categories
+
+        except Exception as e:
+            logger.error(
+                "取得子分類列表失敗",
+                extra={"parent_id": parent_id, "error": str(e)},
+                exc_info=True,
+            )
+            raise
+
+    async def get_category_tree(self, root_id: int | None = None) -> list[dict[str, Any]]:
+        """取得分類樹結構.
+
+        Args:
+            root_id: 根分類 ID,None 表示從頂層開始
+
+        Returns:
+            包含分類和子分類的樹狀結構列表
+        """
+        cache_key = self._get_cache_key("category_tree", root_id)
+
+        # 檢查快取
+        cached_result = self._cache_service.get("category", cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        try:
+            category_tree = await self._repository.get_category_tree(root_id)
+
+            # 存入快取
+            self._cache_service.set("category", cache_key, category_tree)
+
+            logger.debug(
+                "取得分類樹結構",
+                extra={"root_id": root_id, "tree_size": len(category_tree)},
+            )
+
+            return category_tree
+
+        except Exception as e:
+            logger.error(
+                "取得分類樹結構失敗",
+                extra={"root_id": root_id, "error": str(e)},
+                exc_info=True,
+            )
+            raise
+
+    async def get_category_path(self, category_id: int) -> list[AchievementCategory]:
+        """取得分類的完整路徑.
+
+        Args:
+            category_id: 分類 ID
+
+        Returns:
+            分類路徑列表,從根分類到當前分類
+        """
+        cache_key = self._get_cache_key("category_path", category_id)
+
+        # 檢查快取
+        cached_result = self._cache_service.get("category", cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        try:
+            category_path = await self._repository.get_category_path(category_id)
+
+            # 存入快取
+            self._cache_service.set("category", cache_key, category_path)
+
+            logger.debug(
+                "取得分類路徑",
+                extra={"category_id": category_id, "path_length": len(category_path)},
+            )
+
+            return category_path
+
+        except Exception as e:
+            logger.error(
+                "取得分類路徑失敗",
+                extra={"category_id": category_id, "error": str(e)},
+                exc_info=True,
+            )
+            raise
+
+    async def toggle_category_expansion(self, category_id: int) -> bool:
+        """切換分類的展開狀態.
+
+        Args:
+            category_id: 分類 ID
+
+        Returns:
+            新的展開狀態
+        """
+        try:
+            # 獲取當前狀態
+            category = await self.get_category_by_id(category_id)
+            if not category:
+                raise ValueError(f"分類 {category_id} 不存在")
+
+            # 切換狀態
+            new_state = not category.is_expanded
+
+            # 更新資料庫
+            success = await self._repository.update_category_expansion(
+                category_id, new_state
+            )
+
+            if success:
+                # 無效化相關快取
+                self._invalidate_cache_by_operation(
+                    "toggle_expansion", category_id=category_id
+                )
+
+                logger.debug(
+                    "分類展開狀態已切換",
+                    extra={
+                        "category_id": category_id,
+                        "old_state": category.is_expanded,
+                        "new_state": new_state,
+                    },
+                )
+
+            return new_state
+
+        except Exception as e:
+            logger.error(
+                "切換分類展開狀態失敗",
+                extra={"category_id": category_id, "error": str(e)},
+                exc_info=True,
+            )
+            raise
+
+    async def get_category_achievement_count(
+        self, category_id: int, include_children: bool = True
+    ) -> int:
+        """取得分類下的成就數量.
+
+        Args:
+            category_id: 分類 ID
+            include_children: 是否包含子分類的成就
+
+        Returns:
+            成就數量
+        """
+        cache_key = self._get_cache_key(
+            "category_achievement_count", category_id, include_children
+        )
+
+        # 檢查快取
+        cached_result = self._cache_service.get("category", cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        try:
+            if include_children:
+                count = await self._repository._get_category_achievement_count(
+                    category_id
+                )
+            else:
+                # 只計算直接在此分類下的成就
+                achievements = await self.list_achievements(category_id=category_id)
+                count = len(achievements)
+
+            # 存入快取
+            self._cache_service.set("category", cache_key, count)
+
+            logger.debug(
+                "取得分類成就數量",
                 extra={
                     "category_id": category_id,
-                    "error": str(e)
+                    "include_children": include_children,
+                    "count": count,
                 },
-                exc_info=True
+            )
+
+            return count
+
+        except Exception as e:
+            logger.error(
+                "取得分類成就數量失敗",
+                extra={
+                    "category_id": category_id,
+                    "include_children": include_children,
+                    "error": str(e),
+                },
+                exc_info=True,
             )
             raise
 
@@ -337,7 +614,7 @@ class AchievementService:
         badge_url: str | None = None,
         role_reward: str | None = None,
         is_hidden: bool = False,
-        is_active: bool = True
+        is_active: bool = True,
     ) -> Achievement:
         """建立新成就.
 
@@ -354,25 +631,19 @@ class AchievementService:
             is_active: 是否啟用
 
         Returns:
-            建立後的成就（包含 ID）
+            建立後的成就(包含 ID)
 
         Raises:
             ValueError: 成就資料無效或違反業務規則
         """
-        # 業務規則驗證：檢查分類是否存在
         category = await self.get_category_by_id(category_id)
         if not category:
             raise ValueError(f"分類 {category_id} 不存在")
 
-        # 業務規則驗證：檢查成就名稱在分類內是否唯一
-        existing_achievements = await self.list_achievements(
-            category_id=category_id
-        )
+        existing_achievements = await self.list_achievements(category_id=category_id)
         if any(a.name == name for a in existing_achievements):
             raise ValueError(f"分類內成就名稱 '{name}' 已存在")
 
-        # 建立成就物件
-        from ..database.models import Achievement
         achievement = Achievement(
             name=name,
             description=description,
@@ -383,24 +654,26 @@ class AchievementService:
             badge_url=badge_url,
             role_reward=role_reward,
             is_hidden=is_hidden,
-            is_active=is_active
+            is_active=is_active,
         )
 
         try:
             created_achievement = await self._repository.create_achievement(achievement)
 
             # 無效化相關快取
-            self._invalidate_cache_by_operation("create_achievement",
-                                                 category_id=created_achievement.category_id,
-                                                 achievement_id=created_achievement.id)
+            self._invalidate_cache_by_operation(
+                "create_achievement",
+                category_id=created_achievement.category_id,
+                achievement_id=created_achievement.id,
+            )
 
             logger.info(
                 "成就建立成功",
                 extra={
                     "achievement_id": created_achievement.id,
                     "achievement_name": created_achievement.name,
-                    "category_id": created_achievement.category_id
-                }
+                    "category_id": created_achievement.category_id,
+                },
             )
 
             return created_achievement
@@ -410,10 +683,10 @@ class AchievementService:
                 "成就建立失敗",
                 extra={
                     "achievement_name": name,
-                "category_id": category_id,
-                "error": str(e)
+                    "category_id": category_id,
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
@@ -445,11 +718,8 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得成就失敗",
-                extra={
-                    "achievement_id": achievement_id,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"achievement_id": achievement_id, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -459,7 +729,7 @@ class AchievementService:
         achievement_type: AchievementType | None = None,
         active_only: bool = True,
         limit: int | None = None,
-        offset: int = 0
+        offset: int = 0,
     ) -> list[Achievement]:
         """取得成就列表.
 
@@ -488,7 +758,7 @@ class AchievementService:
                 achievement_type=achievement_type,
                 active_only=active_only,
                 limit=limit,
-                offset=offset
+                offset=offset,
             )
 
             # 存入快取
@@ -499,9 +769,11 @@ class AchievementService:
                 extra={
                     "count": len(achievements),
                     "category_id": category_id,
-                    "achievement_type": achievement_type.value if achievement_type else None,
-                    "active_only": active_only
-                }
+                    "achievement_type": achievement_type.value
+                    if achievement_type
+                    else None,
+                    "active_only": active_only,
+                },
             )
 
             return achievements
@@ -511,18 +783,18 @@ class AchievementService:
                 "取得成就列表失敗",
                 extra={
                     "category_id": category_id,
-                    "achievement_type": achievement_type.value if achievement_type else None,
+                    "achievement_type": achievement_type.value
+                    if achievement_type
+                    else None,
                     "active_only": active_only,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
     async def update_achievement(
-        self,
-        achievement_id: int,
-        updates: dict[str, Any]
+        self, achievement_id: int, updates: dict[str, Any]
     ) -> Achievement | None:
         """更新成就.
 
@@ -531,7 +803,7 @@ class AchievementService:
             updates: 要更新的欄位字典
 
         Returns:
-            更新後的成就物件或 None（如果成就不存在）
+            更新後的成就物件或 None(如果成就不存在)
 
         Raises:
             ValueError: 更新資料無效或違反業務規則
@@ -539,9 +811,8 @@ class AchievementService:
         if not updates:
             raise ValueError("更新資料不能為空")
 
-        # 業務規則驗證：檢查分類是否存在
-        if 'category_id' in updates:
-            category = await self.get_category_by_id(updates['category_id'])
+        if "category_id" in updates:
+            category = await self.get_category_by_id(updates["category_id"])
             if not category:
                 raise ValueError(f"分類 {updates['category_id']} 不存在")
 
@@ -551,9 +822,11 @@ class AchievementService:
                 return None
 
             # 無效化相關快取
-            self._invalidate_cache_by_operation("update_achievement",
-                                                 achievement_id=achievement_id,
-                                                 category_id=updates.get('category_id'))
+            self._invalidate_cache_by_operation(
+                "update_achievement",
+                achievement_id=achievement_id,
+                category_id=updates.get("category_id"),
+            )
 
             # 取得更新後的成就
             updated_achievement = await self.get_achievement_by_id(achievement_id)
@@ -562,8 +835,8 @@ class AchievementService:
                 "成就更新成功",
                 extra={
                     "achievement_id": achievement_id,
-                    "updated_fields": list(updates.keys())
-                }
+                    "updated_fields": list(updates.keys()),
+                },
             )
 
             return updated_achievement
@@ -574,9 +847,9 @@ class AchievementService:
                 extra={
                     "achievement_id": achievement_id,
                     "updates": updates,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
@@ -587,50 +860,49 @@ class AchievementService:
             achievement_id: 成就 ID
 
         Returns:
-            True 如果刪除成功，否則 False
+            True 如果刪除成功,否則 False
 
         Raises:
             ValueError: 有用戶已獲得此成就時不能刪除
         """
-        # 業務規則驗證：檢查是否有用戶已獲得此成就
         try:
             # 檢查是否有用戶已獲得此成就
-            users_with_achievement = await self._repository.get_users_with_achievement(achievement_id)
+            users_with_achievement = await self._repository.get_users_with_achievement(
+                achievement_id
+            )
             if users_with_achievement:
                 raise ValueError(
-                    f"無法刪除成就 {achievement_id}：有 {len(users_with_achievement)} 個用戶已獲得此成就。"
-                    "請先撤銷所有用戶的此成就，或考慮將成就設為不可用而非刪除。"
+                    f"無法刪除成就 {achievement_id}:有 {len(users_with_achievement)} 個用戶已獲得此成就."
+                    "請先撤銷所有用戶的此成就,或考慮將成就設為不可用而非刪除."
                 )
         except AttributeError:
-            # 如果 repository 還沒有實作 get_users_with_achievement 方法，記錄警告
-            self._logger.warning("Repository 缺少 get_users_with_achievement 方法，跳過用戶成就檢查")
+            # 如果 repository 還沒有實作 get_users_with_achievement 方法,記錄警告
+            self._logger.warning(
+                "Repository 缺少 get_users_with_achievement 方法,跳過用戶成就檢查"
+            )
         except Exception as e:
             self._logger.error(f"檢查用戶成就時發生錯誤: {e}")
-            # 為了安全起見，如果檢查失敗則阻止刪除
-            raise ValueError(f"無法驗證成就是否可以安全刪除: {e}")
+            # 為了安全起見,如果檢查失敗則阻止刪除
+            raise ValueError(f"無法驗證成就是否可以安全刪除: {e}") from e
 
         try:
             success = await self._repository.delete_achievement(achievement_id)
 
             if success:
                 # 無效化相關快取
-                self._invalidate_cache_by_operation("delete_achievement", achievement_id=achievement_id)
-
-                logger.info(
-                    "成就刪除成功",
-                    extra={"achievement_id": achievement_id}
+                self._invalidate_cache_by_operation(
+                    "delete_achievement", achievement_id=achievement_id
                 )
+
+                logger.info("成就刪除成功", extra={"achievement_id": achievement_id})
 
             return success
 
         except Exception as e:
             logger.error(
                 "成就刪除失敗",
-                extra={
-                    "achievement_id": achievement_id,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"achievement_id": achievement_id, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -639,9 +911,7 @@ class AchievementService:
     # =============================================================================
 
     async def award_achievement_to_user(
-        self,
-        user_id: int,
-        achievement_id: int
+        self, user_id: int, achievement_id: int
     ) -> UserAchievement:
         """為用戶頒發成就.
 
@@ -655,7 +925,6 @@ class AchievementService:
         Raises:
             ValueError: 成就不存在或用戶已獲得
         """
-        # 業務規則驗證：檢查成就是否存在且啟用
         achievement = await self.get_achievement_by_id(achievement_id)
         if not achievement:
             raise ValueError(f"成就 {achievement_id} 不存在")
@@ -664,12 +933,14 @@ class AchievementService:
             raise ValueError(f"成就 {achievement_id} 未啟用")
 
         try:
-            user_achievement = await self._repository.award_achievement(user_id, achievement_id)
+            user_achievement = await self._repository.award_achievement(
+                user_id, achievement_id
+            )
 
             # 無效化相關快取
-            self._invalidate_cache_by_operation("award_achievement",
-                                                 user_id=user_id,
-                                                 achievement_id=achievement_id)
+            self._invalidate_cache_by_operation(
+                "award_achievement", user_id=user_id, achievement_id=achievement_id
+            )
 
             logger.info(
                 "用戶成就頒發成功",
@@ -677,8 +948,8 @@ class AchievementService:
                     "user_id": user_id,
                     "achievement_id": achievement_id,
                     "achievement_name": achievement.name,
-                    "points": achievement.points
-                }
+                    "points": achievement.points,
+                },
             )
 
             return user_achievement
@@ -689,19 +960,16 @@ class AchievementService:
                 extra={
                     "user_id": user_id,
                     "achievement_id": achievement_id,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
     async def get_user_achievements(
-        self,
-        user_id: int,
-        category_id: int | None = None,
-        limit: int | None = None
+        self, user_id: int, category_id: int | None = None, limit: int | None = None
     ) -> list[tuple[UserAchievement, Achievement]]:
-        """取得用戶的成就列表（含成就詳細資訊）.
+        """取得用戶的成就列表(含成就詳細資訊).
 
         Args:
             user_id: 用戶 ID
@@ -711,7 +979,9 @@ class AchievementService:
         Returns:
             (用戶成就記錄, 成就詳情) 的元組列表
         """
-        cache_key = self._get_cache_key("user_achievements", user_id, category_id, limit)
+        cache_key = self._get_cache_key(
+            "user_achievements", user_id, category_id, limit
+        )
 
         # 檢查快取
         cached_result = self._cache_service.get("user_achievements", cache_key)
@@ -720,9 +990,7 @@ class AchievementService:
 
         try:
             user_achievements = await self._repository.get_user_achievements(
-                user_id=user_id,
-                category_id=category_id,
-                limit=limit
+                user_id=user_id, category_id=category_id, limit=limit
             )
 
             # 存入快取
@@ -733,8 +1001,8 @@ class AchievementService:
                 extra={
                     "user_id": user_id,
                     "count": len(user_achievements),
-                    "category_id": category_id
-                }
+                    "category_id": category_id,
+                },
             )
 
             return user_achievements
@@ -742,12 +1010,8 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得用戶成就列表失敗",
-                extra={
-                    "user_id": user_id,
-                    "category_id": category_id,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"user_id": user_id, "category_id": category_id, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -778,8 +1042,8 @@ class AchievementService:
                 extra={
                     "user_id": user_id,
                     "total_achievements": stats.get("total_achievements", 0),
-                    "total_points": stats.get("total_points", 0)
-                }
+                    "total_points": stats.get("total_points", 0),
+                },
             )
 
             return stats
@@ -787,11 +1051,8 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得用戶成就統計失敗",
-                extra={
-                    "user_id": user_id,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"user_id": user_id, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -800,8 +1061,7 @@ class AchievementService:
     # =============================================================================
 
     async def batch_create_achievements(
-        self,
-        achievements: list[Achievement]
+        self, achievements: list[Achievement]
     ) -> list[Achievement]:
         """批量建立成就.
 
@@ -817,7 +1077,6 @@ class AchievementService:
         if not achievements:
             return []
 
-        # 業務規則驗證：批量驗證所有成就
         for achievement in achievements:
             category = await self.get_category_by_id(achievement.category_id)
             if not category:
@@ -839,8 +1098,8 @@ class AchievementService:
                 extra={
                     "total": len(achievements),
                     "success": len(created_achievements),
-                    "errors": errors
-                }
+                    "errors": errors,
+                },
             )
 
         logger.info(
@@ -848,8 +1107,8 @@ class AchievementService:
             extra={
                 "total": len(achievements),
                 "success": len(created_achievements),
-                "failed": len(errors)
-            }
+                "failed": len(errors),
+            },
         )
 
         return created_achievements
@@ -877,23 +1136,18 @@ class AchievementService:
             # 存入快取
             self._cache_service.set("global_stats", cache_key, stats)
 
-            logger.debug(
-                "取得全域成就統計",
-                extra=stats
-            )
+            logger.debug("取得全域成就統計", extra=stats)
 
             return stats
 
         except Exception as e:
-            logger.error(
-                "取得全域成就統計失敗",
-                extra={"error": str(e)},
-                exc_info=True
-            )
+            logger.error("取得全域成就統計失敗", extra={"error": str(e)}, exc_info=True)
             raise
 
-    async def get_popular_achievements(self, limit: int = 10) -> list[tuple[Achievement, int]]:
-        """取得最受歡迎的成就（按獲得人數排序）.
+    async def get_popular_achievements(
+        self, limit: int = 10
+    ) -> list[tuple[Achievement, int]]:
+        """取得最受歡迎的成就(按獲得人數排序).
 
         Args:
             limit: 返回的最大數量
@@ -909,17 +1163,16 @@ class AchievementService:
             return cached_result
 
         try:
-            popular_achievements = await self._repository.get_popular_achievements(limit)
+            popular_achievements = await self._repository.get_popular_achievements(
+                limit
+            )
 
             # 存入快取
             self._cache_service.set("leaderboard", cache_key, popular_achievements)
 
             logger.debug(
                 "取得熱門成就列表",
-                extra={
-                    "count": len(popular_achievements),
-                    "limit": limit
-                }
+                extra={"count": len(popular_achievements), "limit": limit},
             )
 
             return popular_achievements
@@ -927,11 +1180,8 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得熱門成就列表失敗",
-                extra={
-                    "limit": limit,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"limit": limit, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -940,9 +1190,7 @@ class AchievementService:
     # =============================================================================
 
     async def get_leaderboard_by_count(
-        self,
-        limit: int = 50,
-        offset: int = 0
+        self, limit: int = 50, offset: int = 0
     ) -> list[dict[str, Any]]:
         """取得成就總數排行榜.
 
@@ -951,7 +1199,7 @@ class AchievementService:
             offset: 跳過的記錄數
 
         Returns:
-            排行榜資料列表，每項包含 user_id, achievement_count, rank
+            排行榜資料列表,每項包含 user_id, achievement_count, rank
         """
         cache_key = self._get_cache_key("leaderboard_count", limit, offset)
 
@@ -968,11 +1216,7 @@ class AchievementService:
 
             logger.debug(
                 "取得成就總數排行榜",
-                extra={
-                    "count": len(leaderboard),
-                    "limit": limit,
-                    "offset": offset
-                }
+                extra={"count": len(leaderboard), "limit": limit, "offset": offset},
             )
 
             return leaderboard
@@ -980,19 +1224,13 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得成就總數排行榜失敗",
-                extra={
-                    "limit": limit,
-                    "offset": offset,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"limit": limit, "offset": offset, "error": str(e)},
+                exc_info=True,
             )
             raise
 
     async def get_leaderboard_by_points(
-        self,
-        limit: int = 50,
-        offset: int = 0
+        self, limit: int = 50, offset: int = 0
     ) -> list[dict[str, Any]]:
         """取得成就點數排行榜.
 
@@ -1001,7 +1239,7 @@ class AchievementService:
             offset: 跳過的記錄數
 
         Returns:
-            排行榜資料列表，每項包含 user_id, total_points, rank
+            排行榜資料列表,每項包含 user_id, total_points, rank
         """
         cache_key = self._get_cache_key("leaderboard_points", limit, offset)
 
@@ -1011,18 +1249,16 @@ class AchievementService:
             return cached_result
 
         try:
-            leaderboard = await self._repository.get_leaderboard_by_points(limit, offset)
+            leaderboard = await self._repository.get_leaderboard_by_points(
+                limit, offset
+            )
 
             # 存入快取
             self._cache_service.set("leaderboard", cache_key, leaderboard)
 
             logger.debug(
                 "取得成就點數排行榜",
-                extra={
-                    "count": len(leaderboard),
-                    "limit": limit,
-                    "offset": offset
-                }
+                extra={"count": len(leaderboard), "limit": limit, "offset": offset},
             )
 
             return leaderboard
@@ -1030,20 +1266,13 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得成就點數排行榜失敗",
-                extra={
-                    "limit": limit,
-                    "offset": offset,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"limit": limit, "offset": offset, "error": str(e)},
+                exc_info=True,
             )
             raise
 
     async def get_leaderboard_by_category(
-        self,
-        category_id: int,
-        limit: int = 50,
-        offset: int = 0
+        self, category_id: int, limit: int = 50, offset: int = 0
     ) -> list[dict[str, Any]]:
         """取得特定分類的成就排行榜.
 
@@ -1053,9 +1282,11 @@ class AchievementService:
             offset: 跳過的記錄數
 
         Returns:
-            排行榜資料列表，每項包含 user_id, category_achievement_count, rank
+            排行榜資料列表,每項包含 user_id, category_achievement_count, rank
         """
-        cache_key = self._get_cache_key("leaderboard_category", category_id, limit, offset)
+        cache_key = self._get_cache_key(
+            "leaderboard_category", category_id, limit, offset
+        )
 
         # 檢查快取
         cached_result = self._cache_service.get("leaderboard", cache_key)
@@ -1063,7 +1294,6 @@ class AchievementService:
             return cached_result
 
         try:
-            # 業務規則驗證：檢查分類是否存在
             category = await self.get_category_by_id(category_id)
             if not category:
                 raise ValueError(f"分類 {category_id} 不存在")
@@ -1081,8 +1311,8 @@ class AchievementService:
                     "category_id": category_id,
                     "count": len(leaderboard),
                     "limit": limit,
-                    "offset": offset
-                }
+                    "offset": offset,
+                },
             )
 
             return leaderboard
@@ -1094,16 +1324,14 @@ class AchievementService:
                     "category_id": category_id,
                     "limit": limit,
                     "offset": offset,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             raise
 
     async def get_user_rank(
-        self,
-        user_id: int,
-        rank_type: str = "count"
+        self, user_id: int, rank_type: str = "count"
     ) -> dict[str, Any] | None:
         """取得用戶在特定排行榜中的排名.
 
@@ -1133,8 +1361,8 @@ class AchievementService:
                 extra={
                     "user_id": user_id,
                     "rank_type": rank_type,
-                    "rank": user_rank.get("rank") if user_rank else None
-                }
+                    "rank": user_rank.get("rank") if user_rank else None,
+                },
             )
 
             return user_rank
@@ -1142,12 +1370,8 @@ class AchievementService:
         except Exception as e:
             logger.error(
                 "取得用戶排名失敗",
-                extra={
-                    "user_id": user_id,
-                    "rank_type": rank_type,
-                    "error": str(e)
-                },
-                exc_info=True
+                extra={"user_id": user_id, "rank_type": rank_type, "error": str(e)},
+                exc_info=True,
             )
             raise
 
@@ -1175,7 +1399,7 @@ class AchievementService:
         """清除快取.
 
         Args:
-            cache_type: 要清除的快取類型，None 表示清除所有快取
+            cache_type: 要清除的快取類型,None 表示清除所有快取
         """
         if cache_type:
             self._cache_service.clear_cache(cache_type)
@@ -1196,10 +1420,7 @@ class AchievementService:
         """
         success = self._cache_service.update_cache_config(cache_type, **config_updates)
         if success:
-            logger.info(
-                f"快取配置更新成功: {cache_type}",
-                extra=config_updates
-            )
+            logger.info(f"快取配置更新成功: {cache_type}", extra=config_updates)
         return success
 
 

@@ -13,7 +13,6 @@ import discord
 if TYPE_CHECKING:
     from ...main.main import AntiSpam
 
-
 async def create_stats_embed(cog: "AntiSpam", guild: discord.Guild) -> discord.Embed:
     """
     創建統計資料嵌入
@@ -102,14 +101,11 @@ async def create_stats_embed(cog: "AntiSpam", guild: discord.Guild) -> discord.E
     )
     return embed
 
-
 def _format_action_description(action: str, details: str) -> str:
     """格式化操作描述"""
-    if action == "violation":
-        return f"🚫 檢測到違規:{details}"
-    elif action == "reset_settings":
-        return "🔄 重置了系統設定"
-    elif action == "config_change":
-        return f"⚙️ 修改了設定:{details}"
-    else:
-        return f"📋 {action}: {details}"
+    action_formats = {
+        "violation": f"🚫 檢測到違規:{details}",
+        "reset_settings": "🔄 重置了系統設定",
+        "config_change": f"⚙️ 修改了設定:{details}",
+    }
+    return action_formats.get(action, f"📋 {action}: {details}")

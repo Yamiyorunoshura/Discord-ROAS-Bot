@@ -39,7 +39,6 @@ class LogChannelSelect(ChannelSelect):
                 f"❌ 設定日誌頻道失敗: {exc}", ephemeral=True
             )
 
-
 class MonitoredChannelsSelect(ChannelSelect):
     """監聽頻道選擇器"""
 

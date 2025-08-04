@@ -1,0 +1,126 @@
+# Discord ROAS Bot v2.0 政府系統配置
+government:
+  # 基本設定
+  enabled: true                       # 是否啟用政府系統
+  max_departments_per_guild: 50       # 每個伺服器最大部門數
+  max_members_per_department: 100     # 每個部門最大成員數
+  
+  # 預設部門配置
+  default_departments:
+    - name: "總統府"
+      description: "國家最高行政機關"
+      roles:
+        - name: "總統"
+          permissions: ["all"]
+          max_members: 1
+        - name: "副總統"
+          permissions: ["manage_departments", "view_reports"]
+          max_members: 1
+          
+    - name: "財政部"
+      description: "負責國家財政管理"
+      roles:
+        - name: "財政部長"
+          permissions: ["manage_currency", "view_economy", "create_reports"]
+          max_members: 1
+        - name: "副部長"
+          permissions: ["manage_currency", "view_economy"]
+          max_members: 2
+        - name: "財政專員"
+          permissions: ["view_economy"]
+          max_members: 10
+          
+    - name: "內政部"
+      description: "負責內政事務管理"
+      roles:
+        - name: "內政部長"
+          permissions: ["manage_members", "view_activity", "create_reports"]
+          max_members: 1
+        - name: "副部長"
+          permissions: ["manage_members", "view_activity"]
+          max_members: 2
+        - name: "內政專員"
+          permissions: ["view_activity"]
+          max_members: 10
+  
+  # 權限設定
+  permissions:
+    # 經濟權限
+    manage_currency:
+      description: "管理伺服器貨幣系統"
+      level: "high"
+      
+    view_economy:
+      description: "查看經濟統計資料"
+      level: "medium"
+      
+    # 管理權限
+    manage_departments:
+      description: "管理部門設定"
+      level: "high"
+      
+    manage_members:
+      description: "管理部門成員"
+      level: "medium"
+      
+    # 報告權限
+    create_reports:
+      description: "建立各種報告"
+      level: "medium"
+      
+    view_reports:
+      description: "查看系統報告"
+      level: "low"
+      
+    # 活動權限
+    view_activity:
+      description: "查看成員活動資料"
+      level: "low"
+      
+  # 任期設定
+  terms:
+    default_term_months: 3            # 預設任期（月）
+    max_term_months: 12               # 最大任期（月）
+    min_term_days: 7                  # 最小任期（天）
+    auto_renewal: false               # 是否自動續任
+    
+  # 選舉設定
+  elections:
+    enabled: true                     # 是否啟用選舉系統
+    nomination_period_days: 3         # 提名期（天）
+    voting_period_days: 7             # 投票期（天）
+    min_candidates: 1                 # 最少候選人數
+    max_candidates: 10                # 最多候選人數
+    
+  # 薪資設定
+  salary:
+    enabled: true                     # 是否啟用薪資系統
+    payment_interval_hours: 24        # 薪資發放間隔（小時）
+    base_salary: 100                  # 基本薪資
+    role_multipliers:                 # 職位薪資倍數
+      president: 5.0                  # 總統
+      vice_president: 3.0             # 副總統
+      minister: 2.5                   # 部長
+      vice_minister: 2.0              # 副部長
+      specialist: 1.5                 # 專員
+      default: 1.0                    # 預設
+      
+  # 審計設定
+  audit:
+    enabled: true                     # 是否啟用審計日誌
+    log_all_actions: true             # 是否記錄所有操作
+    retention_days: 90                # 審計日誌保留天數
+    
+  # 通知設定
+  notifications:
+    appointment_notifications: true   # 任命通知
+    salary_notifications: true       # 薪資通知
+    election_notifications: true     # 選舉通知
+    audit_notifications: false       # 審計通知
+    
+  # 統計設定
+  statistics:
+    enabled: true                     # 是否啟用統計功能
+    update_interval_minutes: 60       # 統計更新間隔（分鐘）
+    generate_reports: true            # 是否生成報告
+    report_schedule: "0 8 * * 1"      # 報告生成時間（cron 格式，每周一早上8點）

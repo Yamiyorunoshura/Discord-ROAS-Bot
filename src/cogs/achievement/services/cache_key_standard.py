@@ -1,6 +1,6 @@
 """成就系統快取鍵值標準化和命名規範.
 
-此模組定義成就系統的快取鍵值標準化規範，提供：
+此模組定義成就系統的快取鍵值標準化規範,提供:
 - 快取鍵值命名規範和標準
 - 快取鍵值驗證和規範化
 - 快取鍵值文檔和範例
@@ -13,28 +13,30 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
+
+from ..constants import CACHE_KEY_MAX_LENGTH, MINIMUM_CACHE_PARTS
 
 logger = logging.getLogger(__name__)
 
-
 class CacheKeyType(Enum):
     """快取鍵值類型枚舉."""
-    ACHIEVEMENT = "achievement"         # 單個成就資料
-    ACHIEVEMENTS = "achievements"       # 成就列表
-    CATEGORY = "category"              # 成就分類
-    CATEGORIES = "categories"          # 分類列表
-    USER_ACHIEVEMENTS = "user_achievements"    # 用戶成就
-    USER_PROGRESS = "user_progress"    # 用戶進度
-    USER_STATS = "user_stats"          # 用戶統計
-    GLOBAL_STATS = "global_stats"      # 全域統計
-    LEADERBOARD = "leaderboard"        # 排行榜
-    POPULAR_ACHIEVEMENTS = "popular_achievements"  # 熱門成就
 
+    ACHIEVEMENT = "achievement"  # 單個成就資料
+    ACHIEVEMENTS = "achievements"  # 成就列表
+    CATEGORY = "category"  # 成就分類
+    CATEGORIES = "categories"  # 分類列表
+    USER_ACHIEVEMENTS = "user_achievements"  # 用戶成就
+    USER_PROGRESS = "user_progress"  # 用戶進度
+    USER_STATS = "user_stats"  # 用戶統計
+    GLOBAL_STATS = "global_stats"  # 全域統計
+    LEADERBOARD = "leaderboard"  # 排行榜
+    POPULAR_ACHIEVEMENTS = "popular_achievements"  # 熱門成就
 
 @dataclass
 class CacheKeyPattern:
     """快取鍵值模式定義."""
+
     key_type: CacheKeyType
     pattern: str
     description: str
@@ -42,11 +44,10 @@ class CacheKeyPattern:
     required_args: list[str]
     optional_args: list[str]
 
-
 class CacheKeyStandard:
     """快取鍵值標準化管理器.
 
-    定義和管理成就系統的快取鍵值命名標準。
+    定義和管理成就系統的快取鍵值命名標準.
     """
 
     # 快取鍵值前綴
@@ -56,22 +57,22 @@ class CacheKeyStandard:
     SEPARATOR = ":"
 
     # 快取鍵值模式定義
-    KEY_PATTERNS = {
+    KEY_PATTERNS: ClassVar[dict] = {
         CacheKeyType.ACHIEVEMENT: CacheKeyPattern(
             key_type=CacheKeyType.ACHIEVEMENT,
             pattern=f"{KEY_PREFIX}:achievement:{{achievement_id}}",
             description="單個成就資料快取",
             example=f"{KEY_PREFIX}:achievement:123",
             required_args=["achievement_id"],
-            optional_args=[]
+            optional_args=[],
         ),
         CacheKeyType.ACHIEVEMENTS: CacheKeyPattern(
             key_type=CacheKeyType.ACHIEVEMENTS,
             pattern=f"{KEY_PREFIX}:achievements:{{category_id}}:{{type}}:{{active}}:{{limit}}:{{offset}}",
-            description="成就列表快取（支援篩選和分頁）",
+            description="成就列表快取(支援篩選和分頁)",
             example=f"{KEY_PREFIX}:achievements:1:daily:True:10:0",
             required_args=[],
-            optional_args=["category_id", "type", "active", "limit", "offset"]
+            optional_args=["category_id", "type", "active", "limit", "offset"],
         ),
         CacheKeyType.CATEGORY: CacheKeyPattern(
             key_type=CacheKeyType.CATEGORY,
@@ -79,7 +80,7 @@ class CacheKeyStandard:
             description="單個成就分類資料快取",
             example=f"{KEY_PREFIX}:category:456",
             required_args=["category_id"],
-            optional_args=[]
+            optional_args=[],
         ),
         CacheKeyType.CATEGORIES: CacheKeyPattern(
             key_type=CacheKeyType.CATEGORIES,
@@ -87,7 +88,7 @@ class CacheKeyStandard:
             description="成就分類列表快取",
             example=f"{KEY_PREFIX}:categories:True",
             required_args=["active_only"],
-            optional_args=[]
+            optional_args=[],
         ),
         CacheKeyType.USER_ACHIEVEMENTS: CacheKeyPattern(
             key_type=CacheKeyType.USER_ACHIEVEMENTS,
@@ -95,7 +96,7 @@ class CacheKeyStandard:
             description="用戶成就列表快取",
             example=f"{KEY_PREFIX}:user_achievements:789:1:50",
             required_args=["user_id"],
-            optional_args=["category_id", "limit"]
+            optional_args=["category_id", "limit"],
         ),
         CacheKeyType.USER_PROGRESS: CacheKeyPattern(
             key_type=CacheKeyType.USER_PROGRESS,
@@ -103,7 +104,7 @@ class CacheKeyStandard:
             description="用戶成就進度快取",
             example=f"{KEY_PREFIX}:user_progress:789:123",
             required_args=["user_id"],
-            optional_args=["achievement_id"]
+            optional_args=["achievement_id"],
         ),
         CacheKeyType.USER_STATS: CacheKeyPattern(
             key_type=CacheKeyType.USER_STATS,
@@ -111,7 +112,7 @@ class CacheKeyStandard:
             description="用戶成就統計快取",
             example=f"{KEY_PREFIX}:user_stats:789",
             required_args=["user_id"],
-            optional_args=[]
+            optional_args=[],
         ),
         CacheKeyType.GLOBAL_STATS: CacheKeyPattern(
             key_type=CacheKeyType.GLOBAL_STATS,
@@ -119,7 +120,7 @@ class CacheKeyStandard:
             description="全域成就統計快取",
             example=f"{KEY_PREFIX}:global_stats",
             required_args=[],
-            optional_args=[]
+            optional_args=[],
         ),
         CacheKeyType.LEADERBOARD: CacheKeyPattern(
             key_type=CacheKeyType.LEADERBOARD,
@@ -127,7 +128,7 @@ class CacheKeyStandard:
             description="排行榜快取",
             example=f"{KEY_PREFIX}:leaderboard:points:10",
             required_args=["type"],
-            optional_args=["limit"]
+            optional_args=["limit"],
         ),
         CacheKeyType.POPULAR_ACHIEVEMENTS: CacheKeyPattern(
             key_type=CacheKeyType.POPULAR_ACHIEVEMENTS,
@@ -135,8 +136,8 @@ class CacheKeyStandard:
             description="熱門成就列表快取",
             example=f"{KEY_PREFIX}:popular_achievements:10",
             required_args=["limit"],
-            optional_args=[]
-        )
+            optional_args=[],
+        ),
     }
 
     @classmethod
@@ -165,22 +166,24 @@ class CacheKeyStandard:
         # 構建鍵值組件
         key_parts = [cls.KEY_PREFIX, key_type.value]
 
-        # 添加參數（按照定義順序）
+        # Add parameters in defined order
         all_args = pattern.required_args + pattern.optional_args
         for arg in all_args:
             if arg in kwargs:
                 key_parts.append(str(kwargs[arg]))
             elif arg in pattern.required_args:
-                # 必要參數已在上面檢查過，這裡不應該到達
+                # 必要參數已在上面檢查過,這裡不應該到達
                 raise ValueError(f"缺少必要參數: {arg}")
             else:
-                # 可選參數缺失，使用 None 占位
+                # 可選參數缺失,使用 None 占位
                 key_parts.append("None")
 
         return cls.SEPARATOR.join(key_parts)
 
     @classmethod
-    def parse_cache_key(cls, cache_key: str) -> tuple[CacheKeyType | None, dict[str, Any]]:
+    def parse_cache_key(
+        cls, cache_key: str
+    ) -> tuple[CacheKeyType | None, dict[str, Any]]:
         """解析快取鍵值.
 
         Args:
@@ -193,7 +196,7 @@ class CacheKeyStandard:
             parts = cache_key.split(cls.SEPARATOR)
 
             # 檢查前綴
-            if len(parts) < 2 or parts[0] != cls.KEY_PREFIX:
+            if len(parts) < MINIMUM_CACHE_PARTS or parts[0] != cls.KEY_PREFIX:
                 return None, {}
 
             # 取得鍵值類型
@@ -261,11 +264,11 @@ class CacheKeyStandard:
             return False, "快取鍵值不能為空"
 
         # 長度檢查
-        if len(cache_key) > 500:
-            return False, "快取鍵值長度不能超過 500 字元"
+        if len(cache_key) > CACHE_KEY_MAX_LENGTH:
+            return False, f"快取鍵值長度不能超過 {CACHE_KEY_MAX_LENGTH} 字元"
 
-        # 字元檢查（只允許字母、數字、冒號、底線、破折號）
-        if not re.match(r'^[a-zA-Z0-9:_-]+$', cache_key):
+        # 字元檢查(只允許字母、數字、冒號、底線、破折號)
+        if not re.match(r"^[a-zA-Z0-9:_-]+$", cache_key):
             return False, "快取鍵值包含無效字元"
 
         # 解析檢查
@@ -289,7 +292,7 @@ class CacheKeyStandard:
                 "description": pattern.description,
                 "example": pattern.example,
                 "required_args": pattern.required_args,
-                "optional_args": pattern.optional_args
+                "optional_args": pattern.optional_args,
             }
         return docs
 
@@ -299,7 +302,7 @@ class CacheKeyStandard:
 
         Args:
             cache_keys: 快取鍵值列表
-            pattern: 搜尋模式（支援萬用字元 *）
+            pattern: 搜尋模式(支援萬用字元 *)
 
         Returns:
             匹配的快取鍵值列表
@@ -317,9 +320,7 @@ class CacheKeyStandard:
 
     @classmethod
     def get_invalidation_patterns_for_operation(
-        cls,
-        operation_type: str,
-        **kwargs
+        cls, operation_type: str, **kwargs
     ) -> list[str]:
         """取得操作對應的快取無效化模式.
 
@@ -332,37 +333,47 @@ class CacheKeyStandard:
         """
         patterns = []
 
-        if operation_type in ["create_achievement", "update_achievement", "delete_achievement"]:
-            patterns.extend([
-                f"{cls.KEY_PREFIX}:achievement:*",
-                f"{cls.KEY_PREFIX}:achievements:*",
-                f"{cls.KEY_PREFIX}:global_stats",
-                f"{cls.KEY_PREFIX}:popular_achievements:*"
-            ])
+        if operation_type in [
+            "create_achievement",
+            "update_achievement",
+            "delete_achievement",
+        ]:
+            patterns.extend(
+                [
+                    f"{cls.KEY_PREFIX}:achievement:*",
+                    f"{cls.KEY_PREFIX}:achievements:*",
+                    f"{cls.KEY_PREFIX}:global_stats",
+                    f"{cls.KEY_PREFIX}:popular_achievements:*",
+                ]
+            )
 
-            # 如果有分類 ID，也無效化分類相關快取
+            # 如果有分類 ID,也無效化分類相關快取
             if "category_id" in kwargs:
                 patterns.append(f"{cls.KEY_PREFIX}:category:{kwargs['category_id']}")
 
-        elif operation_type in ["create_category", "update_category", "delete_category"]:
-            patterns.extend([
-                f"{cls.KEY_PREFIX}:category:*",
-                f"{cls.KEY_PREFIX}:categories:*"
-            ])
+        elif operation_type in [
+            "create_category",
+            "update_category",
+            "delete_category",
+        ]:
+            patterns.extend(
+                [f"{cls.KEY_PREFIX}:category:*", f"{cls.KEY_PREFIX}:categories:*"]
+            )
 
         elif operation_type in ["award_achievement", "update_progress"]:
             user_id = kwargs.get("user_id")
             if user_id:
-                patterns.extend([
-                    f"{cls.KEY_PREFIX}:user_achievements:{user_id}:*",
-                    f"{cls.KEY_PREFIX}:user_progress:{user_id}:*",
-                    f"{cls.KEY_PREFIX}:user_stats:{user_id}",
-                    f"{cls.KEY_PREFIX}:global_stats",
-                    f"{cls.KEY_PREFIX}:leaderboard:*"
-                ])
+                patterns.extend(
+                    [
+                        f"{cls.KEY_PREFIX}:user_achievements:{user_id}:*",
+                        f"{cls.KEY_PREFIX}:user_progress:{user_id}:*",
+                        f"{cls.KEY_PREFIX}:user_stats:{user_id}",
+                        f"{cls.KEY_PREFIX}:global_stats",
+                        f"{cls.KEY_PREFIX}:leaderboard:*",
+                    ]
+                )
 
         return patterns
-
 
 __all__ = [
     "CacheKeyPattern",

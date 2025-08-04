@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import os
+import sys
 import threading
 import time
 from collections import defaultdict
@@ -11,6 +13,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
+from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -26,10 +29,7 @@ if TYPE_CHECKING:
 
 # 導入整合的服務模組
 try:
-    import os
-    import sys
-
-    sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+    sys.path.append(str(Path(__file__).parent / ".." / ".."))
     from src.cogs.core.cache_manager import MultiLevelCache, get_global_cache_manager
     from src.cogs.core.health_checker import HealthChecker, get_health_checker
 except ImportError:
@@ -42,6 +42,8 @@ except ImportError:
 T = TypeVar("T")
 P = TypeVar("P")
 
+# 常數定義
+MAX_INJECTION_HISTORY = 1000
 
 class ServiceLifetime(Enum):
     """服務生命週期枚舉"""
@@ -50,14 +52,12 @@ class ServiceLifetime(Enum):
     TRANSIENT = "transient"  # 暫時性:每次請求都創建新實例
     SCOPED = "scoped"  # 作用域:在特定範圍內是單例
 
-
 class InjectionCondition(Enum):
     """條件注入類型"""
 
     ENVIRONMENT = "environment"  # 基於環境變數
     FEATURE_FLAG = "feature_flag"  # 基於功能開關
     CUSTOM = "custom"  # 自定義條件
-
 
 @dataclass
 class ConditionalRule:
@@ -67,7 +67,6 @@ class ConditionalRule:
     key: str
     expected_value: Any
     condition_func: Callable[[], bool] | None = None
-
 
 @dataclass
 class PerformanceMetrics:
@@ -80,30 +79,25 @@ class PerformanceMetrics:
     failed_injections: int = 0
     circular_dependencies_detected: int = 0
 
-
 class ContainerException(Exception):
     """容器基礎異常"""
 
     pass
-
 
 class ServiceNotFoundException(ContainerException):
     """服務未找到異常"""
 
     pass
 
-
 class CircularDependencyException(ContainerException):
     """循環依賴異常"""
 
     pass
 
-
 class ConditionalInjectionException(ContainerException):
     """條件注入異常"""
 
     pass
-
 
 class ServiceDescriptor:
     """服務描述符 - 描述服務註冊信息"""
@@ -148,8 +142,6 @@ class ServiceDescriptor:
 
         for rule in self.conditional_rules:
             if rule.condition_type == InjectionCondition.ENVIRONMENT:
-                import os
-
                 env_value = os.getenv(rule.key)
                 if env_value != str(rule.expected_value):
                     return False
@@ -167,7 +159,6 @@ class ServiceDescriptor:
         """更新訪問統計"""
         self.access_count += 1
         self.last_accessed = time.time()
-
 
 class Container:
     """企業級依賴注入容器
@@ -193,7 +184,6 @@ class Container:
         self._logger = get_logger("container", self._settings)
         self._enable_diagnostics = enable_diagnostics
 
-        # 服務註冊表(支援多實現)
         self._services: dict[type, list[ServiceDescriptor]] = defaultdict(list)
         self._singletons: dict[type, Any] = {}
         self._scoped_instances: dict[str, dict[type, Any]] = defaultdict(dict)
@@ -229,7 +219,6 @@ class Container:
         # 註冊容器本身
         self.register_singleton(Container, self)
 
-        # 註冊緩存管理器(如果可用)
         if MultiLevelCache and get_global_cache_manager:
             self.register_factory(
                 MultiLevelCache,
@@ -237,7 +226,6 @@ class Container:
                 ServiceLifetime.SINGLETON,
             )
 
-        # 註冊健康檢查器(如果可用)
         if HealthChecker and get_health_checker:
             self.register_factory(
                 HealthChecker, lambda: get_health_checker(), ServiceLifetime.SINGLETON
@@ -534,8 +522,8 @@ class Container:
         self._metrics.total_injections += 1
         self._injection_times.append(injection_time)
 
-        # 保持最近 1000 次注入的時間記錄
-        if len(self._injection_times) > 1000:
+        # 保持最近 N 次注入的時間記錄
+        if len(self._injection_times) > MAX_INJECTION_HISTORY:
             self._injection_times.pop(0)
 
         # 更新統計數据
@@ -895,28 +883,23 @@ class Container:
             ):
                 raise ServiceNotFoundException(f"依賴服務未註冊: {param_type}")
 
-
 # 全局容器實例
 _container: Container | None = None
 _container_lock = threading.RLock()
 
-
 def get_container() -> Container:
     """獲取全局容器實例"""
-    global _container
     if _container is None:
         with _container_lock:
             if _container is None:
-                _container = Container()
+                # 使用 globals() 來避免 global 語句
+                globals()["_container"] = Container()
     return _container
-
 
 def reset_container() -> None:
     """重置全局容器(主要用於測試)"""
-    global _container
     with _container_lock:
-        _container = None
-
+        globals()["_container"] = None
 
 def configure_container(configurator: Callable[[Container], None]) -> Container:
     """配置全局容器
@@ -931,11 +914,9 @@ def configure_container(configurator: Callable[[Container], None]) -> Container:
     configurator(container)
     return container
 
-
 # 裝飾器和工具函數
 
-
-def injectable(
+def injectable[T](
     service_type: type[T] | None = None,
     lifetime: ServiceLifetime = ServiceLifetime.TRANSIENT,
     tags: list[str] | None = None,
@@ -974,8 +955,7 @@ def injectable(
 
     return decorator
 
-
-def singleton(
+def singleton[T](
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
     conditional_rules: list[ConditionalRule] | None = None,
@@ -983,8 +963,7 @@ def singleton(
     """單例服務註冊裝飾器"""
     return injectable(service_type, ServiceLifetime.SINGLETON, tags, conditional_rules)
 
-
-def scoped(
+def scoped[T](
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
     conditional_rules: list[ConditionalRule] | None = None,
@@ -992,15 +971,13 @@ def scoped(
     """作用域服務註冊裝飾器"""
     return injectable(service_type, ServiceLifetime.SCOPED, tags, conditional_rules)
 
-
-def transient(
+def transient[T](
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
     conditional_rules: list[ConditionalRule] | None = None,
 ) -> Callable[[type[T]], type[T]]:
     """暫時性服務註冊裝飾器"""
     return injectable(service_type, ServiceLifetime.TRANSIENT, tags, conditional_rules)
-
 
 def inject(func: Callable) -> Callable:
     """依賴注入裝飾器
@@ -1075,16 +1052,13 @@ def inject(func: Callable) -> Callable:
     else:
         return wrapper
 
-
 # 條件注入工具函數
-
 
 def when_environment(key: str, value: Any) -> ConditionalRule:
     """創建環境變數條件規則"""
     return ConditionalRule(
         condition_type=InjectionCondition.ENVIRONMENT, key=key, expected_value=value
     )
-
 
 def when_feature_flag(flag_name: str, enabled: bool = True) -> ConditionalRule:
     """創建功能開關條件規則"""
@@ -1093,7 +1067,6 @@ def when_feature_flag(flag_name: str, enabled: bool = True) -> ConditionalRule:
         key=flag_name,
         expected_value=enabled,
     )
-
 
 def when_custom(condition_func: Callable[[], bool]) -> ConditionalRule:
     """創建自定義條件規則"""
@@ -1104,10 +1077,7 @@ def when_custom(condition_func: Callable[[], bool]) -> ConditionalRule:
         condition_func=condition_func,
     )
 
-
-# (為了向後兼容性,保留舊名稱)
 Lifetime = ServiceLifetime
-
 
 __all__ = [
     "CircularDependencyException",

@@ -1,13 +1,13 @@
 """成就系統監控儀表板.
 
-此模組提供效能監控的儀表板功能，包含：
+此模組提供效能監控的儀表板功能,包含:
 - 實時效能指標收集和顯示
 - 歷史趨勢分析
 - 警報管理
 - 效能報告生成
 - 資源使用監控
 
-根據 Story 5.1 Task 5 和 Task 8 的要求實作。
+根據 Story 5.1 Task 5 和 Task 8 的要求實作.
 """
 
 from __future__ import annotations
@@ -29,22 +29,34 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# 常數定義
+RECENT_METRICS_COUNT = 30  # 最近指標數量
+TREND_METRICS_COUNT = 10  # 趨勢分析指標數量
+CRITICAL_MEMORY_THRESHOLD_MB = 100  # 關鍵記憶體閾值(MB)
+WARNING_MEMORY_THRESHOLD_MB = 80  # 警告記憶體閾值(MB)
+INFO_MEMORY_THRESHOLD_MB = 50  # 資訊記憶體閾值(MB)
+SUCCESS_CACHE_HIT_RATE = 80  # 成功快取命中率
+INFO_CACHE_HIT_RATE = 60  # 資訊快取命中率
+WARNING_CACHE_HIT_RATE = 40  # 警告快取命中率
+EXCELLENT_PERFORMANCE_TIME_MS = 100  # 優秀效能時間(毫秒)
+GOOD_PERFORMANCE_TIME_MS = 300  # 良好效能時間(毫秒)
+FAIR_PERFORMANCE_TIME_MS = 500  # 一般效能時間(毫秒)
 
 class DashboardTheme(str, Enum):
     """儀表板主題."""
+
     LIGHT = "light"
     DARK = "dark"
     AUTO = "auto"
 
-
 class ChartType(str, Enum):
     """圖表類型."""
+
     LINE = "line"
     BAR = "bar"
     PIE = "pie"
     GAUGE = "gauge"
     AREA = "area"
-
 
 @dataclass
 class DashboardWidget:
@@ -72,11 +84,10 @@ class DashboardWidget:
     """大小 (width, height)"""
 
     refresh_interval: int = 30
-    """重新整理間隔（秒）"""
+    """重新整理間隔(秒)"""
 
     last_updated: datetime = field(default_factory=datetime.now)
     """最後更新時間"""
-
 
 @dataclass
 class AlertRule:
@@ -104,16 +115,15 @@ class AlertRule:
     """是否啟用"""
 
     cooldown_minutes: int = 5
-    """冷卻時間（分鐘）"""
+    """冷卻時間(分鐘)"""
 
     last_triggered: datetime | None = None
     """最後觸發時間"""
 
-
 class PerformanceDashboard:
     """成就系統效能監控儀表板.
 
-    整合所有效能監控功能，提供統一的儀表板介面。
+    整合所有效能監控功能,提供統一的儀表板介面.
     """
 
     def __init__(
@@ -122,7 +132,7 @@ class PerformanceDashboard:
         performance_monitor: AchievementPerformanceMonitor | None = None,
         memory_manager: MemoryManager | None = None,
         cache_manager: CacheManager | None = None,
-        theme: DashboardTheme = DashboardTheme.DARK
+        theme: DashboardTheme = DashboardTheme.DARK,
     ):
         """初始化效能儀表板.
 
@@ -146,7 +156,7 @@ class PerformanceDashboard:
             "title": "成就系統效能監控",
             "refresh_interval": 30,
             "auto_refresh": True,
-            "theme": theme.value
+            "theme": theme.value,
         }
 
         # 歷史資料儲存
@@ -241,13 +251,15 @@ class PerformanceDashboard:
             "performance": {},
             "memory": {},
             "cache": {},
-            "system": {}
+            "system": {},
         }
 
         try:
             # 收集效能服務指標
             if self._performance_service:
-                performance_report = await self._performance_service.get_performance_report()
+                performance_report = (
+                    await self._performance_service.get_performance_report()
+                )
                 metrics["performance"] = performance_report
 
             # 收集記憶體指標
@@ -262,13 +274,17 @@ class PerformanceDashboard:
 
             # 收集系統指標
             if self._performance_monitor:
-                system_stats = self._performance_monitor.get_achievement_metrics_summary()
+                system_stats = (
+                    self._performance_monitor.get_achievement_metrics_summary()
+                )
                 metrics["system"] = system_stats
 
             # 儲存到歷史記錄
             self._metrics_history.append(metrics)
             if len(self._metrics_history) > self._max_history_points:
-                self._metrics_history = self._metrics_history[-self._max_history_points//2:]
+                self._metrics_history = self._metrics_history[
+                    -self._max_history_points // 2 :
+                ]
 
             return metrics
 
@@ -289,7 +305,7 @@ class PerformanceDashboard:
                 type=ChartType.GAUGE,
                 data={},
                 position=(0, 0),
-                size=(4, 3)
+                size=(4, 3),
             ),
             DashboardWidget(
                 id="cache_hit_rate",
@@ -297,7 +313,7 @@ class PerformanceDashboard:
                 type=ChartType.GAUGE,
                 data={},
                 position=(4, 0),
-                size=(4, 3)
+                size=(4, 3),
             ),
             DashboardWidget(
                 id="query_performance",
@@ -305,7 +321,7 @@ class PerformanceDashboard:
                 type=ChartType.LINE,
                 data={},
                 position=(0, 3),
-                size=(8, 4)
+                size=(8, 4),
             ),
             DashboardWidget(
                 id="system_overview",
@@ -313,7 +329,7 @@ class PerformanceDashboard:
                 type=ChartType.BAR,
                 data={},
                 position=(8, 0),
-                size=(4, 7)
+                size=(4, 7),
             ),
             DashboardWidget(
                 id="alert_summary",
@@ -321,7 +337,7 @@ class PerformanceDashboard:
                 type=ChartType.PIE,
                 data={},
                 position=(0, 7),
-                size=(4, 3)
+                size=(4, 3),
             ),
             DashboardWidget(
                 id="performance_breakdown",
@@ -329,8 +345,8 @@ class PerformanceDashboard:
                 type=ChartType.AREA,
                 data={},
                 position=(4, 7),
-                size=(4, 3)
-            )
+                size=(4, 3),
+            ),
         ]
 
         for widget in default_widgets:
@@ -346,7 +362,9 @@ class PerformanceDashboard:
         for widget_id, widget in self._widgets.items():
             try:
                 # 檢查是否需要更新
-                time_since_update = (datetime.now() - widget.last_updated).total_seconds()
+                time_since_update = (
+                    datetime.now() - widget.last_updated
+                ).total_seconds()
                 if time_since_update < widget.refresh_interval:
                     continue
 
@@ -362,14 +380,18 @@ class PerformanceDashboard:
                 elif widget_id == "alert_summary":
                     await self._update_alert_summary_widget(widget)
                 elif widget_id == "performance_breakdown":
-                    await self._update_performance_breakdown_widget(widget, current_metrics)
+                    await self._update_performance_breakdown_widget(
+                        widget, current_metrics
+                    )
 
                 widget.last_updated = datetime.now()
 
             except Exception as e:
                 logger.error(f"更新小工具 {widget_id} 失敗: {e}")
 
-    async def _update_memory_widget(self, widget: DashboardWidget, metrics: dict[str, Any]) -> None:
+    async def _update_memory_widget(
+        self, widget: DashboardWidget, metrics: dict[str, Any]
+    ) -> None:
         """更新記憶體使用量小工具."""
         memory_data = metrics.get("memory", {})
         current = memory_data.get("current", {})
@@ -382,11 +404,13 @@ class PerformanceDashboard:
             "details": {
                 "rss_mb": current.get("rss_mb", 0),
                 "vms_mb": current.get("vms_mb", 0),
-                "gc_objects": current.get("gc_objects", 0)
-            }
+                "gc_objects": current.get("gc_objects", 0),
+            },
         }
 
-    async def _update_cache_widget(self, widget: DashboardWidget, metrics: dict[str, Any]) -> None:
+    async def _update_cache_widget(
+        self, widget: DashboardWidget, metrics: dict[str, Any]
+    ) -> None:
         """更新快取命中率小工具."""
         cache_data = metrics.get("cache", {})
         overall = cache_data.get("overall", {})
@@ -401,14 +425,18 @@ class PerformanceDashboard:
             "details": {
                 "total_hits": overall.get("total_hits", 0),
                 "total_misses": overall.get("total_misses", 0),
-                "total_requests": overall.get("total_requests", 0)
-            }
+                "total_requests": overall.get("total_requests", 0),
+            },
         }
 
     async def _update_query_performance_widget(self, widget: DashboardWidget) -> None:
         """更新查詢效能趨勢小工具."""
         # 取得最近30個點的資料
-        recent_metrics = self._metrics_history[-30:] if len(self._metrics_history) >= 30 else self._metrics_history
+        recent_metrics = (
+            self._metrics_history[-RECENT_METRICS_COUNT:]
+            if len(self._metrics_history) >= RECENT_METRICS_COUNT
+            else self._metrics_history
+        )
 
         timestamps = []
         avg_times = []
@@ -429,18 +457,20 @@ class PerformanceDashboard:
                     "label": "平均查詢時間 (ms)",
                     "data": avg_times,
                     "borderColor": "#3b82f6",
-                    "backgroundColor": "rgba(59, 130, 246, 0.1)"
+                    "backgroundColor": "rgba(59, 130, 246, 0.1)",
                 },
                 {
                     "label": "慢查詢數量",
                     "data": slow_queries,
                     "borderColor": "#ef4444",
-                    "backgroundColor": "rgba(239, 68, 68, 0.1)"
-                }
-            ]
+                    "backgroundColor": "rgba(239, 68, 68, 0.1)",
+                },
+            ],
         }
 
-    async def _update_system_overview_widget(self, widget: DashboardWidget, metrics: dict[str, Any]) -> None:
+    async def _update_system_overview_widget(
+        self, widget: DashboardWidget, metrics: dict[str, Any]
+    ) -> None:
         """更新系統概覽小工具."""
         performance = metrics.get("performance", {})
         memory = metrics.get("memory", {})
@@ -448,21 +478,23 @@ class PerformanceDashboard:
 
         widget.data = {
             "labels": ["查詢效能", "記憶體使用", "快取效能", "系統負載"],
-            "datasets": [{
-                "label": "效能指標",
-                "data": [
-                    self._calculate_query_score(performance),
-                    self._calculate_memory_score(memory),
-                    self._calculate_cache_score(cache),
-                    self._calculate_system_score(metrics)
-                ],
-                "backgroundColor": [
-                    "#10b981",  # 綠色
-                    "#f59e0b",  # 黃色
-                    "#3b82f6",  # 藍色
-                    "#8b5cf6"   # 紫色
-                ]
-            }]
+            "datasets": [
+                {
+                    "label": "效能指標",
+                    "data": [
+                        self._calculate_query_score(performance),
+                        self._calculate_memory_score(memory),
+                        self._calculate_cache_score(cache),
+                        self._calculate_system_score(metrics),
+                    ],
+                    "backgroundColor": [
+                        "#10b981",  # 綠色
+                        "#f59e0b",  # 黃色
+                        "#3b82f6",  # 藍色
+                        "#8b5cf6",  # 紫色
+                    ],
+                }
+            ],
         }
 
     async def _update_alert_summary_widget(self, widget: DashboardWidget) -> None:
@@ -477,26 +509,34 @@ class PerformanceDashboard:
 
         widget.data = {
             "labels": ["資訊", "警告", "錯誤", "嚴重"],
-            "datasets": [{
-                "data": [
-                    alert_counts["info"],
-                    alert_counts["warning"],
-                    alert_counts["error"],
-                    alert_counts["critical"]
-                ],
-                "backgroundColor": [
-                    "#6b7280",  # 灰色
-                    "#f59e0b",  # 黃色
-                    "#ef4444",  # 紅色
-                    "#dc2626"   # 深紅色
-                ]
-            }]
+            "datasets": [
+                {
+                    "data": [
+                        alert_counts["info"],
+                        alert_counts["warning"],
+                        alert_counts["error"],
+                        alert_counts["critical"],
+                    ],
+                    "backgroundColor": [
+                        "#6b7280",  # 灰色
+                        "#f59e0b",  # 黃色
+                        "#ef4444",  # 紅色
+                        "#dc2626",  # 深紅色
+                    ],
+                }
+            ],
         }
 
-    async def _update_performance_breakdown_widget(self, widget: DashboardWidget, metrics: dict[str, Any]) -> None:
+    async def _update_performance_breakdown_widget(
+        self, widget: DashboardWidget, _metrics: dict[str, Any]
+    ) -> None:
         """更新效能分解小工具."""
         # 取得最近10個點的資料
-        recent_metrics = self._metrics_history[-10:] if len(self._metrics_history) >= 10 else self._metrics_history
+        recent_metrics = (
+            self._metrics_history[-TREND_METRICS_COUNT:]
+            if len(self._metrics_history) >= TREND_METRICS_COUNT
+            else self._metrics_history
+        )
 
         timestamps = []
         db_times = []
@@ -518,19 +558,19 @@ class PerformanceDashboard:
                 {
                     "label": "資料庫時間",
                     "data": db_times,
-                    "backgroundColor": "rgba(239, 68, 68, 0.6)"
+                    "backgroundColor": "rgba(239, 68, 68, 0.6)",
                 },
                 {
                     "label": "快取時間",
                     "data": cache_times,
-                    "backgroundColor": "rgba(59, 130, 246, 0.6)"
+                    "backgroundColor": "rgba(59, 130, 246, 0.6)",
                 },
                 {
                     "label": "處理時間",
                     "data": processing_times,
-                    "backgroundColor": "rgba(16, 185, 129, 0.6)"
-                }
-            ]
+                    "backgroundColor": "rgba(16, 185, 129, 0.6)",
+                },
+            ],
         }
 
     # =============================================================================
@@ -546,7 +586,7 @@ class PerformanceDashboard:
                 metric="memory.current.rss_mb",
                 operator=">=",
                 threshold=80.0,
-                severity="warning"
+                severity="warning",
             ),
             AlertRule(
                 id="memory_critical",
@@ -554,7 +594,7 @@ class PerformanceDashboard:
                 metric="memory.current.rss_mb",
                 operator=">=",
                 threshold=100.0,
-                severity="critical"
+                severity="critical",
             ),
             AlertRule(
                 id="cache_hit_rate_low",
@@ -562,7 +602,7 @@ class PerformanceDashboard:
                 metric="cache.overall.hit_rate",
                 operator="<",
                 threshold=0.7,
-                severity="warning"
+                severity="warning",
             ),
             AlertRule(
                 id="query_time_high",
@@ -570,8 +610,8 @@ class PerformanceDashboard:
                 metric="performance.query_statistics.avg_query_time",
                 operator=">",
                 threshold=300.0,
-                severity="warning"
-            )
+                severity="warning",
+            ),
         ]
 
         for rule in default_rules:
@@ -602,7 +642,9 @@ class PerformanceDashboard:
                     continue
 
                 # 檢查條件
-                if self._evaluate_condition(metric_value, rule.operator, rule.threshold):
+                if self._evaluate_condition(
+                    metric_value, rule.operator, rule.threshold
+                ):
                     await self._trigger_alert(rule, metric_value)
                     rule.last_triggered = now
 
@@ -622,22 +664,19 @@ class PerformanceDashboard:
 
         return current
 
-    def _evaluate_condition(self, value: float, operator: str, threshold: float) -> bool:
+    def _evaluate_condition(
+        self, value: float, operator: str, threshold: float
+    ) -> bool:
         """評估條件."""
-        if operator == ">":
-            return value > threshold
-        elif operator == "<":
-            return value < threshold
-        elif operator == ">=":
-            return value >= threshold
-        elif operator == "<=":
-            return value <= threshold
-        elif operator == "==":
-            return value == threshold
-        elif operator == "!=":
-            return value != threshold
-        else:
-            return False
+        operators = {
+            ">": lambda v, t: v > t,
+            "<": lambda v, t: v < t,
+            ">=": lambda v, t: v >= t,
+            "<=": lambda v, t: v <= t,
+            "==": lambda v, t: v == t,
+            "!=": lambda v, t: v != t,
+        }
+        return operators.get(operator, lambda _v, _t: False)(value, threshold)
 
     async def _trigger_alert(self, rule: AlertRule, current_value: float) -> None:
         """觸發警報."""
@@ -649,8 +688,8 @@ class PerformanceDashboard:
                 "metric": rule.metric,
                 "current_value": current_value,
                 "threshold": rule.threshold,
-                "severity": rule.severity
-            }
+                "severity": rule.severity,
+            },
         )
 
     # =============================================================================
@@ -659,22 +698,22 @@ class PerformanceDashboard:
 
     def _get_memory_status(self, rss_mb: float) -> str:
         """取得記憶體狀態."""
-        if rss_mb >= 100:
+        if rss_mb >= CRITICAL_MEMORY_THRESHOLD_MB:
             return "critical"
-        elif rss_mb >= 80:
+        elif rss_mb >= WARNING_MEMORY_THRESHOLD_MB:
             return "warning"
-        elif rss_mb >= 50:
+        elif rss_mb >= INFO_MEMORY_THRESHOLD_MB:
             return "info"
         else:
             return "success"
 
     def _get_cache_status(self, hit_rate: float) -> str:
         """取得快取狀態."""
-        if hit_rate >= 80:
+        if hit_rate >= SUCCESS_CACHE_HIT_RATE:
             return "success"
-        elif hit_rate >= 60:
+        elif hit_rate >= INFO_CACHE_HIT_RATE:
             return "info"
-        elif hit_rate >= 40:
+        elif hit_rate >= WARNING_CACHE_HIT_RATE:
             return "warning"
         else:
             return "critical"
@@ -684,11 +723,11 @@ class PerformanceDashboard:
         query_stats = performance.get("query_statistics", {})
         avg_time = query_stats.get("avg_query_time", 0)
 
-        if avg_time <= 100:
+        if avg_time <= EXCELLENT_PERFORMANCE_TIME_MS:
             return 100
-        elif avg_time <= 300:
+        elif avg_time <= GOOD_PERFORMANCE_TIME_MS:
             return 80
-        elif avg_time <= 500:
+        elif avg_time <= FAIR_PERFORMANCE_TIME_MS:
             return 60
         else:
             return 40
@@ -718,9 +757,11 @@ class PerformanceDashboard:
 
     async def _cleanup_history(self) -> None:
         """清理歷史資料."""
-        # 保留最近的資料點，清理過舊的資料
+        # 保留最近的資料點,清理過舊的資料
         if len(self._metrics_history) > self._max_history_points:
-            self._metrics_history = self._metrics_history[-self._max_history_points//2:]
+            self._metrics_history = self._metrics_history[
+                -self._max_history_points // 2 :
+            ]
 
     # =============================================================================
     # 公共介面
@@ -743,7 +784,7 @@ class PerformanceDashboard:
                     "config": widget.config,
                     "position": widget.position,
                     "size": widget.size,
-                    "last_updated": widget.last_updated.isoformat()
+                    "last_updated": widget.last_updated.isoformat(),
                 }
                 for widget_id, widget in self._widgets.items()
             },
@@ -753,16 +794,22 @@ class PerformanceDashboard:
                     "name": rule.name,
                     "severity": rule.severity,
                     "enabled": rule.enabled,
-                    "last_triggered": rule.last_triggered.isoformat() if rule.last_triggered else None
+                    "last_triggered": rule.last_triggered.isoformat()
+                    if rule.last_triggered
+                    else None,
                 }
                 for rule_id, rule in self._alert_rules.items()
             },
             "summary": {
                 "total_widgets": len(self._widgets),
-                "active_alerts": len([r for r in self._alert_rules.values() if r.enabled]),
-                "last_update": self._metrics_history[-1]["timestamp"] if self._metrics_history else None,
-                "data_points": len(self._metrics_history)
-            }
+                "active_alerts": len(
+                    [r for r in self._alert_rules.values() if r.enabled]
+                ),
+                "last_update": self._metrics_history[-1]["timestamp"]
+                if self._metrics_history
+                else None,
+                "data_points": len(self._metrics_history),
+            },
         }
 
     def add_widget(self, widget: DashboardWidget) -> None:
@@ -811,15 +858,22 @@ class PerformanceDashboard:
             for metric in self._metrics_history[-100:]:  # 匯出最近100個點
                 timestamp = metric["timestamp"]
                 memory_mb = metric.get("memory", {}).get("current", {}).get("rss_mb", 0)
-                cache_hit_rate = metric.get("cache", {}).get("overall", {}).get("hit_rate", 0)
-                avg_query_time = metric.get("performance", {}).get("query_statistics", {}).get("avg_query_time", 0)
+                cache_hit_rate = (
+                    metric.get("cache", {}).get("overall", {}).get("hit_rate", 0)
+                )
+                avg_query_time = (
+                    metric.get("performance", {})
+                    .get("query_statistics", {})
+                    .get("avg_query_time", 0)
+                )
 
-                csv_lines.append(f"{timestamp},{memory_mb},{cache_hit_rate},{avg_query_time}")
+                csv_lines.append(
+                    f"{timestamp},{memory_mb},{cache_hit_rate},{avg_query_time}"
+                )
 
             return "\n".join(csv_lines)
         else:
             raise ValueError(f"不支援的匯出格式: {format}")
-
 
 __all__ = [
     "AlertRule",

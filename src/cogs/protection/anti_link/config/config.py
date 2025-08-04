@@ -7,6 +7,14 @@ import re
 import urllib.parse as up
 from typing import Any
 
+try:
+    import tldextract
+except ImportError:
+    tldextract = None
+
+# 常數定義
+MIN_TLD_LENGTH = 2
+
 # ────────────────────────────
 # 預設配置值
 # ────────────────────────────
@@ -27,7 +35,6 @@ DEFAULTS = {
 # URL 檢測正則表達式
 URL_PATTERN = re.compile(r"https?://[A-Za-z0-9\.\-_%]+\.[A-Za-z]{2,}[^ <]*", re.I)
 
-# 預設白名單(安全的網域)
 DEFAULT_WHITELIST = {
     "discord.com",
     "discord.gg",
@@ -96,7 +103,6 @@ ERROR_CODES = {
     "PANEL_ERROR": "ANTI_LINK_PANEL_ERROR",
 }
 
-
 # ────────────────────────────
 # 工具函數
 # ────────────────────────────
@@ -129,7 +135,6 @@ def extract_domain(url: str) -> str:
         return domain
     except Exception:
         return ""
-
 
 def normalize_domain(domain: str) -> str:
     """
@@ -164,7 +169,6 @@ def normalize_domain(domain: str) -> str:
     except Exception:
         return ""
 
-
 def is_whitelisted(domain: str, whitelist: set[str]) -> bool:
     """
     檢查網域是否在白名單中
@@ -190,7 +194,6 @@ def is_whitelisted(domain: str, whitelist: set[str]) -> bool:
     except Exception:
         return False
 
-
 def parse_domain_list(domain_str: str) -> set[str]:
     """
     解析網域列表字串
@@ -214,7 +217,6 @@ def parse_domain_list(domain_str: str) -> set[str]:
         return domains
     except Exception:
         return set()
-
 
 def validate_domain(domain: str) -> bool:
     """
@@ -244,10 +246,9 @@ def validate_domain(domain: str) -> bool:
 
         # 檢查 TLD 長度
         tld = domain.split(".")[-1]
-        return not len(tld) < 2
+        return not len(tld) < MIN_TLD_LENGTH
     except Exception:
         return False
-
 
 def get_domain_info(domain: str) -> dict[str, Any]:
     """
@@ -260,7 +261,8 @@ def get_domain_info(domain: str) -> dict[str, Any]:
         Dict[str, Any]: 網域資訊
     """
     try:
-        import tldextract
+        if tldextract is None:
+            return {"error": "tldextract 模組未安裝"}
 
         extracted = tldextract.extract(domain)
         return {
@@ -280,7 +282,6 @@ def get_domain_info(domain: str) -> dict[str, Any]:
             "fqdn": domain,
             "is_valid": False,
         }
-
 
 def format_domain_list(domains: set[str], max_length: int = 1000) -> str:
     """
@@ -316,7 +317,6 @@ def format_domain_list(domains: set[str], max_length: int = 1000) -> str:
     except Exception:
         return "(解析錯誤)"
 
-
 def get_config_description(key: str) -> str:
     """
     獲取配置項目的描述
@@ -339,7 +339,6 @@ def get_config_description(key: str) -> str:
     }
 
     return descriptions.get(key, "未知配置項目")
-
 
 def get_stats_description(key: str) -> str:
     """

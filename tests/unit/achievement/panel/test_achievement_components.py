@@ -1,6 +1,6 @@
 """成就系統組件測試模組.
 
-測試分頁按鈕、分類選擇器等 UI 組件的功能。
+測試分頁按鈕、分類選擇器等 UI 組件的功能.
 """
 
 from typing import Any
@@ -36,11 +36,7 @@ class TestPaginationButton:
     def test_pagination_button_init(self, mock_panel: MagicMock) -> None:
         """測試分頁按鈕初始化."""
         button = PaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️",
-            disabled=False
+            mock_panel, direction="next", label="下一頁", emoji="▶️", disabled=False
         )
 
         assert button.panel == mock_panel
@@ -52,20 +48,14 @@ class TestPaginationButton:
     def test_pagination_button_disabled(self, mock_panel: MagicMock) -> None:
         """測試禁用狀態的分頁按鈕."""
         button = PaginationButton(
-            mock_panel,
-            direction="prev",
-            label="上一頁",
-            emoji="◀️",
-            disabled=True
+            mock_panel, direction="prev", label="上一頁", emoji="◀️", disabled=True
         )
 
         assert button.disabled
 
     @pytest.mark.asyncio
     async def test_pagination_button_callback_next(
-        self,
-        mock_panel: MagicMock,
-        mock_interaction: AsyncMock
+        self, mock_panel: MagicMock, mock_interaction: AsyncMock
     ) -> None:
         """測試下一頁按鈕回調."""
         # 設置模擬視圖
@@ -75,10 +65,7 @@ class TestPaginationButton:
         mock_panel.view_manager.get_view.return_value = mock_personal_view
 
         button = PaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         # 執行回調
@@ -90,9 +77,7 @@ class TestPaginationButton:
 
     @pytest.mark.asyncio
     async def test_pagination_button_callback_prev(
-        self,
-        mock_panel: MagicMock,
-        mock_interaction: AsyncMock
+        self, mock_panel: MagicMock, mock_interaction: AsyncMock
     ) -> None:
         """測試上一頁按鈕回調."""
         # 設置模擬視圖
@@ -102,10 +87,7 @@ class TestPaginationButton:
         mock_panel.view_manager.get_view.return_value = mock_personal_view
 
         button = PaginationButton(
-            mock_panel,
-            direction="prev",
-            label="上一頁",
-            emoji="◀️"
+            mock_panel, direction="prev", label="上一頁", emoji="◀️"
         )
 
         # 執行回調
@@ -117,19 +99,14 @@ class TestPaginationButton:
 
     @pytest.mark.asyncio
     async def test_pagination_button_callback_first(
-        self,
-        mock_panel: MagicMock,
-        mock_interaction: AsyncMock
+        self, mock_panel: MagicMock, mock_interaction: AsyncMock
     ) -> None:
         """測試首頁按鈕回調."""
         mock_personal_view = MagicMock()
         mock_panel.view_manager.get_view.return_value = mock_personal_view
 
         button = PaginationButton(
-            mock_panel,
-            direction="first",
-            label="首頁",
-            emoji="⏮️"
+            mock_panel, direction="first", label="首頁", emoji="⏮️"
         )
 
         # 執行回調
@@ -141,21 +118,14 @@ class TestPaginationButton:
 
     @pytest.mark.asyncio
     async def test_pagination_button_callback_last(
-        self,
-        mock_panel: MagicMock,
-        mock_interaction: AsyncMock
+        self, mock_panel: MagicMock, mock_interaction: AsyncMock
     ) -> None:
         """測試末頁按鈕回調."""
         mock_personal_view = MagicMock()
         mock_personal_view.get_total_pages.return_value = 5
         mock_panel.view_manager.get_view.return_value = mock_personal_view
 
-        button = PaginationButton(
-            mock_panel,
-            direction="last",
-            label="末頁",
-            emoji="⏭️"
-        )
+        button = PaginationButton(mock_panel, direction="last", label="末頁", emoji="⏭️")
 
         # 執行回調
         await button.callback(mock_interaction)
@@ -166,21 +136,16 @@ class TestPaginationButton:
 
     @pytest.mark.asyncio
     async def test_pagination_button_callback_no_movement(
-        self,
-        mock_panel: MagicMock,
-        mock_interaction: AsyncMock
+        self, mock_panel: MagicMock, mock_interaction: AsyncMock
     ) -> None:
         """測試無法移動時的按鈕回調."""
-        # 設置模擬視圖（無下一頁）
+        # 設置模擬視圖(無下一頁)
         mock_personal_view = MagicMock()
         mock_personal_view.has_next_page.return_value = False
         mock_panel.view_manager.get_view.return_value = mock_personal_view
 
         button = PaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         # 執行回調
@@ -193,19 +158,14 @@ class TestPaginationButton:
 
     @pytest.mark.asyncio
     async def test_pagination_button_callback_error(
-        self,
-        mock_panel: MagicMock,
-        mock_interaction: AsyncMock
+        self, mock_panel: MagicMock, mock_interaction: AsyncMock
     ) -> None:
         """測試分頁按鈕錯誤處理."""
         # 設置拋出錯誤的模擬
         mock_panel.view_manager.get_view.side_effect = Exception("View error")
 
         button = PaginationButton(
-            mock_panel,
-            direction="next",
-            label="下一頁",
-            emoji="▶️"
+            mock_panel, direction="next", label="下一頁", emoji="▶️"
         )
 
         # 執行回調
@@ -237,21 +197,19 @@ class TestPersonalCategorySelector:
         return [
             {"id": 1, "name": "活動成就", "user_achievements_count": 5},
             {"id": 2, "name": "社交成就", "user_achievements_count": 3},
-            {"id": 3, "name": "時間成就", "user_achievements_count": 0}  # 無成就的分類
+            {"id": 3, "name": "時間成就", "user_achievements_count": 0},  # 無成就的分類
         ]
 
     def test_category_selector_init(
-        self,
-        mock_panel: MagicMock,
-        sample_categories: list[dict[str, Any]]
+        self, mock_panel: MagicMock, sample_categories: list[dict[str, Any]]
     ) -> None:
         """測試分類選擇器初始化."""
         selector = PersonalCategorySelector(mock_panel, sample_categories)
 
         assert selector.panel == mock_panel
 
-        # 驗證選項（應該包含"全部"選項和有成就的分類）
-        expected_options = 3  # 全部 + 活動成就 + 社交成就（時間成就被排除因為無成就）
+        # 驗證選項(應該包含"全部"選項和有成就的分類)
+        expected_options = 3  # 全部 + 活動成就 + 社交成就(時間成就被排除因為無成就)
         assert len(selector.options) == expected_options
 
         # 驗證"全部"選項
@@ -265,14 +223,12 @@ class TestPersonalCategorySelector:
         assert "已獲得 5 個成就" in activity_option.description
 
     def test_category_selector_filters_empty_categories(
-        self,
-        mock_panel: MagicMock,
-        sample_categories: list[dict[str, Any]]
+        self, mock_panel: MagicMock, sample_categories: list[dict[str, Any]]
     ) -> None:
         """測試分類選擇器過濾空分類."""
         selector = PersonalCategorySelector(mock_panel, sample_categories)
 
-        # 驗證時間成就（無成就）被過濾掉
+        # 驗證時間成就(無成就)被過濾掉
         category_values = [opt.value for opt in selector.options]
         assert "3" not in category_values  # 時間成就的 ID
 
@@ -281,7 +237,7 @@ class TestPersonalCategorySelector:
         self,
         mock_panel: MagicMock,
         mock_interaction: AsyncMock,
-        sample_categories: list[dict[str, Any]]
+        sample_categories: list[dict[str, Any]],
     ) -> None:
         """測試選擇全部分類的回調."""
         mock_personal_view = MagicMock()
@@ -302,7 +258,7 @@ class TestPersonalCategorySelector:
         self,
         mock_panel: MagicMock,
         mock_interaction: AsyncMock,
-        sample_categories: list[dict[str, Any]]
+        sample_categories: list[dict[str, Any]],
     ) -> None:
         """測試選擇特定分類的回調."""
         mock_personal_view = MagicMock()
@@ -323,7 +279,7 @@ class TestPersonalCategorySelector:
         self,
         mock_panel: MagicMock,
         mock_interaction: AsyncMock,
-        sample_categories: list[dict[str, Any]]
+        sample_categories: list[dict[str, Any]],
     ) -> None:
         """測試分類選擇器錯誤處理."""
         # 設置拋出錯誤的模擬
@@ -348,7 +304,7 @@ class TestAchievementProgressIndicator:
             "name": "社交達人",
             "description": "與50個不同用戶互動",
             "category": "社交",
-            "points": 100
+            "points": 100,
         }
 
         embed = AchievementProgressIndicator.create_progress_embed(
@@ -361,11 +317,15 @@ class TestAchievementProgressIndicator:
         assert embed.color == discord.Color.blue()
 
         # 驗證欄位
-        progress_field = next(field for field in embed.fields if field.name == "📊 進度")
+        progress_field = next(
+            field for field in embed.fields if field.name == "📊 進度"
+        )
         assert "30 / 50" in progress_field.value
         assert "60.0%" in progress_field.value
 
-        category_field = next(field for field in embed.fields if field.name == "📁 分類")
+        category_field = next(
+            field for field in embed.fields if field.name == "📁 分類"
+        )
         assert category_field.value == "社交"
 
         points_field = next(field for field in embed.fields if field.name == "💰 點數")
@@ -433,9 +393,7 @@ class TestComponentFactory:
 
     def test_create_personal_category_selector(self, mock_panel: MagicMock) -> None:
         """測試創建個人分類選擇器."""
-        categories = [
-            {"id": 1, "name": "測試分類", "user_achievements_count": 5}
-        ]
+        categories = [{"id": 1, "name": "測試分類", "user_achievements_count": 5}]
 
         selector = ComponentFactory.create_personal_category_selector(
             mock_panel, categories
@@ -490,9 +448,7 @@ class TestComponentIntegration:
         """測試完整的分類選擇工作流程."""
         mock_interaction = AsyncMock(spec=discord.Interaction)
 
-        categories = [
-            {"id": 1, "name": "活動成就", "user_achievements_count": 5}
-        ]
+        categories = [{"id": 1, "name": "活動成就", "user_achievements_count": 5}]
 
         # 創建分類選擇器
         selector = ComponentFactory.create_personal_category_selector(
@@ -522,10 +478,7 @@ async def test_component_error_resilience() -> None:
 
     # 測試分頁按鈕錯誤處理
     button = PaginationButton(
-        failing_panel,
-        direction="next",
-        label="下一頁",
-        emoji="▶️"
+        failing_panel, direction="next", label="下一頁", emoji="▶️"
     )
 
     await button.callback(mock_interaction)
@@ -553,13 +506,12 @@ def test_component_creation_performance() -> None:
         ComponentFactory.create_pagination_buttons(mock_panel, True, True)
     creation_time = time.time() - start_time
 
-    # 驗證效能（應該在合理時間內完成）
+    # 驗證效能(應該在合理時間內完成)
     assert creation_time < 1.0  # 1000個按鈕組應該在1秒內創建完成
 
     # 測試大量分類選擇器創建
     large_categories = [
-        {"id": i, "name": f"分類 {i}", "user_achievements_count": 1}
-        for i in range(100)
+        {"id": i, "name": f"分類 {i}", "user_achievements_count": 1} for i in range(100)
     ]
 
     start_time = time.time()

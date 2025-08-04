@@ -1,6 +1,6 @@
 """通知系統整合服務測試模組.
 
-測試通知系統整合和管理功能，包括：
+測試通知系統整合和管理功能,包括:
 - NotificationIntegrationService
 - NotificationServiceManager
 - 服務生命週期管理
@@ -45,17 +45,19 @@ class TestNotificationIntegrationService:
         awarder.get_award_stats.return_value = {
             "notification_handlers": 1,
             "total_awards": 10,
-            "successful_awards": 8
+            "successful_awards": 8,
         }
         return awarder
 
     @pytest.fixture
-    async def integration_service(self, mock_bot, mock_repository, mock_achievement_awarder):
+    async def integration_service(
+        self, mock_bot, mock_repository, mock_achievement_awarder
+    ):
         """建立通知整合服務實例."""
         service = NotificationIntegrationService(
             bot=mock_bot,
             repository=mock_repository,
-            achievement_awarder=mock_achievement_awarder
+            achievement_awarder=mock_achievement_awarder,
         )
         yield service
         # 清理
@@ -64,21 +66,23 @@ class TestNotificationIntegrationService:
 
     @pytest.mark.asyncio
     async def test_service_initialization(
-        self,
-        integration_service,
-        mock_achievement_awarder
+        self, integration_service, mock_achievement_awarder
     ):
         """測試服務初始化."""
         assert not integration_service.is_initialized()
         assert integration_service.get_notifier() is None
 
         # 使用 patch 來模擬 AchievementNotifier
-        with patch('src.cogs.achievement.main.notification_integration.AchievementNotifier') as mock_notifier_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.AchievementNotifier"
+        ) as mock_notifier_class:
             mock_notifier = MagicMock(spec=AchievementNotifier)
             mock_notifier.start = AsyncMock()
             mock_notifier_class.return_value = mock_notifier
 
-            with patch('src.cogs.achievement.main.notification_integration.create_notification_handler') as mock_create_handler:
+            with patch(
+                "src.cogs.achievement.main.notification_integration.create_notification_handler"
+            ) as mock_create_handler:
                 mock_handler = AsyncMock()
                 mock_create_handler.return_value = mock_handler
 
@@ -90,19 +94,25 @@ class TestNotificationIntegrationService:
                 assert integration_service.get_notifier() is not None
 
                 # 驗證通知處理器被添加到頒發器
-                mock_achievement_awarder.add_notification_handler.assert_called_once_with(mock_handler)
+                mock_achievement_awarder.add_notification_handler.assert_called_once_with(
+                    mock_handler
+                )
 
     @pytest.mark.asyncio
     async def test_service_shutdown(self, integration_service):
         """測試服務關閉."""
         # 先初始化服務
-        with patch('src.cogs.achievement.main.notification_integration.AchievementNotifier') as mock_notifier_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.AchievementNotifier"
+        ) as mock_notifier_class:
             mock_notifier = MagicMock(spec=AchievementNotifier)
             mock_notifier.start = AsyncMock()
             mock_notifier.stop = AsyncMock()
             mock_notifier_class.return_value = mock_notifier
 
-            with patch('src.cogs.achievement.main.notification_integration.create_notification_handler'):
+            with patch(
+                "src.cogs.achievement.main.notification_integration.create_notification_handler"
+            ):
                 await integration_service.initialize()
 
                 # 驗證初始化
@@ -123,17 +133,21 @@ class TestNotificationIntegrationService:
         assert "error" in stats
 
         # 初始化後
-        with patch('src.cogs.achievement.main.notification_integration.AchievementNotifier') as mock_notifier_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.AchievementNotifier"
+        ) as mock_notifier_class:
             mock_notifier = MagicMock(spec=AchievementNotifier)
             mock_notifier.start = AsyncMock()
             mock_notifier.get_notification_stats.return_value = {
                 "total_notifications": 5,
                 "successful_dm": 3,
-                "successful_announcements": 2
+                "successful_announcements": 2,
             }
             mock_notifier_class.return_value = mock_notifier
 
-            with patch('src.cogs.achievement.main.notification_integration.create_notification_handler'):
+            with patch(
+                "src.cogs.achievement.main.notification_integration.create_notification_handler"
+            ):
                 await integration_service.initialize()
 
                 stats = await integration_service.get_notification_stats()
@@ -141,11 +155,7 @@ class TestNotificationIntegrationService:
                 assert stats["successful_dm"] == 3
 
     @pytest.mark.asyncio
-    async def test_health_check(
-        self,
-        integration_service,
-        mock_achievement_awarder
-    ):
+    async def test_health_check(self, integration_service, mock_achievement_awarder):
         """測試健康檢查."""
         # 未初始化時的健康檢查
         health = await integration_service.health_check()
@@ -154,18 +164,22 @@ class TestNotificationIntegrationService:
         assert health["awarder_integration"] is True  # 基於模擬的頒發器統計
 
         # 初始化後的健康檢查
-        with patch('src.cogs.achievement.main.notification_integration.AchievementNotifier') as mock_notifier_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.AchievementNotifier"
+        ) as mock_notifier_class:
             mock_notifier = MagicMock(spec=AchievementNotifier)
             mock_notifier.start = AsyncMock()
             mock_notifier.get_notification_stats.return_value = {
                 "is_processing": True,
                 "queue_size": 2,
                 "active_notifications": 1,
-                "success_rate": 0.85
+                "success_rate": 0.85,
             }
             mock_notifier_class.return_value = mock_notifier
 
-            with patch('src.cogs.achievement.main.notification_integration.create_notification_handler'):
+            with patch(
+                "src.cogs.achievement.main.notification_integration.create_notification_handler"
+            ):
                 await integration_service.initialize()
 
                 health = await integration_service.health_check()
@@ -214,16 +228,14 @@ class TestNotificationServiceManager:
 
     @pytest.mark.asyncio
     async def test_create_service(
-        self,
-        service_manager,
-        mock_bot,
-        mock_repository,
-        mock_achievement_awarder
+        self, service_manager, mock_bot, mock_repository, mock_achievement_awarder
     ):
         """測試建立服務."""
         guild_id = 123456789
 
-        with patch('src.cogs.achievement.main.notification_integration.NotificationIntegrationService') as mock_service_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.NotificationIntegrationService"
+        ) as mock_service_class:
             mock_service = MagicMock()
             mock_service.initialize = AsyncMock()
             mock_service_class.return_value = mock_service
@@ -233,7 +245,7 @@ class TestNotificationServiceManager:
                 guild_id=guild_id,
                 bot=mock_bot,
                 repository=mock_repository,
-                achievement_awarder=mock_achievement_awarder
+                achievement_awarder=mock_achievement_awarder,
             )
 
             # 驗證服務被建立和註冊
@@ -247,11 +259,7 @@ class TestNotificationServiceManager:
 
     @pytest.mark.asyncio
     async def test_get_service(
-        self,
-        service_manager,
-        mock_bot,
-        mock_repository,
-        mock_achievement_awarder
+        self, service_manager, mock_bot, mock_repository, mock_achievement_awarder
     ):
         """測試取得服務."""
         guild_id = 123456789
@@ -261,7 +269,9 @@ class TestNotificationServiceManager:
         assert service is None
 
         # 建立服務後取得
-        with patch('src.cogs.achievement.main.notification_integration.NotificationIntegrationService') as mock_service_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.NotificationIntegrationService"
+        ) as mock_service_class:
             mock_service = MagicMock()
             mock_service.initialize = AsyncMock()
             mock_service_class.return_value = mock_service
@@ -270,7 +280,7 @@ class TestNotificationServiceManager:
                 guild_id=guild_id,
                 bot=mock_bot,
                 repository=mock_repository,
-                achievement_awarder=mock_achievement_awarder
+                achievement_awarder=mock_achievement_awarder,
             )
 
             service = await service_manager.get_service(guild_id)
@@ -278,11 +288,7 @@ class TestNotificationServiceManager:
 
     @pytest.mark.asyncio
     async def test_remove_service(
-        self,
-        service_manager,
-        mock_bot,
-        mock_repository,
-        mock_achievement_awarder
+        self, service_manager, mock_bot, mock_repository, mock_achievement_awarder
     ):
         """測試移除服務."""
         guild_id = 123456789
@@ -292,7 +298,9 @@ class TestNotificationServiceManager:
         assert result is False
 
         # 建立服務後移除
-        with patch('src.cogs.achievement.main.notification_integration.NotificationIntegrationService') as mock_service_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.NotificationIntegrationService"
+        ) as mock_service_class:
             mock_service = MagicMock()
             mock_service.initialize = AsyncMock()
             mock_service.shutdown = AsyncMock()
@@ -302,7 +310,7 @@ class TestNotificationServiceManager:
                 guild_id=guild_id,
                 bot=mock_bot,
                 repository=mock_repository,
-                achievement_awarder=mock_achievement_awarder
+                achievement_awarder=mock_achievement_awarder,
             )
 
             # 移除服務
@@ -316,17 +324,15 @@ class TestNotificationServiceManager:
 
     @pytest.mark.asyncio
     async def test_shutdown_all(
-        self,
-        service_manager,
-        mock_bot,
-        mock_repository,
-        mock_achievement_awarder
+        self, service_manager, mock_bot, mock_repository, mock_achievement_awarder
     ):
         """測試關閉所有服務."""
         # 建立多個服務
         guild_ids = [123456789, 987654321, 555666777]
 
-        with patch('src.cogs.achievement.main.notification_integration.NotificationIntegrationService') as mock_service_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.NotificationIntegrationService"
+        ) as mock_service_class:
             mock_services = []
             for guild_id in guild_ids:
                 mock_service = MagicMock()
@@ -339,7 +345,7 @@ class TestNotificationServiceManager:
                     guild_id=guild_id,
                     bot=mock_bot,
                     repository=mock_repository,
-                    achievement_awarder=mock_achievement_awarder
+                    achievement_awarder=mock_achievement_awarder,
                 )
 
             # 驗證服務被建立
@@ -355,11 +361,7 @@ class TestNotificationServiceManager:
 
     @pytest.mark.asyncio
     async def test_get_global_stats(
-        self,
-        service_manager,
-        mock_bot,
-        mock_repository,
-        mock_achievement_awarder
+        self, service_manager, mock_bot, mock_repository, mock_achievement_awarder
     ):
         """測試取得全域統計."""
         # 初始統計
@@ -371,21 +373,25 @@ class TestNotificationServiceManager:
         # 建立服務後的統計
         guild_id = 123456789
 
-        with patch('src.cogs.achievement.main.notification_integration.NotificationIntegrationService') as mock_service_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.NotificationIntegrationService"
+        ) as mock_service_class:
             mock_service = MagicMock()
             mock_service.initialize = AsyncMock()
-            mock_service.get_notification_stats = AsyncMock(return_value={
-                "total_notifications": 10,
-                "successful_dm": 6,
-                "successful_announcements": 4
-            })
+            mock_service.get_notification_stats = AsyncMock(
+                return_value={
+                    "total_notifications": 10,
+                    "successful_dm": 6,
+                    "successful_announcements": 4,
+                }
+            )
             mock_service_class.return_value = mock_service
 
             await service_manager.create_service(
                 guild_id=guild_id,
                 bot=mock_bot,
                 repository=mock_repository,
-                achievement_awarder=mock_achievement_awarder
+                achievement_awarder=mock_achievement_awarder,
             )
 
             stats = await service_manager.get_global_stats()
@@ -397,11 +403,7 @@ class TestNotificationServiceManager:
 
     @pytest.mark.asyncio
     async def test_health_check_all(
-        self,
-        service_manager,
-        mock_bot,
-        mock_repository,
-        mock_achievement_awarder
+        self, service_manager, mock_bot, mock_repository, mock_achievement_awarder
     ):
         """測試所有服務的健康檢查."""
         # 空管理器的健康檢查
@@ -414,23 +416,29 @@ class TestNotificationServiceManager:
         # 建立服務後的健康檢查
         guild_ids = [123456789, 987654321]
 
-        with patch('src.cogs.achievement.main.notification_integration.NotificationIntegrationService') as mock_service_class:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.NotificationIntegrationService"
+        ) as mock_service_class:
             mock_services = []
             for i, guild_id in enumerate(guild_ids):
                 mock_service = MagicMock()
                 mock_service.initialize = AsyncMock()
 
-                # 第一個服務健康，第二個不健康
+                # 第一個服務健康,第二個不健康
                 if i == 0:
-                    mock_service.health_check = AsyncMock(return_value={
-                        "service_initialized": True,
-                        "notifier_available": True
-                    })
+                    mock_service.health_check = AsyncMock(
+                        return_value={
+                            "service_initialized": True,
+                            "notifier_available": True,
+                        }
+                    )
                 else:
-                    mock_service.health_check = AsyncMock(return_value={
-                        "service_initialized": False,
-                        "notifier_available": False
-                    })
+                    mock_service.health_check = AsyncMock(
+                        return_value={
+                            "service_initialized": False,
+                            "notifier_available": False,
+                        }
+                    )
 
                 mock_services.append(mock_service)
                 mock_service_class.return_value = mock_service
@@ -439,7 +447,7 @@ class TestNotificationServiceManager:
                     guild_id=guild_id,
                     bot=mock_bot,
                     repository=mock_repository,
-                    achievement_awarder=mock_achievement_awarder
+                    achievement_awarder=mock_achievement_awarder,
                 )
 
             health = await service_manager.health_check_all()
@@ -471,7 +479,9 @@ class TestModuleFunctions:
         mock_repository = AsyncMock()
         mock_awarder = MagicMock(spec=AchievementAwarder)
 
-        with patch('src.cogs.achievement.main.notification_integration.get_notification_manager') as mock_get_manager:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.get_notification_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock(spec=NotificationServiceManager)
             mock_manager.create_service = AsyncMock()
             mock_get_manager.return_value = mock_manager
@@ -481,7 +491,7 @@ class TestModuleFunctions:
                 guild_id=guild_id,
                 bot=mock_bot,
                 repository=mock_repository,
-                achievement_awarder=mock_awarder
+                achievement_awarder=mock_awarder,
             )
 
             # 驗證管理器的建立服務方法被調用
@@ -494,7 +504,9 @@ class TestModuleFunctions:
         """測試關閉通知整合."""
         guild_id = 123456789
 
-        with patch('src.cogs.achievement.main.notification_integration.get_notification_manager') as mock_get_manager:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.get_notification_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock(spec=NotificationServiceManager)
             mock_manager.remove_service = AsyncMock(return_value=True)
             mock_get_manager.return_value = mock_manager
@@ -511,7 +523,9 @@ class TestModuleFunctions:
         """測試取得通知服務."""
         guild_id = 123456789
 
-        with patch('src.cogs.achievement.main.notification_integration.get_notification_manager') as mock_get_manager:
+        with patch(
+            "src.cogs.achievement.main.notification_integration.get_notification_manager"
+        ) as mock_get_manager:
             mock_manager = MagicMock(spec=NotificationServiceManager)
             mock_service = MagicMock(spec=NotificationIntegrationService)
             mock_manager.get_service = AsyncMock(return_value=mock_service)

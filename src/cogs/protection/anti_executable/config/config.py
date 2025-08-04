@@ -4,6 +4,14 @@
 """
 
 import re
+import urllib.parse as urlparse
+
+# ────────────────────────────
+# 常數定義
+# ────────────────────────────
+MIN_FILE_EXTENSION_PARTS = 3
+CONTENT_PREVIEW_MAX_LENGTH = 500
+MAX_FILE_SIZE = 100  # MB
 
 # ────────────────────────────
 # 預設配置值
@@ -83,7 +91,6 @@ DANGEROUS_EXTENSIONS = {
     "aspx",
     "jsp",
     "jar",
-    # 壓縮檔案(可能包含惡意軟體)
     "zip",
     "rar",
     "7z",
@@ -104,7 +111,6 @@ DANGEROUS_EXTENSIONS = {
 
 # 嚴格模式額外檢查的副檔名
 STRICT_EXTENSIONS = {
-    # 辦公室文件(可能包含巨集)
     "doc",
     "docx",
     "xls",
@@ -147,9 +153,7 @@ STRICT_EXTENSIONS = {
     "txz",
 }
 
-# 白名單副檔名(通常安全的檔案)
 SAFE_EXTENSIONS = {
-    # 圖片檔案
     "jpg",
     "jpeg",
     "png",
@@ -226,7 +230,6 @@ ERROR_CODES = {
     "PANEL_ERROR": "ANTI_EXECUTABLE_PANEL_ERROR",
 }
 
-
 # ────────────────────────────
 # 工具函數
 # ────────────────────────────
@@ -244,15 +247,13 @@ def get_file_extension(filename: str) -> str:
         if "." not in filename:
             return ""
 
-        # 處理多重副檔名(如 .tar.gz)
         parts = filename.lower().split(".")
-        if len(parts) >= 3 and f"{parts[-2]}.{parts[-1]}" in STRICT_EXTENSIONS:
+        if len(parts) >= MIN_FILE_EXTENSION_PARTS and f"{parts[-2]}.{parts[-1]}" in STRICT_EXTENSIONS:
             return f"{parts[-2]}.{parts[-1]}"
 
         return parts[-1]
     except Exception:
         return ""
-
 
 def is_dangerous_file(filename: str, strict_mode: bool = False) -> bool:
     """
@@ -279,7 +280,6 @@ def is_dangerous_file(filename: str, strict_mode: bool = False) -> bool:
     except Exception:
         return False
 
-
 def is_safe_file(filename: str) -> bool:
     """
     檢查檔案是否為安全檔案
@@ -296,7 +296,6 @@ def is_safe_file(filename: str) -> bool:
     except Exception:
         return False
 
-
 def is_dangerous_mime_type(mime_type: str) -> bool:
     """
     檢查 MIME 類型是否為危險類型
@@ -311,7 +310,6 @@ def is_dangerous_mime_type(mime_type: str) -> bool:
         return mime_type.lower() in DANGEROUS_MIME_TYPES
     except Exception:
         return False
-
 
 def extract_urls_from_text(text: str) -> list[str]:
     """
@@ -330,7 +328,6 @@ def extract_urls_from_text(text: str) -> list[str]:
     except Exception:
         return []
 
-
 def is_executable_url(url: str) -> bool:
     """
     檢查 URL 是否指向可執行檔案
@@ -343,9 +340,7 @@ def is_executable_url(url: str) -> bool:
     """
     try:
         # 從 URL 中提取檔案名稱
-        import urllib.parse as up
-
-        parsed = up.urlparse(url)
+        parsed = urlparse.urlparse(url)
         path = parsed.path
 
         filename = path.split("/")[-1] if "/" in path else path
@@ -357,7 +352,6 @@ def is_executable_url(url: str) -> bool:
         return is_dangerous_file(filename)
     except Exception:
         return False
-
 
 def format_file_list(files: list[str], max_length: int = 1000) -> str:
     """
@@ -392,7 +386,6 @@ def format_file_list(files: list[str], max_length: int = 1000) -> str:
     except Exception:
         return "(解析錯誤)"
 
-
 def get_file_risk_level(filename: str, strict_mode: bool = False) -> str:
     """
     獲取檔案風險等級
@@ -409,27 +402,23 @@ def get_file_risk_level(filename: str, strict_mode: bool = False) -> str:
         if not ext:
             return "未知"
 
-        # 安全檔案
-        if ext in SAFE_EXTENSIONS:
-            return "安全"
-
-        # 高風險檔案
+        # 按優先級檢查風險等級
         high_risk = {"exe", "com", "scr", "bat", "cmd", "vbs", "js", "msi", "ps1"}
-        if ext in high_risk:
-            return "高"
 
-        # 中風險檔案
-        if ext in DANGEROUS_EXTENSIONS:
-            return "中"
+        if ext in SAFE_EXTENSIONS:
+            risk_level = "安全"
+        elif ext in high_risk:
+            risk_level = "高"
+        elif ext in DANGEROUS_EXTENSIONS:
+            risk_level = "中"
+        elif strict_mode and ext in STRICT_EXTENSIONS:
+            risk_level = "低"
+        else:
+            risk_level = "未知"
 
-        # 嚴格模式下的可疑檔案
-        if strict_mode and ext in STRICT_EXTENSIONS:
-            return "低"
-
-        return "未知"
+        return risk_level
     except Exception:
         return "未知"
-
 
 def get_config_description(key: str) -> str:
     """
@@ -452,7 +441,6 @@ def get_config_description(key: str) -> str:
     }
 
     return descriptions.get(key, "未知配置項目")
-
 
 def get_stats_description(key: str) -> str:
     """

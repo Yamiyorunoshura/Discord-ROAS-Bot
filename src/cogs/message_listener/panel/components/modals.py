@@ -6,6 +6,8 @@
 import discord
 from discord.ui import Modal, TextInput
 
+from ..embeds.settings_embed import settings_embed
+
 
 class BatchSizeModal(Modal):
     """批次大小設定模態框"""
@@ -35,8 +37,10 @@ class BatchSizeModal(Modal):
             # 驗證輸入
             try:
                 size = int(size_str)
-                if size < 1 or size > 50:
-                    raise ValueError("批次大小必須在 1-50 之間")
+                MIN_BATCH_SIZE = 1
+                MAX_BATCH_SIZE = 50
+                if size < MIN_BATCH_SIZE or size > MAX_BATCH_SIZE:
+                    raise ValueError(f"批次大小必須在 {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE} 之間")
             except ValueError as exc:
                 await interaction.response.send_message(
                     f"❌ 無效的批次大小: {exc}", ephemeral=True
@@ -61,7 +65,6 @@ class BatchSizeModal(Modal):
                 await self.cog.refresh_settings()
 
                 # 創建新的嵌入訊息
-                from ..embeds.settings_embed import settings_embed
 
                 embed = await settings_embed(self.cog)
 
@@ -74,7 +77,6 @@ class BatchSizeModal(Modal):
                 f"❌ 設定批次大小失敗: {exc}", ephemeral=True
             )
 
-
 class BatchTimeModal(Modal):
     """批次時間設定模態框"""
 
@@ -85,7 +87,7 @@ class BatchTimeModal(Modal):
         # 轉換為分鐘
         try:
             minutes = int(int(current_time) / 60)
-        except:
+        except Exception:
             minutes = 10
 
         # 添加文字輸入框
@@ -109,8 +111,10 @@ class BatchTimeModal(Modal):
             # 驗證輸入
             try:
                 minutes = int(time_str)
-                if minutes < 1 or minutes > 60:
-                    raise ValueError("批次時間必須在 1-60 分鐘之間")
+                MIN_BATCH_TIME = 1
+                MAX_BATCH_TIME = 60
+                if minutes < MIN_BATCH_TIME or minutes > MAX_BATCH_TIME:
+                    raise ValueError(f"批次時間必須在 {MIN_BATCH_TIME}-{MAX_BATCH_TIME} 分鐘之間")
 
                 # 轉換為秒
                 seconds = minutes * 60
@@ -140,7 +144,6 @@ class BatchTimeModal(Modal):
                 await self.cog.refresh_settings()
 
                 # 創建新的嵌入訊息
-                from ..embeds.settings_embed import settings_embed
 
                 embed = await settings_embed(self.cog)
 

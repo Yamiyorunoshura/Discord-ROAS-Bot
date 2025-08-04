@@ -11,8 +11,10 @@ import discord
 if TYPE_CHECKING:
     from .main import AntiExecutable
 
-logger = logging.getLogger("anti_executable")
+# 常數定義
+MESSAGE_CONTENT_MAX_LENGTH = 500
 
+logger = logging.getLogger("anti_executable")
 
 class ExecutableActions:
     """可執行檔案動作處理器"""
@@ -178,8 +180,8 @@ class ExecutableActions:
             # 如果有訊息內容,添加到 Embed
             if message.content:
                 content = (
-                    message.content[:500] + "..."
-                    if len(message.content) > 500
+                    message.content[:MESSAGE_CONTENT_MAX_LENGTH] + "..."
+                    if len(message.content) > MESSAGE_CONTENT_MAX_LENGTH
                     else message.content
                 )
                 embed.add_field(
@@ -209,9 +211,6 @@ class ExecutableActions:
                 f"檔案: {filename}, 類型: {violation_type}, "
                 f"頻道: {message.channel.id}"
             )
-
-            # 這裡可以添加資料庫記錄邏輯
-            # await self.cog.db.log_violation(...)
 
         except Exception as exc:
             logger.error(f"記錄違規失敗: {exc}")

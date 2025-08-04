@@ -82,7 +82,7 @@ class BlacklistEmbed:
 
             # 操作說明
             embed.add_field(
-                name="ℹ️ 操作說明",
+                name="i 操作說明",
                 value="• 點擊「新增項目」按鈕添加新的黑名單項目\n• 點擊「移除項目」按鈕移除指定項目\n• 點擊「重新整理」按鈕更新黑名單",
                 inline=False,
             )

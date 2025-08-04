@@ -1,12 +1,12 @@
 """成就系統服務層測試配置.
 
-此模組提供成就系統服務層測試的共用配置和 fixtures，包含：
+此模組提供成就系統服務層測試的共用配置和 fixtures,包含:
 - 測試資料庫設置
 - Mock 物件建立
 - 測試資料工廠
 - 共用測試工具
 
-遵循測試最佳實踐，提供可重複和可靠的測試環境。
+遵循測試最佳實踐,提供可重複和可靠的測試環境.
 """
 
 import asyncio
@@ -53,6 +53,7 @@ async def temp_db_pool() -> AsyncGenerator[DatabasePool, None]:
 
     # 建立簡單的測試設定
     from src.core.config import Settings
+
     test_settings = Settings()
 
     pool = None
@@ -150,7 +151,7 @@ async def achievement_service(repository: AchievementRepository) -> AchievementS
     return AchievementService(
         repository=repository,
         cache_ttl=60,  # 測試時使用短快取時間
-        cache_maxsize=100
+        cache_maxsize=100,
     )
 
 
@@ -162,8 +163,7 @@ async def progress_tracker(repository: AchievementRepository) -> ProgressTracker
 
 @pytest_asyncio.fixture
 async def trigger_engine(
-    repository: AchievementRepository,
-    progress_tracker: ProgressTracker
+    repository: AchievementRepository, progress_tracker: ProgressTracker
 ) -> TriggerEngine:
     """建立觸發引擎 fixture."""
     return TriggerEngine(repository, progress_tracker)
@@ -173,14 +173,12 @@ async def trigger_engine(
 # 測試資料工廠
 # =============================================================================
 
+
 @pytest.fixture
 def sample_category() -> AchievementCategory:
     """建立範例成就分類."""
     return AchievementCategory(
-        name="social",
-        description="社交互動相關成就",
-        display_order=1,
-        icon_emoji="👥"
+        name="social", description="社交互動相關成就", display_order=1, icon_emoji="👥"
     )
 
 
@@ -192,13 +190,10 @@ def sample_achievement() -> Achievement:
         description="與其他用戶互動超過 100 次",
         category_id=1,
         type=AchievementType.COUNTER,
-        criteria={
-            "target_value": 100,
-            "counter_field": "social_interactions"
-        },
+        criteria={"target_value": 100, "counter_field": "social_interactions"},
         points=500,
         role_reward="社交專家",
-        is_hidden=False
+        is_hidden=False,
     )
 
 
@@ -206,10 +201,7 @@ def sample_achievement() -> Achievement:
 def sample_user_achievement() -> UserAchievement:
     """建立範例用戶成就."""
     return UserAchievement(
-        user_id=123456789,
-        achievement_id=1,
-        earned_at=datetime.now(),
-        notified=False
+        user_id=123456789, achievement_id=1, earned_at=datetime.now(), notified=False
     )
 
 
@@ -221,16 +213,14 @@ def sample_progress() -> AchievementProgress:
         achievement_id=1,
         current_value=75.0,
         target_value=100.0,
-        progress_data={
-            "daily_interactions": [5, 8, 12, 10, 7],
-            "streak_days": 5
-        }
+        progress_data={"daily_interactions": [5, 8, 12, 10, 7], "streak_days": 5},
     )
 
 
 # =============================================================================
 # Mock 物件工廠
 # =============================================================================
+
 
 @pytest.fixture
 def mock_repository() -> AsyncMock:
@@ -244,21 +234,15 @@ def mock_repository() -> AsyncMock:
         description="測試用成就",
         category_id=1,
         type=AchievementType.COUNTER,
-        criteria={
-            "target_value": 100,
-            "counter_field": "test_counter"
-        },
+        criteria={"target_value": 100, "counter_field": "test_counter"},
         points=100,
         is_active=True,
         role_reward=None,
-        is_hidden=False
+        is_hidden=False,
     )
 
     mock.get_category_by_id.return_value = AchievementCategory(
-        id=1,
-        name="test",
-        description="測試分類",
-        display_order=1
+        id=1, name="test", description="測試分類", display_order=1
     )
 
     mock.has_user_achievement.return_value = False
@@ -276,7 +260,7 @@ def mock_progress_tracker() -> AsyncMock:
         user_id=123456789,
         achievement_id=1,
         current_value=50.0,
-        target_value=100.0
+        target_value=100.0,
     )
 
     return mock
@@ -298,17 +282,15 @@ def mock_cache() -> MagicMock:
 # 測試工具函數
 # =============================================================================
 
+
 async def create_test_category(
     repository: AchievementRepository,
     name: str = "test_category",
-    description: str = "測試分類"
+    description: str = "測試分類",
 ) -> AchievementCategory:
     """建立測試用成就分類."""
     category = AchievementCategory(
-        name=name,
-        description=description,
-        display_order=1,
-        icon_emoji="🏆"
+        name=name, description=description, display_order=1, icon_emoji="🏆"
     )
     return await repository.create_category(category)
 
@@ -319,7 +301,7 @@ async def create_test_achievement(
     name: str = "test_achievement",
     achievement_type: AchievementType = AchievementType.COUNTER,
     role_reward: str = None,
-    is_hidden: bool = False
+    is_hidden: bool = False,
 ) -> Achievement:
     """建立測試用成就."""
     achievement = Achievement(
@@ -329,25 +311,21 @@ async def create_test_achievement(
         type=achievement_type,
         criteria={
             "target_value": 100,
-            "counter_field": "test_counter" if achievement_type == AchievementType.COUNTER else None
+            "counter_field": "test_counter"
+            if achievement_type == AchievementType.COUNTER
+            else None,
         },
         points=100,
         is_active=True,
         role_reward=role_reward,
-        is_hidden=is_hidden
+        is_hidden=is_hidden,
     )
     return await repository.create_achievement(achievement)
 
 
-def create_trigger_context(
-    user_id: int = 123456789,
-    **kwargs
-) -> dict[str, Any]:
+def create_trigger_context(user_id: int = 123456789, **kwargs) -> dict[str, Any]:
     """建立觸發上下文資料."""
-    context = {
-        "user_id": user_id,
-        "timestamp": datetime.now().isoformat()
-    }
+    context = {"user_id": user_id, "timestamp": datetime.now().isoformat()}
     context.update(kwargs)
     return context
 

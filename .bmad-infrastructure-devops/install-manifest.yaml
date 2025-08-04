@@ -1,5 +1,5 @@
 version: 1.11.0
-installed_at: '2025-08-02T17:18:30.877Z'
+installed_at: '2025-08-02T20:15:43.668Z'
 install_type: expansion-pack
 expansion_pack_id: bmad-infrastructure-devops
 expansion_pack_name: bmad-infrastructure-devops
@@ -12,6 +12,14 @@ files:
     modified: false
   - path: .bmad-infrastructure-devops\config.yaml
     hash: 0686813faa6be9ce
+    modified: false
+  - path: >-
+      .bmad-infrastructure-devops\templates\infrastructure-platform-from-arch-tmpl.yaml
+    hash: 5b6a3604a7e6912a
+    modified: false
+  - path: >-
+      .bmad-infrastructure-devops\templates\infrastructure-architecture-tmpl.yaml
+    hash: a3204be65e3ba95d
     modified: false
   - path: .bmad-infrastructure-devops\utils\workflow-management.md
     hash: b148df3ebb1f9c61
@@ -30,14 +38,6 @@ files:
     modified: false
   - path: .bmad-infrastructure-devops\tasks\create-doc.md
     hash: 395719b8a002f7f9
-    modified: false
-  - path: >-
-      .bmad-infrastructure-devops\templates\infrastructure-platform-from-arch-tmpl.yaml
-    hash: 5b6a3604a7e6912a
-    modified: false
-  - path: >-
-      .bmad-infrastructure-devops\templates\infrastructure-architecture-tmpl.yaml
-    hash: a3204be65e3ba95d
     modified: false
   - path: .bmad-infrastructure-devops\data\technical-preferences.md
     hash: 6530bed845540b0d

@@ -1,12 +1,12 @@
 """EventTriggerProcessor 測試.
 
-此模組測試事件驅動觸發處理器的功能，包含：
+此模組測試事件驅動觸發處理器的功能,包含:
 - 事件處理和過濾測試
 - 批量事件處理測試
 - 效能優化測試
 - 錯誤處理和復原測試
 
-測試遵循 AAA 模式和現代測試最佳實踐。
+測試遵循 AAA 模式和現代測試最佳實踐.
 """
 
 from datetime import datetime, timedelta
@@ -47,7 +47,7 @@ class TestEventTriggerProcessor:
             trigger_engine=mock_trigger_engine,
             progress_tracker=mock_progress_tracker,
             batch_size=50,
-            batch_timeout=5.0
+            batch_timeout=5.0,
         ) as processor:
             # Assert
             assert processor._repository == mock_repository
@@ -74,16 +74,17 @@ class TestEventTriggerProcessor:
             achievement_id=1,
             triggered=True,
             reason="成就觸發",
-            processing_time=25.0
+            processing_time=25.0,
         )
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
-            with patch.object(processor, '_process_event_immediately') as mock_immediate:
+            with patch.object(
+                processor, "_process_event_immediately"
+            ) as mock_immediate:
                 mock_immediate.return_value = [trigger_result]
 
                 # Act
@@ -91,7 +92,7 @@ class TestEventTriggerProcessor:
                     user_id=123,
                     event_type="message_sent",
                     event_data={"message_count": 1},
-                    priority=5  # 高優先級
+                    priority=5,  # 高優先級
                 )
 
         # Assert
@@ -110,16 +111,15 @@ class TestEventTriggerProcessor:
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
-            with patch.object(processor, '_enqueue_event') as mock_enqueue:
+            with patch.object(processor, "_enqueue_event") as mock_enqueue:
                 # Act
                 results = await processor.process_event(
                     user_id=123,
                     event_type="message_sent",
                     event_data={"message_count": 1},
-                    priority=1  # 一般優先級
+                    priority=1,  # 一般優先級
                 )
 
         # Assert
@@ -144,29 +144,28 @@ class TestEventTriggerProcessor:
                 user_id=123,
                 event_type="message_sent",
                 event_data={"message_count": 1},
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             ),
             EventTriggerContext(
                 user_id=456,
                 event_type="reaction_added",
                 event_data={"reaction_count": 1},
-                timestamp=datetime.now()
-            )
+                timestamp=datetime.now(),
+            ),
         ]
 
         # 模擬用戶事件處理結果
         user_results = [
             TriggerResult(user_id=123, achievement_id=1, triggered=True),
-            TriggerResult(user_id=456, achievement_id=2, triggered=False)
+            TriggerResult(user_id=456, achievement_id=2, triggered=False),
         ]
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
-            with patch.object(processor, '_process_user_events') as mock_process_user:
+            with patch.object(processor, "_process_user_events") as mock_process_user:
                 mock_process_user.return_value = user_results
 
                 # Act
@@ -189,17 +188,16 @@ class TestEventTriggerProcessor:
                 user_id=123,
                 event_type="message_sent",
                 event_data={"message_count": 1},
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
         ]
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
-            with patch.object(processor, '_process_user_events') as mock_process_user:
+            with patch.object(processor, "_process_user_events") as mock_process_user:
                 mock_process_user.side_effect = Exception("處理失敗")
 
                 # Act
@@ -227,20 +225,20 @@ class TestEventTriggerProcessor:
                 id=1,
                 name="Message Achievement",
                 type=AchievementType.COUNTER,
-                is_active=True
+                is_active=True,
             ),
             Achievement(
                 id=2,
                 name="Voice Achievement",
                 type=AchievementType.TIME_BASED,
-                is_active=True
+                is_active=True,
             ),
             Achievement(
                 id=3,
                 name="Milestone Achievement",
                 type=AchievementType.MILESTONE,
-                is_active=True
-            )
+                is_active=True,
+            ),
         ]
 
         mock_repository.list_achievements.return_value = all_achievements
@@ -249,18 +247,18 @@ class TestEventTriggerProcessor:
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
             # Act
             relevant_achievements = await processor._filter_relevant_achievements(
-                event_type="message_sent",
-                user_id=123
+                event_type="message_sent", user_id=123
             )
 
         # Assert
         # message_sent 事件應該對應 COUNTER 類型成就
-        counter_achievements = [a for a in relevant_achievements if a.type == AchievementType.COUNTER]
+        counter_achievements = [
+            a for a in relevant_achievements if a.type == AchievementType.COUNTER
+        ]
         assert len(counter_achievements) >= 1
         mock_repository.has_user_achievement.assert_called()
 
@@ -277,22 +275,23 @@ class TestEventTriggerProcessor:
             event_type="message_sent",
             event_data={
                 "content": "Hello world! https://example.com",
-                "attachment_count": 2
+                "attachment_count": 2,
             },
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
             # Act
             processed_data = await processor._preprocess_event_data(context)
 
         # Assert
-        assert processed_data["message_length"] == len("Hello world! https://example.com")
+        assert processed_data["message_length"] == len(
+            "Hello world! https://example.com"
+        )
         assert processed_data["has_links"] is True
         assert processed_data["has_attachments"] is True
         assert processed_data["event_type"] == "message_sent"
@@ -313,17 +312,16 @@ class TestEventTriggerProcessor:
             event_type="voice_joined",
             event_data={
                 "join_time": join_time.isoformat(),
-                "leave_time": leave_time.isoformat()
+                "leave_time": leave_time.isoformat(),
             },
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
             # Act
             processed_data = await processor._preprocess_event_data(context)
 
@@ -348,7 +346,7 @@ class TestEventTriggerProcessor:
                 id=1,
                 name="Message Achievement",
                 type=AchievementType.COUNTER,
-                is_active=True
+                is_active=True,
             )
         ]
 
@@ -360,17 +358,18 @@ class TestEventTriggerProcessor:
                 user_id=123,
                 event_type="message_sent",
                 event_data={"message_count": 1},
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
         ]
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
-            with patch.object(processor, '_filter_relevant_achievements') as mock_filter:
+            with patch.object(
+                processor, "_filter_relevant_achievements"
+            ) as mock_filter:
                 mock_filter.return_value = relevant_achievements
 
                 # Act
@@ -396,29 +395,32 @@ class TestEventTriggerProcessor:
                 id=1,
                 name="Message Achievement",
                 type=AchievementType.COUNTER,
-                is_active=True
+                is_active=True,
             )
         ]
 
         # 模擬觸發檢查拋出異常
-        mock_trigger_engine.check_achievement_trigger.side_effect = Exception("觸發檢查失敗")
+        mock_trigger_engine.check_achievement_trigger.side_effect = Exception(
+            "觸發檢查失敗"
+        )
 
         events = [
             EventTriggerContext(
                 user_id=123,
                 event_type="message_sent",
                 event_data={"message_count": 1},
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
         ]
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
-            with patch.object(processor, '_filter_relevant_achievements') as mock_filter:
+            with patch.object(
+                processor, "_filter_relevant_achievements"
+            ) as mock_filter:
                 mock_filter.return_value = relevant_achievements
 
                 # Act
@@ -444,9 +446,8 @@ class TestEventTriggerProcessor:
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
             # 清除快取時間以強制更新
             processor._mapping_cache_time = None
 
@@ -456,7 +457,10 @@ class TestEventTriggerProcessor:
         # Assert
         assert processor._mapping_cache_time is not None
         assert "message_sent" in processor._event_achievement_mapping
-        assert AchievementType.COUNTER in processor._event_achievement_mapping["message_sent"]
+        assert (
+            AchievementType.COUNTER
+            in processor._event_achievement_mapping["message_sent"]
+        )
 
     # ==========================================================================
     # 統計和監控測試
@@ -472,7 +476,7 @@ class TestEventTriggerProcessor:
         processor = EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         )
 
         # 模擬一些統計資料
@@ -499,7 +503,7 @@ class TestEventTriggerProcessor:
         processor = EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         )
 
         # 設置一些統計資料
@@ -532,22 +536,25 @@ class TestEventTriggerProcessor:
         # 創建大量事件
         events = []
         for i in range(100):
-            events.append(EventTriggerContext(
-                user_id=i % 10,  # 10個不同用戶
-                event_type="message_sent",
-                event_data={"message_count": 1},
-                timestamp=datetime.now()
-            ))
+            events.append(
+                EventTriggerContext(
+                    user_id=i % 10,  # 10個不同用戶
+                    event_type="message_sent",
+                    event_data={"message_count": 1},
+                    timestamp=datetime.now(),
+                )
+            )
 
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
             progress_tracker=mock_progress_tracker,
-            max_concurrent_processing=5
+            max_concurrent_processing=5,
         ) as processor:
-
-            with patch.object(processor, '_filter_relevant_achievements') as mock_filter:
-                mock_filter.return_value = []  # 無相關成就，加速測試
+            with patch.object(
+                processor, "_filter_relevant_achievements"
+            ) as mock_filter:
+                mock_filter.return_value = []  # 無相關成就,加速測試
 
                 # Act
                 start_time = datetime.now()
@@ -571,16 +578,15 @@ class TestEventTriggerProcessor:
         async with EventTriggerProcessor(
             repository=mock_repository,
             trigger_engine=mock_trigger_engine,
-            progress_tracker=mock_progress_tracker
+            progress_tracker=mock_progress_tracker,
         ) as processor:
-
             # 添加大量事件到隊列
             for i in range(1000):
                 context = EventTriggerContext(
                     user_id=i,
                     event_type="message_sent",
                     event_data={"message_count": 1},
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(),
                 )
                 await processor._enqueue_event(context)
 
@@ -594,20 +600,17 @@ class TestEventTriggerProcessor:
 # 測試輔助函數和 Fixtures
 # ==========================================================================
 
+
 @pytest.fixture
 def sample_event_context():
     """創建範例事件上下文."""
     return EventTriggerContext(
         user_id=123,
         event_type="message_sent",
-        event_data={
-            "content": "Hello world!",
-            "message_count": 1,
-            "channel_id": 456
-        },
+        event_data={"content": "Hello world!", "message_count": 1, "channel_id": 456},
         timestamp=datetime.now(),
         guild_id=789,
-        channel_id=456
+        channel_id=456,
     )
 
 
@@ -620,22 +623,22 @@ def sample_achievements():
             name="First Message",
             type=AchievementType.MILESTONE,
             criteria={"milestone_type": "first_message"},
-            is_active=True
+            is_active=True,
         ),
         Achievement(
             id=2,
             name="Message Counter",
             type=AchievementType.COUNTER,
             criteria={"target_value": 10, "counter_field": "message_count"},
-            is_active=True
+            is_active=True,
         ),
         Achievement(
             id=3,
             name="Daily Active",
             type=AchievementType.TIME_BASED,
             criteria={"target_value": 7, "time_unit": "days"},
-            is_active=True
-        )
+            is_active=True,
+        ),
     ]
 
 
@@ -644,7 +647,7 @@ def create_trigger_result(
     achievement_id: int,
     triggered: bool = False,
     reason: str | None = None,
-    error: str | None = None
+    error: str | None = None,
 ) -> TriggerResult:
     """創建觸發結果物件."""
     return TriggerResult(
@@ -653,5 +656,5 @@ def create_trigger_result(
         triggered=triggered,
         reason=reason,
         processing_time=10.0,
-        error=error
+        error=error,
     )

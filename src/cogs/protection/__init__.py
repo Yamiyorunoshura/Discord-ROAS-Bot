@@ -16,6 +16,8 @@
 # - base: 基礎類別和共用功能
 # ============================================================
 
+import logging
+
 __version__ = "1.6.0"
 __author__ = "Discord ADR Bot Team"
 __description__ = "Discord 伺服器群組保護模組 - 重構版"
@@ -38,17 +40,14 @@ from .anti_link import AntiLink
 
 # 暫時使用舊的 anti_executable.py 檔案,直到新架構完全修正
 try:
-    import logging
-
     from .anti_executable.main.main import AntiExecutable
+
     logging.getLogger("protection").info("[SUCCESS] 使用新架構的 AntiExecutable")
 except ImportError as e:
-    import logging
     logging.getLogger("protection").warning(f"[WARNING] 新架構載入失敗,使用舊架構: {e}")
     from .anti_executable import AntiExecutable
 
 __all__ = ["AntiExecutable", "AntiLink", "AntiSpam", "ProtectionCog"]
-
 
 # Discord.py 擴充功能載入入口點
 async def setup(bot):
@@ -62,12 +61,10 @@ async def setup(bot):
     await bot.add_cog(AntiExecutable(bot))
 
     # 記錄重構狀態
-    import logging
-
     logger = logging.getLogger("protection")
     if ANTI_SPAM_AVAILABLE:
-        logger.info("【群組保護】AntiSpam 模組已使用重構架構")
+        logger.info("[群組保護]AntiSpam 模組已使用重構架構")
     else:
-        logger.info("【群組保護】AntiSpam 模組使用舊架構")
+        logger.info("[群組保護]AntiSpam 模組使用舊架構")
 
-    logger.info("【群組保護】所有子模組載入完成")
+    logger.info("[群組保護]所有子模組載入完成")

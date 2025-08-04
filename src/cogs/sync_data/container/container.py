@@ -50,7 +50,6 @@ async def configure_sync_data_container(container: DependencyContainer) -> None:
 
     container.register_singleton(ISyncDataService, create_sync_service)
 
-
 def create_sync_data_container() -> DependencyContainer:
     """
     創建獨立的sync_data模組依賴注入容器
@@ -62,7 +61,6 @@ def create_sync_data_container() -> DependencyContainer:
     # 這裡需要使用同步版本的配置
     asyncio.run(configure_sync_data_container(container))
     return container
-
 
 # 為測試提供的便利函數
 def get_test_container() -> DependencyContainer:

@@ -8,9 +8,10 @@
 import asyncio
 import io
 import logging
-import os
+import re
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import aiohttp
@@ -23,6 +24,13 @@ from ..config.config import (
 
 logger = logging.getLogger("welcome")
 
+# 常數定義
+HTTP_OK = 200
+LONG_TEXT_THRESHOLD = 30
+MIN_FONT_SIZE = 10
+MAX_FONT_SIZE = 100
+MIN_AVATAR_SIZE = 30
+MAX_AVATAR_SIZE = 200
 
 class TemplateStyle(Enum):
     """歡迎模板風格枚舉"""
@@ -32,7 +40,6 @@ class TemplateStyle(Enum):
     NEON = "neon"
     ELEGANT = "elegant"
     GAMING = "gaming"
-
 
 @dataclass
 class LayoutConfig:
@@ -47,7 +54,6 @@ class LayoutConfig:
     description_font_size: int
     decorative_elements: list[dict[str, Any]]
 
-
 @dataclass
 class WelcomeTemplate:
     """歡迎模板基類"""
@@ -60,7 +66,6 @@ class WelcomeTemplate:
     def get_layout(self) -> LayoutConfig:
         """獲取佈局配置"""
         raise NotImplementedError
-
 
 class DefaultTemplate(WelcomeTemplate):
     """默認歡迎模板 - Discord 風格"""
@@ -100,7 +105,6 @@ class DefaultTemplate(WelcomeTemplate):
             ],
         )
 
-
 class MinimalTemplate(WelcomeTemplate):
     """簡約歡迎模板"""
 
@@ -123,7 +127,6 @@ class MinimalTemplate(WelcomeTemplate):
             description_font_size=18,
             decorative_elements=[],
         )
-
 
 class NeonTemplate(WelcomeTemplate):
     """霓虹歡迎模板"""
@@ -156,7 +159,6 @@ class NeonTemplate(WelcomeTemplate):
                 }
             ],
         )
-
 
 class AvatarDownloader:
     """智能頭像下載器"""
@@ -250,7 +252,7 @@ class AvatarDownloader:
             try:
                 timeout = aiohttp.ClientTimeout(total=self.retry_config["timeout"])
                 async with session.get(url, timeout=timeout) as response:
-                    if response.status == 200:
+                    if response.status == HTTP_OK:
                         data = await response.read()
                         if len(data) > 0:  # 確保下載的數據不為空
                             return data
@@ -339,7 +341,6 @@ class AvatarDownloader:
         if self.session and not self.session.closed:
             await self.session.close()
 
-
 class LayoutCalculator:
     """佈局計算器"""
 
@@ -379,14 +380,13 @@ class LayoutCalculator:
 
         # 根據文字長度調整位置
         text_length_factor = len(username) + len(guild_name)
-        if text_length_factor > 30:  # 文字較長時調整佈局
+        if text_length_factor > LONG_TEXT_THRESHOLD:  # 文字較長時調整佈局
             base_layout.title_font_size = max(24, base_layout.title_font_size - 4)
             base_layout.description_font_size = max(
                 16, base_layout.description_font_size - 2
             )
 
         return base_layout
-
 
 class FontManager:
     """字體管理器"""
@@ -429,7 +429,7 @@ class FontManager:
         """
         for font_path in self.font_fallback_chain:
             try:
-                if os.path.exists(font_path):
+                if Path(font_path).exists():
                     font = ImageFont.truetype(font_path, size)
                     logger.info(f"成功加載字體: {font_path}")
                     return font
@@ -440,7 +440,6 @@ class FontManager:
         # 所有字體都失敗,使用默認字體
         logger.warning("所有字體加載失敗,使用默認字體")
         return ImageFont.load_default()
-
 
 class TemplateManager:
     """模板管理器"""
@@ -463,7 +462,6 @@ class TemplateManager:
             WelcomeTemplate: 歡迎模板
         """
         return self.templates.get(style, self.templates[TemplateStyle.DEFAULT])
-
 
 class WelcomeRenderer:
     """歡迎圖片渲染器,負責生成歡迎圖片"""
@@ -551,7 +549,7 @@ class WelcomeRenderer:
         Returns:
             Image.Image: 畫布
         """
-        if bg_path and os.path.exists(bg_path):
+        if bg_path and Path(bg_path).exists():
             try:
                 bg = Image.open(bg_path).convert("RGBA")
                 bg = bg.resize(layout.canvas_size, Image.Resampling.LANCZOS)
@@ -702,8 +700,6 @@ class WelcomeRenderer:
                 emoji_name = match.group(1)
                 emoji = discord.utils.get(guild.emojis, name=emoji_name)
                 return str(emoji) if emoji else f":{emoji_name}:"
-
-            import re
 
             msg = re.sub(r":(\w+):", emoji_replacer, msg)
 

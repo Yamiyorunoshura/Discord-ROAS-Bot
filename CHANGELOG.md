@@ -1,5 +1,51 @@
 # Discord ROAS Bot 更新日誌
 
+## [v2.2.0] - 2025-08-04
+
+#### 🗄️ 資料庫 Schema 遷移完成 (Story 1.1)
+- **完成 v2_initial_migration**: 成功建立 PostgreSQL v2.0 資料庫架構
+- **Repository 實作**: 完整的 CurrencyRepository 與 DepartmentRepository
+- **配置文件擴展**: 
+  - 更新 `config/database.yaml` 貨幣與部門配置
+  - 新增 `config/government.yaml` 政府系統配置
+  - 實作 `ConfigValidator` 配置驗證器
+- **資料備份與驗證工具**: 
+  - `DatabaseBackupManager` 自動備份系統
+  - `DataIntegrityValidator` 資料完整性驗證
+  - 遷移前後資料一致性檢查
+- **測試覆蓋**: Testcontainers 整合測試框架 (需 Docker)
+- **文檔更新**: 完整的架構文檔與開發指南
+
+#### 📊 關鍵資料模型 (已實作)
+- `CurrencyBalance`: 原子性轉帳、排行榜、交易追蹤
+- `Department`: 政府部門管理、角色權限、JSONB 配置
+- `DepartmentAccount`: 部門成員關聯、任命記錄
+- `GuildConfig`: 伺服器配置、級聯刪除設計
+
+#### 🔧 開發者工具
+- `src/core/config_validator.py`: Pydantic 配置驗證
+- `src/core/database_backup.py`: 備份與恢復工具
+- `tests/integration/test_database_migrations.py`: 完整遷移測試
+
+--
+
+## [v2.2.0] - 2025-08-03
+
+#### 🗄️ 資料庫架構升級 (v2.0 Schema Migration) - 初始版本
+- **PostgreSQL 支援**: 從 SQLite 遷移至 PostgreSQL，支援企業級功能
+- **SQLAlchemy 2.0**: 完整的 ORM 模型定義，支援非同步操作
+- **Alembic 遷移系統**: 自動化資料庫版本控制和遷移管理
+- **新增核心資料模型**:
+  - `GuildConfig`: 伺服器配置管理
+  - `CurrencyBalance`: 貨幣餘額追蹤
+  - `Department`: 政府部門系統
+  - `Achievement*`: 完整成就系統模型
+- **Repository 模式**: 現代化資料存取層，支援 CRUD 操作
+- **資料完整性**: 外鍵約束、索引優化、JSONB 支援
+- **配置系統**: 統一的資料庫配置管理和驗證
+
+--
+
 ## [v2.1.0] - 2025-08-03
 
 #### ✨ 新增成就系統

@@ -26,7 +26,6 @@ class MonitoringLevel(Enum):
     DETAILED = "detailed"
     COMPREHENSIVE = "comprehensive"
 
-
 @dataclass
 class SystemMetrics:
     """系統指標"""
@@ -41,7 +40,6 @@ class SystemMetrics:
     disk_used_gb: float
     uptime_seconds: float
 
-
 @dataclass
 class PerformanceAlert:
     """性能警報"""
@@ -53,9 +51,12 @@ class PerformanceAlert:
     current_value: float
     threshold: float
 
-
 class PerformanceMonitor:
     """性能監控器 - 整合自performance_dashboard"""
+
+    # 類常數
+    MAX_ALERTS_HISTORY = 100  # 最大警報歷史記錄數
+    CLEANUP_ALERTS_COUNT = 50  # 清理時保留的警報數量
 
     def __init__(self, settings: Settings | None = None):
         """初始化性能監控器"""
@@ -137,8 +138,8 @@ class PerformanceMonitor:
                             self.logger.warning(f"性能警報: {alert.message}")
 
                 # 清理舊警報
-                if len(self.alerts_history) > 100:
-                    self.alerts_history = self.alerts_history[-50:]
+                if len(self.alerts_history) > self.MAX_ALERTS_HISTORY:
+                    self.alerts_history = self.alerts_history[-self.CLEANUP_ALERTS_COUNT:]
 
                 await asyncio.sleep(self.monitoring_interval)
 
@@ -384,32 +385,39 @@ class PerformanceMonitor:
         await self.stop_monitoring()
         self.logger.info("性能監控器已關閉")
 
+class _MonitorSingleton:
+    """性能監控器單例類"""
 
-# 全域監控器實例
-_global_monitor: PerformanceMonitor | None = None
+    def __init__(self):
+        self._monitor: PerformanceMonitor | None = None
 
+    def get_monitor(self) -> PerformanceMonitor:
+        """獲取監控器實例"""
+        if self._monitor is None:
+            self._monitor = PerformanceMonitor()
+        return self._monitor
+
+    async def shutdown_monitor(self) -> None:
+        """關閉監控器實例"""
+        if self._monitor:
+            await self._monitor.shutdown()
+            self._monitor = None
+
+# 全域監控器單例實例
+_monitor_singleton = _MonitorSingleton()
 
 def get_performance_monitor() -> PerformanceMonitor:
     """獲取全域性能監控器實例"""
-    global _global_monitor
-    if _global_monitor is None:
-        _global_monitor = PerformanceMonitor()
-    return _global_monitor
-
+    return _monitor_singleton.get_monitor()
 
 async def start_global_monitoring() -> None:
     """啟動全域性能監控"""
     monitor = get_performance_monitor()
     await monitor.start_monitoring()
 
-
 async def stop_global_monitoring() -> None:
     """停止全域性能監控"""
-    global _global_monitor
-    if _global_monitor:
-        await _global_monitor.shutdown()
-        _global_monitor = None
-
+    await _monitor_singleton.shutdown_monitor()
 
 __all__ = [
     "MonitoringLevel",

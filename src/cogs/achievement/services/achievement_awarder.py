@@ -1,13 +1,13 @@
 """自動成就頒發系統.
 
-此模組實作自動成就頒發和管理系統，提供：
+此模組實作自動成就頒發和管理系統,提供:
 - 原子性成就頒發機制
 - 進度同步和一致性保證
 - 成就通知和事件發布
 - 頒發歷史記錄和審計
 - 併發安全的頒發處理
 
-頒發系統遵循以下設計原則：
+頒發系統遵循以下設計原則:
 - 確保成就頒發的原子性和一致性
 - 支援事務處理避免重複頒發
 - 整合通知系統提供即時反饋
@@ -32,21 +32,20 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-
 class AwardStatus(str, Enum):
     """頒發狀態列舉."""
+
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
     DUPLICATE = "duplicate"
     INVALID = "invalid"
 
-
 @dataclass
 class AwardRequest:
     """成就頒發請求.
 
-    封裝成就頒發的完整資訊和上下文。
+    封裝成就頒發的完整資訊和上下文.
     """
 
     user_id: int
@@ -73,12 +72,11 @@ class AwardRequest:
     processing_priority: int = 0
     """處理優先級"""
 
-
 @dataclass
 class AwardResult:
     """成就頒發結果.
 
-    封裝成就頒發的完整結果資訊。
+    封裝成就頒發的完整結果資訊.
     """
 
     request: AwardRequest
@@ -94,16 +92,15 @@ class AwardResult:
     """錯誤訊息"""
 
     processing_time: float = 0.0
-    """處理時間（毫秒）"""
+    """處理時間(毫秒)"""
 
     notification_sent: bool = False
     """是否已發送通知"""
 
-
 class AchievementAwarder:
     """自動成就頒發器.
 
-    負責處理成就的自動頒發、進度同步和通知發送，提供：
+    負責處理成就的自動頒發、進度同步和通知發送,提供:
     - 原子性成就頒發機制
     - 重複頒發檢查和防護
     - 進度更新和同步
@@ -117,7 +114,7 @@ class AchievementAwarder:
         progress_tracker: ProgressTracker,
         notification_enabled: bool = True,
         max_concurrent_awards: int = 20,
-        award_timeout: float = 10.0
+        award_timeout: float = 10.0,
     ):
         """初始化成就頒發器.
 
@@ -126,7 +123,7 @@ class AchievementAwarder:
             progress_tracker: 進度追蹤器
             notification_enabled: 是否啟用通知
             max_concurrent_awards: 最大並發頒發數
-            award_timeout: 頒發超時時間（秒）
+            award_timeout: 頒發超時時間(秒)
         """
         self._repository = repository
         self._progress_tracker = progress_tracker
@@ -136,7 +133,9 @@ class AchievementAwarder:
 
         # 併發控制
         self._award_semaphore = asyncio.Semaphore(max_concurrent_awards)
-        self._active_awards: set[str] = set()  # 正在處理的頒發（user_id:achievement_id）
+        self._active_awards: set[str] = (
+            set()
+        )  # 正在處理的頒發(user_id:achievement_id)
         self._award_locks: dict[str, asyncio.Lock] = {}
 
         # 統計資訊
@@ -146,10 +145,9 @@ class AchievementAwarder:
             "failed_awards": 0,
             "duplicate_awards": 0,
             "average_processing_time": 0.0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
 
-        # 通知系統（待實作整合）
         self._notification_handlers: list[callable] = []
 
         logger.info(
@@ -157,8 +155,8 @@ class AchievementAwarder:
             extra={
                 "notification_enabled": notification_enabled,
                 "max_concurrent": max_concurrent_awards,
-                "timeout": award_timeout
-            }
+                "timeout": award_timeout,
+            },
         )
 
     async def __aenter__(self) -> AchievementAwarder:
@@ -182,7 +180,7 @@ class AchievementAwarder:
         achievement_id: int,
         trigger_reason: str,
         trigger_context: dict[str, Any] | None = None,
-        source_event: str | None = None
+        source_event: str | None = None,
     ) -> AwardResult:
         """頒發單一成就.
 
@@ -203,14 +201,13 @@ class AchievementAwarder:
             achievement_id=achievement_id,
             trigger_reason=trigger_reason,
             trigger_context=trigger_context or {},
-            source_event=source_event
+            source_event=source_event,
         )
 
         return await self._process_award_request(request)
 
     async def award_multiple_achievements(
-        self,
-        requests: list[AwardRequest]
+        self, requests: list[AwardRequest]
     ) -> list[AwardResult]:
         """批量頒發多個成就.
 
@@ -225,9 +222,7 @@ class AchievementAwarder:
 
         # 按優先級排序
         sorted_requests = sorted(
-            requests,
-            key=lambda r: (r.processing_priority, r.awarded_at),
-            reverse=True
+            requests, key=lambda r: (r.processing_priority, r.awarded_at), reverse=True
         )
 
         # 並發處理頒發請求
@@ -246,7 +241,7 @@ class AchievementAwarder:
                 error_result = AwardResult(
                     request=sorted_requests[i],
                     status=AwardStatus.FAILED,
-                    error_message=str(result)
+                    error_message=str(result),
                 )
                 award_results.append(error_result)
                 logger.error(
@@ -254,9 +249,9 @@ class AchievementAwarder:
                     extra={
                         "user_id": sorted_requests[i].user_id,
                         "achievement_id": sorted_requests[i].achievement_id,
-                        "error": str(result)
+                        "error": str(result),
                     },
-                    exc_info=True
+                    exc_info=True,
                 )
             else:
                 award_results.append(result)
@@ -265,17 +260,22 @@ class AchievementAwarder:
             "批量成就頒發完成",
             extra={
                 "total_requests": len(requests),
-                "successful": len([r for r in award_results if r.status == AwardStatus.SUCCESS]),
-                "failed": len([r for r in award_results if r.status == AwardStatus.FAILED]),
-                "duplicates": len([r for r in award_results if r.status == AwardStatus.DUPLICATE])
-            }
+                "successful": len(
+                    [r for r in award_results if r.status == AwardStatus.SUCCESS]
+                ),
+                "failed": len(
+                    [r for r in award_results if r.status == AwardStatus.FAILED]
+                ),
+                "duplicates": len(
+                    [r for r in award_results if r.status == AwardStatus.DUPLICATE]
+                ),
+            },
         )
 
         return award_results
 
     async def process_trigger_results(
-        self,
-        trigger_results: list[TriggerResult]
+        self, trigger_results: list[TriggerResult]
     ) -> list[AwardResult]:
         """處理觸發結果並頒發成就.
 
@@ -294,7 +294,7 @@ class AchievementAwarder:
                     user_id=result.user_id,
                     achievement_id=result.achievement_id,
                     trigger_reason=result.reason or "成就條件滿足",
-                    trigger_context={"processing_time": result.processing_time}
+                    trigger_context={"processing_time": result.processing_time},
                 )
                 award_requests.append(request)
 
@@ -328,7 +328,7 @@ class AchievementAwarder:
                     return AwardResult(
                         request=request,
                         status=AwardStatus.DUPLICATE,
-                        error_message="成就正在處理中"
+                        error_message="成就正在處理中",
                     )
 
                 # 標記為處理中
@@ -340,11 +340,13 @@ class AchievementAwarder:
                         # 執行頒發邏輯
                         result = await asyncio.wait_for(
                             self._execute_award_logic(request),
-                            timeout=self._award_timeout
+                            timeout=self._award_timeout,
                         )
 
                         # 計算處理時間
-                        processing_time = (datetime.now() - start_time).total_seconds() * 1000
+                        processing_time = (
+                            datetime.now() - start_time
+                        ).total_seconds() * 1000
                         result.processing_time = processing_time
 
                         # 更新統計
@@ -360,7 +362,7 @@ class AchievementAwarder:
             return AwardResult(
                 request=request,
                 status=AwardStatus.FAILED,
-                error_message=f"頒發超時（{self._award_timeout}s）"
+                error_message=f"頒發超時({self._award_timeout}s)",
             )
         except Exception as e:
             logger.error(
@@ -368,14 +370,12 @@ class AchievementAwarder:
                 extra={
                     "user_id": request.user_id,
                     "achievement_id": request.achievement_id,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
             return AwardResult(
-                request=request,
-                status=AwardStatus.FAILED,
-                error_message=str(e)
+                request=request, status=AwardStatus.FAILED, error_message=str(e)
             )
 
     async def _execute_award_logic(self, request: AwardRequest) -> AwardResult:
@@ -401,7 +401,7 @@ class AchievementAwarder:
             return AwardResult(
                 request=request,
                 status=AwardStatus.DUPLICATE,
-                error_message="用戶已獲得此成就"
+                error_message="用戶已獲得此成就",
             )
 
         # 3. 在事務中執行頒發
@@ -413,7 +413,7 @@ class AchievementAwarder:
                     achievement_id=request.achievement_id,
                     earned_at=request.awarded_at,
                     trigger_context=request.trigger_context,
-                    tx=tx
+                    tx=tx,
                 )
 
                 # 更新相關進度
@@ -422,11 +422,13 @@ class AchievementAwarder:
                 # 提交事務
                 await tx.commit()
 
-                # 4. 發送通知（事務外進行）
+                # 4. 發送通知(事務外進行)
                 notification_sent = False
                 if self._notification_enabled:
                     try:
-                        await self._send_achievement_notification(request, user_achievement)
+                        await self._send_achievement_notification(
+                            request, user_achievement
+                        )
                         notification_sent = True
                     except Exception as e:
                         logger.warning(
@@ -434,8 +436,8 @@ class AchievementAwarder:
                             extra={
                                 "user_id": request.user_id,
                                 "achievement_id": request.achievement_id,
-                                "error": str(e)
-                            }
+                                "error": str(e),
+                            },
                         )
 
                 # 5. 記錄頒發事件
@@ -447,15 +449,15 @@ class AchievementAwarder:
                         "user_id": request.user_id,
                         "achievement_id": request.achievement_id,
                         "trigger_reason": request.trigger_reason,
-                        "notification_sent": notification_sent
-                    }
+                        "notification_sent": notification_sent,
+                    },
                 )
 
                 return AwardResult(
                     request=request,
                     status=AwardStatus.SUCCESS,
                     user_achievement=user_achievement,
-                    notification_sent=notification_sent
+                    notification_sent=notification_sent,
                 )
 
             except Exception:
@@ -477,23 +479,21 @@ class AchievementAwarder:
             return AwardResult(
                 request=request,
                 status=AwardStatus.INVALID,
-                error_message="無效的用戶 ID"
+                error_message="無效的用戶 ID",
             )
 
         # 檢查成就是否存在且啟用
-        achievement = await self._repository.get_achievement_by_id(request.achievement_id)
+        achievement = await self._repository.get_achievement_by_id(
+            request.achievement_id
+        )
         if not achievement:
             return AwardResult(
-                request=request,
-                status=AwardStatus.INVALID,
-                error_message="成就不存在"
+                request=request, status=AwardStatus.INVALID, error_message="成就不存在"
             )
 
         if not achievement.is_active:
             return AwardResult(
-                request=request,
-                status=AwardStatus.INVALID,
-                error_message="成就未啟用"
+                request=request, status=AwardStatus.INVALID, error_message="成就未啟用"
             )
 
         # 檢查觸發原因
@@ -501,19 +501,12 @@ class AchievementAwarder:
             return AwardResult(
                 request=request,
                 status=AwardStatus.INVALID,
-                error_message="缺少觸發原因"
+                error_message="缺少觸發原因",
             )
 
-        return AwardResult(
-            request=request,
-            status=AwardStatus.PENDING
-        )
+        return AwardResult(request=request, status=AwardStatus.PENDING)
 
-    async def _update_related_progress(
-        self,
-        request: AwardRequest,
-        tx: Any
-    ) -> None:
+    async def _update_related_progress(self, request: AwardRequest, tx: Any) -> None:
         """更新相關的成就進度.
 
         Args:
@@ -525,7 +518,7 @@ class AchievementAwarder:
             user_id=request.user_id,
             achievement_id=request.achievement_id,
             completion_data=request.trigger_context,
-            tx=tx
+            tx=tx,
         )
 
         # 檢查是否有依賴此成就的其他成就需要更新
@@ -539,13 +532,11 @@ class AchievementAwarder:
                 user_id=request.user_id,
                 achievement_id=dependent.id,
                 completed_dependency_id=request.achievement_id,
-                tx=tx
+                tx=tx,
             )
 
     async def _send_achievement_notification(
-        self,
-        request: AwardRequest,
-        user_achievement: UserAchievement
+        self, request: AwardRequest, user_achievement: UserAchievement
     ) -> None:
         """發送成就通知.
 
@@ -554,38 +545,39 @@ class AchievementAwarder:
             user_achievement: 用戶成就記錄
         """
         # 取得成就詳細資訊
-        achievement = await self._repository.get_achievement_by_id(request.achievement_id)
+        achievement = await self._repository.get_achievement_by_id(
+            request.achievement_id
+        )
         if not achievement:
             return
 
-        # 調用所有註冊的通知處理器（新的通知系統）
         for handler in self._notification_handlers:
             try:
-                # 新格式的通知資料，包含完整物件
+                # 新格式的通知資料,包含完整物件
                 notification_data = {
                     "user_id": request.user_id,
                     "guild_id": request.guild_id,
                     "achievement": achievement,
                     "user_achievement": user_achievement,
                     "trigger_reason": request.trigger_reason,
-                    "source_event": request.source_event
+                    "source_event": request.source_event,
                 }
                 await handler(notification_data)
             except Exception as e:
                 logger.error(
                     "通知處理器執行失敗",
                     extra={
-                        "handler": handler.__name__ if hasattr(handler, '__name__') else str(handler),
+                        "handler": handler.__name__
+                        if hasattr(handler, "__name__")
+                        else str(handler),
                         "user_id": request.user_id,
                         "achievement_id": request.achievement_id,
-                        "error": str(e)
-                    }
+                        "error": str(e),
+                    },
                 )
 
     async def _record_award_event(
-        self,
-        request: AwardRequest,
-        user_achievement: UserAchievement
+        self, request: AwardRequest, user_achievement: UserAchievement
     ) -> None:
         """記錄頒發事件.
 
@@ -600,16 +592,15 @@ class AchievementAwarder:
             "trigger_reason": request.trigger_reason,
             "source_event": request.source_event,
             "trigger_context": request.trigger_context,
-            "awarded_at": user_achievement.earned_at.isoformat()
+            "awarded_at": user_achievement.earned_at.isoformat(),
         }
 
-        # 記錄到事件日誌（如果有事件系統）
         logger.info(
             "成就頒發事件",
             extra={
                 "event_data": event_data,
-                "user_achievement_id": user_achievement.id
-            }
+                "user_achievement_id": user_achievement.id,
+            },
         )
 
     # =============================================================================
@@ -621,7 +612,7 @@ class AchievementAwarder:
         """取得頒發鎖.
 
         Args:
-            award_key: 頒發鍵（user_id:achievement_id）
+            award_key: 頒發鍵(user_id:achievement_id)
         """
         if award_key not in self._award_locks:
             self._award_locks[award_key] = asyncio.Lock()
@@ -634,7 +625,7 @@ class AchievementAwarder:
 
         Args:
             status: 頒發狀態
-            processing_time: 處理時間（毫秒）
+            processing_time: 處理時間(毫秒)
         """
         self._stats["total_awards"] += 1
 
@@ -649,8 +640,8 @@ class AchievementAwarder:
         total = self._stats["total_awards"]
         current_avg = self._stats["average_processing_time"]
         self._stats["average_processing_time"] = (
-            (current_avg * (total - 1) + processing_time) / total
-        )
+            current_avg * (total - 1) + processing_time
+        ) / total
 
     def add_notification_handler(self, handler: callable) -> None:
         """添加通知處理器.
@@ -686,11 +677,14 @@ class AchievementAwarder:
             "active_awards": len(self._active_awards),
             "notification_handlers": len(self._notification_handlers),
             "uptime_seconds": uptime,
-            "awards_per_second": self._stats["total_awards"] / uptime if uptime > 0 else 0,
+            "awards_per_second": self._stats["total_awards"] / uptime
+            if uptime > 0
+            else 0,
             "success_rate": (
                 self._stats["successful_awards"] / self._stats["total_awards"]
-                if self._stats["total_awards"] > 0 else 0
-            )
+                if self._stats["total_awards"] > 0
+                else 0
+            ),
         }
 
     def reset_stats(self) -> None:
@@ -701,10 +695,9 @@ class AchievementAwarder:
             "failed_awards": 0,
             "duplicate_awards": 0,
             "average_processing_time": 0.0,
-            "last_reset": datetime.now()
+            "last_reset": datetime.now(),
         }
         logger.info("頒發統計已重置")
-
 
 __all__ = [
     "AchievementAwarder",

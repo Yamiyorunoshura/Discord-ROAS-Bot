@@ -32,7 +32,7 @@ class PermissionManager:
         }
 
     @staticmethod
-    def can_view(user: discord.Member) -> bool:
+    def can_view(_user: discord.Member) -> bool:
         """
         檢查查看權限 - 所有人可查看
 
@@ -144,21 +144,21 @@ class PermissionManager:
         Returns:
             bool: 是否有權限
         """
-        if permission_type == "view":
-            return self.can_view(user)
-        elif permission_type == "manage":
-            return self.can_manage(user)
-        elif permission_type == "export":
-            return self.can_export(user)
-        elif permission_type == "modify_settings":
-            return self.can_modify_settings(user)
-        elif permission_type == "manage_settings":
-            return self.can_manage_settings(user)
-        elif permission_type == "view_stats":
-            return self.can_view_stats(user)
-        else:
-            logger.warning(f"未知的權限類型: {permission_type}")
-            return False
+        permission_handlers = {
+            "view": self.can_view,
+            "manage": self.can_manage,
+            "export": self.can_export,
+            "modify_settings": self.can_modify_settings,
+            "manage_settings": self.can_manage_settings,
+            "view_stats": self.can_view_stats,
+        }
+
+        handler = permission_handlers.get(permission_type)
+        if handler:
+            return handler(user)
+
+        logger.warning(f"未知的權限類型: {permission_type}")
+        return False
 
     def get_user_permissions(self, user: discord.Member) -> dict[str, bool]:
         """

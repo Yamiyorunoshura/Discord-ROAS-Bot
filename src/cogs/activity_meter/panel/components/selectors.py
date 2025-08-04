@@ -4,9 +4,12 @@
 - 實現PRD v1.71的完整選擇器架構
 """
 
+import logging
 from enum import Enum
 
 import discord
+
+logger = logging.getLogger(__name__)
 
 
 # 進度條風格枚舉
@@ -16,7 +19,6 @@ class ProgressBarStyle(Enum):
     NEON = "neon"
     MINIMAL = "minimal"
     GRADIENT = "gradient"
-
 
 # 風格配置
 STYLE_CONFIGS = {
@@ -59,7 +61,6 @@ STYLE_CONFIGS = {
         "gradient_colors": [(255, 0, 0), (0, 255, 0), (0, 0, 255)],
     },
 }
-
 
 class PageSelector(discord.ui.Select):
     """頁面選擇下拉選單"""
@@ -111,7 +112,6 @@ class PageSelector(discord.ui.Select):
 
         except Exception as e:
             await self.view.handle_error(interaction, e)
-
 
 class StyleSelector(discord.ui.Select):
     """進度條風格選擇器"""
@@ -171,7 +171,6 @@ class StyleSelector(discord.ui.Select):
         except Exception as e:
             await self.view.handle_error(interaction, e)
 
-
 class ChannelSelector(discord.ui.Select):
     """公告頻道選擇器"""
 
@@ -221,7 +220,6 @@ class ChannelSelector(discord.ui.Select):
 
         except Exception as e:
             await self.view.handle_error(interaction, e)
-
 
 class TimeSelector(discord.ui.Select):
     """公告時間選擇器"""

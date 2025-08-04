@@ -5,13 +5,13 @@ Discord UI 佈局管理器
 - 提供佈局錯誤處理
 """
 
+import contextlib
 import logging
 from typing import Any
 
 import discord
 
 logger = logging.getLogger("activity_meter")
-
 
 class DiscordUILayoutManager:
     """
@@ -151,11 +151,10 @@ class DiscordUILayoutManager:
 
         for component in components:
             # 優先保留頁面選擇器和關閉按鈕
-            if isinstance(component, discord.ui.Select) or hasattr(component, "label"):
-                if current_row < DiscordUILayoutManager.max_rows:
-                    component.row = current_row
-                    essential_components.append(component)
-                    current_row += 1
+            if (isinstance(component, discord.ui.Select) or hasattr(component, "label")) and current_row < DiscordUILayoutManager.max_rows:
+                component.row = current_row
+                essential_components.append(component)
+                current_row += 1
 
         logger.info(f"簡化佈局完成,組件數量: {len(essential_components)}")
         return essential_components
@@ -185,7 +184,6 @@ class DiscordUILayoutManager:
             "max_total_components": DiscordUILayoutManager.max_total_components,
             "is_compatible": self.check_layout_compatibility(components),
         }
-
 
 class UILayoutErrorHandler:
     """
@@ -324,39 +322,6 @@ class UILayoutErrorHandler:
         embed.set_footer(text="如果問題持續,請聯繫管理員")
         return embed
 
-    async def attempt_layout_recovery(self, interaction: discord.Interaction):
-        """
-        嘗試佈局恢復 - 改進版本
-
-        Args:
-            interaction: Discord 互動
-        """
-        try:
-            # 發送恢復開始訊息
-            embed = discord.Embed(
-                title="🔄 正在修復佈局",
-                description="系統正在自動調整組件佈局,請稍候...",
-                color=discord.Color.orange(),
-            )
-            await interaction.followup.send(embed=embed, ephemeral=True)
-
-            # 這裡可以實現更詳細的自動恢復邏輯
-            # 例如:重新創建面板、調整組件佈局等
-            # 目前先發送提示訊息,實際恢復邏輯在面板類中實現
-
-        except Exception as e:
-            logger.error(f"佈局恢復失敗: {e}")
-            # 如果恢復失敗,發送錯誤訊息
-            try:
-                error_embed = discord.Embed(
-                    title="❌ 佈局恢復失敗",
-                    description="無法自動修復佈局問題,請重新開啟面板",
-                    color=discord.Color.red(),
-                )
-                await interaction.followup.send(embed=error_embed, ephemeral=True)
-            except Exception:
-                pass
-
     async def handle_general_error(
         self, interaction: discord.Interaction, error: Exception
     ):
@@ -381,9 +346,7 @@ class UILayoutErrorHandler:
         Args:
             interaction: Discord 互動
         """
-        try:
+        with contextlib.suppress(Exception):
             await interaction.response.send_message(
                 "❌ 發生錯誤,請稍後再試", ephemeral=True
             )
-        except Exception:
-            pass  # 如果連錯誤訊息都發送失敗,就放棄

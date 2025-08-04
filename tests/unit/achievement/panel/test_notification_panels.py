@@ -1,6 +1,6 @@
 """通知偏好面板測試模組.
 
-測試通知偏好管理面板的所有功能，包括：
+測試通知偏好管理面板的所有功能,包括:
 - 通知偏好設定面板
 - 通知類型選擇
 - 全域通知設定
@@ -40,16 +40,18 @@ class TestNotificationPreferencesView:
             guild_id=987654321,
             dm_notifications=True,
             server_announcements=True,
-            notification_types=[]
+            notification_types=[],
         )
         repository.update_notification_preferences.return_value = True
-        repository.create_notification_preferences.return_value = NotificationPreference(
-            id=1,
-            user_id=123456789,
-            guild_id=987654321,
-            dm_notifications=True,
-            server_announcements=True,
-            notification_types=[]
+        repository.create_notification_preferences.return_value = (
+            NotificationPreference(
+                id=1,
+                user_id=123456789,
+                guild_id=987654321,
+                dm_notifications=True,
+                server_announcements=True,
+                notification_types=[],
+            )
         )
         return repository
 
@@ -68,9 +70,7 @@ class TestNotificationPreferencesView:
     def preferences_view(self, mock_repository):
         """建立通知偏好視圖實例."""
         return NotificationPreferencesView(
-            user_id=123456789,
-            guild_id=987654321,
-            repository=mock_repository
+            user_id=123456789, guild_id=987654321, repository=mock_repository
         )
 
     @pytest.mark.asyncio
@@ -83,10 +83,7 @@ class TestNotificationPreferencesView:
 
     @pytest.mark.asyncio
     async def test_toggle_dm_notifications(
-        self,
-        preferences_view,
-        mock_interaction,
-        mock_repository
+        self, preferences_view, mock_interaction, mock_repository
     ):
         """測試切換私訊通知設定."""
         # 模擬按鈕點擊
@@ -109,10 +106,7 @@ class TestNotificationPreferencesView:
 
     @pytest.mark.asyncio
     async def test_toggle_server_announcements(
-        self,
-        preferences_view,
-        mock_interaction,
-        mock_repository
+        self, preferences_view, mock_interaction, mock_repository
     ):
         """測試切換伺服器公告設定."""
         button = MagicMock(spec=discord.ui.Button)
@@ -131,10 +125,7 @@ class TestNotificationPreferencesView:
 
     @pytest.mark.asyncio
     async def test_reset_preferences(
-        self,
-        preferences_view,
-        mock_interaction,
-        mock_repository
+        self, preferences_view, mock_interaction, mock_repository
     ):
         """測試重置通知偏好."""
         button = MagicMock(spec=discord.ui.Button)
@@ -153,9 +144,7 @@ class TestNotificationPreferencesView:
 
     @pytest.mark.asyncio
     async def test_configure_notification_types(
-        self,
-        preferences_view,
-        mock_interaction
+        self, preferences_view, mock_interaction
     ):
         """測試開啟通知類型設定."""
         button = MagicMock(spec=discord.ui.Button)
@@ -168,9 +157,9 @@ class TestNotificationPreferencesView:
 
         # 驗證呼叫參數包含 embed 和 view
         call_args = mock_interaction.response.send_message.call_args
-        assert 'embed' in call_args.kwargs
-        assert 'view' in call_args.kwargs
-        assert call_args.kwargs['ephemeral'] is True
+        assert "embed" in call_args.kwargs
+        assert "view" in call_args.kwargs
+        assert call_args.kwargs["ephemeral"] is True
 
     @pytest.mark.asyncio
     async def test_create_preferences_embed(self, preferences_view):
@@ -188,11 +177,7 @@ class TestNotificationPreferencesView:
         assert "🎯 通知類型" in field_names
 
     @pytest.mark.asyncio
-    async def test_save_preferences_create_new(
-        self,
-        preferences_view,
-        mock_repository
-    ):
+    async def test_save_preferences_create_new(self, preferences_view, mock_repository):
         """測試儲存新的偏好設定."""
         # 設定為不存在現有偏好
         mock_repository.get_notification_preferences.return_value = None
@@ -205,9 +190,7 @@ class TestNotificationPreferencesView:
 
     @pytest.mark.asyncio
     async def test_save_preferences_update_existing(
-        self,
-        preferences_view,
-        mock_repository
+        self, preferences_view, mock_repository
     ):
         """測試更新現有偏好設定."""
         existing_preference = NotificationPreference(
@@ -216,7 +199,7 @@ class TestNotificationPreferencesView:
             guild_id=987654321,
             dm_notifications=False,
             server_announcements=False,
-            notification_types=["rare"]
+            notification_types=["rare"],
         )
         mock_repository.get_notification_preferences.return_value = existing_preference
 
@@ -238,7 +221,7 @@ class TestNotificationTypeSelect:
             guild_id=987654321,
             dm_notifications=True,
             server_announcements=True,
-            notification_types=["milestone", "rare"]
+            notification_types=["milestone", "rare"],
         )
 
     @pytest.fixture
@@ -256,9 +239,7 @@ class TestNotificationTypeSelect:
 
     @pytest.mark.asyncio
     async def test_type_select_initialization(
-        self,
-        notification_type_select,
-        sample_preferences
+        self, notification_type_select, sample_preferences
     ):
         """測試通知類型選擇初始化."""
         assert notification_type_select.preferences == sample_preferences
@@ -266,8 +247,7 @@ class TestNotificationTypeSelect:
 
         # 檢查預設選中的選項
         selected_options = [
-            option for option in notification_type_select.options
-            if option.default
+            option for option in notification_type_select.options if option.default
         ]
         selected_values = [option.value for option in selected_options]
         assert "milestone" in selected_values
@@ -275,9 +255,7 @@ class TestNotificationTypeSelect:
 
     @pytest.mark.asyncio
     async def test_type_select_callback(
-        self,
-        notification_type_select,
-        mock_interaction
+        self, notification_type_select, mock_interaction
     ):
         """測試通知類型選擇回調."""
         # 模擬選擇新的類型
@@ -293,7 +271,9 @@ class TestNotificationTypeSelect:
 
         # 驗證偏好被更新
         assert notification_type_select.preferences.notification_types == [
-            "counter", "epic", "legendary"
+            "counter",
+            "epic",
+            "legendary",
         ]
 
         # 驗證保存方法被調用
@@ -310,21 +290,25 @@ class TestGlobalNotificationSettingsView:
     def mock_repository(self):
         """模擬資料庫存取庫."""
         repository = AsyncMock()
-        repository.get_global_notification_settings.return_value = GlobalNotificationSettings(
-            guild_id=987654321,
-            announcement_enabled=True,
-            announcement_channel_id=555666777,
-            rate_limit_seconds=60,
-            important_achievements_only=False
+        repository.get_global_notification_settings.return_value = (
+            GlobalNotificationSettings(
+                guild_id=987654321,
+                announcement_enabled=True,
+                announcement_channel_id=555666777,
+                rate_limit_seconds=60,
+                important_achievements_only=False,
+            )
         )
         repository.update_global_notification_settings.return_value = True
-        repository.create_global_notification_settings.return_value = GlobalNotificationSettings(
-            id=1,
-            guild_id=987654321,
-            announcement_enabled=True,
-            announcement_channel_id=555666777,
-            rate_limit_seconds=60,
-            important_achievements_only=False
+        repository.create_global_notification_settings.return_value = (
+            GlobalNotificationSettings(
+                id=1,
+                guild_id=987654321,
+                announcement_enabled=True,
+                announcement_channel_id=555666777,
+                rate_limit_seconds=60,
+                important_achievements_only=False,
+            )
         )
         return repository
 
@@ -349,8 +333,7 @@ class TestGlobalNotificationSettingsView:
     def global_settings_view(self, mock_repository):
         """建立全域設定視圖實例."""
         return GlobalNotificationSettingsView(
-            guild_id=987654321,
-            repository=mock_repository
+            guild_id=987654321, repository=mock_repository
         )
 
     @pytest.mark.asyncio
@@ -362,10 +345,7 @@ class TestGlobalNotificationSettingsView:
 
     @pytest.mark.asyncio
     async def test_toggle_announcements(
-        self,
-        global_settings_view,
-        mock_interaction,
-        mock_repository
+        self, global_settings_view, mock_interaction, mock_repository
     ):
         """測試切換公告功能."""
         button = MagicMock(spec=discord.ui.Button)
@@ -384,10 +364,7 @@ class TestGlobalNotificationSettingsView:
 
     @pytest.mark.asyncio
     async def test_toggle_important_filter(
-        self,
-        global_settings_view,
-        mock_interaction,
-        mock_repository
+        self, global_settings_view, mock_interaction, mock_repository
     ):
         """測試切換重要成就篩選."""
         button = MagicMock(spec=discord.ui.Button)
@@ -403,9 +380,7 @@ class TestGlobalNotificationSettingsView:
 
     @pytest.mark.asyncio
     async def test_set_announcement_channel(
-        self,
-        global_settings_view,
-        mock_interaction
+        self, global_settings_view, mock_interaction
     ):
         """測試設定公告頻道."""
         button = MagicMock(spec=discord.ui.Button)
@@ -418,16 +393,12 @@ class TestGlobalNotificationSettingsView:
 
         # 驗證呼叫參數
         call_args = mock_interaction.response.send_message.call_args
-        assert 'embed' in call_args.kwargs
-        assert 'view' in call_args.kwargs
-        assert call_args.kwargs['ephemeral'] is True
+        assert "embed" in call_args.kwargs
+        assert "view" in call_args.kwargs
+        assert call_args.kwargs["ephemeral"] is True
 
     @pytest.mark.asyncio
-    async def test_configure_rate_limit(
-        self,
-        global_settings_view,
-        mock_interaction
-    ):
+    async def test_configure_rate_limit(self, global_settings_view, mock_interaction):
         """測試設定頻率限制."""
         button = MagicMock(spec=discord.ui.Button)
 
@@ -439,10 +410,7 @@ class TestGlobalNotificationSettingsView:
 
     @pytest.mark.asyncio
     async def test_reset_settings(
-        self,
-        global_settings_view,
-        mock_interaction,
-        mock_repository
+        self, global_settings_view, mock_interaction, mock_repository
     ):
         """測試重置全域設定."""
         button = MagicMock(spec=discord.ui.Button)
@@ -462,11 +430,7 @@ class TestGlobalNotificationSettingsView:
         assert global_settings_view.settings.important_achievements_only is False
 
     @pytest.mark.asyncio
-    async def test_create_settings_embed(
-        self,
-        global_settings_view,
-        mock_interaction
-    ):
+    async def test_create_settings_embed(self, global_settings_view, mock_interaction):
         """測試建立設定 embed."""
         embed = global_settings_view._create_settings_embed(mock_interaction.guild)
 
@@ -489,10 +453,10 @@ class TestRateLimitModal:
     def mock_repository(self):
         """模擬資料庫存取庫."""
         repository = AsyncMock()
-        repository.get_global_notification_settings.return_value = GlobalNotificationSettings(
-            guild_id=987654321,
-            announcement_enabled=True,
-            rate_limit_seconds=60
+        repository.get_global_notification_settings.return_value = (
+            GlobalNotificationSettings(
+                guild_id=987654321, announcement_enabled=True, rate_limit_seconds=60
+            )
         )
         repository.update_global_notification_settings.return_value = True
         return repository
@@ -509,17 +473,12 @@ class TestRateLimitModal:
     def sample_settings(self):
         """範例全域設定."""
         return GlobalNotificationSettings(
-            guild_id=987654321,
-            announcement_enabled=True,
-            rate_limit_seconds=60
+            guild_id=987654321, announcement_enabled=True, rate_limit_seconds=60
         )
 
     @pytest.mark.asyncio
     async def test_rate_limit_modal_valid_input(
-        self,
-        sample_settings,
-        mock_repository,
-        mock_interaction
+        self, sample_settings, mock_repository, mock_interaction
     ):
         """測試頻率限制模態框有效輸入."""
         modal = RateLimitModal(sample_settings, mock_repository)
@@ -541,10 +500,7 @@ class TestRateLimitModal:
 
     @pytest.mark.asyncio
     async def test_rate_limit_modal_invalid_input(
-        self,
-        sample_settings,
-        mock_repository,
-        mock_interaction
+        self, sample_settings, mock_repository, mock_interaction
     ):
         """測試頻率限制模態框無效輸入."""
         modal = RateLimitModal(sample_settings, mock_repository)
@@ -565,10 +521,7 @@ class TestRateLimitModal:
 
     @pytest.mark.asyncio
     async def test_rate_limit_modal_non_numeric_input(
-        self,
-        sample_settings,
-        mock_repository,
-        mock_interaction
+        self, sample_settings, mock_repository, mock_interaction
     ):
         """測試頻率限制模態框非數字輸入."""
         modal = RateLimitModal(sample_settings, mock_repository)
@@ -601,9 +554,7 @@ class TestPanelCreationFunctions:
     async def test_create_notification_preferences_panel(self, mock_repository):
         """測試建立通知偏好面板."""
         embed, view = await create_notification_preferences_panel(
-            user_id=123456789,
-            guild_id=987654321,
-            repository=mock_repository
+            user_id=123456789, guild_id=987654321, repository=mock_repository
         )
 
         # 驗證返回值
@@ -616,8 +567,7 @@ class TestPanelCreationFunctions:
     async def test_create_global_notification_settings_panel(self, mock_repository):
         """測試建立全域通知設定面板."""
         embed, view = await create_global_notification_settings_panel(
-            guild_id=987654321,
-            repository=mock_repository
+            guild_id=987654321, repository=mock_repository
         )
 
         # 驗證返回值
@@ -630,12 +580,12 @@ class TestPanelCreationFunctions:
         """測試建立偏好面板時發生錯誤."""
         # 模擬會出錯的 repository
         mock_repository = AsyncMock()
-        mock_repository.get_notification_preferences.side_effect = Exception("Database error")
+        mock_repository.get_notification_preferences.side_effect = Exception(
+            "Database error"
+        )
 
         embed, view = await create_notification_preferences_panel(
-            user_id=123456789,
-            guild_id=987654321,
-            repository=mock_repository
+            user_id=123456789, guild_id=987654321, repository=mock_repository
         )
 
         # 驗證錯誤處理

@@ -1,6 +1,6 @@
 """個人成就視圖測試模組.
 
-測試個人成就頁面的資料載入、顯示和分頁功能。
+測試個人成就頁面的資料載入、顯示和分頁功能.
 """
 
 from datetime import datetime
@@ -25,9 +25,7 @@ class TestPersonalView:
     def personal_view(self, mock_achievement_service: AsyncMock) -> PersonalView:
         """創建個人視圖實例."""
         return PersonalView(
-            achievement_service=mock_achievement_service,
-            guild_id=12345,
-            user_id=67890
+            achievement_service=mock_achievement_service, guild_id=12345, user_id=67890
         )
 
     @pytest.mark.asyncio
@@ -42,9 +40,7 @@ class TestPersonalView:
 
     @pytest.mark.asyncio
     async def test_load_data_success(
-        self,
-        personal_view: PersonalView,
-        mock_achievement_service: AsyncMock
+        self, personal_view: PersonalView, mock_achievement_service: AsyncMock
     ) -> None:
         """測試成功載入資料."""
         # 準備模擬資料
@@ -52,7 +48,7 @@ class TestPersonalView:
             "total_achievements": 5,
             "available_achievements": 20,
             "completion_rate": 25.0,
-            "total_points": 150
+            "total_points": 150,
         }
 
         mock_user_achievements = [
@@ -62,8 +58,8 @@ class TestPersonalView:
                     name="初次嘗試",
                     description="發送第一條訊息",
                     points=10,
-                    category_id=1
-                )
+                    category_id=1,
+                ),
             ),
             (
                 MagicMock(earned_at=datetime(2024, 1, 2, 15, 30)),
@@ -71,14 +67,16 @@ class TestPersonalView:
                     name="活躍用戶",
                     description="連續7天發送訊息",
                     points=50,
-                    category_id=1
-                )
-            )
+                    category_id=1,
+                ),
+            ),
         ]
 
         # 設置模擬回傳值
         mock_achievement_service.get_user_achievement_stats.return_value = mock_stats
-        mock_achievement_service.get_user_achievements.return_value = mock_user_achievements
+        mock_achievement_service.get_user_achievements.return_value = (
+            mock_user_achievements
+        )
         mock_achievement_service.get_category_by_id.return_value = None
 
         # 執行測試
@@ -100,18 +98,16 @@ class TestPersonalView:
         assert data["category_name"] == "全部"
 
         # 驗證服務調用
-        mock_achievement_service.get_user_achievement_stats.assert_called_once_with(67890)
+        mock_achievement_service.get_user_achievement_stats.assert_called_once_with(
+            67890
+        )
         mock_achievement_service.get_user_achievements.assert_called_once_with(
-            user_id=67890,
-            category_id=None,
-            limit=10
+            user_id=67890, category_id=None, limit=10
         )
 
     @pytest.mark.asyncio
     async def test_load_data_with_category(
-        self,
-        personal_view: PersonalView,
-        mock_achievement_service: AsyncMock
+        self, personal_view: PersonalView, mock_achievement_service: AsyncMock
     ) -> None:
         """測試載入特定分類資料."""
         # 準備模擬資料
@@ -121,7 +117,9 @@ class TestPersonalView:
 
         # 設置模擬回傳值
         mock_achievement_service.get_user_achievement_stats.return_value = mock_stats
-        mock_achievement_service.get_user_achievements.return_value = mock_user_achievements
+        mock_achievement_service.get_user_achievements.return_value = (
+            mock_user_achievements
+        )
         mock_achievement_service.get_category_by_id.return_value = mock_category
 
         # 執行測試
@@ -136,9 +134,7 @@ class TestPersonalView:
 
     @pytest.mark.asyncio
     async def test_build_embed_success(
-        self,
-        personal_view: PersonalView,
-        mock_achievement_service: AsyncMock
+        self, personal_view: PersonalView, mock_achievement_service: AsyncMock
     ) -> None:
         """測試成功建立 Embed."""
         # 準備模擬資料
@@ -147,26 +143,20 @@ class TestPersonalView:
                 "earned": 5,
                 "total": 20,
                 "completion_rate": 25.0,
-                "total_points": 150
+                "total_points": 150,
             },
             "earned_achievements": [
                 {
                     "name": "初次嘗試",
                     "description": "發送第一條訊息",
                     "points": 10,
-                    "earned_at": "2024-01-01 12:00"
+                    "earned_at": "2024-01-01 12:00",
                 }
             ],
-            "in_progress": [
-                {
-                    "name": "社交達人",
-                    "current": 15,
-                    "target": 50
-                }
-            ],
+            "in_progress": [{"name": "社交達人", "current": 15, "target": 50}],
             "current_page": 0,
             "total_pages": 1,
-            "category_name": "全部"
+            "category_name": "全部",
         }
         personal_view._cache_valid = True
 
@@ -179,7 +169,9 @@ class TestPersonalView:
         assert len(embed.fields) >= 3  # 統計、分類、頁面等欄位
 
         # 驗證統計資訊
-        stats_field = next(field for field in embed.fields if field.name == "📊 成就統計")
+        stats_field = next(
+            field for field in embed.fields if field.name == "📊 成就統計"
+        )
         assert "已獲得: 5" in stats_field.value
         assert "總數: 20" in stats_field.value
         assert "完成率: 25.0%" in stats_field.value
@@ -187,13 +179,13 @@ class TestPersonalView:
 
     @pytest.mark.asyncio
     async def test_build_embed_error_handling(
-        self,
-        personal_view: PersonalView,
-        mock_achievement_service: AsyncMock
+        self, personal_view: PersonalView, mock_achievement_service: AsyncMock
     ) -> None:
         """測試 Embed 建立錯誤處理."""
         # 設置模擬錯誤
-        mock_achievement_service.get_user_achievement_stats.side_effect = Exception("Database error")
+        mock_achievement_service.get_user_achievement_stats.side_effect = Exception(
+            "Database error"
+        )
 
         # 執行測試
         embed = await personal_view.build_embed()
@@ -206,7 +198,7 @@ class TestPersonalView:
         """測試進度條建立."""
         # 測試正常進度
         progress_bar = personal_view._create_progress_bar(30, 100)
-        assert len(progress_bar) == 12  # [進度條]格式，包含括號
+        assert len(progress_bar) == 12  # [進度條]格式,包含括號
         assert "▓" in progress_bar
         assert "░" in progress_bar
 
@@ -261,40 +253,36 @@ class TestPersonalView:
         assert personal_view.get_selected_category() is None
 
     @pytest.mark.asyncio
-    async def test_cache_invalidation(
-        self,
-        personal_view: PersonalView
-    ) -> None:
+    async def test_cache_invalidation(self, personal_view: PersonalView) -> None:
         """測試快取無效化."""
         # 設置快取
         personal_view._cache = {"test": "data"}
         personal_view._cache_valid = True
 
-        # 設置頁面（應該無效化快取）
+        # 設置頁面(應該無效化快取)
         personal_view.set_page(1)
         assert not personal_view._cache_valid
 
         # 重新設置快取
         personal_view._cache_valid = True
 
-        # 設置分類篩選（應該無效化快取）
+        # 設置分類篩選(應該無效化快取)
         personal_view.set_category_filter(1)
         assert not personal_view._cache_valid
 
     @pytest.mark.asyncio
     async def test_get_user_progress_achievements(
-        self,
-        personal_view: PersonalView
+        self, personal_view: PersonalView
     ) -> None:
         """測試獲取用戶進行中成就."""
-        # 執行測試（使用模擬實作）
+        # 執行測試(使用模擬實作)
         progress_achievements = await personal_view._get_user_progress_achievements()
 
         # 驗證結果
         assert isinstance(progress_achievements, list)
         assert len(progress_achievements) >= 0
 
-        # 如果有資料，驗證結構
+        # 如果有資料,驗證結構
         if progress_achievements:
             achievement = progress_achievements[0]
             assert "name" in achievement
@@ -307,21 +295,16 @@ class TestPersonalViewIntegration:
 
     @pytest.fixture
     def real_achievement_service(self) -> MagicMock:
-        """真實的成就服務（模擬）."""
+        """真實的成就服務(模擬)."""
         service = MagicMock(spec=AchievementService)
         return service
 
     @pytest.mark.asyncio
-    async def test_complete_workflow(
-        self,
-        real_achievement_service: MagicMock
-    ) -> None:
+    async def test_complete_workflow(self, real_achievement_service: MagicMock) -> None:
         """測試完整工作流程."""
         # 創建個人視圖
         personal_view = PersonalView(
-            achievement_service=real_achievement_service,
-            guild_id=12345,
-            user_id=67890
+            achievement_service=real_achievement_service, guild_id=12345, user_id=67890
         )
 
         # 設置模擬數據
@@ -329,7 +312,7 @@ class TestPersonalViewIntegration:
             "total_achievements": 10,
             "available_achievements": 50,
             "completion_rate": 20.0,
-            "total_points": 500
+            "total_points": 500,
         }
 
         real_achievement_service.get_user_achievements.return_value = []
@@ -360,9 +343,7 @@ async def test_error_resilience() -> None:
     failing_service.get_user_achievement_stats.side_effect = Exception("Service error")
 
     personal_view = PersonalView(
-        achievement_service=failing_service,
-        guild_id=12345,
-        user_id=67890
+        achievement_service=failing_service, guild_id=12345, user_id=67890
     )
 
     # 測試錯誤處理
@@ -386,28 +367,25 @@ async def test_performance_with_large_dataset() -> None:
         "total_achievements": 1000,
         "available_achievements": 2000,
         "completion_rate": 50.0,
-        "total_points": 50000
+        "total_points": 50000,
     }
 
     # 創建大量成就資料
     large_achievements = []
     for i in range(100):
-        large_achievements.append((
-            MagicMock(earned_at=datetime(2024, 1, 1)),
-            MagicMock(
-                name=f"成就 {i}",
-                description=f"描述 {i}",
-                points=10,
-                category_id=1
+        large_achievements.append(
+            (
+                MagicMock(earned_at=datetime(2024, 1, 1)),
+                MagicMock(
+                    name=f"成就 {i}", description=f"描述 {i}", points=10, category_id=1
+                ),
             )
-        ))
+        )
 
     mock_service.get_user_achievements.return_value = large_achievements
 
     personal_view = PersonalView(
-        achievement_service=mock_service,
-        guild_id=12345,
-        user_id=67890
+        achievement_service=mock_service, guild_id=12345, user_id=67890
     )
 
     # 測試載入時間
@@ -420,7 +398,7 @@ async def test_performance_with_large_dataset() -> None:
     await personal_view.build_embed()
     embed_time = time.time() - start_time
 
-    # 驗證效能（應該在合理時間內完成）
+    # 驗證效能(應該在合理時間內完成)
     assert load_time < 1.0  # 載入應該在1秒內完成
     assert embed_time < 0.5  # Embed建立應該在0.5秒內完成
     assert len(data["earned_achievements"]) == 10  # 分頁限制生效

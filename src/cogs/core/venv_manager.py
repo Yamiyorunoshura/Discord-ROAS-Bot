@@ -25,6 +25,8 @@ from .logger import setup_module_logger
 logger = setup_module_logger("venv_manager")
 error_handler = create_error_handler("venv_manager", logger)
 
+# 常數定義
+PYTHON_VERSION_3_12 = 12
 
 class VirtualEnvironmentManager:
     """
@@ -45,7 +47,7 @@ class VirtualEnvironmentManager:
         Args:
             project_root: 專案根目錄路徑,預設為當前工作目錄
         """
-        self.project_root = Path(project_root or os.getcwd())
+        self.project_root = Path(project_root) if project_root else Path.cwd()
         self.platform = platform.system().lower()
         self.python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
 
@@ -80,17 +82,17 @@ class VirtualEnvironmentManager:
             if self.is_in_virtual_env():
                 self.is_activated = True
                 self.activation_method = "pre_activated"
-                logger.info("【虛擬環境】已在虛擬環境中運行")
+                logger.info("[虛擬環境]已在虛擬環境中運行")
 
                 # 嘗試確定當前虛擬環境路徑
                 venv_path = os.environ.get("VIRTUAL_ENV")
                 if venv_path:
                     self.current_venv = Path(venv_path)
             else:
-                logger.info("【虛擬環境】當前使用系統 Python 環境")
+                logger.info("[虛擬環境]當前使用系統 Python 環境")
 
         except Exception as exc:
-            logger.error(f"【虛擬環境】初始化檢查失敗: {exc}")
+            logger.error(f"[虛擬環境]初始化檢查失敗: {exc}")
 
     def is_in_virtual_env(self) -> bool:
         """
@@ -115,7 +117,7 @@ class VirtualEnvironmentManager:
         pyvenv_cfg = Path(sys.prefix) / "pyvenv.cfg"
         if pyvenv_cfg.exists():
             try:
-                with open(pyvenv_cfg) as f:
+                with pyvenv_cfg.open() as f:
                     if "home = " in f.read():
                         return True
             except Exception:
@@ -148,16 +150,16 @@ class VirtualEnvironmentManager:
         # 先檢查 VIRTUAL_ENV 環境變數
         venv_from_env = os.environ.get("VIRTUAL_ENV")
         if venv_from_env and self._is_valid_venv(Path(venv_from_env)):
-            logger.info(f"【虛擬環境】從環境變數檢測到虛擬環境: {venv_from_env}")
+            logger.info(f"[虛擬環境]從環境變數檢測到虛擬環境: {venv_from_env}")
             return Path(venv_from_env)
 
         # 檢查常見路徑
         for venv_path in self.venv_candidates:
             if self._is_valid_venv(venv_path):
-                logger.info(f"【虛擬環境】檢測到現有虛擬環境: {venv_path}")
+                logger.info(f"[虛擬環境]檢測到現有虛擬環境: {venv_path}")
                 return venv_path
 
-        logger.info("【虛擬環境】未檢測到現有虛擬環境")
+        logger.info("[虛擬環境]未檢測到現有虛擬環境")
         return None
 
     def _is_valid_venv(self, venv_path: Path) -> bool:
@@ -177,7 +179,7 @@ class VirtualEnvironmentManager:
         pyvenv_cfg = venv_path / "pyvenv.cfg"
         if pyvenv_cfg.exists():
             try:
-                with open(pyvenv_cfg) as f:
+                with pyvenv_cfg.open() as f:
                     content = f.read()
                     # 驗證文件格式
                     if "home = " in content:
@@ -186,7 +188,7 @@ class VirtualEnvironmentManager:
                         if python_exe and python_exe.exists():
                             return True
             except Exception as e:
-                logger.warning(f"【虛擬環境】讀取 pyvenv.cfg 失敗: {e}")
+                logger.warning(f"[虛擬環境]讀取 pyvenv.cfg 失敗: {e}")
 
         # 檢查典型的虛擬環境目錄結構
         if self.platform == "windows":
@@ -198,7 +200,7 @@ class VirtualEnvironmentManager:
             # 尋找 lib/pythonX.Y 目錄
             lib_dir = venv_path / "lib"
             if lib_dir.exists():
-                py_dirs = [d for d in os.listdir(lib_dir) if d.startswith("python")]
+                py_dirs = [d.name for d in lib_dir.iterdir() if d.is_dir() and d.name.startswith("python")]
                 if py_dirs and (lib_dir / py_dirs[0] / "site-packages").exists():
                     return True
 
@@ -281,14 +283,14 @@ class VirtualEnvironmentManager:
             venv_path = self.project_root / "venv-py312"
 
         try:
-            logger.info(f"【虛擬環境】開始創建虛擬環境: {venv_path}")
+            logger.info(f"[虛擬環境]開始創建虛擬環境: {venv_path}")
 
             # 確保父目錄存在
             venv_path.parent.mkdir(parents=True, exist_ok=True)
 
             # 如果目錄已存在,先刪除
             if venv_path.exists():
-                logger.warning(f"【虛擬環境】目錄已存在,正在刪除: {venv_path}")
+                logger.warning(f"[虛擬環境]目錄已存在,正在刪除: {venv_path}")
                 await self._remove_directory(venv_path)
 
             # 創建虛擬環境
@@ -298,7 +300,7 @@ class VirtualEnvironmentManager:
             if self.platform != "windows":
                 cmd.append("--copies")  # 複製文件而不是符號連結
 
-            logger.info(f"【虛擬環境】執行命令: {' '.join(cmd)}")
+            logger.info(f"[虛擬環境]執行命令: {' '.join(cmd)}")
 
             # 使用更穩定的 asyncio 創建子進程方法
             try:
@@ -308,7 +310,7 @@ class VirtualEnvironmentManager:
             except (AttributeError, TypeError) as e:
                 # Python 3.12 兼容性處理
                 logger.warning(
-                    f"【虛擬環境】使用新的 asyncio API 失敗: {e},嘗試備選方法"
+                    f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法"
                 )
                 # 使用傳統方法
                 process = await asyncio.create_subprocess_exec(
@@ -318,16 +320,16 @@ class VirtualEnvironmentManager:
             stdout, stderr = await process.communicate()
 
             if process.returncode == 0:
-                logger.info(f"【虛擬環境】虛擬環境創建成功: {venv_path}")
+                logger.info(f"[虛擬環境]虛擬環境創建成功: {venv_path}")
                 self.current_venv = venv_path
                 return True, f"虛擬環境創建成功: {venv_path}"
             else:
                 error_msg = stderr.decode() if stderr else "未知錯誤"
-                logger.error(f"【虛擬環境】創建失敗: {error_msg}")
+                logger.error(f"[虛擬環境]創建失敗: {error_msg}")
                 return False, f"虛擬環境創建失敗: {error_msg}"
 
         except Exception as exc:
-            logger.error(f"【虛擬環境】創建虛擬環境時發生異常: {exc}")
+            logger.error(f"[虛擬環境]創建虛擬環境時發生異常: {exc}")
             return False, f"創建虛擬環境時發生異常: {exc}"
 
     async def _remove_directory(self, path: Path) -> None:
@@ -353,7 +355,7 @@ class VirtualEnvironmentManager:
             except (AttributeError, TypeError) as e:
                 # Python 3.12 兼容性處理
                 logger.warning(
-                    f"【虛擬環境】使用新的 asyncio API 失敗: {e},嘗試備選方法"
+                    f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法"
                 )
                 # 使用傳統方法
                 process = await asyncio.create_subprocess_exec(
@@ -363,7 +365,7 @@ class VirtualEnvironmentManager:
             await process.communicate()
 
         except Exception as exc:
-            logger.error(f"【虛擬環境】刪除目錄失敗 {path}: {exc}")
+            logger.error(f"[虛擬環境]刪除目錄失敗 {path}: {exc}")
 
     def activate_virtual_env(self, venv_path: Path | None = None) -> tuple[bool, str]:
         """
@@ -415,17 +417,17 @@ class VirtualEnvironmentManager:
             try:
                 importlib.reload(site)
             except Exception as e:
-                logger.warning(f"【虛擬環境】重新載入 site 模組失敗: {e}")
+                logger.warning(f"[虛擬環境]重新載入 site 模組失敗: {e}")
 
             self.current_venv = venv_path
             self.is_activated = True
             self.activation_method = "runtime_activated"
 
-            logger.info(f"【虛擬環境】虛擬環境激活成功: {venv_path}")
+            logger.info(f"[虛擬環境]虛擬環境激活成功: {venv_path}")
             return True, f"虛擬環境激活成功: {venv_path}"
 
         except Exception as exc:
-            logger.error(f"【虛擬環境】激活虛擬環境失敗: {exc}")
+            logger.error(f"[虛擬環境]激活虛擬環境失敗: {exc}")
             return False, f"激活虛擬環境失敗: {exc}"
 
     async def install_requirements(
@@ -451,7 +453,7 @@ class VirtualEnvironmentManager:
             if requirements_file is None or not requirements_file.exists():
                 return False, "未找到 requirements 文件"
 
-            logger.info(f"【虛擬環境】開始安裝依賴包: {requirements_file}")
+            logger.info(f"[虛擬環境]開始安裝依賴包: {requirements_file}")
 
             # 獲取 pip 執行檔
             pip_cmd = self._get_pip_command()
@@ -461,7 +463,7 @@ class VirtualEnvironmentManager:
             # 安裝依賴包
             cmd = [*pip_cmd, "install", "-r", str(requirements_file)]
 
-            logger.info(f"【虛擬環境】執行命令: {' '.join(cmd)}")
+            logger.info(f"[虛擬環境]執行命令: {' '.join(cmd)}")
 
             # 使用更穩定的 asyncio 創建子進程方法
             try:
@@ -471,7 +473,7 @@ class VirtualEnvironmentManager:
             except (AttributeError, TypeError) as e:
                 # Python 3.12 兼容性處理
                 logger.warning(
-                    f"【虛擬環境】使用新的 asyncio API 失敗: {e},嘗試備選方法"
+                    f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法"
                 )
                 # 使用傳統方法
                 process = await asyncio.create_subprocess_exec(
@@ -481,15 +483,15 @@ class VirtualEnvironmentManager:
             stdout, stderr = await process.communicate()
 
             if process.returncode == 0:
-                logger.info("【虛擬環境】依賴包安裝成功")
+                logger.info("[虛擬環境]依賴包安裝成功")
                 return True, "依賴包安裝成功"
             else:
                 error_msg = stderr.decode() if stderr else "未知錯誤"
-                logger.error(f"【虛擬環境】依賴包安裝失敗: {error_msg}")
+                logger.error(f"[虛擬環境]依賴包安裝失敗: {error_msg}")
                 return False, f"依賴包安裝失敗: {error_msg}"
 
         except Exception as exc:
-            logger.error(f"【虛擬環境】安裝依賴包時發生異常: {exc}")
+            logger.error(f"[虛擬環境]安裝依賴包時發生異常: {exc}")
             return False, f"安裝依賴包時發生異常: {exc}"
 
     def _get_pip_command(self) -> list[str]:
@@ -556,10 +558,10 @@ class VirtualEnvironmentManager:
                 )
 
             # Python 3.12 特有檢查
-            if sys.version_info.minor >= 12:
+            if sys.version_info.minor >= PYTHON_VERSION_3_12:
                 # 檢查 asyncio 相關依賴
                 try:
-                    import aiohttp
+                    import aiohttp  # noqa: PLC0415
 
                     result["info"]["aiohttp_version"] = aiohttp.__version__
                 except (ImportError, AttributeError):
@@ -568,7 +570,7 @@ class VirtualEnvironmentManager:
 
                 # 檢查 discord.py
                 try:
-                    import discord
+                    import discord  # noqa: PLC0415
 
                     result["info"]["discord_version"] = discord.__version__
                 except (ImportError, AttributeError):
@@ -578,11 +580,11 @@ class VirtualEnvironmentManager:
                     )
 
             logger.info(
-                f"【虛擬環境】健康檢查完成,狀態: {'健康' if result['healthy'] else '有問題'}"
+                f"[虛擬環境]健康檢查完成,狀態: {'健康' if result['healthy'] else '有問題'}"
             )
 
         except Exception as exc:
-            logger.error(f"【虛擬環境】健康檢查失敗: {exc}")
+            logger.error(f"[虛擬環境]健康檢查失敗: {exc}")
             result["healthy"] = False
             result["issues"].append(f"健康檢查失敗: {exc}")
 
@@ -602,17 +604,94 @@ class VirtualEnvironmentManager:
         for package in critical_packages:
             try:
                 if package == "sqlite3":
-                    import sqlite3
+                    import sqlite3  # noqa: F401, PLC0415
                 elif package == "discord.py":
-                    import discord
+                    import discord  # noqa: F401, PLC0415
                 elif package == "aiohttp":
-                    import aiohttp
+                    import aiohttp  # noqa: F401, PLC0415
                 elif package == "asyncio":
-                    import asyncio
+                    import asyncio  # noqa: F401, PLC0415
             except ImportError:
                 missing_packages.append(package)
 
         return missing_packages
+
+    async def _handle_existing_venv(self, existing_venv: str, result: dict[str, Any]) -> bool:
+        """處理現有虛擬環境"""
+        result["steps"].append(f"檢測到現有虛擬環境: {existing_venv}")
+
+        # 嘗試激活現有虛擬環境
+        success, message = self.activate_virtual_env(existing_venv)
+        if success:
+            result["steps"].append(f"激活現有虛擬環境: {message}")
+            return True
+        else:
+            result["errors"].append(f"激活現有虛擬環境失敗: {message}")
+            return await self._create_python312_env_if_needed(result)
+
+    async def _create_python312_env_if_needed(self, result: dict[str, Any]) -> bool:
+        """如果需要, 創建 Python 3.12 專用環境"""
+        if sys.version_info.minor >= PYTHON_VERSION_3_12:
+            result["steps"].append("檢測到 Python 3.12 環境,嘗試創建專用虛擬環境")
+            success, message = await self.create_virtual_env(
+                self.project_root / "venv-py312"
+            )
+            if success:
+                result["steps"].append(f"創建 Python 3.12 專用虛擬環境: {message}")
+                return await self._activate_current_venv(result, "Python 3.12")
+            else:
+                result["errors"].append(f"創建 Python 3.12 虛擬環境失敗: {message}")
+                return False
+        return False
+
+    async def _activate_current_venv(self, result: dict[str, Any], env_type: str = "") -> bool:
+        """激活當前虛擬環境"""
+        success, message = self.activate_virtual_env(self.current_venv)
+        if success:
+            result["steps"].append(f"激活{env_type}虛擬環境: {message}")
+            return True
+        else:
+            result["errors"].append(f"激活{env_type}虛擬環境失敗: {message}")
+            return False
+
+    async def _create_new_venv(self, result: dict[str, Any]) -> bool:
+        """創建新的虛擬環境"""
+        result["steps"].append("未檢測到現有虛擬環境")
+
+        # 確定虛擬環境路徑
+        venv_path = self.project_root / "venv"
+        if sys.version_info.minor >= PYTHON_VERSION_3_12:
+            venv_path = self.project_root / "venv-py312"
+
+        success, message = await self.create_virtual_env(venv_path)
+        if success:
+            result["steps"].append(f"創建虛擬環境: {message}")
+            return await self._activate_current_venv(result)
+        else:
+            result["errors"].append(f"創建虛擬環境失敗: {message}")
+            return False
+
+    async def _install_and_check(self, result: dict[str, Any]) -> None:
+        """安裝依賴並進行健康檢查"""
+        # 安裝依賴包
+        success, message = await self.install_requirements()
+        if success:
+            result["steps"].append(f"安裝依賴包: {message}")
+        else:
+            result["errors"].append(f"安裝依賴包失敗: {message}")
+
+        # 健康檢查
+        health_result = await self.health_check()
+        result["final_state"] = health_result
+
+        if health_result["healthy"]:
+            result["success"] = True
+            result["steps"].append("環境設置完成,健康檢查通過")
+            logger.info("[虛擬環境]自動設置完成,環境健康")
+        else:
+            result["steps"].append("環境設置完成,但健康檢查發現問題")
+            result["errors"].extend(health_result["issues"])
+            logger.warning("[虛擬環境]自動設置完成,但存在問題")
 
     async def auto_setup(self) -> dict[str, Any]:
         """
@@ -624,104 +703,34 @@ class VirtualEnvironmentManager:
         result = {"success": False, "steps": [], "errors": [], "final_state": {}}
 
         try:
-            logger.info("【虛擬環境】開始自動設置虛擬環境")
+            logger.info("[虛擬環境]開始自動設置虛擬環境")
 
             # 步驟 1: 檢查當前 Python 版本
             result["steps"].append(f"當前 Python 版本: {sys.version}")
 
-            # 步驟 2: 檢查現有虛擬環境
+            # 步驟 2: 處理虛擬環境
             existing_venv = self.detect_existing_venv()
             if existing_venv:
-                result["steps"].append(f"檢測到現有虛擬環境: {existing_venv}")
-
-                # 嘗試激活現有虛擬環境
-                success, message = self.activate_virtual_env(existing_venv)
-                if success:
-                    result["steps"].append(f"激活現有虛擬環境: {message}")
-                else:
-                    result["errors"].append(f"激活現有虛擬環境失敗: {message}")
-
-                    # 如果是 Python 3.12 環境但無法激活現有環境,考慮創建新環境
-                    if sys.version_info.minor >= 12:
-                        result["steps"].append(
-                            "檢測到 Python 3.12 環境,嘗試創建專用虛擬環境"
-                        )
-                        success, message = await self.create_virtual_env(
-                            self.project_root / "venv-py312"
-                        )
-                        if success:
-                            result["steps"].append(
-                                f"創建 Python 3.12 專用虛擬環境: {message}"
-                            )
-
-                            # 激活新創建的虛擬環境
-                            success, message = self.activate_virtual_env(
-                                self.current_venv
-                            )
-                            if success:
-                                result["steps"].append(
-                                    f"激活 Python 3.12 虛擬環境: {message}"
-                                )
-                            else:
-                                result["errors"].append(
-                                    f"激活 Python 3.12 虛擬環境失敗: {message}"
-                                )
-                        else:
-                            result["errors"].append(
-                                f"創建 Python 3.12 虛擬環境失敗: {message}"
-                            )
+                venv_ready = await self._handle_existing_venv(existing_venv, result)
             else:
-                result["steps"].append("未檢測到現有虛擬環境")
+                venv_ready = await self._create_new_venv(result)
 
-                # 步驟 3: 創建新的虛擬環境
-                venv_path = self.project_root / "venv"
-                if sys.version_info.minor >= 12:
-                    venv_path = self.project_root / "venv-py312"
+            if not venv_ready:
+                return result
 
-                success, message = await self.create_virtual_env(venv_path)
-                if success:
-                    result["steps"].append(f"創建虛擬環境: {message}")
-
-                    # 激活新創建的虛擬環境
-                    success, message = self.activate_virtual_env(self.current_venv)
-                    if success:
-                        result["steps"].append(f"激活虛擬環境: {message}")
-                    else:
-                        result["errors"].append(f"激活虛擬環境失敗: {message}")
-                else:
-                    result["errors"].append(f"創建虛擬環境失敗: {message}")
-                    return result
-
-            # 步驟 4: 安裝依賴包
-            success, message = await self.install_requirements()
-            if success:
-                result["steps"].append(f"安裝依賴包: {message}")
-            else:
-                result["errors"].append(f"安裝依賴包失敗: {message}")
-
-            # 步驟 5: 健康檢查
-            health_result = await self.health_check()
-            result["final_state"] = health_result
-
-            if health_result["healthy"]:
-                result["success"] = True
-                result["steps"].append("環境設置完成,健康檢查通過")
-                logger.info("【虛擬環境】自動設置完成,環境健康")
-            else:
-                result["steps"].append("環境設置完成,但健康檢查發現問題")
-                result["errors"].extend(health_result["issues"])
-                logger.warning("【虛擬環境】自動設置完成,但存在問題")
+            # 步驟 3: 安裝依賴並檢查
+            await self._install_and_check(result)
 
         except Exception as exc:
-            logger.error(f"【虛擬環境】自動設置失敗: {exc}")
+            logger.error(f"[虛擬環境]自動設置失敗: {exc}")
             result["errors"].append(f"自動設置失敗: {exc}")
 
             # 記錄詳細診斷信息
             try:
-                import traceback
+                import traceback  # noqa: PLC0415
 
-                logger.error(f"【虛擬環境】異常詳情: {traceback.format_exc()}")
-            except:
+                logger.error(f"[虛擬環境]異常詳情: {traceback.format_exc()}")
+            except Exception:
                 pass
 
         return result

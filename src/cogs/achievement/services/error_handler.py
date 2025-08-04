@@ -1,12 +1,12 @@
 """成就系統錯誤處理和日誌記錄整合.
 
-此模組提供成就系統的統一錯誤處理和日誌記錄，包含：
+此模組提供成就系統的統一錯誤處理和日誌記錄,包含:
 - 自定義例外類型
 - 結構化錯誤處理
 - 統一的日誌記錄格式
 - 錯誤分類和分析
 
-遵循錯誤處理最佳實踐，提供清晰的錯誤訊息和追蹤能力。
+遵循錯誤處理最佳實踐,提供清晰的錯誤訊息和追蹤能力.
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ from typing import Any
 
 class AchievementErrorType(str, Enum):
     """成就系統錯誤類型列舉."""
+
     VALIDATION_ERROR = "validation_error"
     BUSINESS_RULE_ERROR = "business_rule_error"
     DATA_ACCESS_ERROR = "data_access_error"
@@ -28,16 +29,15 @@ class AchievementErrorType(str, Enum):
     INTEGRATION_ERROR = "integration_error"
     CONFIGURATION_ERROR = "configuration_error"
 
-
 @dataclass
 class ErrorContext:
     """錯誤上下文資料."""
+
     user_id: int | None = None
     achievement_id: int | None = None
     category_id: int | None = None
     operation: str | None = None
     additional_data: dict[str, Any] | None = None
-
 
 class AchievementError(Exception):
     """成就系統基礎例外類型."""
@@ -47,7 +47,7 @@ class AchievementError(Exception):
         message: str,
         error_type: AchievementErrorType,
         context: ErrorContext | None = None,
-        original_exception: Exception | None = None
+        original_exception: Exception | None = None,
     ):
         """初始化成就系統例外.
 
@@ -79,11 +79,12 @@ class AchievementError(Exception):
                 "achievement_id": self.context.achievement_id,
                 "category_id": self.context.category_id,
                 "operation": self.context.operation,
-                "additional_data": self.context.additional_data
+                "additional_data": self.context.additional_data,
             },
-            "original_exception": str(self.original_exception) if self.original_exception else None
+            "original_exception": str(self.original_exception)
+            if self.original_exception
+            else None,
         }
-
 
 class AchievementValidationError(AchievementError):
     """成就驗證錯誤."""
@@ -91,13 +92,11 @@ class AchievementValidationError(AchievementError):
     def __init__(self, message: str, context: ErrorContext | None = None):
         super().__init__(message, AchievementErrorType.VALIDATION_ERROR, context)
 
-
 class AchievementBusinessRuleError(AchievementError):
     """成就業務規則錯誤."""
 
     def __init__(self, message: str, context: ErrorContext | None = None):
         super().__init__(message, AchievementErrorType.BUSINESS_RULE_ERROR, context)
-
 
 class AchievementDataAccessError(AchievementError):
     """成就資料存取錯誤."""
@@ -106,10 +105,11 @@ class AchievementDataAccessError(AchievementError):
         self,
         message: str,
         context: ErrorContext | None = None,
-        original_exception: Exception | None = None
+        original_exception: Exception | None = None,
     ):
-        super().__init__(message, AchievementErrorType.DATA_ACCESS_ERROR, context, original_exception)
-
+        super().__init__(
+            message, AchievementErrorType.DATA_ACCESS_ERROR, context, original_exception
+        )
 
 class AchievementCacheError(AchievementError):
     """成就快取錯誤."""
@@ -118,10 +118,11 @@ class AchievementCacheError(AchievementError):
         self,
         message: str,
         context: ErrorContext | None = None,
-        original_exception: Exception | None = None
+        original_exception: Exception | None = None,
     ):
-        super().__init__(message, AchievementErrorType.CACHE_ERROR, context, original_exception)
-
+        super().__init__(
+            message, AchievementErrorType.CACHE_ERROR, context, original_exception
+        )
 
 class AchievementServiceError(AchievementError):
     """成就服務錯誤."""
@@ -130,10 +131,11 @@ class AchievementServiceError(AchievementError):
         self,
         message: str,
         context: ErrorContext | None = None,
-        original_exception: Exception | None = None
+        original_exception: Exception | None = None,
     ):
-        super().__init__(message, AchievementErrorType.SERVICE_ERROR, context, original_exception)
-
+        super().__init__(
+            message, AchievementErrorType.SERVICE_ERROR, context, original_exception
+        )
 
 class AchievementIntegrationError(AchievementError):
     """成就整合錯誤."""
@@ -142,10 +144,11 @@ class AchievementIntegrationError(AchievementError):
         self,
         message: str,
         context: ErrorContext | None = None,
-        original_exception: Exception | None = None
+        original_exception: Exception | None = None,
     ):
-        super().__init__(message, AchievementErrorType.INTEGRATION_ERROR, context, original_exception)
-
+        super().__init__(
+            message, AchievementErrorType.INTEGRATION_ERROR, context, original_exception
+        )
 
 class AchievementConfigurationError(AchievementError):
     """成就配置錯誤."""
@@ -153,18 +156,17 @@ class AchievementConfigurationError(AchievementError):
     def __init__(self, message: str, context: ErrorContext | None = None):
         super().__init__(message, AchievementErrorType.CONFIGURATION_ERROR, context)
 
-
 class AchievementErrorHandler:
     """成就系統錯誤處理器.
 
-    提供統一的錯誤處理和日誌記錄功能。
+    提供統一的錯誤處理和日誌記錄功能.
     """
 
     def __init__(self, logger: logging.Logger | None = None):
         """初始化錯誤處理器.
 
         Args:
-            logger: 日誌記錄器（可選）
+            logger: 日誌記錄器(可選)
         """
         self.logger = logger or logging.getLogger(__name__)
         self._error_counts: dict[str, int] = {}
@@ -173,7 +175,7 @@ class AchievementErrorHandler:
         self,
         error: Exception,
         context: ErrorContext | None = None,
-        log_level: int = logging.ERROR
+        log_level: int = logging.ERROR,
     ) -> AchievementError:
         """處理錯誤並記錄日誌.
 
@@ -185,7 +187,7 @@ class AchievementErrorHandler:
         Returns:
             處理後的成就系統錯誤
         """
-        # 如果已經是成就系統錯誤，直接記錄
+        # 如果已經是成就系統錯誤,直接記錄
         if isinstance(error, AchievementError):
             achievement_error = error
         else:
@@ -200,7 +202,9 @@ class AchievementErrorHandler:
 
         return achievement_error
 
-    def _wrap_error(self, error: Exception, context: ErrorContext | None) -> AchievementError:
+    def _wrap_error(
+        self, error: Exception, context: ErrorContext | None
+    ) -> AchievementError:
         """包裝原始錯誤為成就系統錯誤.
 
         Args:
@@ -238,7 +242,7 @@ class AchievementErrorHandler:
             log_level: 日誌級別
         """
         # 構建結構化日誌資料
-        log_extra = {
+        log_extra: dict[str, Any] = {
             "error_type": error.error_type.value,
             "error_message": error.message,
             "timestamp": error.timestamp.isoformat(),
@@ -262,7 +266,7 @@ class AchievementErrorHandler:
             log_level,
             f"成就系統錯誤: {error.message}",
             extra=log_extra,
-            exc_info=error.original_exception
+            exc_info=error.original_exception,
         )
 
     def get_error_statistics(self) -> dict[str, Any]:
@@ -279,18 +283,17 @@ class AchievementErrorHandler:
             "error_rates": {
                 error_type: count / total_errors * 100 if total_errors > 0 else 0
                 for error_type, count in self._error_counts.items()
-            }
+            },
         }
 
     def reset_error_statistics(self) -> None:
         """重置錯誤統計資料."""
         self._error_counts.clear()
 
-
 class AchievementLogger:
     """成就系統專用日誌記錄器.
 
-    提供成就系統特定的日誌記錄功能和格式。
+    提供成就系統特定的日誌記錄功能和格式.
     """
 
     def __init__(self, logger_name: str = "achievement_system"):
@@ -302,11 +305,7 @@ class AchievementLogger:
         self.logger = logging.getLogger(logger_name)
 
     def log_achievement_earned(
-        self,
-        user_id: int,
-        achievement_id: int,
-        achievement_name: str,
-        points: int
+        self, user_id: int, achievement_id: int, achievement_name: str, points: int
     ) -> None:
         """記錄成就獲得日誌.
 
@@ -324,8 +323,8 @@ class AchievementLogger:
                 "achievement_id": achievement_id,
                 "achievement_name": achievement_name,
                 "points": points,
-                "timestamp": datetime.now().isoformat()
-            }
+                "timestamp": datetime.now().isoformat(),
+            },
         )
 
     def log_progress_update(
@@ -334,7 +333,7 @@ class AchievementLogger:
         achievement_id: int,
         old_value: float,
         new_value: float,
-        is_completed: bool
+        is_completed: bool,
     ) -> None:
         """記錄進度更新日誌.
 
@@ -355,8 +354,8 @@ class AchievementLogger:
                 "new_value": new_value,
                 "progress_increase": new_value - old_value,
                 "is_completed": is_completed,
-                "timestamp": datetime.now().isoformat()
-            }
+                "timestamp": datetime.now().isoformat(),
+            },
         )
 
     def log_service_operation(
@@ -364,21 +363,21 @@ class AchievementLogger:
         operation: str,
         success: bool,
         duration_ms: float | None = None,
-        additional_data: dict[str, Any] | None = None
+        additional_data: dict[str, Any] | None = None,
     ) -> None:
         """記錄服務操作日誌.
 
         Args:
             operation: 操作名稱
             success: 是否成功
-            duration_ms: 執行時間（毫秒）
+            duration_ms: 執行時間(毫秒)
             additional_data: 額外資料
         """
         log_data = {
             "event_type": "service_operation",
             "operation": operation,
             "success": success,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         if duration_ms is not None:
@@ -391,16 +390,15 @@ class AchievementLogger:
         self.logger.log(
             log_level,
             f"服務操作 {operation} {'成功' if success else '失敗'}",
-            extra=log_data
+            extra=log_data,
         )
-
 
 def create_error_context(
     user_id: int | None = None,
     achievement_id: int | None = None,
     category_id: int | None = None,
     operation: str | None = None,
-    **kwargs
+    **kwargs: Any,
 ) -> ErrorContext:
     """建立錯誤上下文的便利函數.
 
@@ -419,9 +417,8 @@ def create_error_context(
         achievement_id=achievement_id,
         category_id=category_id,
         operation=operation,
-        additional_data=kwargs if kwargs else None
+        additional_data=kwargs if kwargs else None,
     )
-
 
 __all__ = [
     "AchievementBusinessRuleError",

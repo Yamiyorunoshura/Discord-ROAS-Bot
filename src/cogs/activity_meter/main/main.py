@@ -16,6 +16,8 @@ from discord.ext import commands
 from ...core import create_error_handler, setup_module_logger
 from ..config import config
 from ..database.database import ActivityDatabase, ActivityMeterError
+from ..panel.main_view import ActivityPanelView
+from ..service.batch_service import BatchCalculationService
 from .calculator import ActivityCalculator
 from .renderer import ActivityRenderer
 from .tasks import ActivityTasks
@@ -63,6 +65,9 @@ class ActivityMeter(commands.Cog):
         self.calculator = ActivityCalculator()
         self.renderer = ActivityRenderer()
         self.tasks = ActivityTasks(bot, self.db)
+
+        # 初始化 NumPy 優化服務
+        self.batch_service = BatchCalculationService(self.db)
 
         # 啟動初始化和背景任務
         bot.loop.create_task(self._init_module())
@@ -126,33 +131,34 @@ class ActivityMeter(commands.Cog):
         try:
             await self.db.init_db()
             self.tasks.start()
-            logger.info("【活躍度】模組初始化完成")
+            logger.info("[活躍度]模組初始化完成")
         except Exception as e:
-            logger.error(f"【活躍度】模組初始化失敗: {e}")
+            logger.error(f"[活躍度]模組初始化失敗: {e}")
 
     async def cog_unload(self):
         """模組卸載時的清理工作"""
         try:
             self.tasks.stop()
+            await self.batch_service.shutdown()
             await self.db.close()
-            logger.info("【活躍度】模組已卸載")
+            logger.info("[活躍度]模組已卸載")
         except Exception as e:
-            logger.error(f"【活躍度】模組卸載時發生錯誤: {e}")
+            logger.error(f"[活躍度]模組卸載時發生錯誤: {e}")
 
     # -------- 指令 --------
     @app_commands.command(name="活躍度", description="查看活躍度(進度條)")
     async def activity(
-        self, inter: discord.Interaction, 成員: discord.Member | None = None
+        self, inter: discord.Interaction, member: discord.Member | None = None
     ):
         """
         查看活躍度指令
 
         Args:
             inter: Discord 互動
-            成員: 要查詢的成員,預設為指令執行者
+            member: 要查詢的成員,預設為指令執行者
         """
         await inter.response.defer()
-        member = 成員 or inter.user
+        member = member or inter.user
 
         if not isinstance(member, discord.Member):
             await inter.followup.send("❌ 只能查詢伺服器成員的活躍度.", ephemeral=True)
@@ -179,14 +185,77 @@ class ActivityMeter(commands.Cog):
         except Exception:
             await inter.followup.send("❌ 未知錯誤,請稍後再試.", ephemeral=True)
 
+    @app_commands.command(name="動畫活躍度", description="查看動畫 GIF 活躍度進度條")
+    @app_commands.describe(
+        成員="要查詢的成員",
+        動畫樣式="動畫風格: pulse(脈動), slide(滑動), sparkle(閃爍), wave(波浪), glow(發光)",
+    )
+    @app_commands.choices(
+        動畫樣式=[
+            app_commands.Choice(name="脈動效果", value="pulse"),
+            app_commands.Choice(name="滑動填充", value="slide"),
+            app_commands.Choice(name="閃爍星星", value="sparkle"),
+            app_commands.Choice(name="波浪效果", value="wave"),
+            app_commands.Choice(name="發光效果", value="glow"),
+        ]
+    )
+    async def animated_activity(
+        self,
+        inter: discord.Interaction,
+        member: discord.Member | None = None,
+        animation_style: str = "pulse",
+    ):
+        """
+        查看動畫活躍度指令
+
+        Args:
+            inter: Discord 互動
+            member: 要查詢的成員,預設為指令執行者
+            animation_style: 動畫風格
+        """
+        await inter.response.defer()
+        member = member or inter.user
+
+        if not isinstance(member, discord.Member):
+            await inter.followup.send("❌ 只能查詢伺服器成員的活躍度.", ephemeral=True)
+            return
+
+        try:
+            # 獲取活躍度資料
+            score, last_msg = await self.db.get_user_activity(
+                getattr(inter.guild, "id", 0), getattr(member, "id", 0)
+            )
+
+            # 計算衰減後的活躍度
+            current_score = self.calculator.decay(score, int(time.time()) - last_msg)
+
+            # 生成並發送動畫進度條
+            animated_bar = self.renderer.render_animated_progress_bar(
+                getattr(member, "display_name", "未知用戶"),
+                current_score,
+                animation_style=animation_style,
+            )
+
+            await inter.followup.send(
+                content=f"✨ {member.display_name} 的動畫活躍度進度條 ({animation_style})",
+                file=animated_bar,
+                ephemeral=True,
+            )
+        except ActivityMeterError as e:
+            await inter.followup.send(
+                f"❌ [{e.error_code}] {e.message}", ephemeral=True
+            )
+        except Exception:
+            await inter.followup.send("❌ 動畫生成失敗,請稍後再試.", ephemeral=True)
+
     @app_commands.command(name="今日排行榜", description="查看今日訊息數排行榜")
-    async def daily_ranking(self, inter: discord.Interaction, 名次: int = 10):
+    async def daily_ranking(self, inter: discord.Interaction, rank_limit: int = 10):
         """
         查看今日排行榜指令
 
         Args:
             inter: Discord 互動
-            名次: 顯示的排名數量
+            rank_limit: 顯示的排名數量
         """
         await inter.response.defer()
 
@@ -196,7 +265,7 @@ class ActivityMeter(commands.Cog):
 
             # 獲取排行榜資料
             rankings = await self.db.get_daily_rankings(
-                ymd, getattr(inter.guild, "id", 0), limit=名次
+                ymd, getattr(inter.guild, "id", 0), limit=rank_limit
             )
 
             if not rankings:
@@ -243,16 +312,16 @@ class ActivityMeter(commands.Cog):
     @app_commands.command(
         name="設定排行榜頻道", description="設定每日自動播報排行榜的頻道"
     )
-    @app_commands.describe(頻道="要播報到哪個文字頻道")
+    @app_commands.describe(channel="要播報到哪個文字頻道")
     async def set_report_channel(
-        self, inter: discord.Interaction, 頻道: discord.TextChannel
+        self, inter: discord.Interaction, channel: discord.TextChannel
     ):
         """
         設定排行榜頻道指令
 
         Args:
             inter: Discord 互動
-            頻道: 要設定的頻道
+            channel: 要設定的頻道
         """
         if not config.is_allowed(inter, "設定排行榜頻道"):
             await inter.response.send_message(
@@ -261,9 +330,9 @@ class ActivityMeter(commands.Cog):
             return
 
         try:
-            await self.db.set_report_channel(getattr(inter.guild, "id", 0), 頻道.id)
+            await self.db.set_report_channel(getattr(inter.guild, "id", 0), channel.id)
             await inter.response.send_message(
-                f"✅ 已設定為 {頻道.mention}", ephemeral=True
+                f"✅ 已設定為 {channel.mention}", ephemeral=True
             )
         except ActivityMeterError as e:
             await inter.response.send_message(
@@ -297,9 +366,6 @@ class ActivityMeter(commands.Cog):
             return
 
         try:
-            # 導入面板視圖
-            from ..panel.main_view import ActivityPanelView
-
             # 創建面板視圖
             view = ActivityPanelView(
                 self.bot, interaction.guild.id, interaction.user.id
@@ -353,7 +419,7 @@ class ActivityMeter(commands.Cog):
     @commands.Cog.listener("on_message")
     async def on_message(self, msg: discord.Message):
         """
-        訊息事件處理
+        訊息事件處理 - 使用 run_in_executor 進行非同步處理
 
         Args:
             msg: Discord 訊息
@@ -365,42 +431,54 @@ class ActivityMeter(commands.Cog):
         now = int(time.time())
         ymd = datetime.now(UTC).astimezone(config.TW_TZ).strftime(config.DAY_FMT)
 
+        # 使用 run_in_executor 進行背景處理, 避免阻塞事件迴圈
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(
+            self._process_message_activity(
+                msg.guild.id, msg.author.id, now, ymd
+            )
+        )
+        # 確保異常不會被忽略
+        task.add_done_callback(lambda t: t.exception())
+
+    async def _process_message_activity(
+        self, guild_id: int, user_id: int, now: int, ymd: str
+    ):
+        """
+        在背景處理訊息活躍度計算
+
+        Args:
+            guild_id: 伺服器 ID
+            user_id: 用戶 ID
+            now: 當前時間戳
+            ymd: 日期字串
+        """
         # 使用鎖確保資料一致性
         async with self.lock:
             try:
                 # 獲取當前活躍度
-                score, last_msg = await self.db.get_user_activity(
-                    getattr(msg.guild, "id", 0), getattr(msg.author, "id", 0)
-                )
+                score, last_msg = await self.db.get_user_activity(guild_id, user_id)
 
-                # 檢查是否需要更新活躍度(冷卻時間)
                 if not self.calculator.should_update(last_msg, now):
                     # 只增加訊息計數,不更新活躍度
-                    await self.db.increment_daily_message_count(
-                        ymd, getattr(msg.guild, "id", 0), getattr(msg.author, "id", 0)
-                    )
+                    await self.db.increment_daily_message_count(ymd, guild_id, user_id)
                     return
 
-                # 計算新的活躍度分數
-                new_score = self.calculator.calculate_new_score(score, last_msg, now)
+                # 使用 run_in_executor 進行計算密集型操作
+                loop = asyncio.get_event_loop()
+                new_score = await loop.run_in_executor(
+                    None,
+                    self.calculator.calculate_new_score,
+                    score, last_msg, now
+                )
 
                 # 更新活躍度
-                await self.db.update_user_activity(
-                    getattr(msg.guild, "id", 0),
-                    getattr(msg.author, "id", 0),
-                    new_score,
-                    now,
-                )
+                await self.db.update_user_activity(guild_id, user_id, new_score, now)
 
                 # 更新訊息計數
-                await self.db.increment_daily_message_count(
-                    ymd, getattr(msg.guild, "id", 0), getattr(msg.author, "id", 0)
-                )
+                await self.db.increment_daily_message_count(ymd, guild_id, user_id)
 
             except ActivityMeterError as e:
-                logger.error(f"【活躍度】處理訊息時發生錯誤: {e}")
-                await msg.channel.send(
-                    f"❌ [{e.error_code}] {e.message}", ephemeral=True
-                )
+                logger.error(f"[活躍度]處理訊息時發生錯誤: {e}")
             except Exception as e:
-                logger.error(f"【活躍度】處理訊息時發生錯誤: {e}")
+                logger.error(f"[活躍度]處理訊息時發生未知錯誤: {e}")

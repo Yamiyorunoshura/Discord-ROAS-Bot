@@ -43,7 +43,6 @@ logger = logging.getLogger(__name__)
 K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type
 
-
 class CacheStrategy(Enum):
     """緩存策略枚舉"""
 
@@ -54,14 +53,12 @@ class CacheStrategy(Enum):
     HYBRID = "hybrid"  # 混合策略
     ADAPTIVE = "adaptive"  # 自適應策略
 
-
 class CacheLevel(Enum):
     """緩存級別枚舉"""
 
     L1 = 1  # 內存緩存
     L2 = 2  # 持久化緩存
     BOTH = 3  # 兩級緩存
-
 
 class CacheOperation(Enum):
     """緩存操作枚舉"""
@@ -73,7 +70,6 @@ class CacheOperation(Enum):
     EXPIRE = "expire"
     PRELOAD = "preload"
 
-
 class CachePattern(Enum):
     """緩存模式枚舉"""
 
@@ -81,7 +77,6 @@ class CachePattern(Enum):
     WRITE_THROUGH = "write_through"  # 寫穿透
     WRITE_BEHIND = "write_behind"  # 寫回
     CACHE_ASIDE = "cache_aside"  # 旁路緩存
-
 
 @dataclass
 class CacheEntry:
@@ -107,7 +102,7 @@ class CacheEntry:
         """計算條目大小"""
         try:
             return len(pickle.dumps(self.value))
-        except:
+        except (pickle.PicklingError, TypeError, AttributeError):
             return len(str(self.value).encode("utf-8"))
 
     def is_expired(self) -> bool:
@@ -134,7 +129,6 @@ class CacheEntry:
         """獲取頻率分數"""
         age = self.get_age()
         return self.access_count / (age + 1)  # 避免除零
-
 
 @dataclass
 class CacheStats:
@@ -173,9 +167,11 @@ class CacheStats:
         """重置統計"""
         self.__dict__.update(CacheStats().__dict__)
 
-
 class CacheAnalyzer:
     """緩存分析器"""
+
+    # 常數定義
+    MIN_HOT_KEY_ACCESS_COUNT = 5  # 熱點鍵最小訪問次數閾值
 
     def __init__(self, max_history: int = 1000):
         self.access_history: deque = deque(maxlen=max_history)
@@ -246,11 +242,10 @@ class CacheAnalyzer:
 
             # 高頻訪問但經常錯失的鍵
             for key, count in self.hot_keys.items():
-                if count > 5 and key in self.cold_keys:  # 閾值可調整
+                if count > self.MIN_HOT_KEY_ACCESS_COUNT and key in self.cold_keys:
                     suggestions.append(key)
 
             return suggestions[:20]  # 限制建議數量
-
 
 class SmartCacheStrategy:
     """智能緩存策略"""
@@ -293,7 +288,7 @@ class SmartCacheStrategy:
                 ttl_score = (time.time() - entry.timestamp) / entry.ttl
                 score += ttl_score * self.strategy_weights[CacheStrategy.TTL]
 
-            # 自適應分數(基於訪問模式)
+            # 根據訪問模式計算自適應分數
             if key in self.analyzer.cold_keys:
                 score += 1.0 * self.strategy_weights[CacheStrategy.ADAPTIVE]
 
@@ -306,7 +301,6 @@ class SmartCacheStrategy:
         evict_count = len(entries) - max_size + 1  # 至少淘汰一個
 
         return [key for key, _ in sorted_entries[:evict_count]]
-
 
 class CachePreloader:
     """緩存預載入器"""
@@ -366,7 +360,6 @@ class CachePreloader:
         except Exception as e:
             logger.error(f"預載入失敗 {key}: {e}")
 
-
 class CacheBackend(ABC):
     """緩存後端抽象基類"""
 
@@ -399,7 +392,6 @@ class CacheBackend(ABC):
     async def size(self) -> int:
         """獲取緩存大小"""
         pass
-
 
 class MemoryCacheBackend(CacheBackend):
     """內存緩存後端(L1)"""
@@ -556,9 +548,11 @@ class MemoryCacheBackend(CacheBackend):
 
             return base_stats
 
-
 class PersistentCacheBackend(CacheBackend):
     """持久化緩存後端(L2)"""
+
+    # 常數定義
+    MAX_CONNECTION_POOL_SIZE = 10  # 連接池最大大小
 
     def __init__(self, db_path: str = "cache.db", max_size: int = 10000):
         self.db_path = db_path
@@ -615,7 +609,7 @@ class PersistentCacheBackend(CacheBackend):
     def _return_connection(self, conn: sqlite3.Connection):
         """歸還資料庫連接"""
         with self._pool_lock:
-            if len(self._connection_pool) < 10:  # 限制連接池大小
+            if len(self._connection_pool) < self.MAX_CONNECTION_POOL_SIZE:
                 self._connection_pool.append(conn)
             else:
                 conn.close()
@@ -675,7 +669,7 @@ class PersistentCacheBackend(CacheBackend):
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
-                        entry.key,
+                        key,
                         value_blob,
                         entry.timestamp,
                         entry.access_count,
@@ -820,7 +814,6 @@ class PersistentCacheBackend(CacheBackend):
         )  # 一次淘汰10%
         conn.commit()
         self.stats.evictions += conn.total_changes
-
 
 class MultiLevelCache:
     """多級緩存管理器"""
@@ -1030,26 +1023,37 @@ class MultiLevelCache:
                 conn.close()
             self.l2_backend._connection_pool.clear()
 
+class GlobalCacheManager:
+    """全域緩存管理器單例"""
 
-# 全域緩存管理器
-_global_cache_manager: MultiLevelCache | None = None
+    _instance: MultiLevelCache | None = None
+    _lock = asyncio.Lock()
 
+    @classmethod
+    async def get_instance(cls) -> MultiLevelCache:
+        """獲取全域緩存管理器實例"""
+        if cls._instance is None:
+            async with cls._lock:
+                if cls._instance is None:
+                    cls._instance = MultiLevelCache()
+        return cls._instance
+
+    @classmethod
+    async def dispose(cls):
+        """釋放全域緩存管理器"""
+        if cls._instance is not None:
+            async with cls._lock:
+                if cls._instance is not None:
+                    await cls._instance.shutdown()
+                    cls._instance = None
 
 async def get_global_cache_manager() -> MultiLevelCache:
-    """獲取全域緩存管理器"""
-    global _global_cache_manager
-    if _global_cache_manager is None:
-        _global_cache_manager = MultiLevelCache()
-    return _global_cache_manager
-
+    """獲取全域緩存管理器(兼容性函數)"""
+    return await GlobalCacheManager.get_instance()
 
 async def dispose_global_cache_manager():
-    """釋放全域緩存管理器"""
-    global _global_cache_manager
-    if _global_cache_manager is not None:
-        await _global_cache_manager.shutdown()
-        _global_cache_manager = None
-
+    """釋放全域緩存管理器(兼容性函數)"""
+    await GlobalCacheManager.dispose()
 
 # 便捷函數
 async def cache_get(key: str) -> Any | None:
@@ -1057,18 +1061,15 @@ async def cache_get(key: str) -> Any | None:
     cache = await get_global_cache_manager()
     return await cache.get(key)
 
-
 async def cache_set(key: str, value: Any, ttl: float | None = None) -> bool:
     """設置緩存值"""
     cache = await get_global_cache_manager()
     return await cache.set(key, value, ttl)
 
-
 async def cache_delete(key: str) -> bool:
     """刪除緩存值"""
     cache = await get_global_cache_manager()
     return await cache.delete(key)
-
 
 def cache_key(*args, **kwargs) -> str:
     """生成緩存鍵"""
@@ -1089,7 +1090,6 @@ def cache_key(*args, **kwargs) -> str:
     # 生成哈希
     key_string = ":".join(key_parts)
     return hashlib.sha256(key_string.encode()).hexdigest()
-
 
 def cached(ttl: float | None = None, key_func: Callable | None = None):
     """緩存裝飾器"""

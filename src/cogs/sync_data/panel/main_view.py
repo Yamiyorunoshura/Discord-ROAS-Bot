@@ -19,7 +19,6 @@ from .embeds.status_embed import create_status_embed
 
 logger = logging.getLogger("sync_data")
 
-
 class SyncDataMainView(StandardPanelView):
     """
     資料同步主面板視圖
@@ -90,10 +89,7 @@ class SyncDataMainView(StandardPanelView):
 
     def _setup_components(self):
         """設置面板組件"""
-        # 頁面選擇下拉選單 (第一行)
         self.add_item(PageSelectDropdown(self, self.current_page))
-
-        # 主要同步操作按鈕 (第二行)
         self.add_item(
             self.create_standard_button(
                 label="完整同步",
@@ -129,8 +125,6 @@ class SyncDataMainView(StandardPanelView):
                 callback=self.stop_sync_callback,
             )
         )
-
-        # 工具操作按鈕 (第三行)
         self.add_item(
             self.create_standard_button(
                 label="同步資料",
@@ -157,8 +151,6 @@ class SyncDataMainView(StandardPanelView):
                 callback=self.refresh_callback,
             )
         )
-
-        # 第四行: 管理按鈕
         self.add_item(
             self.create_standard_button(
                 label="匯出記錄",
@@ -479,13 +471,12 @@ class SyncDataMainView(StandardPanelView):
 
             return "✅ 同步記錄已成功清除"
         except Exception as e:
-            logger.error(f"【資料同步】清除記錄失敗: {e}")
+            logger.error(f"[資料同步]清除記錄失敗: {e}")
             return f"❌ 清除記錄失敗: {e}"
 
     async def build_main_embed(self) -> discord.Embed:
         """構建主頁面嵌入 (覆寫基類方法)"""
         return await self.build_status_embed()
-
 
 class ConfirmClearLogsView(discord.ui.View):
     """確認清除記錄的視圖"""
@@ -496,7 +487,7 @@ class ConfirmClearLogsView(discord.ui.View):
 
     @discord.ui.button(label="確認清除", style=discord.ButtonStyle.danger, emoji="⚠️")
     async def confirm_clear(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
     ):
         """確認清除記錄"""
         try:
@@ -528,7 +519,7 @@ class ConfirmClearLogsView(discord.ui.View):
 
     @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary, emoji="❌")
     async def cancel_clear(
-        self, interaction: discord.Interaction, button: discord.ui.Button
+        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
     ):
         """取消清除"""
         # 禁用按鈕

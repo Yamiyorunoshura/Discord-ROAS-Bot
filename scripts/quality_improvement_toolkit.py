@@ -26,7 +26,7 @@ class QualityImprovementToolkit:
             "timestamp": datetime.now().isoformat(),
             "stages": {},
             "metrics": {},
-            "issues": []
+            "issues": [],
         }
 
     def log_progress(self, stage: str, task: str, status: str = "completed"):
@@ -36,7 +36,7 @@ class QualityImprovementToolkit:
 
         self.report["stages"][stage][task] = {
             "status": status,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {stage}: {task} - {status}")
@@ -48,27 +48,51 @@ class QualityImprovementToolkit:
         try:
             # 執行Bandit掃描
             result = subprocess.run(
-                ["bandit", "-r", "cogs/", "-f", "json", "-o", "reports/security_scan.json"],
-                check=False, capture_output=True,
-                text=True
+                [
+                    "bandit",
+                    "-r",
+                    "cogs/",
+                    "-f",
+                    "json",
+                    "-o",
+                    "reports/security_scan.json",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
             )
 
             if result.returncode == 0:
                 with open("reports/security_scan.json") as f:
                     security_data = json.load(f)
 
-                high_risk = len([issue for issue in security_data.get("results", [])
-                               if issue.get("issue_severity") == "HIGH"])
-                medium_risk = len([issue for issue in security_data.get("results", [])
-                                 if issue.get("issue_severity") == "MEDIUM"])
-                low_risk = len([issue for issue in security_data.get("results", [])
-                              if issue.get("issue_severity") == "LOW"])
+                high_risk = len(
+                    [
+                        issue
+                        for issue in security_data.get("results", [])
+                        if issue.get("issue_severity") == "HIGH"
+                    ]
+                )
+                medium_risk = len(
+                    [
+                        issue
+                        for issue in security_data.get("results", [])
+                        if issue.get("issue_severity") == "MEDIUM"
+                    ]
+                )
+                low_risk = len(
+                    [
+                        issue
+                        for issue in security_data.get("results", [])
+                        if issue.get("issue_severity") == "LOW"
+                    ]
+                )
 
                 self.report["metrics"]["security"] = {
                     "high_risk": high_risk,
                     "medium_risk": medium_risk,
                     "low_risk": low_risk,
-                    "total": high_risk + medium_risk + low_risk
+                    "total": high_risk + medium_risk + low_risk,
                 }
 
                 self.log_progress("security", "bandit_scan")
@@ -78,7 +102,7 @@ class QualityImprovementToolkit:
                 return {"error": "安全掃描失敗"}
 
         except FileNotFoundError:
-            print("⚠️  Bandit未安裝，請執行: pip install bandit")
+            print("⚠️  Bandit未安裝,請執行: pip install bandit")
             return {"error": "Bandit未安裝"}
 
     def run_type_check(self) -> dict:
@@ -88,37 +112,43 @@ class QualityImprovementToolkit:
         try:
             result = subprocess.run(
                 ["mypy", "cogs/", "--strict"],
-                check=False, capture_output=True,
-                text=True
+                check=False,
+                capture_output=True,
+                text=True,
             )
 
             # 分析MyPy輸出
-            error_lines = [line for line in result.stdout.split('\n')
-                          if 'error:' in line and 'cogs/' in line]
+            error_lines = [
+                line
+                for line in result.stdout.split("\n")
+                if "error:" in line and "cogs/" in line
+            ]
 
             # 統計錯誤類型
             error_types = {}
             for line in error_lines:
-                if 'Union' in line:
-                    error_types['union'] = error_types.get('union', 0) + 1
-                elif 'type annotation' in line:
-                    error_types['annotation'] = error_types.get('annotation', 0) + 1
-                elif 'incompatible' in line:
-                    error_types['incompatible'] = error_types.get('incompatible', 0) + 1
+                if "Union" in line:
+                    error_types["union"] = error_types.get("union", 0) + 1
+                elif "type annotation" in line:
+                    error_types["annotation"] = error_types.get("annotation", 0) + 1
+                elif "incompatible" in line:
+                    error_types["incompatible"] = error_types.get("incompatible", 0) + 1
                 else:
-                    error_types['other'] = error_types.get('other', 0) + 1
+                    error_types["other"] = error_types.get("other", 0) + 1
 
             self.report["metrics"]["type_check"] = {
                 "total_errors": len(error_lines),
                 "error_types": error_types,
-                "files_with_errors": len(set(line.split(':')[0] for line in error_lines))
+                "files_with_errors": len(
+                    set(line.split(":")[0] for line in error_lines)
+                ),
             }
 
             self.log_progress("type_check", "mypy_analysis")
             return self.report["metrics"]["type_check"]
 
         except FileNotFoundError:
-            print("⚠️  MyPy未安裝，請執行: pip install mypy")
+            print("⚠️  MyPy未安裝,請執行: pip install mypy")
             return {"error": "MyPy未安裝"}
 
     def run_test_coverage(self) -> dict:
@@ -127,9 +157,15 @@ class QualityImprovementToolkit:
 
         try:
             result = subprocess.run(
-                ["pytest", "--cov=cogs", "--cov-report=json", "--cov-report=term-missing"],
-                check=False, capture_output=True,
-                text=True
+                [
+                    "pytest",
+                    "--cov=cogs",
+                    "--cov-report=json",
+                    "--cov-report=term-missing",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
             )
 
             if os.path.exists("coverage.json"):
@@ -142,7 +178,7 @@ class QualityImprovementToolkit:
                 self.report["metrics"]["test_coverage"] = {
                     "total_coverage": total_coverage,
                     "missing_lines": missing_lines,
-                    "files_covered": len(coverage_data["files"])
+                    "files_covered": len(coverage_data["files"]),
                 }
 
                 self.log_progress("test_coverage", "pytest_coverage")
@@ -159,7 +195,7 @@ class QualityImprovementToolkit:
         print("🔧 修復MD5使用...")
 
         fixed_count = 0
-        md5_pattern = re.compile(r'hashlib\.md5\(([^)]+)\)')
+        md5_pattern = re.compile(r"hashlib\.md5\(([^)]+)\)")
 
         for py_file in self.project_root.glob("cogs/**/*.py"):
             try:
@@ -168,10 +204,13 @@ class QualityImprovementToolkit:
 
                 if "hashlib.md5" in content:
                     # 替換MD5為SHA256
-                    new_content = md5_pattern.sub(r'hashlib.sha256(\1)', content)
+                    new_content = md5_pattern.sub(r"hashlib.sha256(\1)", content)
 
                     # 確保導入了hashlib
-                    if "import hashlib" not in new_content and "from hashlib import" not in new_content:
+                    if (
+                        "import hashlib" not in new_content
+                        and "from hashlib import" not in new_content
+                    ):
                         new_content = "import hashlib\n" + new_content
 
                     with open(py_file, "w", encoding="utf-8") as f:
@@ -193,10 +232,10 @@ class QualityImprovementToolkit:
         fixed_count = 0
         # 常見的SQL注入模式
         patterns = [
-            (r'f"SELECT.*?{.*?}"', '使用參數化查詢'),
-            (r'f"INSERT.*?{.*?}"', '使用參數化查詢'),
-            (r'f"UPDATE.*?{.*?}"', '使用參數化查詢'),
-            (r'f"DELETE.*?{.*?}"', '使用參數化查詢'),
+            (r'f"SELECT.*?{.*?}"', "使用參數化查詢"),
+            (r'f"INSERT.*?{.*?}"', "使用參數化查詢"),
+            (r'f"UPDATE.*?{.*?}"', "使用參數化查詢"),
+            (r'f"DELETE.*?{.*?}"', "使用參數化查詢"),
         ]
 
         for py_file in self.project_root.glob("cogs/**/database/*.py"):
@@ -291,7 +330,7 @@ def mock_database():
         """設置pytest配置"""
         print("🔧 設置pytest配置...")
 
-        pytest_config = '''
+        pytest_config = """
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 timeout = 30
@@ -306,7 +345,7 @@ markers = [
     "slow: 慢速測試",
     "security: 安全測試"
 ]
-'''
+"""
 
         # 檢查是否已有pyproject.toml
         pyproject_path = self.project_root / "pyproject.toml"
@@ -325,7 +364,10 @@ markers = [
 
     def generate_daily_report(self, stage: str) -> str:
         """生成每日報告"""
-        report_path = self.reports_dir / f"daily_report_{stage}_{datetime.now().strftime('%Y%m%d')}.json"
+        report_path = (
+            self.reports_dir
+            / f"daily_report_{stage}_{datetime.now().strftime('%Y%m%d')}.json"
+        )
 
         with open(report_path, "w") as f:
             json.dump(self.report, f, indent=2, ensure_ascii=False)
@@ -333,7 +375,7 @@ markers = [
         # 生成可讀性報告
         readable_report = f"""
 # 每日品質改進報告 - {stage}
-生成時間: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+生成時間: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## 階段進度
 """
@@ -356,15 +398,18 @@ markers = [
             for issue in self.report["issues"]:
                 readable_report += f"- ⚠️ {issue}\n"
 
-        readable_path = self.reports_dir / f"daily_report_{stage}_{datetime.now().strftime('%Y%m%d')}.md"
+        readable_path = (
+            self.reports_dir
+            / f"daily_report_{stage}_{datetime.now().strftime('%Y%m%d')}.md"
+        )
         with open(readable_path, "w", encoding="utf-8") as f:
             f.write(readable_report)
 
         return str(readable_path)
 
     def run_stage_1_security_fixes(self):
-        """執行階段1：安全修復"""
-        print("🚀 開始階段1：安全修復")
+        """執行階段1:安全修復"""
+        print("🚀 開始階段1:安全修復")
 
         # 安全掃描
         security_metrics = self.run_security_scan()
@@ -383,12 +428,12 @@ markers = [
             "security_metrics": security_metrics,
             "md5_fixed": md5_fixed,
             "sql_risks": sql_risks,
-            "report_path": report_path
+            "report_path": report_path,
         }
 
     def run_stage_2_type_fixes(self):
-        """執行階段2：類型修復"""
-        print("🚀 開始階段2：類型修復")
+        """執行階段2:類型修復"""
+        print("🚀 開始階段2:類型修復")
 
         # 類型檢查
         type_metrics = self.run_type_check()
@@ -397,14 +442,11 @@ markers = [
         report_path = self.generate_daily_report("stage2_types")
         print(f"📊 階段2報告已生成: {report_path}")
 
-        return {
-            "type_metrics": type_metrics,
-            "report_path": report_path
-        }
+        return {"type_metrics": type_metrics, "report_path": report_path}
 
     def run_stage_3_test_infrastructure(self):
-        """執行階段3：測試基礎設施"""
-        print("🚀 開始階段3：測試基礎設施")
+        """執行階段3:測試基礎設施"""
+        print("🚀 開始階段3:測試基礎設施")
 
         # 設置測試環境
         self.setup_pytest_config()
@@ -419,10 +461,7 @@ markers = [
         report_path = self.generate_daily_report("stage3_tests")
         print(f"📊 階段3報告已生成: {report_path}")
 
-        return {
-            "coverage_metrics": coverage_metrics,
-            "report_path": report_path
-        }
+        return {"coverage_metrics": coverage_metrics, "report_path": report_path}
 
     def run_full_assessment(self):
         """執行完整評估"""
@@ -434,9 +473,15 @@ markers = [
         coverage_metrics = self.run_test_coverage()
 
         # 計算整體分數
-        security_score = max(0, 100 - (security_metrics.get("high_risk", 0) * 10 +
-                                      security_metrics.get("medium_risk", 0) * 5 +
-                                      security_metrics.get("low_risk", 0) * 2))
+        security_score = max(
+            0,
+            100
+            - (
+                security_metrics.get("high_risk", 0) * 10
+                + security_metrics.get("medium_risk", 0) * 5
+                + security_metrics.get("low_risk", 0) * 2
+            ),
+        )
 
         type_score = max(0, 100 - type_metrics.get("total_errors", 0) * 1.5)
         coverage_score = coverage_metrics.get("total_coverage", 0)
@@ -448,7 +493,7 @@ markers = [
             "type_score": type_score,
             "coverage_score": coverage_score,
             "overall_score": overall_score,
-            "grade": self.get_grade(overall_score)
+            "grade": self.get_grade(overall_score),
         }
 
         # 生成完整報告
@@ -484,16 +529,20 @@ def main():
     if len(sys.argv) < 2:
         print("使用方法:")
         print("  python quality_improvement_toolkit.py assessment  # 完整評估")
-        print("  python quality_improvement_toolkit.py stage1     # 階段1：安全修復")
-        print("  python quality_improvement_toolkit.py stage2     # 階段2：類型修復")
-        print("  python quality_improvement_toolkit.py stage3     # 階段3：測試基礎設施")
+        print("  python quality_improvement_toolkit.py stage1     # 階段1:安全修復")
+        print("  python quality_improvement_toolkit.py stage2     # 階段2:類型修復")
+        print(
+            "  python quality_improvement_toolkit.py stage3     # 階段3:測試基礎設施"
+        )
         return
 
     command = sys.argv[1]
 
     if command == "assessment":
         result = toolkit.run_full_assessment()
-        print(f"\n🎯 整體品質評分: {result['overall_score']:.1f}/100 ({result['grade']})")
+        print(
+            f"\n🎯 整體品質評分: {result['overall_score']:.1f}/100 ({result['grade']})"
+        )
 
     elif command == "stage1":
         result = toolkit.run_stage_1_security_fixes()
@@ -501,11 +550,15 @@ def main():
 
     elif command == "stage2":
         result = toolkit.run_stage_2_type_fixes()
-        print(f"\n✅ 階段2完成 - 發現 {result['type_metrics'].get('total_errors', 0)} 個類型錯誤")
+        print(
+            f"\n✅ 階段2完成 - 發現 {result['type_metrics'].get('total_errors', 0)} 個類型錯誤"
+        )
 
     elif command == "stage3":
         result = toolkit.run_stage_3_test_infrastructure()
-        print(f"\n✅ 階段3完成 - 測試覆蓋率: {result['coverage_metrics'].get('total_coverage', 0):.1f}%")
+        print(
+            f"\n✅ 階段3完成 - 測試覆蓋率: {result['coverage_metrics'].get('total_coverage', 0):.1f}%"
+        )
 
     else:
         print(f"未知命令: {command}")

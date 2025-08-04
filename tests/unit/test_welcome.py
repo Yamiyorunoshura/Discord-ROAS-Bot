@@ -57,7 +57,9 @@ class TestWelcomeRenderer:
         """測試歡迎圖片生成成功"""
         mock_member = Mock(spec=discord.Member)
         mock_member.id = 123456789
-        mock_member.display_avatar.replace.return_value.url = "https://example.com/avatar.png"
+        mock_member.display_avatar.replace.return_value.url = (
+            "https://example.com/avatar.png"
+        )
         mock_member.display_name = "TestUser"
         mock_member.guild.name = "TestGuild"
 
@@ -73,12 +75,14 @@ class TestWelcomeRenderer:
             "avatar_x": 50,
             "avatar_y": 50,
             "title_y": 60,
-            "description_y": 120
+            "description_y": 120,
         }
 
         # 模擬 AvatarDownloader.get_avatar 方法
-        test_avatar = Image.new('RGBA', (256, 256), (255, 0, 0, 255))
-        with patch.object(renderer.avatar_downloader, 'get_avatar', return_value=test_avatar):
+        test_avatar = Image.new("RGBA", (256, 256), (255, 0, 0, 255))
+        with patch.object(
+            renderer.avatar_downloader, "get_avatar", return_value=test_avatar
+        ):
             result = await renderer.generate_welcome_image(mock_member, settings)
             assert result is not None
             assert isinstance(result, io.BytesIO)
@@ -93,7 +97,9 @@ class TestWelcomeRenderer:
         mock_channel.name = "welcome"
 
         template = "歡迎 {member.display_name} 加入 {guild.name}"
-        result = renderer.render_message(mock_member, mock_guild, mock_channel, template)
+        result = renderer.render_message(
+            mock_member, mock_guild, mock_channel, template
+        )
         assert "TestUser" in result
         assert "TestGuild" in result
 
@@ -122,7 +128,9 @@ class TestAvatarDownloader:
         """測試頭像獲取成功"""
         mock_member = Mock(spec=discord.Member)
         mock_member.id = 123456789
-        mock_member.display_avatar.replace.return_value.url = "https://example.com/avatar.png"
+        mock_member.display_avatar.replace.return_value.url = (
+            "https://example.com/avatar.png"
+        )
 
         # 模擬頭像物件
         mock_avatar = Mock()
@@ -131,9 +139,11 @@ class TestAvatarDownloader:
 
         # 模擬成功的頭像下載
         test_image_data = b"fake_avatar_data"
-        with patch.object(downloader, 'download_with_retry', return_value=test_image_data):
-            with patch.object(downloader, 'process_avatar') as mock_process:
-                test_avatar = Image.new('RGBA', (256, 256), (255, 0, 0, 255))
+        with patch.object(
+            downloader, "download_with_retry", return_value=test_image_data
+        ):
+            with patch.object(downloader, "process_avatar") as mock_process:
+                test_avatar = Image.new("RGBA", (256, 256), (255, 0, 0, 255))
                 mock_process.return_value = test_avatar
 
                 result = await downloader.get_avatar(mock_member)
@@ -145,7 +155,9 @@ class TestAvatarDownloader:
         """測試頭像獲取失敗時的預設回退"""
         mock_member = Mock(spec=discord.Member)
         mock_member.id = 123456789
-        mock_member.display_avatar.replace.return_value.url = "https://example.com/avatar.png"
+        mock_member.display_avatar.replace.return_value.url = (
+            "https://example.com/avatar.png"
+        )
 
         # 模擬頭像物件
         mock_avatar = Mock()
@@ -153,9 +165,9 @@ class TestAvatarDownloader:
         mock_member.avatar = mock_avatar
 
         # 模擬下載失敗
-        with patch.object(downloader, 'download_with_retry', return_value=None):
-            with patch.object(downloader, 'get_default_avatar') as mock_default:
-                test_avatar = Image.new('RGBA', (256, 256), (128, 128, 128, 255))
+        with patch.object(downloader, "download_with_retry", return_value=None):
+            with patch.object(downloader, "get_default_avatar") as mock_default:
+                test_avatar = Image.new("RGBA", (256, 256), (128, 128, 128, 255))
                 mock_default.return_value = test_avatar
 
                 result = await downloader.get_avatar(mock_member)
@@ -268,6 +280,7 @@ class TestWelcomeCache:
 
         # 等待過期
         import time
+
         time.sleep(0.2)
 
         result = cache.get(guild_id)
@@ -319,7 +332,7 @@ class TestWelcomeDB:
     @pytest_asyncio.fixture
     async def db(self):
         """創建資料庫實例"""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as temp_file:
             temp_path = temp_file.name
 
         try:
@@ -340,10 +353,12 @@ class TestWelcomeDB:
 
         # 測試資料表是否存在
         async with pool.get_connection_context(db.db_path) as conn:
-            cursor = await conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            cursor = await conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
             tables = await cursor.fetchall()
             table_names = [table[0] for table in tables]
-            assert 'welcome_settings' in table_names
+            assert "welcome_settings" in table_names
 
     @pytest.mark.asyncio
     async def test_get_settings_default(self, db):
@@ -390,13 +405,11 @@ class TestWelcomeDB:
             ("description", "Test Description"),
             ("message", "Test Message"),
             ("avatar_x", 100),
-            ("avatar_y", 200)
+            ("avatar_y", 200),
         ]
 
         for key, value in test_values:
-            task = asyncio.create_task(
-                db.update_setting(guild_id, key, value)
-            )
+            task = asyncio.create_task(db.update_setting(guild_id, key, value))
             tasks.append(task)
 
         await asyncio.gather(*tasks)
@@ -429,8 +442,8 @@ class TestWelcomeCog:
             db_path = os.path.join(temp_dir, "test.db")
 
             # 模擬配置
-            with patch('cogs.welcome.main.main.WELCOME_BG_DIR', bg_dir):
-                with patch('config.WELCOME_DB_PATH', db_path):
+            with patch("cogs.welcome.main.main.WELCOME_BG_DIR", bg_dir):
+                with patch("config.WELCOME_DB_PATH", db_path):
                     cog = WelcomeCog(mock_bot)
                     yield cog
 
@@ -442,7 +455,9 @@ class TestWelcomeCog:
 
         welcome_cog.bot.get_channel.return_value = mock_channel
 
-        with patch.object(welcome_cog.db, 'get_settings', return_value={"channel_id": 123456789}):
+        with patch.object(
+            welcome_cog.db, "get_settings", return_value={"channel_id": 123456789}
+        ):
             channel = await welcome_cog._get_welcome_channel(12345)
             assert channel is not None
             assert channel.id == 123456789
@@ -450,13 +465,15 @@ class TestWelcomeCog:
     @pytest.mark.asyncio
     async def test_get_welcome_channel_not_set(self, welcome_cog):
         """測試歡迎頻道未設定"""
-        with patch.object(welcome_cog.db, 'get_settings', return_value={"channel_id": None}):
+        with patch.object(
+            welcome_cog.db, "get_settings", return_value={"channel_id": None}
+        ):
             channel = await welcome_cog._get_welcome_channel(12345)
             assert channel is None
 
     @pytest.mark.asyncio
     async def test_generate_welcome_image_with_cache(self, welcome_cog):
-        """測試生成歡迎圖片（有快取）"""
+        """測試生成歡迎圖片(有快取)"""
         mock_member = Mock(spec=discord.Member)
         mock_member.guild.id = 12345
 
@@ -469,7 +486,7 @@ class TestWelcomeCog:
 
     @pytest.mark.asyncio
     async def test_generate_welcome_image_no_cache(self, welcome_cog):
-        """測試生成歡迎圖片（無快取）"""
+        """測試生成歡迎圖片(無快取)"""
         mock_member = Mock(spec=discord.Member)
         mock_member.guild.id = 12345
         mock_member.id = 987654321
@@ -484,10 +501,16 @@ class TestWelcomeCog:
 
         # 模擬渲染器生成圖片和數據庫操作
         test_image = io.BytesIO(b"generated_image_data")
-        with patch.object(welcome_cog.renderer, 'generate_welcome_image', return_value=test_image):
-            with patch.object(welcome_cog.db, 'get_settings', return_value=settings):
-                with patch.object(welcome_cog.db, 'get_background_path', return_value=None):
-                    result = await welcome_cog._generate_welcome_image(12345, mock_member)
+        with patch.object(
+            welcome_cog.renderer, "generate_welcome_image", return_value=test_image
+        ):
+            with patch.object(welcome_cog.db, "get_settings", return_value=settings):
+                with patch.object(
+                    welcome_cog.db, "get_background_path", return_value=None
+                ):
+                    result = await welcome_cog._generate_welcome_image(
+                        12345, mock_member
+                    )
                     assert result is not None
                     assert isinstance(result, io.BytesIO)
 
@@ -501,9 +524,17 @@ class TestWelcomeCog:
         mock_channel = Mock(spec=discord.TextChannel)
         mock_channel.send = AsyncMock()
 
-        with patch.object(welcome_cog, '_get_welcome_channel', return_value=mock_channel):
-            with patch.object(welcome_cog.db, 'get_settings', return_value={"message": "Welcome!"}):
-                with patch.object(welcome_cog, '_generate_welcome_image', return_value=io.BytesIO(b"image")):
+        with patch.object(
+            welcome_cog, "_get_welcome_channel", return_value=mock_channel
+        ):
+            with patch.object(
+                welcome_cog.db, "get_settings", return_value={"message": "Welcome!"}
+            ):
+                with patch.object(
+                    welcome_cog,
+                    "_generate_welcome_image",
+                    return_value=io.BytesIO(b"image"),
+                ):
                     await welcome_cog.on_member_join(mock_member)
                     mock_channel.send.assert_called_once()
 
@@ -536,5 +567,5 @@ class TestWelcomeIntegration:
     async def test_full_welcome_flow(self):
         """測試完整的歡迎流程"""
         # 這個測試需要完整的環境設定
-        # 暫時跳過，留待後續完善
+        # 暫時跳過,留待後續完善
         pass

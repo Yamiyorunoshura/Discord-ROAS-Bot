@@ -1,6 +1,6 @@
 """成就系統事務協調器測試.
 
-測試事務協調器的核心功能，包含：
+測試事務協調器的核心功能,包含:
 - 事務管理和協調
 - 快取同步
 - 資料完整性驗證
@@ -33,7 +33,7 @@ class TestTransactionCoordinator(AsyncTestCase):
         self.coordinator = TransactionCoordinator(
             achievement_service=self.mock_achievement_service,
             cache_service=self.mock_cache_service,
-            enable_validation=True
+            enable_validation=True,
         )
 
     @pytest.mark.asyncio
@@ -56,7 +56,7 @@ class TestTransactionCoordinator(AsyncTestCase):
             OperationType.GRANT_ACHIEVEMENT,
             user_ids=[self.test_user.id],
             achievement_ids=[1],
-            notify=True
+            notify=True,
         ) as coord_op:
             # 檢查協調操作對象
             assert isinstance(coord_op, CoordinatedOperation)
@@ -71,7 +71,7 @@ class TestTransactionCoordinator(AsyncTestCase):
             # 檢查事務已創建
             assert coord_op.transaction is not None
 
-        # 上下文結束後，狀態應該恢復
+        # 上下文結束後,狀態應該恢復
         assert self.coordinator.status == CoordinatorStatus.READY
 
     @pytest.mark.asyncio
@@ -82,9 +82,7 @@ class TestTransactionCoordinator(AsyncTestCase):
 
         # 執行協調式成就授予
         result = await self.coordinator.grant_achievement_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            notify=True
+            user_id=user_id, achievement_id=achievement_id, notify=True
         )
 
         # 檢查結果
@@ -93,7 +91,9 @@ class TestTransactionCoordinator(AsyncTestCase):
         assert "operation_id" in result
 
         # 檢查成就是否已授予
-        user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+        user_achievements = await self.mock_achievement_service.get_user_achievements(
+            user_id
+        )
         assert len(user_achievements) == 1
         assert user_achievements[0]["achievement_id"] == achievement_id
 
@@ -108,13 +108,13 @@ class TestTransactionCoordinator(AsyncTestCase):
         achievement_id = 1
 
         # 先授予成就
-        await self.mock_achievement_service.grant_user_achievement(user_id, achievement_id)
+        await self.mock_achievement_service.grant_user_achievement(
+            user_id, achievement_id
+        )
 
         # 執行協調式成就撤銷
         result = await self.coordinator.revoke_achievement_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            reason="測試撤銷"
+            user_id=user_id, achievement_id=achievement_id, reason="測試撤銷"
         )
 
         # 檢查結果
@@ -123,7 +123,9 @@ class TestTransactionCoordinator(AsyncTestCase):
         assert "operation_id" in result
 
         # 檢查成就是否已撤銷
-        user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+        user_achievements = await self.mock_achievement_service.get_user_achievements(
+            user_id
+        )
         assert len(user_achievements) == 0
 
     @pytest.mark.asyncio
@@ -135,9 +137,7 @@ class TestTransactionCoordinator(AsyncTestCase):
 
         # 執行協調式進度調整
         result = await self.coordinator.adjust_progress_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            new_value=new_value
+            user_id=user_id, achievement_id=achievement_id, new_value=new_value
         )
 
         # 檢查結果
@@ -162,8 +162,7 @@ class TestTransactionCoordinator(AsyncTestCase):
 
         # 執行協調式用戶資料重置
         result = await self.coordinator.reset_user_data_coordinated(
-            user_id=user_id,
-            backup_data=True
+            user_id=user_id, backup_data=True
         )
 
         # 檢查結果
@@ -173,7 +172,9 @@ class TestTransactionCoordinator(AsyncTestCase):
         assert "operation_id" in result
 
         # 檢查資料是否已重置
-        user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+        user_achievements = await self.mock_achievement_service.get_user_achievements(
+            user_id
+        )
         user_progress = await self.mock_achievement_service.get_user_progress(user_id)
         assert len(user_achievements) == 0
         assert len(user_progress) == 0
@@ -188,7 +189,7 @@ class TestTransactionCoordinator(AsyncTestCase):
         result = await self.coordinator.bulk_operation_coordinated(
             operation_type=OperationType.BULK_GRANT,
             user_ids=user_ids,
-            achievement_id=achievement_id
+            achievement_id=achievement_id,
         )
 
         # 檢查結果
@@ -200,7 +201,9 @@ class TestTransactionCoordinator(AsyncTestCase):
 
         # 檢查每個用戶都獲得了成就
         for user_id in user_ids:
-            user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+            user_achievements = (
+                await self.mock_achievement_service.get_user_achievements(user_id)
+            )
             assert len(user_achievements) == 1
             assert user_achievements[0]["achievement_id"] == achievement_id
 
@@ -211,13 +214,14 @@ class TestTransactionCoordinator(AsyncTestCase):
         achievement_id = 1
 
         # 先授予成就
-        await self.mock_achievement_service.grant_user_achievement(user_id, achievement_id)
+        await self.mock_achievement_service.grant_user_achievement(
+            user_id, achievement_id
+        )
 
         # 嘗試再次授予相同成就
         with pytest.raises(ValueError, match="已經擁有成就"):
             await self.coordinator.grant_achievement_coordinated(
-                user_id=user_id,
-                achievement_id=achievement_id
+                user_id=user_id, achievement_id=achievement_id
             )
 
     @pytest.mark.asyncio
@@ -229,8 +233,7 @@ class TestTransactionCoordinator(AsyncTestCase):
         # 嘗試撤銷用戶沒有的成就
         with pytest.raises(ValueError, match="沒有成就"):
             await self.coordinator.revoke_achievement_coordinated(
-                user_id=user_id,
-                achievement_id=achievement_id
+                user_id=user_id, achievement_id=achievement_id
             )
 
     @pytest.mark.asyncio
@@ -241,8 +244,7 @@ class TestTransactionCoordinator(AsyncTestCase):
 
         # 在操作過程中狀態變為忙碌
         async with self.coordinator.coordinate_operation(
-            OperationType.GRANT_ACHIEVEMENT,
-            user_ids=[self.test_user.id]
+            OperationType.GRANT_ACHIEVEMENT, user_ids=[self.test_user.id]
         ):
             assert self.coordinator.status == CoordinatorStatus.BUSY
 
@@ -260,8 +262,7 @@ class TestTransactionCoordinator(AsyncTestCase):
         # 嘗試執行操作
         with pytest.raises(Exception, match="模擬錯誤"):
             await self.coordinator.grant_achievement_coordinated(
-                user_id=self.test_user.id,
-                achievement_id=1
+                user_id=self.test_user.id, achievement_id=1
             )
 
         # 檢查協調器狀態是否恢復
@@ -298,8 +299,7 @@ class TestTransactionCoordinator(AsyncTestCase):
         tasks = []
         for user_id in user_ids:
             task = self.coordinator.grant_achievement_coordinated(
-                user_id=user_id,
-                achievement_id=achievement_id
+                user_id=user_id, achievement_id=achievement_id
             )
             tasks.append(task)
 
@@ -313,7 +313,9 @@ class TestTransactionCoordinator(AsyncTestCase):
 
         # 檢查所有用戶都獲得了成就
         for user_id in user_ids:
-            user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+            user_achievements = (
+                await self.mock_achievement_service.get_user_achievements(user_id)
+            )
             assert len(user_achievements) == 1
 
 
@@ -328,7 +330,7 @@ class TestTransactionCoordinatorIntegration(AsyncTestCase):
         self.coordinator = TransactionCoordinator(
             achievement_service=self.mock_achievement_service,
             cache_service=self.mock_cache_service,
-            enable_validation=True
+            enable_validation=True,
         )
 
     @pytest.mark.asyncio
@@ -339,21 +341,20 @@ class TestTransactionCoordinatorIntegration(AsyncTestCase):
 
         # 1. 調整進度
         progress_result = await self.coordinator.adjust_progress_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id,
-            new_value=8.0
+            user_id=user_id, achievement_id=achievement_id, new_value=8.0
         )
         assert progress_result["success"] is True
 
         # 2. 授予成就
         grant_result = await self.coordinator.grant_achievement_coordinated(
-            user_id=user_id,
-            achievement_id=achievement_id
+            user_id=user_id, achievement_id=achievement_id
         )
         assert grant_result["success"] is True
 
         # 3. 檢查最終狀態
-        user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+        user_achievements = await self.mock_achievement_service.get_user_achievements(
+            user_id
+        )
         user_progress = await self.mock_achievement_service.get_user_progress(user_id)
 
         assert len(user_achievements) == 1
@@ -362,14 +363,15 @@ class TestTransactionCoordinatorIntegration(AsyncTestCase):
 
         # 4. 重置用戶資料
         reset_result = await self.coordinator.reset_user_data_coordinated(
-            user_id=user_id,
-            backup_data=True
+            user_id=user_id, backup_data=True
         )
         assert reset_result["success"] is True
         assert reset_result["backup"] is not None
 
         # 5. 檢查重置後狀態
-        user_achievements = await self.mock_achievement_service.get_user_achievements(user_id)
+        user_achievements = await self.mock_achievement_service.get_user_achievements(
+            user_id
+        )
         user_progress = await self.mock_achievement_service.get_user_progress(user_id)
 
         assert len(user_achievements) == 0
@@ -386,8 +388,7 @@ class TestTransactionCoordinatorIntegration(AsyncTestCase):
 
         for user_id in user_ids:
             await self.coordinator.grant_achievement_coordinated(
-                user_id=user_id,
-                achievement_id=achievement_id
+                user_id=user_id, achievement_id=achievement_id
             )
 
         end_time = datetime.utcnow()
@@ -397,6 +398,6 @@ class TestTransactionCoordinatorIntegration(AsyncTestCase):
         stats = self.coordinator.get_coordinator_stats()
         assert stats["coordinator"]["successful_operations"] == len(user_ids)
 
-        # 平均每個操作應該在合理時間內完成（這裡設為1秒）
+        # 平均每個操作應該在合理時間內完成(這裡設為1秒)
         avg_duration = total_duration / len(user_ids)
         assert avg_duration < 1.0, f"平均操作時間過長: {avg_duration}秒"

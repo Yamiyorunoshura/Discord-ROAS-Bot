@@ -12,6 +12,8 @@ import discord
 if TYPE_CHECKING:
     from ...main.main import AntiSpam
 
+# 常數定義
+MAX_DISPLAY_ITEMS = 10
 
 async def create_whitelist_embed(
     cog: "AntiSpam", guild: discord.Guild, whitelist_type: str = "user"
@@ -34,7 +36,6 @@ async def create_whitelist_embed(
         return await _create_role_whitelist_embed(cog, guild)
     else:
         return await _create_overview_embed(cog, guild)
-
 
 async def _create_overview_embed(
     cog: "AntiSpam", guild: discord.Guild
@@ -59,7 +60,7 @@ async def _create_overview_embed(
     )
 
     embed.add_field(
-        name="ℹ️ 說明",
+        name="i 說明",
         value="白名單中的用戶和角色將不受反垃圾訊息檢測影響",
         inline=False,
     )
@@ -76,7 +77,6 @@ async def _create_overview_embed(
 
     embed.set_footer(text="選擇要管理的白名單類型")
     return embed
-
 
 async def _create_user_whitelist_embed(
     cog: "AntiSpam", guild: discord.Guild
@@ -102,7 +102,7 @@ async def _create_user_whitelist_embed(
                 else:
                     # 用戶已離開伺服器
                     user_list.append(f"• 已離開的用戶 (`{user_id}`)")
-            except:
+            except Exception:
                 user_list.append(f"• 無效用戶 (`{user_id}`)")
 
         embed.add_field(
@@ -111,10 +111,10 @@ async def _create_user_whitelist_embed(
             inline=False,
         )
 
-        if len(user_whitelist) > 10:
+        if len(user_whitelist) > MAX_DISPLAY_ITEMS:
             embed.add_field(
                 name="⚠️ 注意",
-                value=f"還有 {len(user_whitelist) - 10} 個用戶未顯示",
+                value=f"還有 {len(user_whitelist) - MAX_DISPLAY_ITEMS} 個用戶未顯示",
                 inline=False,
             )
     else:
@@ -134,7 +134,6 @@ async def _create_user_whitelist_embed(
 
     embed.set_footer(text="白名單用戶可以無限制發送訊息")
     return embed
-
 
 async def _create_role_whitelist_embed(
     cog: "AntiSpam", guild: discord.Guild
@@ -160,7 +159,7 @@ async def _create_role_whitelist_embed(
                 else:
                     # 角色已被刪除
                     role_list.append(f"• 已刪除的角色 (`{role_id}`)")
-            except:
+            except Exception:
                 role_list.append(f"• 無效角色 (`{role_id}`)")
 
         embed.add_field(
@@ -169,10 +168,10 @@ async def _create_role_whitelist_embed(
             inline=False,
         )
 
-        if len(role_whitelist) > 10:
+        if len(role_whitelist) > MAX_DISPLAY_ITEMS:
             embed.add_field(
                 name="⚠️ 注意",
-                value=f"還有 {len(role_whitelist) - 10} 個角色未顯示",
+                value=f"還有 {len(role_whitelist) - MAX_DISPLAY_ITEMS} 個角色未顯示",
                 inline=False,
             )
     else:
@@ -203,7 +202,6 @@ async def _create_role_whitelist_embed(
     embed.set_footer(text="擁有白名單角色的用戶可以無限制發送訊息")
     return embed
 
-
 async def _get_user_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
     """
     獲取用戶白名單
@@ -224,7 +222,6 @@ async def _get_user_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
         return []
     except Exception:
         return []
-
 
 async def _get_role_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
     """
@@ -247,9 +244,8 @@ async def _get_role_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
     except Exception:
         return []
 
-
 async def create_whitelist_management_embed(
-    cog: "AntiSpam",
+    cog: "AntiSpam",  # noqa: ARG001
     guild: discord.Guild,
     action: str,
     target_type: str,

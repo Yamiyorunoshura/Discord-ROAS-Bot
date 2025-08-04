@@ -39,7 +39,6 @@ class SyncButton(ui.Button):
                 "❌ 無法執行同步操作.", ephemeral=True
             )
 
-
 class HistoryButton(ui.Button):
     """歷史記錄按鈕"""
 
@@ -57,7 +56,6 @@ class HistoryButton(ui.Button):
             await interaction.response.send_message(
                 "❌ 無法載入歷史記錄.", ephemeral=True
             )
-
 
 class SettingsButton(ui.Button):
     """設定按鈕"""
@@ -88,7 +86,6 @@ class SettingsButton(ui.Button):
 
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-
 class AutoSyncButton(ui.Button):
     """自動同步設定按鈕"""
 
@@ -102,7 +99,6 @@ class AutoSyncButton(ui.Button):
         """自動同步設定回調"""
         modal = AutoSyncSettingsModal(self.cog)
         await interaction.response.send_modal(modal)
-
 
 class SyncRangeButton(ui.Button):
     """同步範圍設定按鈕"""
@@ -118,7 +114,6 @@ class SyncRangeButton(ui.Button):
         modal = SyncRangeModal(self.cog)
         await interaction.response.send_modal(modal)
 
-
 class SettingsSelectView(ui.View):
     """設定選擇視圖"""
 
@@ -131,7 +126,6 @@ class SettingsSelectView(ui.View):
         self.add_item(SyncRangeButton(cog))
         self.add_item(SettingsInfoButton())
         self.add_item(CloseSettingsButton())
-
 
 class SettingsInfoButton(ui.Button):
     """設定資訊按鈕"""
@@ -192,7 +186,6 @@ class SettingsInfoButton(ui.Button):
 
         await interaction.response.edit_message(embed=embed, view=view)
 
-
 class CloseSettingsButton(ui.Button):
     """關閉設定按鈕"""
 
@@ -211,7 +204,6 @@ class CloseSettingsButton(ui.Button):
 
         await interaction.response.edit_message(embed=embed, view=None)
 
-
 class RefreshButton(ui.Button):
     """刷新按鈕"""
 
@@ -227,7 +219,6 @@ class RefreshButton(ui.Button):
             await view.refresh_data(interaction)
         else:
             await interaction.response.send_message("❌ 無法刷新資料.", ephemeral=True)
-
 
 class CloseButton(ui.Button):
     """關閉面板按鈕"""

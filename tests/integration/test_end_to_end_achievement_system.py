@@ -1,13 +1,13 @@
 """成就系統端到端整合測試.
 
-測試成就系統各組件之間的完整整合，包括：
+測試成就系統各組件之間的完整整合,包括:
 - 資料庫、快取、效能監控的協作
 - 事件驅動的成就解鎖流程
 - 錯誤恢復和容錯機制
 - 效能優化和監控整合
 - 用戶界面和通知系統協作
 
-此整合測試旨在驗證 Story 5.2 的所有功能正常協作。
+此整合測試旨在驗證 Story 5.2 的所有功能正常協作.
 """
 
 import asyncio
@@ -39,7 +39,7 @@ class TestAchievementSystemIntegration:
     async def setup_test_environment(self):
         """設置測試環境."""
         # 創建臨時資料庫
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.temp_db_path = Path(self.temp_db.name)
         self.temp_db.close()
 
@@ -55,6 +55,7 @@ class TestAchievementSystemIntegration:
 
         # 初始化成就資料庫結構
         from src.cogs.achievement.database import initialize_achievement_database
+
         await initialize_achievement_database(self.db_pool)
 
         # 初始化核心服務
@@ -62,11 +63,16 @@ class TestAchievementSystemIntegration:
         self.cache_manager = CacheManager(cache_dir=self.temp_cache_dir)
 
         # 模擬效能服務
-        with patch('src.cogs.achievement.services.performance_service.AchievementPerformanceMonitor'), \
-             patch('src.cogs.achievement.services.performance_service.PerformanceAnalyzer'):
+        with (
+            patch(
+                "src.cogs.achievement.services.performance_service.AchievementPerformanceMonitor"
+            ),
+            patch(
+                "src.cogs.achievement.services.performance_service.PerformanceAnalyzer"
+            ),
+        ):
             self.performance_service = AchievementPerformanceService(
-                repository=self.repository,
-                cache_manager=self.cache_manager
+                repository=self.repository, cache_manager=self.cache_manager
             )
 
         # 啟動服務
@@ -89,7 +95,7 @@ class TestAchievementSystemIntegration:
             category_id=1,
             type=AchievementType.COUNTER,
             criteria={"target_value": 100},
-            points=500
+            points=500,
         )
 
         # 通過資料庫創建成就
@@ -101,15 +107,12 @@ class TestAchievementSystemIntegration:
 
         # 設置快取
         await self.cache_manager.set(
-            CacheType.ACHIEVEMENT,
-            cache_key,
-            created_achievement
+            CacheType.ACHIEVEMENT, cache_key, created_achievement
         )
 
         # 從快取讀取
         cached_achievement = await self.cache_manager.get(
-            CacheType.ACHIEVEMENT,
-            cache_key
+            CacheType.ACHIEVEMENT, cache_key
         )
 
         assert cached_achievement is not None
@@ -132,7 +135,7 @@ class TestAchievementSystemIntegration:
             category_id=1,
             type=AchievementType.COUNTER,
             criteria={"target_value": 10},
-            points=100
+            points=100,
         )
 
         created_achievement = await self.repository.create_achievement(achievement)
@@ -143,9 +146,7 @@ class TestAchievementSystemIntegration:
         # 模擬進度更新到解鎖
         for i in range(1, 11):
             await self.performance_service.update_progress_optimized(
-                user_id=user_id,
-                achievement_id=created_achievement.id,
-                current_value=i
+                user_id=user_id, achievement_id=created_achievement.id, current_value=i
             )
 
         end_time = datetime.now()
@@ -160,7 +161,7 @@ class TestAchievementSystemIntegration:
         assert achievement_data.id == created_achievement.id
 
         # 驗證效能監控記錄了操作
-        # 這裡應該檢查效能指標，但由於使用 mock，我們檢查執行時間
+        # 這裡應該檢查效能指標,但由於使用 mock,我們檢查執行時間
         assert execution_time < 1.0  # 操作應該在1秒內完成
 
     @pytest.mark.asyncio
@@ -172,12 +173,12 @@ class TestAchievementSystemIntegration:
         achievements = []
         for i in range(3):
             achievement = Achievement(
-                name=f"並發測試成就 {i+1}",
-                description=f"測試並發操作 {i+1}",
+                name=f"並發測試成就 {i + 1}",
+                description=f"測試並發操作 {i + 1}",
                 category_id=1,
                 type=AchievementType.COUNTER,
                 criteria={"target_value": 5},
-                points=50
+                points=50,
             )
             created = await self.repository.create_achievement(achievement)
             achievements.append(created)
@@ -185,11 +186,11 @@ class TestAchievementSystemIntegration:
         # 並發執行進度更新
         async def update_user_progress(user_id: int, achievement: Achievement):
             """為用戶更新成就進度."""
-            for progress in range(1, 6):  # 1-5，觸發解鎖
+            for progress in range(1, 6):  # 1-5,觸發解鎖
                 await self.performance_service.update_progress_optimized(
                     user_id=user_id,
                     achievement_id=achievement.id,
-                    current_value=progress
+                    current_value=progress,
                 )
                 # 小延遲模擬真實操作
                 await asyncio.sleep(0.01)
@@ -207,7 +208,9 @@ class TestAchievementSystemIntegration:
         # 驗證結果
         for user_id in user_ids:
             user_achievements = await self.repository.get_user_achievements(user_id)
-            assert len(user_achievements) == len(achievements)  # 每個用戶都應該解鎖所有成就
+            assert len(user_achievements) == len(
+                achievements
+            )  # 每個用戶都應該解鎖所有成就
 
     @pytest.mark.asyncio
     async def test_cache_invalidation_with_database_updates(self):
@@ -219,7 +222,7 @@ class TestAchievementSystemIntegration:
             category_id=1,
             type=AchievementType.COUNTER,
             criteria={"target_value": 50},
-            points=200
+            points=200,
         )
 
         created_achievement = await self.repository.create_achievement(achievement)
@@ -227,9 +230,7 @@ class TestAchievementSystemIntegration:
 
         # 設置初始快取
         await self.cache_manager.set(
-            CacheType.ACHIEVEMENT,
-            cache_key,
-            created_achievement
+            CacheType.ACHIEVEMENT, cache_key, created_achievement
         )
 
         # 驗證快取存在
@@ -238,23 +239,24 @@ class TestAchievementSystemIntegration:
 
         # 更新資料庫中的成就
         updates = {"name": "已更新的快取失效測試", "points": 300}
-        success = await self.repository.update_achievement(created_achievement.id, updates)
+        success = await self.repository.update_achievement(
+            created_achievement.id, updates
+        )
         assert success is True
 
         # 失效快取
         await self.cache_manager.invalidate_pattern(
-            CacheType.ACHIEVEMENT,
-            f"achievement:{created_achievement.id}"
+            CacheType.ACHIEVEMENT, f"achievement:{created_achievement.id}"
         )
 
         # 重新從資料庫載入
-        updated_achievement = await self.repository.get_achievement_by_id(created_achievement.id)
+        updated_achievement = await self.repository.get_achievement_by_id(
+            created_achievement.id
+        )
 
         # 更新快取
         await self.cache_manager.set(
-            CacheType.ACHIEVEMENT,
-            cache_key,
-            updated_achievement
+            CacheType.ACHIEVEMENT, cache_key, updated_achievement
         )
 
         # 驗證快取已更新
@@ -274,32 +276,34 @@ class TestAchievementSystemIntegration:
             category_id=1,
             type=AchievementType.COUNTER,
             criteria={"target_value": 1},
-            points=100
+            points=100,
         )
 
         created_achievement = await self.repository.create_achievement(achievement)
 
-        # 模擬部分操作成功，後續操作失敗的情況
+        # 模擬部分操作成功,後續操作失敗的情況
         try:
             # 更新進度到解鎖狀態
             await self.repository.update_progress(
                 user_id=user_id,
                 achievement_id=created_achievement.id,
-                current_value=1.0
+                current_value=1.0,
             )
 
-            # 驗證成就已自動解鎖（如果實作了自動解鎖機制）
+            # 驗證成就已自動解鎖(如果實作了自動解鎖機制)
             user_achievements = await self.repository.get_user_achievements(user_id)
             if user_achievements:
-                # 模擬後續處理失敗（比如通知發送失敗）
+                # 模擬後續處理失敗(比如通知發送失敗)
                 raise Exception("模擬通知發送失敗")
 
         except Exception as e:
             # 模擬錯誤恢復機制
             assert "模擬通知發送失敗" in str(e)
 
-            # 驗證資料庫狀態仍然正確（進度已保存）
-            progress = await self.repository.get_user_progress(user_id, created_achievement.id)
+            # 驗證資料庫狀態仍然正確(進度已保存)
+            progress = await self.repository.get_user_progress(
+                user_id, created_achievement.id
+            )
             assert progress is not None
             assert progress.current_value == 1.0
 
@@ -332,16 +336,20 @@ class TestAchievementSystemIntegration:
             performance_results[operation_name] = {
                 "execution_time": execution_time,
                 "success": success,
-                "error": error
+                "error": error,
             }
 
         # 驗證所有操作都成功執行
         for operation, result in performance_results.items():
-            assert result["success"] is True, f"操作 {operation} 失敗: {result['error']}"
-            assert result["execution_time"] < 5.0, f"操作 {operation} 執行時間過長: {result['execution_time']}s"
+            assert result["success"] is True, (
+                f"操作 {operation} 失敗: {result['error']}"
+            )
+            assert result["execution_time"] < 5.0, (
+                f"操作 {operation} 執行時間過長: {result['execution_time']}s"
+            )
 
         # 驗證效能監控收集了數據
-        # 由於使用 mock，這裡主要驗證操作完成
+        # 由於使用 mock,這裡主要驗證操作完成
         assert len(performance_results) == len(operations)
 
     async def _create_test_achievements(self):
@@ -349,12 +357,12 @@ class TestAchievementSystemIntegration:
         achievements = []
         for i in range(5):
             achievement = Achievement(
-                name=f"效能測試成就 {i+1}",
-                description=f"效能測試成就描述 {i+1}",
+                name=f"效能測試成就 {i + 1}",
+                description=f"效能測試成就描述 {i + 1}",
                 category_id=1,
                 type=AchievementType.COUNTER,
                 criteria={"target_value": 10},
-                points=100
+                points=100,
             )
             created = await self.repository.create_achievement(achievement)
             achievements.append(created)
@@ -374,7 +382,7 @@ class TestAchievementSystemIntegration:
                 await self.repository.update_progress(
                     user_id=user_id,
                     achievement_id=achievement.id,
-                    current_value=5.0  # 50% 進度
+                    current_value=5.0,  # 50% 進度
                 )
 
     async def _cache_intensive_operations(self):
@@ -385,17 +393,10 @@ class TestAchievementSystemIntegration:
             test_data = {"operation": i, "timestamp": datetime.now().isoformat()}
 
             # 寫入快取
-            await self.cache_manager.set(
-                CacheType.STATS,
-                cache_key,
-                test_data
-            )
+            await self.cache_manager.set(CacheType.STATS, cache_key, test_data)
 
             # 立即讀取
-            cached_data = await self.cache_manager.get(
-                CacheType.STATS,
-                cache_key
-            )
+            cached_data = await self.cache_manager.get(CacheType.STATS, cache_key)
 
             assert cached_data == test_data
 
@@ -415,7 +416,7 @@ class TestAchievementSystemIntegration:
                 category_id=1,
                 type=AchievementType.COUNTER,
                 criteria={"target_value": operations_per_user},
-                points=50
+                points=50,
             )
 
             created_achievement = await self.repository.create_achievement(achievement)
@@ -425,7 +426,7 @@ class TestAchievementSystemIntegration:
                 await self.repository.update_progress(
                     user_id=user_id,
                     achievement_id=created_achievement.id,
-                    current_value=operation_num + 1
+                    current_value=operation_num + 1,
                 )
 
                 # 模擬網路延遲
@@ -445,21 +446,26 @@ class TestAchievementSystemIntegration:
         total_time = (end_time - start_time).total_seconds()
 
         # 驗證系統在合理時間內完成所有操作
-        expected_max_time = concurrent_users * operations_per_user * 0.01  # 每操作 10ms 的寬鬆估計
-        assert total_time < expected_max_time, f"系統負載測試超時: {total_time}s > {expected_max_time}s"
+        expected_max_time = (
+            concurrent_users * operations_per_user * 0.01
+        )  # 每操作 10ms 的寬鬆估計
+        assert total_time < expected_max_time, (
+            f"系統負載測試超時: {total_time}s > {expected_max_time}s"
+        )
 
         # 驗證所有用戶都完成了操作
         total_operations = concurrent_users * operations_per_user
 
         # 檢查資料庫中的記錄數量
-        # 由於每個用戶創建了一個成就並完成了所有進度，應該有相應的用戶成就記錄
+        # 由於每個用戶創建了一個成就並完成了所有進度,應該有相應的用戶成就記錄
         all_user_achievements = []
         for user_id in range(300001, 300001 + concurrent_users):
             user_achievements = await self.repository.get_user_achievements(user_id)
             all_user_achievements.extend(user_achievements)
 
-        assert len(all_user_achievements) == concurrent_users, \
-            f"預期 {concurrent_users} 個用戶成就記錄，實際 {len(all_user_achievements)} 個"
+        assert len(all_user_achievements) == concurrent_users, (
+            f"預期 {concurrent_users} 個用戶成就記錄,實際 {len(all_user_achievements)} 個"
+        )
 
     @pytest.mark.asyncio
     async def test_data_consistency_under_concurrent_access(self):
@@ -473,7 +479,7 @@ class TestAchievementSystemIntegration:
             category_id=1,
             type=AchievementType.COUNTER,
             criteria={"target_value": 100},
-            points=500
+            points=500,
         )
 
         created_achievement = await self.repository.create_achievement(achievement)
@@ -493,7 +499,7 @@ class TestAchievementSystemIntegration:
             await self.repository.update_progress(
                 user_id=user_id,
                 achievement_id=created_achievement.id,
-                current_value=new_value
+                current_value=new_value,
             )
 
         # 執行並發進度更新
@@ -507,8 +513,8 @@ class TestAchievementSystemIntegration:
             user_id, created_achievement.id
         )
 
-        # 由於並發更新，最終值可能不等於 concurrent_updates
-        # 但應該是一個合理的值（介於 1 和 concurrent_updates 之間）
+        # 由於並發更新,最終值可能不等於 concurrent_updates
+        # 但應該是一個合理的值(介於 1 和 concurrent_updates 之間)
         assert final_progress is not None
         assert 1 <= final_progress.current_value <= concurrent_updates
 
@@ -518,8 +524,7 @@ class TestAchievementSystemIntegration:
 
         # 同一用戶對同一成就應該只有一條進度記錄
         achievement_progress_records = [
-            p for p in progress_records
-            if p.achievement_id == created_achievement.id
+            p for p in progress_records if p.achievement_id == created_achievement.id
         ]
         assert len(achievement_progress_records) == 1
 

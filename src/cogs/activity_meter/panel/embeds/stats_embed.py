@@ -4,22 +4,26 @@
 - 支援PRD v1.71的新統計功能
 """
 
+import logging
 from datetime import datetime, timedelta
 
 import discord
 
 from ...config import config
 from ...database.database import ActivityDatabase
+from ...main.embed_optimizer import optimize_embed, validate_embed
+
+logger = logging.getLogger("activity_meter")
 
 
 async def create_stats_embed(
-    bot: discord.Client, guild: discord.Guild | None, db: ActivityDatabase
+    _bot: discord.Client, guild: discord.Guild | None, db: ActivityDatabase
 ) -> discord.Embed:
     """
     創建活躍度系統統計面板嵌入
 
     Args:
-        bot: Discord 機器人實例
+        _bot: Discord 機器人實例 (未使用)
         guild: Discord 伺服器
         db: 活躍度資料庫實例
 
@@ -127,7 +131,6 @@ async def create_stats_embed(
         inline=True,
     )
 
-    # 新增:顯示統計功能說明
     embed.add_field(
         name="📊 統計功能",
         value=(
@@ -139,5 +142,12 @@ async def create_stats_embed(
     )
 
     embed.set_footer(text=f"活躍度系統 • 統計面板 v1.71 • {now.strftime('%Y-%m-%d')}")
+
+    # 驗證和優化 embed
+    validation_result = validate_embed(embed)
+    if not validation_result["is_valid"]:
+        logger.warning(f"Embed 驗證失敗: {validation_result['issues']}")
+        embed = optimize_embed(embed)
+        logger.info(f"Embed 已優化, 字符數: {validation_result['char_count']}")
 
     return embed

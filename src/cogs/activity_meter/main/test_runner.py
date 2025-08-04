@@ -12,6 +12,7 @@ from typing import Any
 
 # 使用統一的核心模塊
 from ...core import create_error_handler, setup_module_logger
+from ..constants import MIN_SUCCESS_RATE_THRESHOLD
 
 # 導入測試模塊
 from .activity_test_module import ActivityTestModule, TestReport
@@ -20,7 +21,6 @@ from .logic_apis import LogicAPIError
 # 設置模塊日誌記錄器
 logger = setup_module_logger("activity_test_runner")
 error_handler = create_error_handler("activity_test_runner", logger)
-
 
 class ActivityTestRunner:
     """
@@ -141,7 +141,7 @@ class ActivityTestRunner:
             )
 
             # 檢查錯誤處理測試結果
-            error_handling_passed = error_handling_results.get("success_rate", 0) >= 80
+            error_handling_passed = error_handling_results.get("success_rate", 0) >= MIN_SUCCESS_RATE_THRESHOLD
 
             # 生成綜合報告
             comprehensive_report = TestReport(
@@ -174,7 +174,7 @@ class ActivityTestRunner:
 
         except Exception as e:
             self.logger.error(f"運行完整測試套件時發生錯誤: {e}")
-            raise LogicAPIError("E3001", f"完整測試套件執行失敗: {e!s}")
+            raise LogicAPIError("E3001", f"完整測試套件執行失敗: {e!s}") from e
 
     async def run_functional_tests(self) -> TestReport:
         """
@@ -211,7 +211,7 @@ class ActivityTestRunner:
 
         except Exception as e:
             self.logger.error(f"運行功能測試時發生錯誤: {e}")
-            raise LogicAPIError("E3002", f"功能測試執行失敗: {e!s}")
+            raise LogicAPIError("E3002", f"功能測試執行失敗: {e!s}") from e
 
     async def run_performance_tests(self) -> dict[str, Any]:
         """
@@ -260,7 +260,7 @@ class ActivityTestRunner:
 
         except Exception as e:
             self.logger.error(f"運行性能測試時發生錯誤: {e}")
-            raise LogicAPIError("E3003", f"性能測試執行失敗: {e!s}")
+            raise LogicAPIError("E3003", f"性能測試執行失敗: {e!s}") from e
 
     async def run_error_handling_tests(self) -> dict[str, Any]:
         """
@@ -327,7 +327,7 @@ class ActivityTestRunner:
 
         except Exception as e:
             self.logger.error(f"運行錯誤處理測試時發生錯誤: {e}")
-            raise LogicAPIError("E3004", f"錯誤處理測試執行失敗: {e!s}")
+            raise LogicAPIError("E3004", f"錯誤處理測試執行失敗: {e!s}") from e
 
     async def run_coverage_analysis(self) -> dict[str, Any]:
         """
@@ -370,7 +370,7 @@ class ActivityTestRunner:
 
         except Exception as e:
             self.logger.error(f"運行覆蓋率分析時發生錯誤: {e}")
-            raise LogicAPIError("E3005", f"覆蓋率分析執行失敗: {e!s}")
+            raise LogicAPIError("E3005", f"覆蓋率分析執行失敗: {e!s}") from e
 
     async def _save_test_report(
         self, test_report: TestReport, report_type: str = "comprehensive"
@@ -406,7 +406,7 @@ class ActivityTestRunner:
                 ],
             }
 
-            with open(filepath, "w", encoding="utf-8") as f:
+            with filepath.open("w", encoding="utf-8") as f:
                 json.dump(report_data, f, ensure_ascii=False, indent=2)
 
             self.logger.info(f"測試報告已保存: {filepath}")
@@ -421,7 +421,7 @@ class ActivityTestRunner:
             filename = f"performance_results_{timestamp}.json"
             filepath = self.results_dir / filename
 
-            with open(filepath, "w", encoding="utf-8") as f:
+            with filepath.open("w", encoding="utf-8") as f:
                 json.dump(performance_results, f, ensure_ascii=False, indent=2)
 
             self.logger.info(f"性能測試結果已保存: {filepath}")
@@ -438,7 +438,7 @@ class ActivityTestRunner:
             filename = f"error_handling_results_{timestamp}.json"
             filepath = self.results_dir / filename
 
-            with open(filepath, "w", encoding="utf-8") as f:
+            with filepath.open("w", encoding="utf-8") as f:
                 json.dump(error_handling_results, f, ensure_ascii=False, indent=2)
 
             self.logger.info(f"錯誤處理測試結果已保存: {filepath}")
@@ -453,7 +453,7 @@ class ActivityTestRunner:
             filename = f"coverage_results_{timestamp}.json"
             filepath = self.results_dir / filename
 
-            with open(filepath, "w", encoding="utf-8") as f:
+            with filepath.open("w", encoding="utf-8") as f:
                 json.dump(coverage_results, f, ensure_ascii=False, indent=2)
 
             self.logger.info(f"覆蓋率分析結果已保存: {filepath}")
@@ -468,7 +468,6 @@ class ActivityTestRunner:
             self.logger.info("活躍度測試執行器已關閉")
         except Exception as e:
             self.logger.error(f"關閉活躍度測試執行器時發生錯誤: {e}")
-
 
 # 異步主函數,用於直接運行測試
 async def main():
@@ -515,7 +514,6 @@ async def main():
 
     finally:
         await runner.close()
-
 
 if __name__ == "__main__":
     # 運行測試系統

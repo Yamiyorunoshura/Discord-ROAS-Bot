@@ -6,7 +6,7 @@
 """
 
 import io
-import os
+from pathlib import Path
 from typing import Any, Protocol
 
 import discord
@@ -20,6 +20,7 @@ from ...core.logger import setup_module_logger
 
 # 導入權限檢查函數
 from ..config.config import is_allowed
+from ..panel.embeds.settings_embed import build_settings_embed
 
 # 導入 UI 組件
 from ..panel.main_view import SettingsView
@@ -27,7 +28,6 @@ from ..panel.main_view import SettingsView
 # 設置模塊日誌記錄器
 logger = setup_module_logger("welcome")
 error_handler = create_error_handler("welcome", logger)
-
 
 # 定義服務接口
 class IWelcomeDatabase(Protocol):
@@ -38,7 +38,6 @@ class IWelcomeDatabase(Protocol):
     async def get_background_path(self, guild_id: int) -> str | None: ...
     async def update_welcome_background(self, guild_id: int, path: str) -> None: ...
     async def exists(self, guild_id: int) -> bool: ...
-
 
 class IWelcomeRenderer(Protocol):
     """歡迎系統渲染器服務接口"""
@@ -57,14 +56,12 @@ class IWelcomeRenderer(Protocol):
         template: str,
     ) -> str: ...
 
-
 class IWelcomeCache(Protocol):
     """歡迎系統快取服務接口"""
 
     def get(self, guild_id: int) -> io.BytesIO | None: ...
     def set(self, guild_id: int, image: io.BytesIO) -> None: ...
     def clear(self, guild_id: int | None = None) -> None: ...
-
 
 class IWelcomeConfig(Protocol):
     """歡迎系統配置服務接口"""
@@ -75,7 +72,6 @@ class IWelcomeConfig(Protocol):
     def cache_timeout(self) -> int: ...
     @property
     def max_cache_size(self) -> int: ...
-
 
 class WelcomeCog(commands.Cog):
     """歡迎系統 Cog - 採用依賴注入架構"""
@@ -134,7 +130,7 @@ class WelcomeCog(commands.Cog):
 
             # 確保背景圖片目錄存在
             logger.info("正在創建背景圖片目錄...")
-            os.makedirs(self._config.background_dir, exist_ok=True)
+            Path(self._config.background_dir).mkdir(parents=True, exist_ok=True)
             logger.info("背景圖片目錄創建成功")
 
             self._initialized = True
@@ -148,7 +144,7 @@ class WelcomeCog(commands.Cog):
     def db(self) -> IWelcomeDatabase:
         """獲取資料庫服務實例"""
         if not self._db:
-            raise RuntimeError("歡迎系統尚未初始化,請先調用 initialize()")
+            raise RuntimeError("歡迎系統尚未初始化,請先調用 initialize( from e)")
         return self._db
 
     @property
@@ -227,10 +223,8 @@ class WelcomeCog(commands.Cog):
 
             # 如果有背景圖片,確保路徑正確
             if bg_path:
-                bg_path = os.path.join(
-                    self.config.background_dir, os.path.basename(bg_path)
-                )
-                if not os.path.exists(bg_path):
+                bg_path = Path(self.config.background_dir) / Path(bg_path).name
+                if not bg_path.exists():
                     bg_path = None
 
             # 生成圖片
@@ -369,13 +363,12 @@ class WelcomeCog(commands.Cog):
 
             # 儲存圖片
             filename = f"bg_{guild_id}_{attachment.filename}"
-            file_path = os.path.join(self.config.background_dir, filename)
+            file_path = Path(self.config.background_dir) / filename
 
-            with open(file_path, "wb") as f:
-                f.write(image_data)
+            file_path.write_bytes(image_data)
 
             # 更新資料庫
-            await self.db.update_welcome_background(guild_id, file_path)
+            await self.db.update_welcome_background(guild_id, str(file_path))
 
             # 清除快取
             self.clear_image_cache(guild_id)
@@ -419,8 +412,6 @@ class WelcomeCog(commands.Cog):
         settings = await self.db.get_settings(interaction.guild_id)
 
         # 建立設定面板
-        from ..panel.embeds.settings_embed import build_settings_embed
-
         embed = await build_settings_embed(self, interaction.guild, settings)
 
         # 建立視圖

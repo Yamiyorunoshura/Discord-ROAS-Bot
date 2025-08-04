@@ -124,7 +124,7 @@ class FormatsEmbed:
 
             # 操作說明
             embed.add_field(
-                name="ℹ️ 操作說明",
+                name="i 操作說明",
                 value="• 點擊「新增格式」按鈕添加新的檔案格式\n• 點擊「移除格式」按鈕移除指定格式\n• 點擊「重置格式」按鈕恢復預設設定",
                 inline=False,
             )

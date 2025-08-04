@@ -175,7 +175,6 @@ for category_id, category in CONFIG_CATEGORIES.items():
     for item in category["items"]:
         CONFIG_KEY_MAP[item["key"]] = {"category": category_id, "item": item}
 
-
 # ────────────────────────────
 # 工具函數
 # ────────────────────────────
@@ -194,7 +193,6 @@ def calculate_similarity(text1: str, text2: str) -> float:
         return 0.0
     return SequenceMatcher(None, text1.lower(), text2.lower()).ratio()
 
-
 def get_config_display_name(key: str) -> str:
     """
     取得配置項的顯示名稱
@@ -206,7 +204,6 @@ def get_config_display_name(key: str) -> str:
         str: 顯示名稱
     """
     return CH_NAMES.get(key, key)
-
 
 def get_config_category(key: str) -> dict[str, Any]:
     """
@@ -220,7 +217,6 @@ def get_config_category(key: str) -> dict[str, Any]:
     """
     return CONFIG_KEY_MAP.get(key, {})
 
-
 def get_default_value(key: str) -> Any:
     """
     取得配置項的預設值
@@ -232,7 +228,6 @@ def get_default_value(key: str) -> Any:
         Any: 預設值
     """
     return DEFAULTS.get(key)
-
 
 def validate_config_value(key: str, value: str) -> tuple[bool, str]:
     """
@@ -250,25 +245,26 @@ def validate_config_value(key: str, value: str) -> tuple[bool, str]:
         return False, "未知的配置項"
 
     config_type = config_info["item"]["type"]
+    error_msg = ""
 
     try:
         if config_type == "int":
             int_value = int(value)
             if int_value < 0:
-                return False, "數值不能為負數"
+                error_msg = "數值不能為負數"
         elif config_type == "float":
             float_value = float(value)
             if float_value < 0 or float_value > 1:
-                return False, "數值必須在 0-1 之間"
+                error_msg = "數值必須在 0-1 之間"
         elif config_type == "bool":
             if value.lower() not in ["true", "false"]:
-                return False, "布林值必須是 true 或 false"
+                error_msg = "布林值必須是 true 或 false"
         elif config_type == "channel":
             if value.lower() != "none" and not value.isdigit():
-                return False, "頻道ID必須是數字或 'none'"
+                error_msg = "頻道ID必須是數字或 'none'"
         # str 類型不需要特別驗證
 
-        return True, ""
-
     except ValueError:
-        return False, f"無法轉換為 {config_type} 類型"
+        error_msg = f"無法轉換為 {config_type} 類型"
+
+    return not bool(error_msg), error_msg

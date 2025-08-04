@@ -1,6 +1,6 @@
 """成就瀏覽視圖單元測試.
 
-此模組測試 BrowserView 的核心功能：
+此模組測試 BrowserView 的核心功能:
 - 資料載入和快取
 - 分頁邏輯
 - 分類篩選
@@ -30,9 +30,7 @@ class TestBrowserView:
     def browser_view(self, mock_achievement_service: AsyncMock) -> BrowserView:
         """創建 BrowserView 測試實例."""
         return BrowserView(
-            achievement_service=mock_achievement_service,
-            guild_id=12345,
-            user_id=67890
+            achievement_service=mock_achievement_service, guild_id=12345, user_id=67890
         )
 
     @pytest.fixture
@@ -83,12 +81,16 @@ class TestBrowserView:
         self,
         browser_view: BrowserView,
         mock_achievements: list[Any],
-        mock_user_achievements: list[tuple[Any, Any]]
+        mock_user_achievements: list[tuple[Any, Any]],
     ):
         """測試成功載入資料."""
         # 設置模擬返回值
-        browser_view.achievement_service.list_achievements.return_value = mock_achievements
-        browser_view.achievement_service.get_user_achievements.return_value = mock_user_achievements
+        browser_view.achievement_service.list_achievements.return_value = (
+            mock_achievements
+        )
+        browser_view.achievement_service.get_user_achievements.return_value = (
+            mock_user_achievements
+        )
         browser_view.achievement_service.get_category_by_id.return_value = None
 
         # 執行載入
@@ -116,14 +118,20 @@ class TestBrowserView:
         self,
         browser_view: BrowserView,
         mock_achievements: list[Any],
-        mock_user_achievements: list[tuple[Any, Any]]
+        mock_user_achievements: list[tuple[Any, Any]],
     ):
         """測試帶分類篩選的資料載入."""
-        # 篩選分類 1 的成就（每 4 個成就一個分類，所以約 6-7 個）
-        category_achievements = [ach for ach in mock_achievements if ach.category_id == 1]
+        # 篩選分類 1 的成就(每 4 個成就一個分類,所以約 6-7 個)
+        category_achievements = [
+            ach for ach in mock_achievements if ach.category_id == 1
+        ]
 
-        browser_view.achievement_service.list_achievements.return_value = category_achievements
-        browser_view.achievement_service.get_user_achievements.return_value = mock_user_achievements
+        browser_view.achievement_service.list_achievements.return_value = (
+            category_achievements
+        )
+        browser_view.achievement_service.get_user_achievements.return_value = (
+            mock_user_achievements
+        )
 
         # 創建模擬分類
         mock_category = MagicMock()
@@ -143,17 +151,21 @@ class TestBrowserView:
         self,
         browser_view: BrowserView,
         mock_achievements: list[Any],
-        mock_user_achievements: list[tuple[Any, Any]]
+        mock_user_achievements: list[tuple[Any, Any]],
     ):
         """測試分頁邏輯."""
-        browser_view.achievement_service.list_achievements.return_value = mock_achievements
-        browser_view.achievement_service.get_user_achievements.return_value = mock_user_achievements
+        browser_view.achievement_service.list_achievements.return_value = (
+            mock_achievements
+        )
+        browser_view.achievement_service.get_user_achievements.return_value = (
+            mock_user_achievements
+        )
         browser_view.achievement_service.get_category_by_id.return_value = None
 
         # 載入第一頁
         result = await browser_view.load_data(page=0)
         assert result["current_page"] == 0
-        assert result["total_pages"] == 4  # 25 個成就，每頁 8 個 = 4 頁
+        assert result["total_pages"] == 4  # 25 個成就,每頁 8 個 = 4 頁
         assert len(result["achievements"]) == 8
 
         # 載入第二頁
@@ -223,9 +235,9 @@ class TestBrowserView:
     @pytest.mark.asyncio
     async def test_get_achievement_progress(self, browser_view: BrowserView):
         """測試成就進度獲取."""
-        # 由於目前是模擬實作，測試返回值的結構
-        with patch('random.choice', return_value=True):
-            with patch('random.randint', side_effect=[50, 80]):
+        # 由於目前是模擬實作,測試返回值的結構
+        with patch("random.choice", return_value=True):
+            with patch("random.randint", side_effect=[50, 80]):
                 progress = await browser_view._get_achievement_progress(1)
 
                 assert progress is not None
@@ -240,12 +252,16 @@ class TestBrowserView:
         self,
         browser_view: BrowserView,
         mock_achievements: list[Any],
-        mock_user_achievements: list[tuple[Any, Any]]
+        mock_user_achievements: list[tuple[Any, Any]],
     ):
         """測試成功建立 Embed."""
         # 設置模擬資料
-        browser_view.achievement_service.list_achievements.return_value = mock_achievements[:8]
-        browser_view.achievement_service.get_user_achievements.return_value = mock_user_achievements
+        browser_view.achievement_service.list_achievements.return_value = (
+            mock_achievements[:8]
+        )
+        browser_view.achievement_service.get_user_achievements.return_value = (
+            mock_user_achievements
+        )
         browser_view.achievement_service.get_category_by_id.return_value = None
 
         # 建立 Embed
@@ -253,33 +269,31 @@ class TestBrowserView:
 
         # 驗證 Embed
         assert "成就瀏覽" in embed.title
-        assert embed.description == "瀏覽所有可用的成就，了解獲得條件和獎勵"
+        assert embed.description == "瀏覽所有可用的成就,了解獲得條件和獎勵"
         assert len(embed.fields) >= 3  # 至少有統計、分類、頁面欄位
 
     @pytest.mark.asyncio
-    async def test_build_embed_error_handling(
-        self,
-        browser_view: BrowserView
-    ):
+    async def test_build_embed_error_handling(self, browser_view: BrowserView):
         """測試 Embed 建立錯誤處理."""
         # 模擬服務錯誤
-        browser_view.achievement_service.list_achievements.side_effect = Exception("服務錯誤")
+        browser_view.achievement_service.list_achievements.side_effect = Exception(
+            "服務錯誤"
+        )
 
         # 建立 Embed
         embed = await browser_view.build_embed()
 
         # 驗證錯誤 Embed
         assert "載入失敗" in embed.title
-        assert "無法載入成就瀏覽資料，請稍後再試" in embed.description
+        assert "無法載入成就瀏覽資料,請稍後再試" in embed.description
 
     @pytest.mark.asyncio
-    async def test_load_data_error_handling(
-        self,
-        browser_view: BrowserView
-    ):
+    async def test_load_data_error_handling(self, browser_view: BrowserView):
         """測試資料載入錯誤處理."""
         # 模擬服務錯誤
-        browser_view.achievement_service.list_achievements.side_effect = Exception("資料庫錯誤")
+        browser_view.achievement_service.list_achievements.side_effect = Exception(
+            "資料庫錯誤"
+        )
 
         # 嘗試載入資料
         with pytest.raises(Exception):
@@ -290,17 +304,21 @@ class TestBrowserView:
         self,
         browser_view: BrowserView,
         mock_achievements: list[Any],
-        mock_user_achievements: list[tuple[Any, Any]]
+        mock_user_achievements: list[tuple[Any, Any]],
     ):
         """測試快取行為."""
-        browser_view.achievement_service.list_achievements.return_value = mock_achievements
-        browser_view.achievement_service.get_user_achievements.return_value = mock_user_achievements
+        browser_view.achievement_service.list_achievements.return_value = (
+            mock_achievements
+        )
+        browser_view.achievement_service.get_user_achievements.return_value = (
+            mock_user_achievements
+        )
         browser_view.achievement_service.get_category_by_id.return_value = None
 
         # 第一次載入
         result1 = await browser_view.get_cached_data(page=0)
 
-        # 第二次載入（應該使用快取）
+        # 第二次載入(應該使用快取)
         result2 = await browser_view.get_cached_data(page=0)
 
         # 驗證只調用了一次服務
@@ -315,10 +333,7 @@ class TestBrowserView:
         assert browser_view.achievement_service.list_achievements.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_empty_achievements_handling(
-        self,
-        browser_view: BrowserView
-    ):
+    async def test_empty_achievements_handling(self, browser_view: BrowserView):
         """測試空成就列表處理."""
         browser_view.achievement_service.list_achievements.return_value = []
         browser_view.achievement_service.get_user_achievements.return_value = []

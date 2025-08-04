@@ -24,11 +24,20 @@ class TestActivityModule:
     @pytest.fixture
     def activity_module(self):
         """建立測試用 ActivityModule"""
-        with patch('cogs.activity_meter.main.activity_module.LogicAPIs') as mock_logic_apis, \
-             patch('cogs.activity_meter.main.activity_module.ActivityCache') as mock_cache, \
-             patch('cogs.activity_meter.main.activity_module.ActivityCalculator') as mock_calculator, \
-             patch('cogs.activity_meter.main.activity_module.ActivityRenderer') as mock_renderer:
-
+        with (
+            patch(
+                "cogs.activity_meter.main.activity_module.LogicAPIs"
+            ) as mock_logic_apis,
+            patch(
+                "cogs.activity_meter.main.activity_module.ActivityCache"
+            ) as mock_cache,
+            patch(
+                "cogs.activity_meter.main.activity_module.ActivityCalculator"
+            ) as mock_calculator,
+            patch(
+                "cogs.activity_meter.main.activity_module.ActivityRenderer"
+            ) as mock_renderer,
+        ):
             mock_logic_apis.return_value = Mock()
             mock_cache.return_value = Mock()
             mock_calculator.return_value = Mock()
@@ -57,7 +66,7 @@ class TestActivityModule:
             "base_score": 50.0,
             "total_messages": 100,
             "response_time": 2.0,
-            "last_activity": "2024-01-01T12:00:00"
+            "last_activity": "2024-01-01T12:00:00",
         }
         activity_module.logic_apis.get_user_data.return_value = mock_user_data
         activity_module.logic_apis.get_user_rank.return_value = 5
@@ -82,10 +91,7 @@ class TestActivityModule:
         """測試緩存命中的情況"""
         # 模擬緩存命中
         cached_data = ActivityData(
-            user_id="123456789",
-            activity_score=75.5,
-            rank=5,
-            level=3
+            user_id="123456789", activity_score=75.5, rank=5, level=3
         )
         activity_module.cache.get.return_value = cached_data
 
@@ -100,7 +106,7 @@ class TestActivityModule:
         # 模擬緩存未命中
         activity_module.cache.get.return_value = None
 
-        # 模擬邏輯API返回None（用戶不存在）
+        # 模擬邏輯API返回None(用戶不存在)
         activity_module.logic_apis.get_user_data.return_value = None
 
         with pytest.raises(UserNotFoundError):
@@ -112,7 +118,9 @@ class TestActivityModule:
         activity_module.cache.get.return_value = None
 
         # 模擬邏輯API拋出異常
-        activity_module.logic_apis.get_user_data.side_effect = Exception("Database error")
+        activity_module.logic_apis.get_user_data.side_effect = Exception(
+            "Database error"
+        )
 
         with pytest.raises(ActivityAPIError):
             activity_module.get_unified_activity_api("123456789")
@@ -123,7 +131,7 @@ class TestActivityModule:
             "base_score": 50.0,
             "total_messages": 100,
             "response_time": 2.0,
-            "activity_bonus": 5.0
+            "activity_bonus": 5.0,
         }
 
         score = activity_module.calculate_activity_score(user_data)
@@ -137,7 +145,7 @@ class TestActivityModule:
             "base_score": 0,
             "total_messages": 0,
             "response_time": 0,
-            "activity_bonus": 0
+            "activity_bonus": 0,
         }
 
         score = activity_module.calculate_activity_score(user_data)
@@ -150,7 +158,7 @@ class TestActivityModule:
             "base_score": 100.0,
             "total_messages": 1000,
             "response_time": 0,
-            "activity_bonus": 20.0
+            "activity_bonus": 20.0,
         }
 
         score = activity_module.calculate_activity_score(user_data)
@@ -165,9 +173,11 @@ class TestActivityModule:
         # 模擬邏輯API返回歷史數據
         mock_history_data = [
             {"score": 75.5, "timestamp": "2024-01-01", "messages": 100},
-            {"score": 80.0, "timestamp": "2024-01-02", "messages": 120}
+            {"score": 80.0, "timestamp": "2024-01-02", "messages": 120},
         ]
-        activity_module.logic_apis.get_user_activity_history.return_value = mock_history_data
+        activity_module.logic_apis.get_user_activity_history.return_value = (
+            mock_history_data
+        )
 
         result = activity_module.get_user_activity_history("123456789", 30)
 
@@ -183,7 +193,7 @@ class TestActivityModule:
         # 模擬邏輯API返回排行榜數據
         mock_leaderboard_data = [
             {"user_id": "123", "score": 95.0, "messages": 500},
-            {"user_id": "456", "score": 85.0, "messages": 400}
+            {"user_id": "456", "score": 85.0, "messages": 400},
         ]
         activity_module.logic_apis.get_leaderboard.return_value = mock_leaderboard_data
 
@@ -200,7 +210,9 @@ class TestActivityModule:
         # 模擬邏輯API返回成功
         activity_module.logic_apis.update_user_activity.return_value = True
 
-        result = activity_module.update_user_activity("123456789", "guild_123", "message")
+        result = activity_module.update_user_activity(
+            "123456789", "guild_123", "message"
+        )
 
         assert result is True
         # 驗證緩存被清除
@@ -211,7 +223,9 @@ class TestActivityModule:
         # 模擬邏輯API返回失敗
         activity_module.logic_apis.update_user_activity.return_value = False
 
-        result = activity_module.update_user_activity("123456789", "guild_123", "message")
+        result = activity_module.update_user_activity(
+            "123456789", "guild_123", "message"
+        )
 
         assert result is False
 
@@ -249,17 +263,13 @@ class TestActivityModule:
 
         assert stats == mock_stats
 
+
 class TestActivityData:
     """ActivityData 測試類"""
 
     def test_activity_data_creation(self):
         """測試 ActivityData 創建"""
-        data = ActivityData(
-            user_id="123456789",
-            activity_score=75.5,
-            rank=5,
-            level=3
-        )
+        data = ActivityData(user_id="123456789", activity_score=75.5, rank=5, level=3)
 
         assert data.user_id == "123456789"
         assert data.activity_score == 75.5
@@ -280,7 +290,7 @@ class TestActivityData:
             total_messages=150,
             response_time=1.5,
             rank=3,
-            level=4
+            level=4,
         )
 
         assert data.last_activity == last_activity

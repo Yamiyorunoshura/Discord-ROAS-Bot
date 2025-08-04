@@ -3,12 +3,33 @@
 負責管理面板狀態和UI元件的協調
 """
 
+import logging
+
 import discord
 from discord import ui
 
 from ..main.main import AntiExecutable
-from .components.buttons import *
-from .components.modals import *
+from .components.buttons import (
+    AddBlacklistButton,
+    AddFormatButton,
+    AddWhitelistButton,
+    ClearStatsButton,
+    ClearWhitelistButton,
+    CloseButton,
+    DisableButton,
+    EnableButton,
+    ExportStatsButton,
+    HelpButton,
+    NextPageButton,
+    PrevPageButton,
+    RefreshBlacklistButton,
+    RefreshStatsButton,
+    RemoveBlacklistButton,
+    RemoveFormatButton,
+    RemoveWhitelistButton,
+    ResetFormatsButton,
+    SettingsButton,
+)
 from .components.selectors import PanelSelector
 from .embeds.blacklist_embed import BlacklistEmbed
 from .embeds.formats_embed import FormatsEmbed
@@ -67,7 +88,6 @@ class AntiExecutableMainView(ui.View):
 
     def _update_buttons(self):
         """根據當前面板更新按鈕"""
-        # 清除現有按鈕(保留選擇器)
         items_to_remove = [
             item for item in self.children if isinstance(item, ui.Button)
         ]
@@ -112,26 +132,23 @@ class AntiExecutableMainView(ui.View):
             當前面板的Embed
         """
         try:
-            if self.current_panel == "main":
-                return await self.main_embed.create_embed()
-            elif self.current_panel == "whitelist":
-                return await self.whitelist_embed.create_embed(self.page_number)
-            elif self.current_panel == "blacklist":
-                return await self.blacklist_embed.create_embed(self.page_number)
-            elif self.current_panel == "formats":
-                return await self.formats_embed.create_embed()
-            elif self.current_panel == "stats":
-                return await self.stats_embed.create_embed()
-            else:
-                return await self.main_embed.create_embed()
+            panel_handlers = {
+                "main": lambda: self.main_embed.create_embed(),
+                "whitelist": lambda: self.whitelist_embed.create_embed(self.page_number),
+                "blacklist": lambda: self.blacklist_embed.create_embed(self.page_number),
+                "formats": lambda: self.formats_embed.create_embed(),
+                "stats": lambda: self.stats_embed.create_embed(),
+            }
+
+            handler = panel_handlers.get(self.current_panel, panel_handlers["main"])
+            return await handler()
+
         except Exception as exc:
-            # 錯誤處理:返回錯誤Embed
-            embed = discord.Embed(
+            return discord.Embed(
                 title="❌ 面板載入錯誤",
                 description=f"載入面板時發生錯誤:{exc}",
                 color=discord.Color.red(),
             )
-            return embed
 
     async def switch_panel(self, panel_name: str, interaction: discord.Interaction):
         """
@@ -202,8 +219,6 @@ class AntiExecutableMainView(ui.View):
                 await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception:
             # 如果連錯誤處理都失敗,記錄到日誌
-            import logging
-
             logger = logging.getLogger("anti_executable")
             logger.error(f"面板錯誤處理失敗:{error_msg}")
 

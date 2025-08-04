@@ -1,6 +1,6 @@
 """成就批量操作功能單元測試.
 
-此模組測試批量操作的所有核心功能：
+此模組測試批量操作的所有核心功能:
 - 批量狀態變更
 - 批量刪除
 - 批量分類變更
@@ -162,8 +162,12 @@ class TestBulkOperations:
         """測試批量更新狀態時無需變更."""
         # 所有成就都已經是目標狀態
         achievements = [
-            Achievement(id=1, name="成就1", is_active=True, role_reward=None, is_hidden=False),
-            Achievement(id=2, name="成就2", is_active=True, role_reward=None, is_hidden=False),
+            Achievement(
+                id=1, name="成就1", is_active=True, role_reward=None, is_hidden=False
+            ),
+            Achievement(
+                id=2, name="成就2", is_active=True, role_reward=None, is_hidden=False
+            ),
         ]
 
         admin_service._get_achievements_by_ids = AsyncMock(return_value=achievements)
@@ -226,11 +230,11 @@ class TestBulkOperations:
                 "dependencies": {
                     1: ["prerequisite_achievement_4"]  # 成就1有依賴
                 },
-                "warnings": ["成就1有依賴關係，無法刪除"],
+                "warnings": ["成就1有依賴關係,無法刪除"],
             }
         )
 
-        # 執行測試（非強制模式）
+        # 執行測試(非強制模式)
         result = await admin_service.bulk_delete(achievement_ids, 123, force=False)
 
         # 驗證結果
@@ -257,7 +261,7 @@ class TestBulkOperations:
         admin_service._invalidate_achievement_cache = AsyncMock()
         admin_service._log_admin_action = AsyncMock()
 
-        # 執行測試（強制模式）
+        # 執行測試(強制模式)
         result = await admin_service.bulk_delete(achievement_ids, 123, force=True)
 
         # 驗證結果
@@ -321,15 +325,33 @@ class TestBulkOperations:
         # 驗證結果
         assert result.success_count == 0
         assert result.failed_count == 3
-        assert f"目標分類「{invalid_category}」不存在" in result.errors[0]
+        assert f"目標分類"{invalid_category}"不存在" in result.errors[0]
 
     async def test_bulk_update_category_skip_same_category(self, admin_service):
         """測試批量變更分類時智能跳過已在目標分類的成就."""
-        # 成就1和3已經在目標分類，只有成就2需要變更
+        # 成就1和3已經在目標分類,只有成就2需要變更
         achievements = [
-            Achievement(id=1, name="成就1", category="目標分類", role_reward=None, is_hidden=False),
-            Achievement(id=2, name="成就2", category="其他分類", role_reward=None, is_hidden=False),
-            Achievement(id=3, name="成就3", category="目標分類", role_reward=None, is_hidden=False),
+            Achievement(
+                id=1,
+                name="成就1",
+                category="目標分類",
+                role_reward=None,
+                is_hidden=False,
+            ),
+            Achievement(
+                id=2,
+                name="成就2",
+                category="其他分類",
+                role_reward=None,
+                is_hidden=False,
+            ),
+            Achievement(
+                id=3,
+                name="成就3",
+                category="目標分類",
+                role_reward=None,
+                is_hidden=False,
+            ),
         ]
 
         admin_service._get_achievements_by_ids = AsyncMock(return_value=achievements)
@@ -513,7 +535,9 @@ class TestBulkOperations:
         result = BulkOperationResult()
 
         # 測試添加成功結果
-        achievement = Achievement(id=1, name="測試成就", role_reward=None, is_hidden=False)
+        achievement = Achievement(
+            id=1, name="測試成就", role_reward=None, is_hidden=False
+        )
         result.add_success(achievement, "成功訊息")
 
         assert result.success_count == 1
@@ -553,11 +577,17 @@ class TestBulkOperations:
     # 批量操作統計測試
     async def test_bulk_operation_statistics(self, admin_service):
         """測試批量操作統計收集."""
-        # 模擬混合結果：部分成功，部分失敗
+        # 模擬混合結果:部分成功,部分失敗
         achievements = [
-            Achievement(id=1, name="成就1", is_active=False, role_reward=None, is_hidden=False),
-            Achievement(id=2, name="成就2", is_active=False, role_reward=None, is_hidden=False),
-            Achievement(id=3, name="成就3", is_active=True, role_reward=None, is_hidden=False),  # 已啟用，無需變更
+            Achievement(
+                id=1, name="成就1", is_active=False, role_reward=None, is_hidden=False
+            ),
+            Achievement(
+                id=2, name="成就2", is_active=False, role_reward=None, is_hidden=False
+            ),
+            Achievement(
+                id=3, name="成就3", is_active=True, role_reward=None, is_hidden=False
+            ),  # 已啟用,無需變更
         ]
 
         admin_service._get_achievements_by_ids = AsyncMock(return_value=achievements)

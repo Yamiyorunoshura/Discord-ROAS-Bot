@@ -1,12 +1,12 @@
 """成就系統效能基準測試.
 
-此模組提供效能基準測試功能，包含：
+此模組提供效能基準測試功能,包含:
 - 負載測試腳本
 - 效能基準測試
 - 回歸測試自動化
 - 效能趨勢分析
 
-根據 Story 5.1 Task 7 的要求實作。
+根據 Story 5.1 Task 7 的要求實作.
 """
 
 import asyncio
@@ -25,22 +25,26 @@ from .performance_service import AchievementPerformanceService
 
 logger = logging.getLogger(__name__)
 
+# 常數定義
+SUCCESS_RATE_THRESHOLD = 0.95  # 95% 成功率門檻
+SLOW_RESPONSE_THRESHOLD_MS = 200  # 慢回應時間閾值(毫秒)
+HIGH_P95_THRESHOLD_MS = 500  # 高P95回應時間閾值(毫秒)
 
 class TestType(str, Enum):
     """測試類型."""
+
     BENCHMARK = "benchmark"
     LOAD = "load"
     STRESS = "stress"
     REGRESSION = "regression"
 
-
 class TestStatus(str, Enum):
     """測試狀態."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
-
 
 @dataclass
 class TestScenario:
@@ -59,14 +63,13 @@ class TestScenario:
     """測試參數"""
 
     expected_duration_ms: float = 1000.0
-    """預期執行時間（毫秒）"""
+    """預期執行時間(毫秒)"""
 
     max_memory_mb: float = 50.0
-    """最大記憶體使用（MB）"""
+    """最大記憶體使用(MB)"""
 
     iterations: int = 100
     """迭代次數"""
-
 
 @dataclass
 class TestResult:
@@ -88,7 +91,7 @@ class TestResult:
     """結束時間"""
 
     duration_ms: float = 0.0
-    """執行時間（毫秒）"""
+    """執行時間(毫秒)"""
 
     iterations: int = 0
     """執行迭代次數"""
@@ -97,29 +100,28 @@ class TestResult:
     """成功率"""
 
     avg_response_time_ms: float = 0.0
-    """平均回應時間（毫秒）"""
+    """平均回應時間(毫秒)"""
 
     min_response_time_ms: float = 0.0
-    """最小回應時間（毫秒）"""
+    """最小回應時間(毫秒)"""
 
     max_response_time_ms: float = 0.0
-    """最大回應時間（毫秒）"""
+    """最大回應時間(毫秒)"""
 
     p95_response_time_ms: float = 0.0
-    """95百分位回應時間（毫秒）"""
+    """95百分位回應時間(毫秒)"""
 
     p99_response_time_ms: float = 0.0
-    """99百分位回應時間（毫秒）"""
+    """99百分位回應時間(毫秒)"""
 
     memory_usage_mb: float = 0.0
-    """記憶體使用量（MB）"""
+    """記憶體使用量(MB)"""
 
     errors: list[str] = field(default_factory=list)
     """錯誤列表"""
 
     metrics: dict[str, Any] = field(default_factory=dict)
     """額外指標"""
-
 
 class PerformanceBenchmark:
     """成就系統效能基準測試器."""
@@ -156,7 +158,7 @@ class PerformanceBenchmark:
                 test_function=self._test_get_achievement_single,
                 expected_duration_ms=50.0,
                 max_memory_mb=5.0,
-                iterations=1000
+                iterations=1000,
             ),
             TestScenario(
                 name="get_achievement_batch",
@@ -165,7 +167,7 @@ class PerformanceBenchmark:
                 parameters={"batch_size": 50},
                 expected_duration_ms=200.0,
                 max_memory_mb=10.0,
-                iterations=200
+                iterations=200,
             ),
             TestScenario(
                 name="list_achievements_paginated",
@@ -174,7 +176,7 @@ class PerformanceBenchmark:
                 parameters={"page_size": 20},
                 expected_duration_ms=100.0,
                 max_memory_mb=5.0,
-                iterations=500
+                iterations=500,
             ),
             TestScenario(
                 name="user_achievements_query",
@@ -182,7 +184,7 @@ class PerformanceBenchmark:
                 test_function=self._test_user_achievements_query,
                 expected_duration_ms=150.0,
                 max_memory_mb=8.0,
-                iterations=300
+                iterations=300,
             ),
             TestScenario(
                 name="cache_performance",
@@ -190,7 +192,7 @@ class PerformanceBenchmark:
                 test_function=self._test_cache_performance,
                 expected_duration_ms=10.0,
                 max_memory_mb=20.0,
-                iterations=2000
+                iterations=2000,
             ),
             TestScenario(
                 name="concurrent_operations",
@@ -199,7 +201,7 @@ class PerformanceBenchmark:
                 parameters={"concurrency": 50},
                 expected_duration_ms=300.0,
                 max_memory_mb=30.0,
-                iterations=100
+                iterations=100,
             ),
             TestScenario(
                 name="memory_stress",
@@ -208,8 +210,8 @@ class PerformanceBenchmark:
                 parameters={"data_size": 10000},
                 expected_duration_ms=1000.0,
                 max_memory_mb=80.0,
-                iterations=50
-            )
+                iterations=50,
+            ),
         ]
 
         for scenario in scenarios:
@@ -234,23 +236,25 @@ class PerformanceBenchmark:
                 type=random.choice(list(AchievementType)),
                 criteria={
                     "target_value": random.randint(10, 1000),
-                    "counter_field": "test_counter"
+                    "counter_field": "test_counter",
                 },
                 points=random.randint(10, 100),
-                is_active=True
+                is_active=True,
             )
             self._test_achievements.append(achievement)
 
         # 生成測試用戶ID
         self._test_user_ids = list(range(1, 1001))  # 1000個測試用戶
 
-        logger.info(f"測試資料準備完成: {len(self._test_achievements)} 個成就，{len(self._test_user_ids)} 個用戶")
+        logger.info(
+            f"測試資料準備完成: {len(self._test_achievements)} 個成就,{len(self._test_user_ids)} 個用戶"
+        )
 
     # =============================================================================
     # 測試場景實作
     # =============================================================================
 
-    async def _test_get_achievement_single(self, **kwargs) -> float:
+    async def _test_get_achievement_single(self, **kwargs) -> float:  # noqa: ARG002
         """測試單個成就查詢."""
         if not self._test_achievements:
             await self.prepare_test_data()
@@ -258,7 +262,9 @@ class PerformanceBenchmark:
         achievement_id = random.choice(self._test_achievements).id
 
         start_time = time.perf_counter()
-        result = await self._performance_service.get_achievement_optimized(achievement_id)
+        result = await self._performance_service.get_achievement_optimized(
+            achievement_id
+        )
         end_time = time.perf_counter()
 
         if result is None:
@@ -266,30 +272,39 @@ class PerformanceBenchmark:
 
         return (end_time - start_time) * 1000
 
-    async def _test_get_achievement_batch(self, batch_size: int = 50, **kwargs) -> float:
+    async def _test_get_achievement_batch(
+        self, batch_size: int = 50, **kwargs  # noqa: ARG002
+    ) -> float:
         """測試批量成就查詢."""
         if not self._test_achievements:
             await self.prepare_test_data()
 
-        achievement_ids = [a.id for a in random.sample(self._test_achievements, batch_size)]
+        achievement_ids = [
+            a.id for a in random.sample(self._test_achievements, batch_size)
+        ]
 
         start_time = time.perf_counter()
-        results = await self._performance_service.batch_get_achievements(achievement_ids)
+        results = await self._performance_service.batch_get_achievements(
+            achievement_ids
+        )
         end_time = time.perf_counter()
 
         if len(results) != len(achievement_ids):
-            raise ValueError(f"批量查詢結果不匹配: 預期 {len(achievement_ids)}，實際 {len(results)}")
+            raise ValueError(
+                f"批量查詢結果不匹配: 預期 {len(achievement_ids)},實際 {len(results)}"
+            )
 
         return (end_time - start_time) * 1000
 
-    async def _test_list_achievements_paginated(self, page_size: int = 20, **kwargs) -> float:
+    async def _test_list_achievements_paginated(
+        self, page_size: int = 20, **kwargs  # noqa: ARG002
+    ) -> float:
         """測試分頁成就列表查詢."""
         page = random.randint(1, 5)
 
         start_time = time.perf_counter()
         results, total = await self._performance_service.list_achievements_optimized(
-            page=page,
-            page_size=page_size
+            page=page, page_size=page_size
         )
         end_time = time.perf_counter()
 
@@ -298,7 +313,7 @@ class PerformanceBenchmark:
 
         return (end_time - start_time) * 1000
 
-    async def _test_user_achievements_query(self, **kwargs) -> float:
+    async def _test_user_achievements_query(self, **kwargs) -> float:  # noqa: ARG002
         """測試用戶成就查詢."""
         if not self._test_user_ids:
             await self.prepare_test_data()
@@ -306,13 +321,16 @@ class PerformanceBenchmark:
         user_id = random.choice(self._test_user_ids)
 
         start_time = time.perf_counter()
-        results, total = await self._performance_service.get_user_achievements_optimized(user_id)
+        (
+            results,
+            total,
+        ) = await self._performance_service.get_user_achievements_optimized(user_id)
         end_time = time.perf_counter()
 
-        # 這個測試允許空結果，因為測試用戶可能沒有成就
+        # 這個測試允許空結果,因為測試用戶可能沒有成就
         return (end_time - start_time) * 1000
 
-    async def _test_cache_performance(self, **kwargs) -> float:
+    async def _test_cache_performance(self, **kwargs) -> float:  # noqa: ARG002
         """測試快取效能."""
         if not self._test_achievements:
             await self.prepare_test_data()
@@ -323,7 +341,9 @@ class PerformanceBenchmark:
 
         # 測試從快取讀取
         start_time = time.perf_counter()
-        result = await self._performance_service.get_achievement_optimized(achievement_id)
+        result = await self._performance_service.get_achievement_optimized(
+            achievement_id
+        )
         end_time = time.perf_counter()
 
         if result is None:
@@ -331,14 +351,18 @@ class PerformanceBenchmark:
 
         return (end_time - start_time) * 1000
 
-    async def _test_concurrent_operations(self, concurrency: int = 50, **kwargs) -> float:
+    async def _test_concurrent_operations(
+        self, concurrency: int = 50, **kwargs  # noqa: ARG002
+    ) -> float:
         """測試並發操作效能."""
         if not self._test_achievements:
             await self.prepare_test_data()
 
         async def single_operation():
             achievement_id = random.choice(self._test_achievements).id
-            return await self._performance_service.get_achievement_optimized(achievement_id)
+            return await self._performance_service.get_achievement_optimized(
+                achievement_id
+            )
 
         start_time = time.perf_counter()
 
@@ -355,7 +379,7 @@ class PerformanceBenchmark:
 
         return (end_time - start_time) * 1000
 
-    async def _test_memory_stress(self, data_size: int = 10000, **kwargs) -> float:
+    async def _test_memory_stress(self, data_size: int = 10000, **kwargs) -> float:  # noqa: ARG002
         """測試記憶體壓力."""
         # 創建大量資料來測試記憶體使用
         large_dataset = []
@@ -364,11 +388,13 @@ class PerformanceBenchmark:
 
         # 生成大量測試資料
         for i in range(data_size):
-            large_dataset.append({
-                "id": i,
-                "data": f"test_data_{i}" * 100,  # 創建較大的字串
-                "timestamp": datetime.now()
-            })
+            large_dataset.append(
+                {
+                    "id": i,
+                    "data": f"test_data_{i}" * 100,  # 創建較大的字串
+                    "timestamp": datetime.now(),
+                }
+            )
 
         # 模擬處理這些資料
         processed_count = 0
@@ -390,12 +416,12 @@ class PerformanceBenchmark:
     async def run_benchmark(
         self,
         scenario_names: list[str] | None = None,
-        test_type: TestType = TestType.BENCHMARK
+        test_type: TestType = TestType.BENCHMARK,
     ) -> list[TestResult]:
         """執行基準測試.
 
         Args:
-            scenario_names: 要執行的場景名稱列表，None 表示執行所有場景
+            scenario_names: 要執行的場景名稱列表,None 表示執行所有場景
             test_type: 測試類型
 
         Returns:
@@ -407,7 +433,11 @@ class PerformanceBenchmark:
         if scenario_names is None:
             scenarios = list(self._test_scenarios.values())
         else:
-            scenarios = [self._test_scenarios[name] for name in scenario_names if name in self._test_scenarios]
+            scenarios = [
+                self._test_scenarios[name]
+                for name in scenario_names
+                if name in self._test_scenarios
+            ]
 
         results = []
 
@@ -418,7 +448,7 @@ class PerformanceBenchmark:
                 scenario_name=scenario.name,
                 test_type=test_type,
                 status=TestStatus.RUNNING,
-                start_time=datetime.now()
+                start_time=datetime.now(),
             )
 
             try:
@@ -428,7 +458,9 @@ class PerformanceBenchmark:
 
                 for i in range(scenario.iterations):
                     try:
-                        response_time = await scenario.test_function(**scenario.parameters)
+                        response_time = await scenario.test_function(
+                            **scenario.parameters
+                        )
                         response_times.append(response_time)
                         success_count += 1
                     except Exception as e:
@@ -449,7 +481,9 @@ class PerformanceBenchmark:
                 result.iterations = scenario.iterations
                 result.success_rate = success_count / scenario.iterations
                 result.end_time = datetime.now()
-                result.duration_ms = (result.end_time - result.start_time).total_seconds() * 1000
+                result.duration_ms = (
+                    result.end_time - result.start_time
+                ).total_seconds() * 1000
                 result.status = TestStatus.COMPLETED
 
                 # 評估測試結果
@@ -464,7 +498,7 @@ class PerformanceBenchmark:
             results.append(result)
             self._test_results.append(result)
 
-        logger.info(f"{test_type.value} 測試完成，共執行 {len(scenarios)} 個場景")
+        logger.info(f"{test_type.value} 測試完成,共執行 {len(scenarios)} 個場景")
         return results
 
     def _percentile(self, data: list[float], percentile: int) -> float:
@@ -481,7 +515,9 @@ class PerformanceBenchmark:
         else:
             return data[f]
 
-    async def _evaluate_test_result(self, result: TestResult, scenario: TestScenario) -> None:
+    async def _evaluate_test_result(
+        self, result: TestResult, scenario: TestScenario
+    ) -> None:
         """評估測試結果."""
         # 檢查是否符合預期
         performance_issues = []
@@ -492,7 +528,7 @@ class PerformanceBenchmark:
                 f"超過預期 ({scenario.expected_duration_ms:.2f}ms)"
             )
 
-        if result.success_rate < 0.95:  # 95% 成功率門檻
+        if result.success_rate < SUCCESS_RATE_THRESHOLD:  # 95% 成功率門檻
             performance_issues.append(f"成功率過低: {result.success_rate:.1%}")
 
         if result.p95_response_time_ms > scenario.expected_duration_ms * 2:
@@ -515,25 +551,27 @@ class PerformanceBenchmark:
         self,
         duration_seconds: int = 300,
         concurrent_users: int = 50,
-        ramp_up_seconds: int = 60
+        ramp_up_seconds: int = 60,
     ) -> TestResult:
         """執行負載測試.
 
         Args:
-            duration_seconds: 測試持續時間（秒）
+            duration_seconds: 測試持續時間(秒)
             concurrent_users: 並發用戶數
-            ramp_up_seconds: 爬坡時間（秒）
+            ramp_up_seconds: 爬坡時間(秒)
 
         Returns:
             負載測試結果
         """
-        logger.info(f"開始負載測試: {concurrent_users} 並發用戶，持續 {duration_seconds} 秒")
+        logger.info(
+            f"開始負載測試: {concurrent_users} 並發用戶,持續 {duration_seconds} 秒"
+        )
 
         result = TestResult(
             scenario_name="load_test",
             test_type=TestType.LOAD,
             status=TestStatus.RUNNING,
-            start_time=datetime.now()
+            start_time=datetime.now(),
         )
 
         try:
@@ -545,14 +583,10 @@ class PerformanceBenchmark:
             test_start = time.time()
             user_tasks = []
 
-            # 逐步增加並發用戶（爬坡）
             for user_id in range(concurrent_users):
                 task = asyncio.create_task(
                     self._simulate_user_behavior(
-                        user_id,
-                        test_start,
-                        duration_seconds,
-                        response_times
+                        user_id, test_start, duration_seconds, response_times
                     )
                 )
                 user_tasks.append(task)
@@ -585,13 +619,19 @@ class PerformanceBenchmark:
             result.iterations = total_requests
             result.success_rate = success_count / max(total_requests, 1)
             result.end_time = datetime.now()
-            result.duration_ms = (result.end_time - result.start_time).total_seconds() * 1000
+            result.duration_ms = (
+                result.end_time - result.start_time
+            ).total_seconds() * 1000
             result.status = TestStatus.COMPLETED
 
             # 額外的負載測試指標
             result.metrics["concurrent_users"] = concurrent_users
-            result.metrics["requests_per_second"] = total_requests / (duration_seconds or 1)
-            result.metrics["successful_requests_per_second"] = success_count / (duration_seconds or 1)
+            result.metrics["requests_per_second"] = total_requests / (
+                duration_seconds or 1
+            )
+            result.metrics["successful_requests_per_second"] = success_count / (
+                duration_seconds or 1
+            )
 
         except Exception as e:
             result.status = TestStatus.FAILED
@@ -608,7 +648,7 @@ class PerformanceBenchmark:
         user_id: int,
         test_start: float,
         duration_seconds: int,
-        response_times: list[float]
+        response_times: list[float],
     ) -> dict[str, int]:
         """模擬用戶行為.
 
@@ -627,29 +667,29 @@ class PerformanceBenchmark:
         while time.time() - test_start < duration_seconds:
             try:
                 # 隨機選擇操作
-                operation_type = random.choice([
-                    "get_achievement",
-                    "list_achievements",
-                    "user_achievements"
-                ])
+                operation_type = random.choice(
+                    ["get_achievement", "list_achievements", "user_achievements"]
+                )
 
                 start_time = time.perf_counter()
 
                 if operation_type == "get_achievement":
                     if self._test_achievements:
                         achievement_id = random.choice(self._test_achievements).id
-                        await self._performance_service.get_achievement_optimized(achievement_id)
+                        await self._performance_service.get_achievement_optimized(
+                            achievement_id
+                        )
 
                 elif operation_type == "list_achievements":
                     await self._performance_service.list_achievements_optimized(
-                        page=random.randint(1, 5),
-                        page_size=20
+                        page=random.randint(1, 5), page_size=20
                     )
 
-                elif operation_type == "user_achievements":
-                    if self._test_user_ids:
-                        user_id = random.choice(self._test_user_ids)
-                        await self._performance_service.get_user_achievements_optimized(user_id)
+                elif operation_type == "user_achievements" and self._test_user_ids:
+                    user_id = random.choice(self._test_user_ids)
+                    await self._performance_service.get_user_achievements_optimized(
+                        user_id
+                    )
 
                 end_time = time.perf_counter()
                 response_time_ms = (end_time - start_time) * 1000
@@ -664,10 +704,7 @@ class PerformanceBenchmark:
             # 用戶操作間隔
             await asyncio.sleep(random.uniform(0.1, 2.0))
 
-        return {
-            "success_count": success_count,
-            "total_requests": total_requests
-        }
+        return {"success_count": success_count, "total_requests": total_requests}
 
     # =============================================================================
     # 結果分析和報告
@@ -694,11 +731,11 @@ class PerformanceBenchmark:
             "summary": {
                 "total_tests": len(self._test_results),
                 "test_types": list(results_by_type.keys()),
-                "generation_time": datetime.now().isoformat()
+                "generation_time": datetime.now().isoformat(),
             },
             "results_by_type": {},
             "performance_trends": self._analyze_performance_trends(),
-            "recommendations": self._generate_recommendations()
+            "recommendations": self._generate_recommendations(),
         }
 
         # 生成各類型測試的摘要
@@ -712,7 +749,9 @@ class PerformanceBenchmark:
                 report["results_by_type"][test_type] = {
                     "total_tests": len(results),
                     "completed_tests": len(completed_results),
-                    "failed_tests": len([r for r in results if r.status == TestStatus.FAILED]),
+                    "failed_tests": len(
+                        [r for r in results if r.status == TestStatus.FAILED]
+                    ),
                     "avg_response_time_ms": statistics.mean(avg_response_times),
                     "avg_success_rate": statistics.mean(success_rates),
                     "scenarios": [
@@ -723,10 +762,12 @@ class PerformanceBenchmark:
                             "success_rate": r.success_rate,
                             "p95_response_time_ms": r.p95_response_time_ms,
                             "errors": len(r.errors),
-                            "meets_expectations": r.metrics.get("meets_expectations", False)
+                            "meets_expectations": r.metrics.get(
+                                "meets_expectations", False
+                            ),
                         }
                         for r in results
-                    ]
+                    ],
                 }
 
         return report
@@ -737,7 +778,7 @@ class PerformanceBenchmark:
         # 暫時返回基本統計
         return {
             "note": "趨勢分析需要更長期的歷史資料",
-            "current_performance": "基於當前測試結果的效能狀態"
+            "current_performance": "基於當前測試結果的效能狀態",
         }
 
     def _generate_recommendations(self) -> list[str]:
@@ -748,39 +789,45 @@ class PerformanceBenchmark:
             return recommendations
 
         # 分析完成的測試結果
-        completed_results = [r for r in self._test_results if r.status == TestStatus.COMPLETED]
+        completed_results = [
+            r for r in self._test_results if r.status == TestStatus.COMPLETED
+        ]
 
         if completed_results:
             # 檢查平均回應時間
-            slow_tests = [r for r in completed_results if r.avg_response_time_ms > 200]
+            slow_tests = [r for r in completed_results if r.avg_response_time_ms > SLOW_RESPONSE_THRESHOLD_MS]
             if slow_tests:
                 recommendations.append(
-                    f"發現 {len(slow_tests)} 個慢測試場景，建議優化查詢效能"
+                    f"發現 {len(slow_tests)} 個慢測試場景,建議優化查詢效能"
                 )
 
             # 檢查成功率
-            low_success_tests = [r for r in completed_results if r.success_rate < 0.95]
+            low_success_tests = [r for r in completed_results if r.success_rate < SUCCESS_RATE_THRESHOLD]
             if low_success_tests:
                 recommendations.append(
-                    f"發現 {len(low_success_tests)} 個成功率較低的測試場景，建議檢查錯誤處理"
+                    f"發現 {len(low_success_tests)} 個成功率較低的測試場景,建議檢查錯誤處理"
                 )
 
             # 檢查P95回應時間
-            high_p95_tests = [r for r in completed_results if r.p95_response_time_ms > 500]
+            high_p95_tests = [
+                r for r in completed_results if r.p95_response_time_ms > HIGH_P95_THRESHOLD_MS
+            ]
             if high_p95_tests:
                 recommendations.append(
-                    f"發現 {len(high_p95_tests)} 個P95回應時間過高的測試場景，建議優化最壞情況效能"
+                    f"發現 {len(high_p95_tests)} 個P95回應時間過高的測試場景,建議優化最壞情況效能"
                 )
 
         # 失敗的測試
-        failed_results = [r for r in self._test_results if r.status == TestStatus.FAILED]
+        failed_results = [
+            r for r in self._test_results if r.status == TestStatus.FAILED
+        ]
         if failed_results:
             recommendations.append(
-                f"有 {len(failed_results)} 個測試場景失敗，需要修復相關問題"
+                f"有 {len(failed_results)} 個測試場景失敗,需要修復相關問題"
             )
 
         if not recommendations:
-            recommendations.append("所有測試場景表現良好，系統效能符合預期")
+            recommendations.append("所有測試場景表現良好,系統效能符合預期")
 
         return recommendations
 
@@ -793,7 +840,11 @@ class PerformanceBenchmark:
         Returns:
             測試歷史記錄列表
         """
-        recent_results = self._test_results[-limit:] if len(self._test_results) > limit else self._test_results
+        recent_results = (
+            self._test_results[-limit:]
+            if len(self._test_results) > limit
+            else self._test_results
+        )
 
         return [
             {
@@ -805,11 +856,10 @@ class PerformanceBenchmark:
                 "duration_ms": result.duration_ms,
                 "avg_response_time_ms": result.avg_response_time_ms,
                 "success_rate": result.success_rate,
-                "errors_count": len(result.errors)
+                "errors_count": len(result.errors),
             }
             for result in recent_results
         ]
-
 
 __all__ = [
     "PerformanceBenchmark",

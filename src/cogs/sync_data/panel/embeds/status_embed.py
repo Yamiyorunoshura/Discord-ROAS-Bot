@@ -13,8 +13,12 @@ import discord
 if TYPE_CHECKING:
     from ...main.main import SyncDataCog
 
+# 時間常數定義
+SECONDS_PER_HOUR = 3600
+SECONDS_PER_MINUTE = 60
+DAYS_THRESHOLD_FOR_OUTDATED = 7
 
-async def create_status_embed(
+async def create_status_embed(  # noqa: PLR0915
     cog: "SyncDataCog", guild: discord.Guild
 ) -> discord.Embed:
     """
@@ -65,11 +69,11 @@ async def create_status_embed(
 
             if time_ago.days > 0:
                 time_str = f"{time_ago.days} 天前"
-            elif time_ago.seconds > 3600:
-                hours = time_ago.seconds // 3600
+            elif time_ago.seconds > SECONDS_PER_HOUR:
+                hours = time_ago.seconds // SECONDS_PER_HOUR
                 time_str = f"{hours} 小時前"
-            elif time_ago.seconds > 60:
-                minutes = time_ago.seconds // 60
+            elif time_ago.seconds > SECONDS_PER_MINUTE:
+                minutes = time_ago.seconds // SECONDS_PER_MINUTE
                 time_str = f"{minutes} 分鐘前"
             else:
                 time_str = "剛才"
@@ -142,7 +146,7 @@ async def create_status_embed(
             embed.add_field(
                 name="💡 建議", value="上次同步失敗,建議重新執行同步", inline=False
             )
-        elif time_ago.days > 7:
+        elif time_ago.days > DAYS_THRESHOLD_FOR_OUTDATED:
             embed.add_field(
                 name="💡 建議", value="資料已過期,建議執行同步更新", inline=False
             )
@@ -158,18 +162,15 @@ async def create_status_embed(
 
     return embed
 
-
 def _get_sync_type_name(sync_type: str) -> str:
     """獲取同步類型名稱"""
     type_names = {"full": "完整同步", "roles": "角色同步", "channels": "頻道同步"}
     return type_names.get(sync_type, "未知")
 
-
 def _get_status_name(status: str) -> str:
     """獲取狀態名稱"""
     status_names = {"success": "成功", "failed": "失敗", "running": "進行中"}
     return status_names.get(status, "未知")
-
 
 def _calculate_sync_rate(
     guild: discord.Guild, db_roles: list, db_channels: list
@@ -182,5 +183,5 @@ def _calculate_sync_rate(
         )
         avg_rate = (role_rate + channel_rate) / 2
         return f"{avg_rate:.1f}%"
-    except:
+    except (ZeroDivisionError, TypeError, AttributeError):
         return "計算失敗"

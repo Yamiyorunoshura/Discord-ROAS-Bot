@@ -21,6 +21,12 @@ wheels/
 *.egg
 MANIFEST
 
+# Distribution - keep checksums but ignore temporary files
+dist/*.whl
+dist/*.tar.gz
+dist/build_*.log
+!dist/SHA256SUMS
+
 # Virtual Environment
 venv/
 env/
@@ -67,6 +73,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 quality_report.json
+tests/
+test_results/
+test_reports/
 
 # IDEs and editors
 .vscode/
@@ -111,3 +120,22 @@ docs/_build/
 # Configuration backup
 config.txt.bak
 config.py.bak
+
+# Workspace
+.bmad-core/
+.bmad-infrastructure-devops/
+.bmad-2d-phaser-game-dev/
+.bmad-2d-unit-game-dev/
+.cursorrules
+.cursor/
+.claude/
+stories/
+prd/
+process/
+draft/
+web-bundles/
+scipts/
+quality_check/
+Claude.md
+prd.md
+front-end-spec.md

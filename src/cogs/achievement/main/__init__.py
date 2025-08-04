@@ -2,4 +2,4 @@
 
 from .main import AchievementCog
 
-__all__ = ['AchievementCog']
+__all__ = ["AchievementCog"]

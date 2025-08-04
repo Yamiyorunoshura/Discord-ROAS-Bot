@@ -1,6 +1,6 @@
 """改進的測試基礎設施.
 
-此模組提供增強的測試工具和基礎設施，包括：
+此模組提供增強的測試工具和基礎設施,包括:
 - 自動化測試數據管理
 - 測試環境隔離
 - 效能測試工具
@@ -8,7 +8,7 @@
 - 測試報告生成
 - 並行測試支援
 
-針對 Story 5.2 的測試品質提升需求設計。
+針對 Story 5.2 的測試品質提升需求設計.
 """
 
 import asyncio
@@ -27,7 +27,7 @@ import pytest
 from src.core.config import Settings
 from src.core.database import DatabasePool
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
@@ -46,9 +46,9 @@ class TestContext:
         """清理測試資源."""
         # 清理異步資源
         for resource in self.async_resources:
-            if hasattr(resource, 'cleanup'):
+            if hasattr(resource, "cleanup"):
                 await resource.cleanup()
-            elif hasattr(resource, 'close'):
+            elif hasattr(resource, "close"):
                 await resource.close()
 
         # 清理資料庫連線
@@ -64,6 +64,7 @@ class TestContext:
         for temp_dir in self.temp_dirs:
             if temp_dir.exists():
                 import shutil
+
                 shutil.rmtree(temp_dir, ignore_errors=True)
 
 
@@ -77,10 +78,7 @@ class TestDatabaseManager:
     async def create_test_database(self, name: str = "test") -> DatabasePool:
         """創建測試資料庫."""
         # 創建臨時資料庫文件
-        temp_db = tempfile.NamedTemporaryFile(
-            suffix=f'_{name}.db',
-            delete=False
-        )
+        temp_db = tempfile.NamedTemporaryFile(suffix=f"_{name}.db", delete=False)
         db_path = Path(temp_db.name)
         temp_db.close()
 
@@ -97,6 +95,7 @@ class TestDatabaseManager:
     async def setup_achievement_database(self, pool: DatabasePool):
         """設置成就系統資料庫結構."""
         from src.cogs.achievement.database import initialize_achievement_database
+
         await initialize_achievement_database(pool)
 
     async def cleanup_all(self):
@@ -127,7 +126,7 @@ class PerformanceTestUtils:
         metrics = {
             "operation": operation_name,
             "start_time": start_time,
-            "start_memory": start_memory
+            "start_memory": start_memory,
         }
 
         try:
@@ -136,18 +135,21 @@ class PerformanceTestUtils:
             end_time = time.perf_counter()
             end_memory = PerformanceTestUtils._get_memory_usage()
 
-            metrics.update({
-                "end_time": end_time,
-                "execution_time": end_time - start_time,
-                "end_memory": end_memory,
-                "memory_delta": end_memory - start_memory
-            })
+            metrics.update(
+                {
+                    "end_time": end_time,
+                    "execution_time": end_time - start_time,
+                    "end_memory": end_memory,
+                    "memory_delta": end_memory - start_memory,
+                }
+            )
 
     @staticmethod
     def _get_memory_usage() -> float:
-        """獲取當前記憶體使用量（MB）."""
+        """獲取當前記憶體使用量(MB)."""
         try:
             import psutil
+
             process = psutil.Process()
             return process.memory_info().rss / 1024 / 1024
         except ImportError:
@@ -158,9 +160,10 @@ class PerformanceTestUtils:
         coroutine_factory,
         concurrent_count: int = 10,
         iterations_per_coroutine: int = 100,
-        max_execution_time: float = 30.0
+        max_execution_time: float = 30.0,
     ) -> dict[str, Any]:
         """執行壓力測試."""
+
         async def run_iterations():
             """執行多次迭代."""
             for _ in range(iterations_per_coroutine):
@@ -176,13 +179,13 @@ class PerformanceTestUtils:
         try:
             await asyncio.wait_for(
                 asyncio.gather(*tasks, return_exceptions=True),
-                timeout=max_execution_time
+                timeout=max_execution_time,
             )
             success = True
             error = None
         except TimeoutError:
             success = False
-            error = f"測試超時（>{max_execution_time}s）"
+            error = f"測試超時(>{max_execution_time}s)"
         except Exception as e:
             success = False
             error = str(e)
@@ -195,12 +198,13 @@ class PerformanceTestUtils:
             "error": error,
             "total_operations": concurrent_count * iterations_per_coroutine,
             "execution_time": end_time - start_time,
-            "operations_per_second": (concurrent_count * iterations_per_coroutine) / (end_time - start_time),
+            "operations_per_second": (concurrent_count * iterations_per_coroutine)
+            / (end_time - start_time),
             "memory_usage": {
                 "start": start_memory,
                 "end": end_memory,
-                "delta": end_memory - start_memory
-            }
+                "delta": end_memory - start_memory,
+            },
         }
 
 
@@ -221,7 +225,7 @@ class MockServiceManager:
         repository.get_user_achievements = AsyncMock(return_value=[])
         repository.get_user_progress = AsyncMock(return_value=None)
 
-        self.mocks['repository'] = repository
+        self.mocks["repository"] = repository
         return repository
 
     def create_cache_manager_mock(self) -> AsyncMock:
@@ -233,14 +237,11 @@ class MockServiceManager:
         cache_manager.set = AsyncMock()
         cache_manager.delete = AsyncMock()
         cache_manager.invalidate_pattern = AsyncMock()
-        cache_manager.get_stats = AsyncMock(return_value={
-            "hits": 0,
-            "misses": 0,
-            "hit_rate": 0.0,
-            "size": 0
-        })
+        cache_manager.get_stats = AsyncMock(
+            return_value={"hits": 0, "misses": 0, "hit_rate": 0.0, "size": 0}
+        )
 
-        self.mocks['cache_manager'] = cache_manager
+        self.mocks["cache_manager"] = cache_manager
         return cache_manager
 
     def create_performance_monitor_mock(self) -> AsyncMock:
@@ -250,14 +251,16 @@ class MockServiceManager:
         # 設置監控方法
         monitor.record_query_time = AsyncMock()
         monitor.record_cache_performance = AsyncMock()
-        monitor.get_performance_metrics = AsyncMock(return_value={
-            "avg_query_time": 50.0,
-            "cache_hit_rate": 0.85,
-            "memory_usage": 0.65
-        })
+        monitor.get_performance_metrics = AsyncMock(
+            return_value={
+                "avg_query_time": 50.0,
+                "cache_hit_rate": 0.85,
+                "memory_usage": 0.65,
+            }
+        )
         monitor.get_alerts = AsyncMock(return_value=[])
 
-        self.mocks['performance_monitor'] = monitor
+        self.mocks["performance_monitor"] = monitor
         return monitor
 
     def get_mock(self, name: str) -> Any:
@@ -267,7 +270,7 @@ class MockServiceManager:
     def reset_all_mocks(self):
         """重置所有模擬物件."""
         for mock in self.mocks.values():
-            if hasattr(mock, 'reset_mock'):
+            if hasattr(mock, "reset_mock"):
                 mock.reset_mock()
 
 
@@ -284,16 +287,16 @@ class TestDataGenerator:
 
         for i in range(count):
             achievement = {
-                "name": f"測試成就 {i+1}",
-                "description": f"這是第 {i+1} 個測試成就",
+                "name": f"測試成就 {i + 1}",
+                "description": f"這是第 {i + 1} 個測試成就",
                 "category": categories[i % len(categories)],
                 "type": types[i % len(types)],
                 "criteria": {
                     "target_value": (i + 1) * 10,
-                    "counter_field": "messages" if i % 2 == 0 else "interactions"
+                    "counter_field": "messages" if i % 2 == 0 else "interactions",
                 },
                 "points": (i + 1) * 100,
-                "is_active": True
+                "is_active": True,
             }
             achievements.append(achievement)
 
@@ -307,10 +310,10 @@ class TestDataGenerator:
         for i in range(count):
             user = {
                 "id": 100000000000000000 + i,
-                "username": f"test_user_{i+1}",
+                "username": f"test_user_{i + 1}",
                 "discriminator": f"{1000 + i:04d}",
                 "bot": False,
-                "display_name": f"測試用戶 {i+1}"
+                "display_name": f"測試用戶 {i + 1}",
             }
             users.append(user)
 
@@ -318,8 +321,7 @@ class TestDataGenerator:
 
     @staticmethod
     def generate_progress_data(
-        user_count: int = 5,
-        achievement_count: int = 3
+        user_count: int = 5, achievement_count: int = 3
     ) -> list[dict[str, Any]]:
         """生成進度測試資料."""
         progress_records = []
@@ -338,7 +340,7 @@ class TestDataGenerator:
                     "current_value": min(current_value, target_value),
                     "target_value": target_value,
                     "is_completed": current_value >= target_value,
-                    "last_updated": datetime.now().isoformat()
+                    "last_updated": datetime.now().isoformat(),
                 }
                 progress_records.append(progress)
 
@@ -360,7 +362,7 @@ class TestReporter:
         success: bool,
         execution_time: float,
         error: str | None = None,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ):
         """記錄測試結果."""
         result = {
@@ -369,20 +371,16 @@ class TestReporter:
             "execution_time": execution_time,
             "timestamp": datetime.now().isoformat(),
             "error": error,
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
         self.test_results.append(result)
 
-    def record_performance_data(
-        self,
-        operation: str,
-        metrics: dict[str, Any]
-    ):
+    def record_performance_data(self, operation: str, metrics: dict[str, Any]):
         """記錄效能資料."""
         perf_data = {
             "operation": operation,
             "timestamp": datetime.now().isoformat(),
-            **metrics
+            **metrics,
         }
         self.performance_data.append(perf_data)
 
@@ -394,7 +392,9 @@ class TestReporter:
 
         if total_tests > 0:
             success_rate = successful_tests / total_tests
-            avg_execution_time = sum(r["execution_time"] for r in self.test_results) / total_tests
+            avg_execution_time = (
+                sum(r["execution_time"] for r in self.test_results) / total_tests
+            )
         else:
             success_rate = 0.0
             avg_execution_time = 0.0
@@ -405,13 +405,13 @@ class TestReporter:
                 "successful_tests": successful_tests,
                 "failed_tests": failed_tests,
                 "success_rate": success_rate,
-                "average_execution_time": avg_execution_time
+                "average_execution_time": avg_execution_time,
             },
             "performance_summary": {
                 "total_operations": len(self.performance_data),
-                "operations": list(set(p["operation"] for p in self.performance_data))
+                "operations": list(set(p["operation"] for p in self.performance_data)),
             },
-            "generated_at": datetime.now().isoformat()
+            "generated_at": datetime.now().isoformat(),
         }
 
         return summary
@@ -422,24 +422,24 @@ class TestReporter:
 
         # 保存測試結果
         test_results_file = self.output_dir / f"test_results_{timestamp}.json"
-        with open(test_results_file, 'w', encoding='utf-8') as f:
+        with open(test_results_file, "w", encoding="utf-8") as f:
             json.dump(self.test_results, f, indent=2, ensure_ascii=False)
 
         # 保存效能資料
         performance_file = self.output_dir / f"performance_data_{timestamp}.json"
-        with open(performance_file, 'w', encoding='utf-8') as f:
+        with open(performance_file, "w", encoding="utf-8") as f:
             json.dump(self.performance_data, f, indent=2, ensure_ascii=False)
 
         # 保存摘要報告
         summary_file = self.output_dir / f"summary_report_{timestamp}.json"
         summary = self.generate_summary_report()
-        with open(summary_file, 'w', encoding='utf-8') as f:
+        with open(summary_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
 
         return {
             "test_results": test_results_file,
             "performance_data": performance_file,
-            "summary_report": summary_file
+            "summary_report": summary_file,
         }
 
 
@@ -462,7 +462,7 @@ class TestEnvironmentManager:
         self,
         context: TestContext,
         with_cache: bool = True,
-        with_performance_monitoring: bool = True
+        with_performance_monitoring: bool = True,
     ) -> dict[str, Any]:
         """設置成就系統測試環境."""
         # 創建測試資料庫
@@ -532,9 +532,7 @@ async def test_context(request, test_environment_manager):
 async def achievement_test_env(test_context, test_environment_manager):
     """成就系統測試環境 fixture."""
     services = await test_environment_manager.setup_achievement_test_environment(
-        test_context,
-        with_cache=True,
-        with_performance_monitoring=True
+        test_context, with_cache=True, with_performance_monitoring=True
     )
 
     yield services
@@ -543,12 +541,15 @@ async def achievement_test_env(test_context, test_environment_manager):
 # 測試裝飾器
 def performance_test(
     max_execution_time: float = 5.0,
-    max_memory_usage: float = 100.0  # MB
+    max_memory_usage: float = 100.0,  # MB
 ):
     """效能測試裝飾器."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
-            async with PerformanceTestUtils.measure_execution_time(func.__name__) as metrics:
+            async with PerformanceTestUtils.measure_execution_time(
+                func.__name__
+            ) as metrics:
                 result = await func(*args, **kwargs)
 
             # 檢查效能指標
@@ -567,15 +568,15 @@ def performance_test(
             return result
 
         return wrapper
+
     return decorator
 
 
 def stress_test(
-    concurrent_count: int = 10,
-    iterations: int = 100,
-    timeout: float = 30.0
+    concurrent_count: int = 10, iterations: int = 100, timeout: float = 30.0
 ):
     """壓力測試裝飾器."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             async def test_coroutine():
@@ -585,7 +586,7 @@ def stress_test(
                 test_coroutine,
                 concurrent_count=concurrent_count,
                 iterations_per_coroutine=iterations,
-                max_execution_time=timeout
+                max_execution_time=timeout,
             )
 
             if not results["success"]:
@@ -594,4 +595,5 @@ def stress_test(
             return results
 
         return wrapper
+
     return decorator

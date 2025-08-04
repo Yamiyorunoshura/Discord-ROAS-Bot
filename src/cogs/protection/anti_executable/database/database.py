@@ -18,7 +18,6 @@ from src.core.config import get_settings
 logger = setup_module_logger("anti_executable.database")
 error_handler = create_error_handler("anti_executable.database", logger)
 
-
 class AntiExecutableDatabase:
     """反可執行檔案保護資料庫管理器"""
 
@@ -105,7 +104,7 @@ class AntiExecutableDatabase:
                 """)
 
                 await db.commit()
-                logger.info("【反可執行檔案】資料庫初始化完成")
+                logger.info("[反可執行檔案]資料庫初始化完成")
 
         except Exception as exc:
             error_handler.log_error(exc, "資料庫初始化", "DATABASE_INIT_ERROR")
@@ -125,13 +124,12 @@ class AntiExecutableDatabase:
             str: 配置值
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db:
-                async with db.execute(
-                    "SELECT value FROM config WHERE guild_id = ? AND key = ?",
-                    (guild_id, key),
-                ) as cursor:
-                    row = await cursor.fetchone()
-                    return row[0] if row else default
+            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
+                "SELECT value FROM config WHERE guild_id = ? AND key = ?",
+                (guild_id, key),
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else default
 
         except Exception as exc:
             error_handler.log_error(
@@ -175,12 +173,11 @@ class AntiExecutableDatabase:
             Dict[str, str]: 配置字典
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db:
-                async with db.execute(
-                    "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
-                ) as cursor:
-                    rows = await cursor.fetchall()
-                    return {row[0]: row[1] for row in rows}
+            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
+                "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return {row[0]: row[1] for row in rows}
 
         except Exception as exc:
             error_handler.log_error(
@@ -199,23 +196,22 @@ class AntiExecutableDatabase:
             count: 數量
         """
         try:
-            async with self._lock:
-                async with aiosqlite.connect(self.db_path) as db:
-                    await db.execute(
-                        """
-                        INSERT OR REPLACE INTO stats (guild_id, stat_type, count, last_updated)
-                        VALUES (?, ?, COALESCE((SELECT count FROM stats WHERE guild_id = ? AND stat_type = ?), 0) + ?, ?)
-                    """,
-                        (
-                            guild_id,
-                            stat_type,
-                            guild_id,
-                            stat_type,
-                            count,
-                            datetime.now(),
-                        ),
-                    )
-                    await db.commit()
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    """
+                    INSERT OR REPLACE INTO stats (guild_id, stat_type, count, last_updated)
+                    VALUES (?, ?, COALESCE((SELECT count FROM stats WHERE guild_id = ? AND stat_type = ?), 0) + ?, ?)
+                """,
+                    (
+                        guild_id,
+                        stat_type,
+                        guild_id,
+                        stat_type,
+                        count,
+                        datetime.now(),
+                    ),
+                )
+                await db.commit()
 
         except Exception as exc:
             error_handler.log_error(
@@ -233,13 +229,12 @@ class AntiExecutableDatabase:
             Dict[str, int]: 統計資料
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db:
-                async with db.execute(
-                    "SELECT stat_type, count FROM stats WHERE guild_id = ?",
-                    (guild_id,),
-                ) as cursor:
-                    rows = await cursor.fetchall()
-                    return {row[0]: row[1] for row in rows}
+            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
+                "SELECT stat_type, count FROM stats WHERE guild_id = ?",
+                (guild_id,),
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return {row[0]: row[1] for row in rows}
 
         except Exception as exc:
             error_handler.log_error(exc, f"獲取統計 - {guild_id}", "STATS_GET_ERROR")
@@ -274,16 +269,15 @@ class AntiExecutableDatabase:
             details: 詳細資訊
         """
         try:
-            async with self._lock:
-                async with aiosqlite.connect(self.db_path) as db:
-                    await db.execute(
-                        """
-                        INSERT INTO action_logs (guild_id, user_id, action, details, timestamp)
-                        VALUES (?, ?, ?, ?, ?)
-                    """,
-                        (guild_id, user_id, action, details, datetime.now()),
-                    )
-                    await db.commit()
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    """
+                    INSERT INTO action_logs (guild_id, user_id, action, details, timestamp)
+                    VALUES (?, ?, ?, ?, ?)
+                """,
+                    (guild_id, user_id, action, details, datetime.now()),
+                )
+                await db.commit()
 
         except Exception as exc:
             error_handler.log_error(
@@ -304,25 +298,24 @@ class AntiExecutableDatabase:
             List[Dict[str, Any]]: 操作日誌列表
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db:
-                async with db.execute(
-                    """
-                        SELECT user_id, action, details, timestamp
-                        FROM action_logs
-                        WHERE guild_id = ?
-                        ORDER BY timestamp DESC
-                        LIMIT ?
-                    """,
-                    (guild_id, limit),
-                ) as cursor:
-                    rows = await cursor.fetchall()
-                    return [
-                        {
-                            "user_id": row[0],
-                            "action": row[1],
-                            "details": row[2],
-                            "timestamp": row[3],
-                        }
+            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
+                """
+                    SELECT user_id, action, details, timestamp
+                    FROM action_logs
+                    WHERE guild_id = ?
+                    ORDER BY timestamp DESC
+                    LIMIT ?
+                """,
+                (guild_id, limit),
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return [
+                    {
+                        "user_id": row[0],
+                        "action": row[1],
+                        "details": row[2],
+                        "timestamp": row[3],
+                    }
                         for row in rows
                     ]
 
@@ -386,24 +379,23 @@ class AntiExecutableDatabase:
             action_taken: 採取的行動
         """
         try:
-            async with self._lock:
-                async with aiosqlite.connect(self.db_path) as db:
-                    await db.execute(
-                        """
-                        INSERT INTO file_detections (guild_id, user_id, filename, file_extension, risk_level, action_taken, timestamp)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """,
-                        (
-                            guild_id,
-                            user_id,
-                            filename,
-                            file_extension,
-                            risk_level,
-                            action_taken,
-                            datetime.now(),
-                        ),
-                    )
-                    await db.commit()
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    """
+                    INSERT INTO file_detections (guild_id, user_id, filename, file_extension, risk_level, action_taken, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        guild_id,
+                        user_id,
+                        filename,
+                        file_extension,
+                        risk_level,
+                        action_taken,
+                        datetime.now(),
+                    ),
+                )
+                await db.commit()
 
         except Exception as exc:
             error_handler.log_error(
@@ -426,20 +418,18 @@ class AntiExecutableDatabase:
             List[Dict[str, Any]]: 檔案檢測記錄列表
         """
         try:
-            async with self._lock:
-                async with aiosqlite.connect(self.db_path) as db:
-                    async with db.execute(
-                        """
-                        SELECT user_id, filename, file_extension, risk_level, action_taken, timestamp
-                        FROM file_detections
-                        WHERE guild_id = ?
-                        ORDER BY timestamp DESC
-                        LIMIT ?
-                    """,
-                        (guild_id, limit),
-                    ) as cursor:
-                        rows = await cursor.fetchall()
-                        return [
+            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
+                """
+                SELECT user_id, filename, file_extension, risk_level, action_taken, timestamp
+                FROM file_detections
+                WHERE guild_id = ?
+                ORDER BY timestamp DESC
+                LIMIT ?
+            """,
+                (guild_id, limit),
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return [
                             {
                                 "user_id": row[0],
                                 "filename": row[1],
@@ -544,24 +534,23 @@ class AntiExecutableDatabase:
             days: 保留天數
         """
         try:
-            async with self._lock:
-                async with aiosqlite.connect(self.db_path) as db:
-                    cutoff_date = datetime.now() - timedelta(days=days)
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                cutoff_date = datetime.now() - timedelta(days=days)
 
-                    if guild_id == 0:
-                        # 清理所有伺服器
-                        await db.execute(
-                            "DELETE FROM file_detections WHERE timestamp < ?",
-                            (cutoff_date,),
-                        )
-                    else:
-                        # 清理特定伺服器
-                        await db.execute(
-                            "DELETE FROM file_detections WHERE guild_id = ? AND timestamp < ?",
-                            (guild_id, cutoff_date),
-                        )
+                if guild_id == 0:
+                    # 清理所有伺服器
+                    await db.execute(
+                        "DELETE FROM file_detections WHERE timestamp < ?",
+                        (cutoff_date,),
+                    )
+                else:
+                    # 清理特定伺服器
+                    await db.execute(
+                        "DELETE FROM file_detections WHERE guild_id = ? AND timestamp < ?",
+                        (guild_id, cutoff_date),
+                    )
 
-                    await db.commit()
+                await db.commit()
 
         except Exception as exc:
             error_handler.log_error(
@@ -575,7 +564,7 @@ class AntiExecutableDatabase:
             async with self._lock, aiosqlite.connect(self.db_path) as db:
                 await db.execute("VACUUM")
                 await db.commit()
-                logger.info("【反可執行檔案】資料庫優化完成")
+                logger.info("[反可執行檔案]資料庫優化完成")
 
         except Exception as exc:
             error_handler.log_error(exc, "資料庫優化", "DATABASE_VACUUM_ERROR")

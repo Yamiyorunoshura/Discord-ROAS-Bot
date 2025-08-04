@@ -17,6 +17,7 @@ import functools
 import json
 import logging
 import logging.handlers
+import re
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -27,6 +28,7 @@ from typing import Any
 
 import aiohttp
 import structlog
+from pythonjsonlogger import jsonlogger
 from rich.console import Console
 from rich.logging import RichHandler
 
@@ -36,12 +38,14 @@ from src.core.config import Settings, get_settings
 # 分散式追蹤系統 (Distributed Tracing System)
 # =====================================================
 
-# 追蹤上下文
-request_trace_id: ContextVar[str] = ContextVar("request_trace_id", default=None)
-operation_span_id: ContextVar[str] = ContextVar("operation_span_id", default=None)
-user_context: ContextVar[dict[str, Any]] = ContextVar("user_context", default={})
-guild_context: ContextVar[dict[str, Any]] = ContextVar("guild_context", default={})
+# HTTP 狀態碼常數
+HTTP_NO_CONTENT = 204
 
+# 追蹤上下文
+request_trace_id: ContextVar[str | None] = ContextVar("request_trace_id", default=None)
+operation_span_id: ContextVar[str | None] = ContextVar("operation_span_id", default=None)
+user_context: ContextVar[dict[str, Any] | None] = ContextVar("user_context", default=None)
+guild_context: ContextVar[dict[str, Any] | None] = ContextVar("guild_context", default=None)
 
 @dataclass
 class TraceContext:
@@ -62,14 +66,13 @@ class TraceContext:
     channel_id: int | None = None
     channel_name: str | None = None
     command: str | None = None
-    tags: dict[str, Any] = None
+    tags: dict[str, Any] | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.tags is None:
             self.tags = {}
         if self.start_time == 0.0:
             self.start_time = time.time()
-
 
 class TraceManager:
     """追蹤管理器
@@ -149,8 +152,8 @@ class TraceManager:
             return None
 
         # 獲取用戶和伺服器上下文
-        user = user_context.get({})
-        guild = guild_context.get({})
+        user = user_context.get() or {}
+        guild = guild_context.get() or {}
 
         return TraceContext(
             trace_id=trace_id,
@@ -164,7 +167,7 @@ class TraceManager:
         )
 
     @staticmethod
-    def set_user_context(user_id: int, username: str):
+    def set_user_context(user_id: int, username: str) -> None:
         """設定用戶上下文
 
         Args:
@@ -179,7 +182,7 @@ class TraceManager:
         guild_name: str,
         channel_id: int | None = None,
         channel_name: str | None = None,
-    ):
+    ) -> None:
         """設定伺服器上下文
 
         Args:
@@ -198,18 +201,16 @@ class TraceManager:
         )
 
     @staticmethod
-    def clear_context():
+    def clear_context() -> None:
         """清除所有上下文"""
         request_trace_id.set(None)
         operation_span_id.set(None)
-        user_context.set({})
-        guild_context.set({})
-
+        user_context.set(None)
+        guild_context.set(None)
 
 # =====================================================
 # 告警系統 (Alert System)
 # =====================================================
-
 
 @dataclass
 class LogAlert:
@@ -239,7 +240,6 @@ class LogAlert:
         """檢查是否在冷卻時間內"""
         return time.time() - self.last_triggered < self.cooldown_seconds
 
-
 class AlertHandler(ABC):
     """告警處理器抽象基類"""
 
@@ -255,7 +255,6 @@ class AlertHandler(ABC):
             context: 相關上下文
         """
         pass
-
 
 class DiscordWebhookAlertHandler(AlertHandler):
     """使用Discord Webhook的告警處理器"""
@@ -282,16 +281,15 @@ class DiscordWebhookAlertHandler(AlertHandler):
             if self.mention_role_id:
                 payload["content"] = f"<@&{self.mention_role_id}>"
 
-            async with aiohttp.ClientSession() as session:
-                async with session.post(self.webhook_url, json=payload) as response:
-                    if response.status != 204:
-                        print(f"Discord webhook 送信失敗: {response.status}")
+            async with aiohttp.ClientSession() as session, session.post(self.webhook_url, json=payload) as response:
+                if response.status != HTTP_NO_CONTENT:
+                    print(f"Discord webhook 送信失敗: {response.status}")
 
         except Exception as e:
             print(f"Discord 告警處理失敗: {e}")
 
     def _create_alert_embed(
-        self, alert: LogAlert, record: dict[str, Any], context: dict[str, Any]
+        self, alert: LogAlert, record: dict[str, Any], _context: dict[str, Any]
     ) -> dict[str, Any]:
         """創建告警的Discord Embed"""
         # 根據級別設定顏色
@@ -354,12 +352,11 @@ class DiscordWebhookAlertHandler(AlertHandler):
 
         return embed
 
-
 class ConsoleAlertHandler(AlertHandler):
     """控制台告警處理器"""
 
     async def handle_alert(
-        self, alert: LogAlert, record: dict[str, Any], context: dict[str, Any]
+        self, alert: LogAlert, record: dict[str, Any], _context: dict[str, Any]
     ):
         """在控制台顯示告警"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -371,7 +368,6 @@ class ConsoleAlertHandler(AlertHandler):
         if "trace_id" in record:
             print(f"追蹤ID: {record['trace_id']}")
         print("-" * 50)
-
 
 class AlertManager:
     """告警管理器
@@ -472,9 +468,6 @@ class AlertManager:
         # 檢查模式
         message = str(record.get("message", ""))
 
-        # 簡單的正則檢查(可以擴展為完整的正則表達式)
-        import re
-
         try:
             return bool(re.search(alert.pattern, message, re.IGNORECASE))
         except re.error:
@@ -521,11 +514,9 @@ class AlertManager:
                 # 避免告警處理失敗影響正常日誌
                 print(f"告警處理器錯誤: {e}")
 
-
 # =====================================================
 # 日誌格式化器 (Log Formatters)
 # =====================================================
-
 
 class StructuredLogFormatter:
     """結構化日誌格式化器
@@ -642,7 +633,6 @@ class StructuredLogFormatter:
 
         return base_format
 
-
 def setup_logging(settings: Settings | None = None) -> None:
     """設定結構化日誌系統
 
@@ -653,7 +643,7 @@ def setup_logging(settings: Settings | None = None) -> None:
         settings = get_settings()
 
     # 初始化追蹤上下文處理器
-    def add_trace_context(logger, name, event_dict):
+    def add_trace_context(_logger, _name, event_dict):
         """添加追蹤上下文到日誌記錄"""
         trace = TraceManager.get_current_trace()
         if trace:
@@ -673,7 +663,7 @@ def setup_logging(settings: Settings | None = None) -> None:
         return event_dict
 
     # 初始化告警管理器
-    def add_alert_processing(logger, name, event_dict):
+    def add_alert_processing(_logger, _name, event_dict):
         """處理告警相關的日誌記錄"""
         # 這裡可以添加告警處理邏輯
         # 由於需要在異步環境中工作,我們在BotLogger中處理
@@ -726,7 +716,6 @@ def setup_logging(settings: Settings | None = None) -> None:
     # Configure Python's built-in logging
     _setup_python_logging(settings)
 
-
 def _setup_python_logging(settings: Settings) -> None:
     """Set up Python's built-in logging system."""
     # Create logs directory
@@ -773,8 +762,6 @@ def _setup_python_logging(settings: Settings) -> None:
 
         # Format for file
         if settings.logging.format == "json":
-            from pythonjsonlogger import jsonlogger
-
             file_formatter = jsonlogger.JsonFormatter(
                 "%(asctime)s %(name)s %(levelname)s %(message)s %(funcName)s %(lineno)d"
             )
@@ -786,7 +773,6 @@ def _setup_python_logging(settings: Settings) -> None:
 
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
-
 
 class BotLogger:
     """Enhanced logger class for the bot with structured logging."""
@@ -820,8 +806,6 @@ class BotLogger:
 
         # Set up formatter
         if self.settings.logging.format == "json":
-            from pythonjsonlogger import jsonlogger
-
             formatter = jsonlogger.JsonFormatter(
                 "%(asctime)s %(name)s %(levelname)s %(message)s %(funcName)s %(lineno)d"
             )
@@ -885,7 +869,6 @@ class BotLogger:
         """Bind command context to logger."""
         return self.bind(command=command_name)
 
-
 def get_logger(name: str, settings: Settings | None = None) -> BotLogger:
     """Get a bot logger instance.
 
@@ -897,7 +880,6 @@ def get_logger(name: str, settings: Settings | None = None) -> BotLogger:
         BotLogger instance
     """
     return BotLogger(name, settings)
-
 
 # Convenience function for Discord.py integration
 def setup_discord_logging(level: int = logging.INFO) -> None:
@@ -914,11 +896,9 @@ def setup_discord_logging(level: int = logging.INFO) -> None:
     discord_gateway_logger = logging.getLogger("discord.gateway")
     discord_gateway_logger.setLevel(logging.WARNING)
 
-
 # Logging decorators for performance monitoring
 def log_performance(logger: BotLogger):
     """Decorator to log function performance."""
-    import time
 
     def decorator(func):
         @functools.wraps(func)
@@ -973,7 +953,6 @@ def log_performance(logger: BotLogger):
 
     return decorator
 
-
 def log_errors(logger: BotLogger):
     """Decorator to automatically log errors."""
 
@@ -1001,7 +980,6 @@ def log_errors(logger: BotLogger):
         )
 
     return decorator
-
 
 __all__ = [
     "BotLogger",

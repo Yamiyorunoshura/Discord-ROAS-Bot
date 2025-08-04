@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Discord ADR Bot v2.1 - 智能跨平台啟動腳本
-支援自動虛擬環境檢測與創建，兼容 Windows/Linux/macOS
+支援自動虛擬環境檢測與創建, 兼容 Windows/Linux/macOS
 """
 
 import os
@@ -41,7 +41,7 @@ class Colors:
         ) = ""
 
 
-def print_banner():
+def print_banner() -> None:
     """顯示啟動橫幅"""
     banner = f"""
 {Colors.CYAN}{Colors.BOLD}╔══════════════════════════════════════════════════════════════╗
@@ -53,34 +53,34 @@ def print_banner():
     print(banner)
 
 
-def log_info(message: str):
+def log_info(message: str) -> None:
     """資訊日誌"""
-    print(f"{Colors.BLUE}ℹ️  {message}{Colors.END}")
+    print(f"{Colors.BLUE}INFO: {message}{Colors.END}")
 
 
-def log_success(message: str):
+def log_success(message: str) -> None:
     """成功日誌"""
     print(f"{Colors.GREEN}✅ {message}{Colors.END}")
 
 
-def log_warning(message: str):
+def log_warning(message: str) -> None:
     """警告日誌"""
     print(f"{Colors.YELLOW}⚠️  {message}{Colors.END}")
 
 
-def log_error(message: str):
+def log_error(message: str) -> None:
     """錯誤日誌"""
     print(f"{Colors.RED}❌ {message}{Colors.END}")
 
 
-def log_step(step: int, total: int, message: str):
+def log_step(step: int, total: int, message: str) -> None:
     """步驟日誌"""
     print(f"{Colors.MAGENTA}[{step}/{total}] {message}{Colors.END}")
 
 
 def run_command(
     command: list[str], capture_output: bool = True, check: bool = True
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[str]:
     """執行系統命令"""
     try:
         log_info(f"執行命令: {' '.join(command)}")
@@ -119,7 +119,7 @@ def check_python_version() -> bool:
         return True
     else:
         log_error(
-            f"需要 Python {required_version[0]}.{required_version[1]}+，當前版本: {current_version.major}.{current_version.minor}"
+            f"需要 Python {required_version[0]}.{required_version[1]}+, 當前版本: {current_version.major}.{current_version.minor}"
         )
         return False
 
@@ -153,9 +153,8 @@ def install_uv() -> bool:
             ]
         else:
             # Unix 系統使用 curl
-            command = ["curl", "-LsSf", "https://astral.sh/uv/install.sh", "|", "sh"]
-            # 對於 shell 管道命令，需要使用 shell=True
-            result = subprocess.run(
+            # 對於 shell 管道命令, 需要使用 shell=True
+            subprocess.run(
                 "curl -LsSf https://astral.sh/uv/install.sh | sh",
                 shell=True,
                 capture_output=True,
@@ -240,10 +239,8 @@ def activate_virtual_environment(venv_path: Path) -> bool:
     system = platform.system()
 
     if system == "Windows":
-        activate_script = venv_path / "Scripts" / "activate.bat"
         python_exe = venv_path / "Scripts" / "python.exe"
     else:
-        activate_script = venv_path / "bin" / "activate"
         python_exe = venv_path / "bin" / "python"
 
     if not python_exe.exists():
@@ -274,7 +271,7 @@ def install_dependencies() -> bool:
         # 檢查 pyproject.toml 是否存在
         pyproject_path = Path("pyproject.toml")
         if not pyproject_path.exists():
-            log_warning("未找到 pyproject.toml，跳過依賴安裝")
+            log_warning("未找到 pyproject.toml, 跳過依賴安裝")
             return True
 
         # 使用 uv sync 安裝依賴
@@ -313,7 +310,7 @@ def start_bot() -> bool:
         return False
 
 
-def main():
+def main() -> None:
     """主函數"""
     print_banner()
 
@@ -323,15 +320,14 @@ def main():
             sys.exit(1)
 
         # 2. 檢查並安裝 uv
-        if not check_uv_installed():
-            if not install_uv():
-                log_error("無法安裝 uv，請手動安裝後重試")
-                sys.exit(1)
+        if not check_uv_installed() and not install_uv():
+            log_error("無法安裝 uv, 請手動安裝後重試")
+            sys.exit(1)
 
         # 3. 檢測虛擬環境
         has_venv, venv_path = detect_virtual_environment()
 
-        # 4. 如果沒有虛擬環境，創建一個
+        # 4. 如果沒有虛擬環境, 創建一個
         if not has_venv:
             venv_path = create_virtual_environment()
             if not venv_path:
@@ -339,7 +335,7 @@ def main():
                 sys.exit(1)
 
         # 5. 啟動虛擬環境
-        if not activate_virtual_environment(venv_path):
+        if venv_path and not activate_virtual_environment(venv_path):
             log_error("無法啟動虛擬環境")
             sys.exit(1)
 

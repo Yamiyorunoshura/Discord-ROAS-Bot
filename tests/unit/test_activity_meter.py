@@ -15,6 +15,7 @@ import pytest_asyncio
 # 測試配置
 logging.basicConfig(level=logging.DEBUG)
 
+
 class TestActivityCalculator:
     """🧮 活躍度計算器測試類"""
 
@@ -22,6 +23,7 @@ class TestActivityCalculator:
     def calculator(self):
         """建立測試用計算器"""
         from cogs.activity_meter.main.calculator import ActivityCalculator
+
         return ActivityCalculator()
 
     def test_decay_no_time(self, calculator):
@@ -36,7 +38,7 @@ class TestActivityCalculator:
     def test_decay_within_grace_period(self, calculator):
         """測試寬限期內的衰減計算"""
         current_score = 50.0
-        time_diff = 1800  # 30分鐘，小於1小時寬限期
+        time_diff = 1800  # 30分鐘,小於1小時寬限期
 
         result = calculator.decay(current_score, time_diff)
 
@@ -45,7 +47,7 @@ class TestActivityCalculator:
     def test_decay_after_grace_period(self, calculator):
         """測試寬限期後的衰減計算"""
         current_score = 50.0
-        time_diff = 7200  # 2小時，大於寬限期
+        time_diff = 7200  # 2小時,大於寬限期
 
         result = calculator.decay(current_score, time_diff)
 
@@ -68,13 +70,14 @@ class TestActivityCalculator:
         """測試更新冷卻邏輯"""
         now = int(time.time())
         recent_time = now - 10  # 10秒前
-        old_time = now - 100    # 100秒前
+        old_time = now - 100  # 100秒前
 
         should_update_recent = calculator.should_update(recent_time, now)
         should_update_old = calculator.should_update(old_time, now)
 
         assert not should_update_recent, "最近更新應在冷卻期內"
         assert should_update_old, "較舊更新應允許更新"
+
 
 class TestActivityDatabase:
     """🗄️ 活躍度資料庫測試類"""
@@ -83,6 +86,7 @@ class TestActivityDatabase:
     async def activity_db(self, activity_test_db):
         """建立測試用活躍度資料庫"""
         from cogs.activity_meter.database.database import ActivityDatabase
+
         db = ActivityDatabase()
         # 使用mock pool模式
         mock_pool = MagicMock()
@@ -123,6 +127,7 @@ class TestActivityDatabase:
             result = await cursor.fetchone()
             assert result is not None, f"表格 {table} 應該被創建"
 
+
 class TestActivityRenderer:
     """📊 活躍度渲染器測試類"""
 
@@ -130,12 +135,16 @@ class TestActivityRenderer:
     def renderer(self):
         """建立測試用渲染器"""
         from cogs.activity_meter.main.renderer import ActivityRenderer
+
         return ActivityRenderer()
 
     def test_render_progress_bar_normal(self, renderer):
         """測試正常進度條渲染"""
-        with patch('PIL.Image.new') as mock_image,              patch('PIL.ImageDraw.Draw') as mock_draw,              patch('PIL.ImageFont.truetype') as mock_font:
-
+        with (
+            patch("PIL.Image.new") as mock_image,
+            patch("PIL.ImageDraw.Draw") as mock_draw,
+            patch("PIL.ImageFont.truetype") as mock_font,
+        ):
             mock_img = Mock()
             mock_drawer = Mock()
             mock_font_obj = Mock()
@@ -156,17 +165,19 @@ class TestActivityRenderer:
             assert result is not None, "應返回渲染結果"
             assert isinstance(result, discord.File), "應返回Discord文件"
 
+
 # 測試工具函數
 def test_config_validation():
     """測試配置驗證"""
     from cogs.activity_meter.config import config
 
     # 驗證關鍵配置存在
-    assert hasattr(config, 'ACTIVITY_MAX_SCORE'), "應有最大分數配置"
-    assert hasattr(config, 'ACTIVITY_DECAY_PER_H'), "應有衰減率配置"
-    assert hasattr(config, 'ACTIVITY_DECAY_AFTER'), "應有寬限期配置"
-    assert hasattr(config, 'ACTIVITY_GAIN'), "應有增益配置"
-    assert hasattr(config, 'ACTIVITY_COOLDOWN'), "應有冷卻時間配置"
+    assert hasattr(config, "ACTIVITY_MAX_SCORE"), "應有最大分數配置"
+    assert hasattr(config, "ACTIVITY_DECAY_PER_H"), "應有衰減率配置"
+    assert hasattr(config, "ACTIVITY_DECAY_AFTER"), "應有寬限期配置"
+    assert hasattr(config, "ACTIVITY_GAIN"), "應有增益配置"
+    assert hasattr(config, "ACTIVITY_COOLDOWN"), "應有冷卻時間配置"
+
 
 def test_time_utilities():
     """測試時間工具函數"""

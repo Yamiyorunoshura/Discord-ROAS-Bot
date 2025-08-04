@@ -1,19 +1,33 @@
 """成就系統快取策略配置.
 
-此模組提供成就系統的快取策略和配置，包含：
+此模組提供成就系統的快取策略和配置,包含:
 - TTL 快取配置
 - 快取鍵值管理
 - 快取無效化策略
 - 效能優化配置
 
-遵循快取最佳實踐，提供高效能的資料存取。
+遵循快取最佳實踐,提供高效能的資料存取.
 """
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
+
+from ..constants import (
+    ARG_INDEX_2,
+    ARG_INDEX_3,
+    ARG_INDEX_4,
+    ARG_INDEX_5,
+    EXCELLENT_HIT_RATE,
+    FAIR_HIT_RATE,
+    GOOD_HIT_RATE,
+    HIGH_REQUEST_COUNT_THRESHOLD,
+    MIN_REQUEST_COUNT_FOR_ADJUSTMENT,
+    POOR_HIT_RATE,
+)
+from .cache_key_standard import CacheKeyStandard, CacheKeyType
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +35,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CacheConfig:
     """快取配置類別."""
-    ttl: int  # 存活時間（秒）
+
+    ttl: int  # 存活時間(秒)
     maxsize: int  # 最大條目數
     enabled: bool = True  # 是否啟用快取
 
@@ -29,17 +44,17 @@ class CacheConfig:
 class AchievementCacheStrategy:
     """成就系統快取策略.
 
-    定義成就系統各種資料的快取策略和配置。
+    定義成就系統各種資料的快取策略和配置.
     """
 
     # 預設快取配置
-    DEFAULT_CONFIGS = {
+    DEFAULT_CONFIGS: ClassVar[dict] = {
         "achievement": CacheConfig(ttl=600, maxsize=500),  # 成就資料快取 10 分鐘
-        "category": CacheConfig(ttl=1800, maxsize=100),    # 分類資料快取 30 分鐘
+        "category": CacheConfig(ttl=1800, maxsize=100),  # 分類資料快取 30 分鐘
         "user_achievements": CacheConfig(ttl=300, maxsize=1000),  # 用戶成就快取 5 分鐘
         "user_progress": CacheConfig(ttl=60, maxsize=2000),  # 用戶進度快取 1 分鐘
-        "global_stats": CacheConfig(ttl=900, maxsize=50),   # 全域統計快取 15 分鐘
-        "leaderboard": CacheConfig(ttl=300, maxsize=100),   # 排行榜快取 5 分鐘
+        "global_stats": CacheConfig(ttl=900, maxsize=50),  # 全域統計快取 15 分鐘
+        "leaderboard": CacheConfig(ttl=300, maxsize=100),  # 排行榜快取 5 分鐘
     }
 
     @classmethod
@@ -54,7 +69,7 @@ class AchievementCacheStrategy:
         """
         return cls.DEFAULT_CONFIGS.get(
             cache_type,
-            CacheConfig(ttl=300, maxsize=100)  # 預設配置
+            CacheConfig(ttl=300, maxsize=100),  # 預設配置
         )
 
     @classmethod
@@ -68,8 +83,6 @@ class AchievementCacheStrategy:
         Returns:
             標準化的快取鍵值
         """
-        from .cache_key_standard import CacheKeyStandard, CacheKeyType
-
         try:
             # 將 cache_type 轉換為 CacheKeyType
             key_type = CacheKeyType(cache_type)
@@ -84,7 +97,9 @@ class AchievementCacheStrategy:
             return f"achievement:{cache_type}:" + ":".join(str(arg) for arg in args)
 
     @classmethod
-    def _build_kwargs_from_args(cls, cache_type: str, args: tuple[Any, ...]) -> dict[str, Any]:
+    def _build_kwargs_from_args(
+        cls, cache_type: str, args: tuple[Any, ...]
+    ) -> dict[str, Any]:
         """根據快取類型和參數構建關鍵字參數.
 
         Args:
@@ -105,32 +120,32 @@ class AchievementCacheStrategy:
         elif cache_type == "achievements":
             if len(args) >= 1 and args[0] is not None:
                 kwargs["category_id"] = args[0]
-            if len(args) >= 2 and args[1] is not None:
+            if len(args) >= ARG_INDEX_2 and args[1] is not None:
                 kwargs["type"] = str(args[1])
-            if len(args) >= 3:
+            if len(args) >= ARG_INDEX_3:
                 kwargs["active"] = args[2]
-            if len(args) >= 4 and args[3] is not None:
+            if len(args) >= ARG_INDEX_4 and args[3] is not None:
                 kwargs["limit"] = args[3]
-            if len(args) >= 5:
+            if len(args) >= ARG_INDEX_5:
                 kwargs["offset"] = args[4]
         elif cache_type == "user_achievements":
             if len(args) >= 1:
                 kwargs["user_id"] = args[0]
-            if len(args) >= 2 and args[1] is not None:
+            if len(args) >= ARG_INDEX_2 and args[1] is not None:
                 kwargs["category_id"] = args[1]
-            if len(args) >= 3 and args[2] is not None:
+            if len(args) >= ARG_INDEX_3 and args[2] is not None:
                 kwargs["limit"] = args[2]
         elif cache_type == "user_progress":
             if len(args) >= 1:
                 kwargs["user_id"] = args[0]
-            if len(args) >= 2 and args[1] is not None:
+            if len(args) >= ARG_INDEX_2 and args[1] is not None:
                 kwargs["achievement_id"] = args[1]
         elif cache_type == "user_stats" and len(args) >= 1:
             kwargs["user_id"] = args[0]
         elif cache_type == "leaderboard":
             if len(args) >= 1:
                 kwargs["type"] = args[0]
-            if len(args) >= 2:
+            if len(args) >= ARG_INDEX_2:
                 kwargs["limit"] = args[1]
         elif cache_type == "popular_achievements" and len(args) >= 1:
             kwargs["limit"] = args[0]
@@ -142,53 +157,60 @@ class AchievementCacheStrategy:
         """取得需要無效化的快取模式.
 
         Args:
-            operation_type: 操作類型（create, update, delete）
+            operation_type: 操作類型(create, update, delete)
             **kwargs: 操作相關參數
 
         Returns:
             需要無效化的快取模式列表
         """
-        from .cache_key_standard import CacheKeyStandard
-
         try:
             # 使用標準化的無效化模式
             return CacheKeyStandard.get_invalidation_patterns_for_operation(
                 operation_type, **kwargs
             )
         except Exception as e:
-            logger.warning(f"使用標準化無效化模式失敗，回退到原始模式: {e}")
+            logger.warning(f"使用標準化無效化模式失敗,回退到原始模式: {e}")
 
             # 回退到原始實現
             patterns = []
 
-            if operation_type in ["create_achievement", "update_achievement", "delete_achievement"]:
-                patterns.extend([
-                    "achievement:",
-                    "achievements:",
-                    "global_stats",
-                    "popular_achievements"
-                ])
+            if operation_type in [
+                "create_achievement",
+                "update_achievement",
+                "delete_achievement",
+            ]:
+                patterns.extend(
+                    [
+                        "achievement:",
+                        "achievements:",
+                        "global_stats",
+                        "popular_achievements",
+                    ]
+                )
 
-                # 如果有分類 ID，也無效化分類相關快取
+                # 如果有分類 ID,也無效化分類相關快取
                 if "category_id" in kwargs:
                     patterns.append(f"category:{kwargs['category_id']}")
 
-            elif operation_type in ["create_category", "update_category", "delete_category"]:
-                patterns.extend([
-                    "category:",
-                    "categories:"
-                ])
+            elif operation_type in [
+                "create_category",
+                "update_category",
+                "delete_category",
+            ]:
+                patterns.extend(["category:", "categories:"])
 
             elif operation_type in ["award_achievement", "update_progress"]:
                 user_id = kwargs.get("user_id")
                 if user_id:
-                    patterns.extend([
-                        f"user_achievements:{user_id}",
-                        f"user_progress:{user_id}",
-                        f"user_stats:{user_id}",
-                        "global_stats",
-                        "leaderboard"
-                    ])
+                    patterns.extend(
+                        [
+                            f"user_achievements:{user_id}",
+                            f"user_progress:{user_id}",
+                            f"user_stats:{user_id}",
+                            "global_stats",
+                            "leaderboard",
+                        ]
+                    )
 
             return patterns
 
@@ -196,7 +218,7 @@ class AchievementCacheStrategy:
 class CacheInvalidationManager:
     """快取無效化管理器.
 
-    負責管理快取的無效化邏輯和策略。
+    負責管理快取的無效化邏輯和策略.
     """
 
     def __init__(self):
@@ -231,19 +253,18 @@ class CacheInvalidationManager:
 
         # 記錄無效化歷史
         if removed_count > 0:
-            self._invalidation_history.append({
-                "timestamp": logger.name,  # 使用 logger 名稱作為時間戳
-                "patterns": patterns,
-                "removed_count": removed_count,
-                "removed_keys": keys_to_remove
-            })
+            self._invalidation_history.append(
+                {
+                    "timestamp": logger.name,  # 使用 logger 名稱作為時間戳
+                    "patterns": patterns,
+                    "removed_count": removed_count,
+                    "removed_keys": keys_to_remove,
+                }
+            )
 
             logger.debug(
                 "快取無效化完成",
-                extra={
-                    "patterns": patterns,
-                    "removed_count": removed_count
-                }
+                extra={"patterns": patterns, "removed_count": removed_count},
             )
 
         return removed_count
@@ -267,7 +288,7 @@ class CacheInvalidationManager:
 class PerformanceOptimizer:
     """效能優化器.
 
-    提供快取效能監控和優化建議。
+    提供快取效能監控和優化建議.
     """
 
     def __init__(self):
@@ -313,9 +334,13 @@ class PerformanceOptimizer:
                 "misses": misses,
                 "total_requests": total,
                 "hit_rate": round(hit_rate, 2),
-                "efficiency": "excellent" if hit_rate >= 80 else
-                            "good" if hit_rate >= 60 else
-                            "fair" if hit_rate >= 40 else "poor"
+                "efficiency": "excellent"
+                if hit_rate >= EXCELLENT_HIT_RATE
+                else "good"
+                if hit_rate >= GOOD_HIT_RATE
+                else "fair"
+                if hit_rate >= FAIR_HIT_RATE
+                else "poor",
             }
 
         return stats
@@ -333,23 +358,27 @@ class PerformanceOptimizer:
             hit_rate = stat["hit_rate"]
             total_requests = stat["total_requests"]
 
-            if hit_rate < 40 and total_requests > 100:
-                suggestions.append({
-                    "cache_type": cache_type,
-                    "issue": "low_hit_rate",
-                    "current_hit_rate": hit_rate,
-                    "suggestion": f"考慮增加 {cache_type} 快取的 TTL 或調整快取策略",
-                    "priority": "high" if hit_rate < 20 else "medium"
-                })
+            if hit_rate < FAIR_HIT_RATE and total_requests > MIN_REQUEST_COUNT_FOR_ADJUSTMENT:
+                suggestions.append(
+                    {
+                        "cache_type": cache_type,
+                        "issue": "low_hit_rate",
+                        "current_hit_rate": hit_rate,
+                        "suggestion": f"考慮增加 {cache_type} 快取的 TTL 或調整快取策略",
+                        "priority": "high" if hit_rate < POOR_HIT_RATE else "medium",
+                    }
+                )
 
-            if total_requests > 1000 and hit_rate > 90:
-                suggestions.append({
-                    "cache_type": cache_type,
-                    "issue": "over_caching",
-                    "current_hit_rate": hit_rate,
-                    "suggestion": f"{cache_type} 快取效率很高，可以考慮增加快取大小以支援更多資料",
-                    "priority": "low"
-                })
+            if total_requests > HIGH_REQUEST_COUNT_THRESHOLD and hit_rate > EXCELLENT_HIT_RATE:
+                suggestions.append(
+                    {
+                        "cache_type": cache_type,
+                        "issue": "over_caching",
+                        "current_hit_rate": hit_rate,
+                        "suggestion": f"{cache_type} 快取效率很高,可以考慮增加快取大小以支援更多資料",
+                        "priority": "low",
+                    }
+                )
 
         return suggestions
 

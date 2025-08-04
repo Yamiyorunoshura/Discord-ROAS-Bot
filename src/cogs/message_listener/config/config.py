@@ -45,16 +45,13 @@ DISCORD_COLORS = {
     "message_area": (56, 58, 64),  # #383a40 - 訊息區域背景
     "message_hover": (67, 70, 77),  # #43464d - 訊息懸停背景
     "chat_input": (64, 68, 75),  # #40444b - 聊天輸入框背景
-    # 文字顏色 (更新為新版本)
     "text_primary": (242, 243, 245),  # #f2f3f5 - 主要文字 (更亮)
     "text_secondary": (181, 186, 193),  # #b5bac1 - 次要文字
     "text_muted": (148, 155, 164),  # #949ba4 - 靜音文字
     "text_link": (0, 168, 252),  # #00a8fc - 連結文字
-    # 用戶名稱顏色 (更新色彩)
     "username": (255, 255, 255),  # #ffffff - 用戶名稱
     "username_hover": (219, 222, 225),  # #dbdee1 - 用戶名稱懸停
     "timestamp": (163, 166, 170),  # #a3a6aa - 時間戳
-    # 特殊元素顏色 (新版本風格)
     "embed_bg": (43, 45, 49),  # #2b2d31 - 嵌入背景
     "embed_border": (35, 39, 42),  # #23272a - 嵌入邊框
     "embed_accent": (88, 101, 242),  # #5865f2 - 嵌入重點色
@@ -88,32 +85,25 @@ BG_COLOR = DISCORD_COLORS["main_bg"]
 TEXT_COLOR = DISCORD_COLORS["text_primary"]
 EMBED_COLOR = DISCORD_COLORS["embed_bg"]
 
-# 新增的渲染配置 (更新為現代化風格)
 RENDER_CONFIG = {
-    # 訊息氣泡設定 (更現代化的設計)
     "bubble_radius": 6,  # 訊息氣泡圓角半徑 (更小的圓角)
     "bubble_padding": 16,  # 氣泡內邊距 (更寬敞)
     "bubble_margin": 2,  # 氣泡外邊距 (更緊湊)
-    # 頭像設定 (更精緻的頭像)
     "avatar_border_width": 0,  # 頭像邊框寬度 (無邊框,更簡潔)
     "avatar_border_color": (79, 84, 92),  # 頭像邊框顏色
     "status_indicator_size": 14,  # 狀態指示器大小 (稍大)
     "status_indicator_border": 3,  # 狀態指示器邊框寬度
-    # 排版設定 (更好的可讀性)
     "line_height": 1.4,  # 行高倍數 (更好的行距)
     "paragraph_spacing": 12,  # 段落間距 (更大的間距)
     "max_content_width": 600,  # 最大內容寬度 (更寬)
     "username_spacing": 4,  # 用戶名與訊息間距
-    # 陰影效果 (更現代的陰影)
     "text_shadow_offset": (0, 1),  # 文字陰影偏移 (更自然)
     "text_shadow_color": (0, 0, 0, 64),  # 文字陰影顏色 (更淡)
     "enable_text_shadow": False,  # 是否啟用文字陰影 (關閉,更簡潔)
     "message_shadow": True,  # 訊息區域陰影
-    # 動畫和效果 (更流暢的交互)
     "hover_transition": 0.2,  # 懸停過渡時間 (更慢更自然)
     "enable_hover_effects": True,  # 是否啟用懸停效果
     "hover_lift": 2,  # 懸停提升像素
-    # 時間戳格式 (更現代的格式)
     "timestamp_format": "HH:mm",  # 時間戳格式
     "show_date_separator": True,  # 是否顯示日期分隔符
     "date_format": "MM月dd日",  # 日期格式 (更簡潔)
@@ -130,15 +120,28 @@ RENDER_CONFIG = {
     "code_block_theme": "discord",  # 代碼塊主題
 }
 
-# 字型設定 - 使用統一配置系統
-from src.core.config import get_settings
-
 _settings = get_settings()
 FONT_PATH = str(_settings.assets_dir / "fonts")
 DEFAULT_FONT = "arial.ttf"
 DEFAULT_FONT_SIZE = 14
 USERNAME_FONT_SIZE = 16
 TIMESTAMP_FONT_SIZE = 12
+
+# HTTP 狀態碼常量
+HTTP_OK = 200
+
+# 時間常量
+SECONDS_PER_MINUTE = 60
+SECONDS_PER_HOUR = 3600
+
+# 字型系統常量
+FONT_TEST_SIZE = 100
+
+# 預覽和顯示常量
+MAX_ATTACHMENTS_DISPLAY = 3
+MAX_CHANNELS_DISPLAY = 5
+MAX_REPLY_CONTENT_LENGTH = 50
+REPLY_CONTENT_TRUNCATE_SUFFIX = "..."
 
 # 字型下載 URL
 FONT_DOWNLOAD_URLS = {
@@ -147,7 +150,6 @@ FONT_DOWNLOAD_URLS = {
     "wqy-microhei.ttc": "https://github.com/anthonyfok/fonts-wqy-microhei/raw/master/wqy-microhei.ttc",
 }
 
-# 中文字型列表 (按優先順序排序)
 CHINESE_FONTS = [
     "NotoSansTC-Regular.otf",  # Google Noto Sans TC (繁體中文)
     "NotoSansSC-Regular.otf",  # Google Noto Sans SC (簡體中文)
@@ -161,7 +163,6 @@ CHINESE_FONTS = [
     "AppleGothic.ttf",  # Apple Gothic (macOS)
     "DroidSansFallback.ttf",  # Droid Sans Fallback (Android)
 ]
-
 
 # 日誌設定
 def setup_logger():
@@ -189,9 +190,8 @@ def setup_logger():
 
     return logger
 
-
 # 權限檢查函數
-def is_allowed(inter, command_name):
+def is_allowed(inter, _command_name=None):  # command_name 現在是可選參數, 但未使用
     """檢查用戶是否有權限執行指定指令"""
     if not inter.guild:
         return False

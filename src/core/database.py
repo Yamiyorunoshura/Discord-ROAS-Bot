@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any
@@ -22,18 +22,20 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
     from pathlib import Path
 
+# Constants
+CONNECTION_EXPIRY_SECONDS = 3600  # 1 hour in seconds
+SQL_PREVIEW_LENGTH = 100  # Maximum length for SQL preview in logs
+BETWEEN_VALUES_COUNT = 2  # Required number of values for BETWEEN operator
 
 class DatabaseError(Exception):
     """Base database error."""
 
     pass
 
-
 class ConnectionPoolError(DatabaseError):
     """Connection pool related error."""
 
     pass
-
 
 class DatabaseConnection:
     """Wrapper for database connection with Python 3.12 compatibility."""
@@ -93,8 +95,7 @@ class DatabaseConnection:
     @property
     def is_expired(self) -> bool:
         """Check if connection is expired (older than 1 hour)."""
-        return time.time() - self._created_at > 3600
-
+        return time.time() - self._created_at > CONNECTION_EXPIRY_SECONDS
 
 class DatabasePool:
     """Database connection pool with Python 3.12 compatibility."""
@@ -189,7 +190,7 @@ class DatabasePool:
 
         except Exception as e:
             self.logger.error("Failed to create database connection", error=str(e))
-            raise ConnectionPoolError(f"Failed to create connection: {e}")
+            raise ConnectionPoolError(f"Failed to create connection: {e}") from e
 
     @asynccontextmanager
     async def get_connection(self) -> AsyncIterator[DatabaseConnection]:
@@ -232,7 +233,7 @@ class DatabasePool:
             )
             raise ConnectionPoolError(
                 f"Connection acquisition timeout after {self.timeout}s"
-            )
+            ) from None
 
         except Exception as e:
             self._failed_checkouts += 1
@@ -253,10 +254,8 @@ class DatabasePool:
 
                 # Check if connection is expired
                 if connection.is_expired:
-                    try:
+                    with suppress(Exception):
                         await connection.close()
-                    except Exception:
-                        pass  # Ignore close errors for expired connections
 
                     # Create new connection
                     connection = await self._create_connection()
@@ -349,7 +348,6 @@ class DatabasePool:
             "max_overflow": self.max_overflow,
         }
 
-
 class BaseRepository:
     """Base repository class with common database operations."""
 
@@ -398,10 +396,10 @@ class BaseRepository:
                 await conn.rollback()
                 self.logger.error(
                     "Query execution failed",
-                    sql=sql[:100] + "..." if len(sql) > 100 else sql,
+                    sql=sql[:SQL_PREVIEW_LENGTH] + "..." if len(sql) > SQL_PREVIEW_LENGTH else sql,
                     error=str(e),
                 )
-                raise DatabaseError(f"Query failed: {e}")
+                raise DatabaseError(f"Query failed: {e}") from e
 
     async def get_by_id(self, id_value: int | str) -> dict[str, Any] | None:
         """Get record by ID.
@@ -470,10 +468,8 @@ class BaseRepository:
         row = await self.execute_query(sql, parameters, fetch_one=True)
         return row is not None
 
-
 # Global database pools
 _pools: dict[str, DatabasePool] = {}
-
 
 async def get_database_pool(
     database_name: str, settings: Settings | None = None
@@ -498,13 +494,11 @@ async def get_database_pool(
 
     return _pools[database_name]
 
-
 async def close_all_pools() -> None:
     """Close all database pools."""
     for pool in _pools.values():
         await pool.close_all()
     _pools.clear()
-
 
 class JoinType(Enum):
     """SQL JOIN 類型列舉."""
@@ -515,13 +509,11 @@ class JoinType(Enum):
     FULL = "FULL OUTER JOIN"
     CROSS = "CROSS JOIN"
 
-
 class OrderDirection(Enum):
     """排序方向列舉."""
 
     ASC = "ASC"
     DESC = "DESC"
-
 
 @dataclass
 class QueryCondition:
@@ -538,26 +530,42 @@ class QueryCondition:
         Returns:
             SQL 條件字串和參數值的元組
         """
-        if self.operator.upper() == "IN":
+        operator_upper = self.operator.upper()
+
+        # Handle IN operator
+        if operator_upper == "IN":
             if isinstance(self.value, list | tuple):
                 placeholders = ",".join(["?" for _ in self.value])
-                return f"{self.field} IN ({placeholders})", self.value
+                sql_condition = f"{self.field} IN ({placeholders})"
+                parameters = self.value
             else:
-                return f"{self.field} IN (?)", (self.value,)
-        elif self.operator.upper() == "BETWEEN":
-            if isinstance(self.value, list | tuple) and len(self.value) == 2:
-                return f"{self.field} BETWEEN ? AND ?", self.value
+                sql_condition = f"{self.field} IN (?)"
+                parameters = (self.value,)
+
+        # Handle BETWEEN operator
+        elif operator_upper == "BETWEEN":
+            if isinstance(self.value, list | tuple) and len(self.value) == BETWEEN_VALUES_COUNT:
+                sql_condition = f"{self.field} BETWEEN ? AND ?"
+                parameters = self.value
             else:
                 raise ValueError("BETWEEN 操作符需要包含兩個值的列表或元組")
-        elif self.operator.upper() == "LIKE":
-            return f"{self.field} LIKE ?", (self.value,)
-        elif self.operator.upper() == "IS NULL":
-            return f"{self.field} IS NULL", ()
-        elif self.operator.upper() == "IS NOT NULL":
-            return f"{self.field} IS NOT NULL", ()
-        else:
-            return f"{self.field} {self.operator} ?", (self.value,)
 
+        # Handle NULL operators
+        elif operator_upper in ("IS NULL", "IS NOT NULL"):
+            sql_condition = f"{self.field} {operator_upper}"
+            parameters = ()
+
+        # Handle LIKE operator
+        elif operator_upper == "LIKE":
+            sql_condition = f"{self.field} LIKE ?"
+            parameters = (self.value,)
+
+        # Handle standard operators
+        else:
+            sql_condition = f"{self.field} {self.operator} ?"
+            parameters = (self.value,)
+
+        return sql_condition, parameters
 
 @dataclass
 class JoinClause:
@@ -573,7 +581,6 @@ class JoinClause:
         table_part = f"{self.table} AS {self.alias}" if self.alias else self.table
         return f"{self.join_type.value} {table_part} ON {self.on_condition}"
 
-
 @dataclass
 class OrderByClause:
     """ORDER BY 子句資料類別."""
@@ -584,7 +591,6 @@ class OrderByClause:
     def to_sql(self) -> str:
         """轉換為 SQL ORDER BY 子句."""
         return f"{self.field} {self.direction.value}"
-
 
 class QueryBuilder:
     """現代化 SQL 查詢建構器.
@@ -888,7 +894,7 @@ class QueryBuilder:
         table_part = f"{self.table} AS {self.alias}" if self.alias else self.table
 
         sql_parts = [f"SELECT {distinct_clause}{select_fields}", f"FROM {table_part}"]
-        parameters = []
+        parameters: list[Any] = []
 
         # JOIN 子句
         for join_clause in self._join_clauses:
@@ -1039,7 +1045,7 @@ class QueryBuilder:
             SQL 字串和參數列表的元組
         """
         sql = f"DELETE FROM {self.table}"
-        parameters = []
+        parameters: list[Any] = []
 
         # WHERE 子句
         if self._where_conditions:
@@ -1114,7 +1120,6 @@ class QueryBuilder:
     def __repr__(self) -> str:
         """詳細字串表示."""
         return f"QueryBuilder(table='{self.table}', alias='{self.alias}')"
-
 
 __all__ = [
     "BaseRepository",

@@ -3,6 +3,7 @@
 - 處理定期排行榜更新和播報
 """
 
+import asyncio
 import logging
 from datetime import datetime
 from typing import Any
@@ -12,9 +13,9 @@ from discord.ext import tasks
 
 from ..config import config
 from ..database.database import ActivityDatabase
+from ..service.batch_service import BatchCalculationService
 
 logger = logging.getLogger("activity_meter")
-
 
 class ActivityTasks:
     """
@@ -38,6 +39,9 @@ class ActivityTasks:
         self.db = db
         self.auto_report_task = None
 
+        # 初始化批量計算服務
+        self.batch_service = BatchCalculationService(db)
+
     def start(self):
         """啟動所有背景任務"""
         self.auto_report_task = self.auto_report.start()
@@ -47,10 +51,15 @@ class ActivityTasks:
         if self.auto_report_task and self.auto_report.is_running():
             self.auto_report.cancel()
 
+        # 關閉批量計算服務
+        shutdown_task = asyncio.create_task(self.batch_service.shutdown())
+        # 確保異常不會被忽略
+        shutdown_task.add_done_callback(lambda t: t.exception())
+
     @tasks.loop(minutes=1)
     async def auto_report(self):
         """
-        自動播報排行榜任務
+        自動播報排行榜任務 - 使用批量計算優化
         每日在指定時間自動發送排行榜到設定的頻道
         """
         try:
@@ -67,11 +76,22 @@ class ActivityTasks:
             # 獲取所有設定了播報頻道的伺服器
             report_channels = await self.db.get_report_channels()
 
+            # 批量處理所有伺服器的背景衰減計算
             for guild_id, channel_id in report_channels:
+                # 執行批量衰減計算以確保排行榜數據準確
+                await self.batch_service.bulk_decay_all_users(guild_id)
+
+                # 更新排行榜計算
+                await self.batch_service.bulk_update_rankings(guild_id, ymd)
+
+                # 處理排行榜播報
                 await self._process_guild_report(guild_id, channel_id, ymd, ym, days)
 
+            # 執行背景計算優化檢查
+            await self.batch_service.optimize_background_calculations()
+
         except Exception as e:
-            logger.error(f"【活躍度】自動播報任務執行失敗: {e}")
+            logger.error(f"[活躍度]自動播報任務執行失敗: {e}")
 
     @auto_report.before_loop
     async def _wait_ready(self):
@@ -116,7 +136,7 @@ class ActivityTasks:
             await channel.send(embed=embed)
 
         except Exception as e:
-            logger.error(f"【活躍度】處理伺服器 {guild_id} 的排行榜播報失敗: {e}")
+            logger.error(f"[活躍度]處理伺服器 {guild_id} 的排行榜播報失敗: {e}")
 
     def _create_ranking_embed(
         self,

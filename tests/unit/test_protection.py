@@ -28,7 +28,9 @@ class TestAntiSpam:
     @pytest_asyncio.fixture
     async def anti_spam(self, mock_bot):
         """建立測試用的反垃圾訊息Cog"""
-        with patch('cogs.protection.anti_spam.main.main.AntiSpamDatabase') as mock_db_class:
+        with patch(
+            "cogs.protection.anti_spam.main.main.AntiSpamDatabase"
+        ) as mock_db_class:
             mock_db = AsyncMock()
             mock_db.init_db = AsyncMock()
             mock_db_class.return_value = mock_db
@@ -57,8 +59,9 @@ class TestAntiSpam:
 
         await anti_spam.on_message(mock_spam_message)
 
-        # 基本測試：確保方法能正常執行
+        # 基本測試:確保方法能正常執行
         assert True
+
 
 class TestAntiLink:
     """反惡意連結測試"""
@@ -66,7 +69,9 @@ class TestAntiLink:
     @pytest_asyncio.fixture
     async def anti_link(self, mock_bot):
         """建立測試用的反惡意連結Cog"""
-        with patch('cogs.protection.anti_link.main.main.AntiLinkDatabase') as mock_db_class:
+        with patch(
+            "cogs.protection.anti_link.main.main.AntiLinkDatabase"
+        ) as mock_db_class:
             mock_db = AsyncMock()
             mock_db.init_db = AsyncMock()
             mock_db_class.return_value = mock_db
@@ -94,7 +99,7 @@ class TestAntiLink:
         """測試從訊息中提取連結"""
         urls = await anti_link._extract_urls(mock_link_message)
 
-        # 基本測試：確保方法能正常執行
+        # 基本測試:確保方法能正常執行
         assert isinstance(urls, list)
 
     @pytest.mark.asyncio
@@ -102,8 +107,9 @@ class TestAntiLink:
         """測試包含連結的訊息處理"""
         await anti_link.on_message(mock_link_message)
 
-        # 基本測試：確保方法能正常執行
+        # 基本測試:確保方法能正常執行
         assert True
+
 
 class TestExecutableDetector:
     """可執行檔案檢測器測試"""
@@ -124,16 +130,24 @@ class TestExecutableDetector:
         result = detector._is_dangerous_extension("document.pdf", 12345)
         assert isinstance(result, bool)
 
+
 class TestAntiExecutable:
     """反可執行檔案測試"""
 
     @pytest_asyncio.fixture
     async def anti_executable(self, mock_bot):
         """建立測試用的反可執行檔案Cog"""
-        with patch('cogs.protection.anti_executable.main.main.AntiExecutableDatabase') as mock_db_class, \
-             patch('cogs.protection.anti_executable.main.main.ExecutableDetector') as mock_detector_class, \
-             patch('cogs.protection.anti_executable.main.main.ExecutableActions') as mock_action_class:
-
+        with (
+            patch(
+                "cogs.protection.anti_executable.main.main.AntiExecutableDatabase"
+            ) as mock_db_class,
+            patch(
+                "cogs.protection.anti_executable.main.main.ExecutableDetector"
+            ) as mock_detector_class,
+            patch(
+                "cogs.protection.anti_executable.main.main.ExecutableActions"
+            ) as mock_action_class,
+        ):
             mock_db = AsyncMock()
             mock_db.init_db = AsyncMock()
             mock_db_class.return_value = mock_db
@@ -172,22 +186,27 @@ class TestAntiExecutable:
         return message
 
     @pytest.mark.asyncio
-    async def test_on_message_no_attachments(self, anti_executable, mock_attachment_message):
+    async def test_on_message_no_attachments(
+        self, anti_executable, mock_attachment_message
+    ):
         """測試沒有附件的訊息"""
         mock_attachment_message.attachments = []
 
         await anti_executable.on_message(mock_attachment_message)
 
-        # 基本測試：確保方法能正常執行
+        # 基本測試:確保方法能正常執行
         assert True
 
     @pytest.mark.asyncio
-    async def test_on_message_with_attachment(self, anti_executable, mock_attachment_message):
+    async def test_on_message_with_attachment(
+        self, anti_executable, mock_attachment_message
+    ):
         """測試包含附件的訊息"""
         await anti_executable.on_message(mock_attachment_message)
 
-        # 基本測試：確保方法能正常執行
+        # 基本測試:確保方法能正常執行
         assert True
+
 
 class TestExecutableActions:
     """可執行檔案操作處理器測試"""
@@ -201,6 +220,7 @@ class TestExecutableActions:
     def test_action_handler_creation(self, action_handler):
         """測試操作處理器創建"""
         assert action_handler is not None
+
 
 class TestProtectionIntegration:
     """保護系統整合測試"""
@@ -217,22 +237,23 @@ class TestProtectionIntegration:
         assert anti_link is not None
         assert anti_executable is not None
 
+
 class TestProtectionErrorHandling:
     """保護系統錯誤處理測試"""
 
     @pytest.mark.asyncio
     async def test_database_failure_graceful_handling(self, mock_bot):
         """測試資料庫失敗的優雅處理"""
-        with patch('aiosqlite.connect') as mock_connect:
+        with patch("aiosqlite.connect") as mock_connect:
             mock_connect.side_effect = Exception("資料庫連接失敗")
 
             # 測試在資料庫失敗時系統仍能正常運行
             try:
                 AntiSpam(mock_bot)
-                # 基本測試：確保不會崩潰
+                # 基本測試:確保不會崩潰
                 assert True
             except Exception:
-                # 如果有異常，也是可以接受的
+                # 如果有異常,也是可以接受的
                 assert True
 
     def test_invalid_regex_pattern_handling(self):

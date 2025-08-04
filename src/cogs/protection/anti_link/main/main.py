@@ -30,11 +30,16 @@ from ..config.config import (
     parse_domain_list,
 )
 from ..database.database import AntiLinkDatabase
+from ..panel.embeds.config_embed import ConfigEmbed
+from ..panel.main_view import AntiLinkMainView
+
+# 常數定義
+HTTP_OK_STATUS = 200
+MIN_CSV_COLUMNS = 2
 
 # 設置模塊日誌記錄器
 logger = setup_module_logger("anti_link")
 error_handler = create_error_handler("anti_link", logger)
-
 
 class AntiLink(ProtectionCog):
     """
@@ -75,9 +80,9 @@ class AntiLink(ProtectionCog):
             await self._refresh_blacklist()
             # 啟動背景任務
             self._refresh_task.start()
-            logger.info("【反惡意連結】模組載入完成")
+            logger.info("[反惡意連結]模組載入完成")
         except Exception as exc:
-            logger.error(f"【反惡意連結】模組載入失敗: {exc}")
+            logger.error(f"[反惡意連結]模組載入失敗: {exc}")
             raise
 
     async def cog_unload(self):
@@ -85,9 +90,9 @@ class AntiLink(ProtectionCog):
         try:
             # 停止背景任務
             self._refresh_task.cancel()
-            logger.info("【反惡意連結】模組卸載完成")
+            logger.info("[反惡意連結]模組卸載完成")
         except Exception as exc:
-            logger.error(f"【反惡意連結】模組卸載失敗: {exc}")
+            logger.error(f"[反惡意連結]模組卸載失敗: {exc}")
 
     # ───────── 事件處理 ─────────
     @commands.Cog.listener()
@@ -105,7 +110,6 @@ class AntiLink(ProtectionCog):
             if not enabled or enabled.lower() != "true":
                 return
 
-            # 檢查用戶權限(管理員白名單)
             whitelist_admins = await self.get_config(
                 msg.guild.id, "whitelist_admins", DEFAULTS["whitelist_admins"]
             )
@@ -177,34 +181,39 @@ class AntiLink(ProtectionCog):
             if not domain:
                 return False
 
-            # 檢查白名單
-            if is_whitelisted(domain, whitelist):
+            # 整合所有檢查邏輯
+            checks = [
+                lambda: is_whitelisted(domain, whitelist),
+                lambda: domain in manual_blacklist or domain in self._remote_blacklist,
+                lambda: self._check_registered_domain(domain, manual_blacklist),
+            ]
+            if checks[0]():
                 return False
 
-            # 檢查手動黑名單
-            if domain in manual_blacklist:
+            # 黑名單檢查
+            if checks[1]():
                 return True
 
-            # 檢查遠端黑名單
-            if domain in self._remote_blacklist:
-                return True
-
-            # 檢查註冊網域
-            try:
-                registered_domain = tldextract.extract(domain).registered_domain
-                if registered_domain and registered_domain != domain:
-                    if (
-                        registered_domain in manual_blacklist
-                        or registered_domain in self._remote_blacklist
-                    ):
-                        return True
-            except:
-                pass
-
-            return False
+            # 註冊網域檢查
+            return bool(checks[2]())
 
         except Exception as exc:
-            logger.error(f"【反惡意連結】檢查 URL 失敗: {exc}")
+            logger.error(f"[反惡意連結]檢查 URL 失敗: {exc}")
+            return False
+
+    def _check_registered_domain(self, domain: str, manual_blacklist: set[str]) -> bool:
+        """檢查註冊網域是否在黑名單中"""
+        try:
+            registered_domain = tldextract.extract(domain).registered_domain
+            return (
+                registered_domain
+                and registered_domain != domain
+                and (
+                    registered_domain in manual_blacklist
+                    or registered_domain in self._remote_blacklist
+                )
+            )
+        except Exception:
             return False
 
     async def _handle_malicious_links(
@@ -221,7 +230,7 @@ class AntiLink(ProtectionCog):
             except discord.NotFound:
                 pass
             except discord.Forbidden:
-                logger.warning(f"【反惡意連結】無權刪除訊息: {msg.id}")
+                logger.warning(f"[反惡意連結]無權刪除訊息: {msg.id}")
 
             # 記錄統計資料
             await self._add_stat(msg.guild.id, "links_blocked", len(malicious_urls))
@@ -265,7 +274,7 @@ class AntiLink(ProtectionCog):
             )
 
             logger.info(
-                f"【反惡意連結】阻止惡意連結: {msg.author.id} - {len(malicious_urls)} 個連結"
+                f"[反惡意連結]阻止惡意連結: {msg.author.id} - {len(malicious_urls)} 個連結"
             )
 
         except Exception as exc:
@@ -309,10 +318,10 @@ class AntiLink(ProtectionCog):
                 0, "auto_update", DEFAULTS["auto_update"]
             )  # 使用 guild_id=0 作為全域設定
             if not auto_update or auto_update.lower() != "true":
-                logger.info("【反惡意連結】自動更新已停用")
+                logger.info("[反惡意連結]自動更新已停用")
                 return
 
-            logger.info("【反惡意連結】開始更新威脅情資...")
+            logger.info("[反惡意連結]開始更新威脅情資...")
 
             async with aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=60)
@@ -331,16 +340,16 @@ class AntiLink(ProtectionCog):
                             all_domains.update(domains)
                             await self.db.update_blacklist_cache(domains, feed_name)
                             logger.info(
-                                f"【反惡意連結】更新 {feed_name}: {len(domains)} 個網域"
+                                f"[反惡意連結]更新 {feed_name}: {len(domains)} 個網域"
                             )
                     except Exception as exc:
-                        logger.error(f"【反惡意連結】更新 {feed_name} 失敗: {exc}")
+                        logger.error(f"[反惡意連結]更新 {feed_name} 失敗: {exc}")
 
                 # 更新內存快取
                 self._remote_blacklist = await self.db.get_blacklist_cache()
 
                 logger.info(
-                    f"【反惡意連結】威脅情資更新完成: 總計 {len(self._remote_blacklist)} 個惡意網域"
+                    f"[反惡意連結]威脅情資更新完成: 總計 {len(self._remote_blacklist)} 個惡意網域"
                 )
 
         except Exception as exc:
@@ -358,9 +367,9 @@ class AntiLink(ProtectionCog):
             format_type = feed_config.get("format", "text")
 
             async with session.get(url) as response:
-                if response.status != 200:
+                if response.status != HTTP_OK_STATUS:
                     logger.warning(
-                        f"【反惡意連結】{feed_name} 回應狀態: {response.status}"
+                        f"[反惡意連結]{feed_name} 回應狀態: {response.status}"
                     )
                     return set()
 
@@ -369,8 +378,8 @@ class AntiLink(ProtectionCog):
                 domains = set()
 
                 if format_type == "text":
-                    for line in content.split("\n"):
-                        line = line.strip()
+                    for raw_line in content.split("\n"):
+                        line = raw_line.strip()
                         if line and not line.startswith("#"):
                             domain = extract_domain(line)
                             if domain:
@@ -379,7 +388,7 @@ class AntiLink(ProtectionCog):
                 elif format_type == "csv":
                     reader = csv.reader(io.StringIO(content))
                     for row in reader:
-                        if len(row) > 2 and row[2]:  # 假設 URL 在第三列
+                        if len(row) > MIN_CSV_COLUMNS and row[2]:  # 假設 URL 在第三列
                             domain = extract_domain(row[2])
                             if domain:
                                 domains.add(normalize_domain(domain))
@@ -387,7 +396,7 @@ class AntiLink(ProtectionCog):
                 return domains
 
         except Exception as exc:
-            logger.error(f"【反惡意連結】取得 {feed_name} 失敗: {exc}")
+            logger.error(f"[反惡意連結]取得 {feed_name} 失敗: {exc}")
             return set()
 
     # ───────── 統計管理 ─────────
@@ -397,7 +406,7 @@ class AntiLink(ProtectionCog):
             self.stats[guild_id][stat_type] += count
             await self.db.add_stat(guild_id, stat_type, count)
         except Exception as exc:
-            logger.error(f"【反惡意連結】添加統計失敗: {exc}")
+            logger.error(f"[反惡意連結]添加統計失敗: {exc}")
 
     # ───────── 斜線指令 ─────────
     @app_commands.command(name="連結保護面板", description="開啟反惡意連結保護設定面板")
@@ -411,10 +420,6 @@ class AntiLink(ProtectionCog):
             return
 
         try:
-            # 導入面板視圖
-            from ..panel.embeds.config_embed import ConfigEmbed
-            from ..panel.main_view import AntiLinkMainView
-
             # 創建配置嵌入
             config_embed = ConfigEmbed(self, interaction.guild.id)
             embed = await config_embed.create_embed()
@@ -426,7 +431,7 @@ class AntiLink(ProtectionCog):
             await interaction.response.send_message(
                 embed=embed, view=view, ephemeral=True
             )
-            logger.info(f"【反惡意連結】{interaction.user.id} 開啟了設定面板")
+            logger.info(f"[反惡意連結]{interaction.user.id} 開啟了設定面板")
 
         except Exception as exc:
             error_handler.log_error(
@@ -460,14 +465,14 @@ class AntiLink(ProtectionCog):
                     ),
                     inline=False,
                 )
-            except:
+            except Exception:
                 pass
 
             try:
                 await interaction.response.send_message(
                     embed=error_embed, ephemeral=True
                 )
-            except:
+            except Exception:
                 await interaction.followup.send(embed=error_embed, ephemeral=True)
 
     @app_commands.command(name="更新威脅情資", description="手動更新威脅情資黑名單")
@@ -523,7 +528,7 @@ class AntiLink(ProtectionCog):
             await self.db.cleanup_blacklist_cache(days=30)
             await self.db.cleanup_action_logs(0, days=30)  # 清理全域日誌
         except Exception as exc:
-            logger.error(f"【反惡意連結】定期更新任務失敗: {exc}")
+            logger.error(f"[反惡意連結]定期更新任務失敗: {exc}")
 
     @_refresh_task.before_loop
     async def _before_refresh_task(self):
@@ -548,7 +553,7 @@ class AntiLink(ProtectionCog):
             return dict(combined_stats)
 
         except Exception as exc:
-            logger.error(f"【反惡意連結】取得統計失敗: {exc}")
+            logger.error(f"[反惡意連結]取得統計失敗: {exc}")
             return {}
 
     async def add_to_whitelist(self, guild_id: int, domains: list[str]) -> int:
@@ -574,7 +579,7 @@ class AntiLink(ProtectionCog):
             return len(new_domains)
 
         except Exception as exc:
-            logger.error(f"【反惡意連結】添加白名單失敗: {exc}")
+            logger.error(f"[反惡意連結]添加白名單失敗: {exc}")
             return 0
 
     async def add_to_blacklist(self, guild_id: int, domains: list[str]) -> int:
@@ -609,7 +614,7 @@ class AntiLink(ProtectionCog):
             return len(new_domains)
 
         except Exception as exc:
-            logger.error(f"【反惡意連結】添加黑名單失敗: {exc}")
+            logger.error(f"[反惡意連結]添加黑名單失敗: {exc}")
             return 0
 
     # ───────── 面板系統適配方法 ─────────
@@ -635,7 +640,7 @@ class AntiLink(ProtectionCog):
                 # 返回特定配置
                 return await self.db.get_config(guild_id, key, default)
         except Exception as exc:
-            logger.error(f"【反惡意連結】獲取配置失敗: {exc}")
+            logger.error(f"[反惡意連結]獲取配置失敗: {exc}")
             return default if key else {}
 
     async def set_config(self, guild_id: int, key: str, value: Any) -> None:
@@ -651,5 +656,5 @@ class AntiLink(ProtectionCog):
             value_str = str(value) if value is not None else ""
             await self.db.set_config(guild_id, key, value_str)
         except Exception as exc:
-            logger.error(f"【反惡意連結】設置配置失敗: {exc}")
+            logger.error(f"[反惡意連結]設置配置失敗: {exc}")
             raise

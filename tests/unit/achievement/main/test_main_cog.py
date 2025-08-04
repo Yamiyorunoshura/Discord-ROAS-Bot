@@ -1,6 +1,6 @@
 """成就系統主 Cog 單元測試.
 
-測試 AchievementCog 的核心功能：
+測試 AchievementCog 的核心功能:
 - Cog 初始化和清理
 - Slash Command 註冊和處理
 - 依賴注入整合
@@ -48,10 +48,12 @@ class TestAchievementCog:
     @pytest_asyncio.fixture
     async def achievement_cog(self, mock_bot):
         """建立成就系統 Cog 實例."""
-        with patch('src.cogs.achievement.main.main.get_database_pool') as mock_get_db:
+        with patch("src.cogs.achievement.main.main.get_database_pool") as mock_get_db:
             mock_get_db.return_value = MagicMock()
 
-            with patch('src.cogs.achievement.main.main.AchievementServiceContainer') as mock_container_class:
+            with patch(
+                "src.cogs.achievement.main.main.AchievementServiceContainer"
+            ) as mock_container_class:
                 mock_container_class.return_value._initialize_services = AsyncMock()
                 mock_container_class.return_value.achievement_service = MagicMock()
                 mock_container_class.return_value.repository = MagicMock()
@@ -69,10 +71,12 @@ class TestAchievementCog:
     @pytest.mark.asyncio
     async def test_initialization(self, mock_bot, mock_database_pool):
         """測試 Cog 初始化."""
-        with patch('src.cogs.achievement.main.main.get_database_pool') as mock_get_db:
+        with patch("src.cogs.achievement.main.main.get_database_pool") as mock_get_db:
             mock_get_db.return_value = mock_database_pool
 
-            with patch('src.cogs.achievement.main.main.AchievementServiceContainer') as mock_container_class:
+            with patch(
+                "src.cogs.achievement.main.main.AchievementServiceContainer"
+            ) as mock_container_class:
                 mock_container = mock_container_class.return_value
                 mock_container._initialize_services = AsyncMock()
                 mock_container.achievement_service = MagicMock()
@@ -92,7 +96,7 @@ class TestAchievementCog:
     @pytest.mark.asyncio
     async def test_initialization_failure(self, mock_bot):
         """測試初始化失敗處理."""
-        with patch('src.cogs.achievement.main.main.get_database_pool') as mock_get_db:
+        with patch("src.cogs.achievement.main.main.get_database_pool") as mock_get_db:
             mock_get_db.side_effect = Exception("Database connection failed")
 
             cog = AchievementCog(mock_bot)
@@ -117,7 +121,9 @@ class TestAchievementCog:
         mock_interaction.original_response = AsyncMock()
 
         # 模擬面板
-        with patch('src.cogs.achievement.main.main.AchievementPanel') as mock_panel_class:
+        with patch(
+            "src.cogs.achievement.main.main.AchievementPanel"
+        ) as mock_panel_class:
             mock_panel = mock_panel_class.return_value
             mock_panel.start = AsyncMock()
 
@@ -129,13 +135,13 @@ class TestAchievementCog:
                 bot=achievement_cog.bot,
                 achievement_service=achievement_cog.achievement_service,
                 guild_id=12345,
-                user_id=67890
+                user_id=67890,
             )
             mock_panel.start.assert_called_once_with(mock_interaction)
 
     @pytest.mark.asyncio
     async def test_achievement_command_no_guild(self, achievement_cog):
-        """測試成就指令在私訊中使用。"""
+        """測試成就指令在私訊中使用."""
         mock_interaction = AsyncMock(spec=discord.Interaction)
         mock_interaction.guild = None
         mock_interaction.response.send_message = AsyncMock()
@@ -143,13 +149,12 @@ class TestAchievementCog:
         await achievement_cog.achievement_command(mock_interaction)
 
         mock_interaction.response.send_message.assert_called_once_with(
-            "❌ 此指令只能在伺服器中使用",
-            ephemeral=True
+            "❌ 此指令只能在伺服器中使用", ephemeral=True
         )
 
     @pytest.mark.asyncio
     async def test_achievement_command_invalid_user(self, achievement_cog):
-        """測試成就指令用戶類型無效。"""
+        """測試成就指令用戶類型無效."""
         mock_guild = MagicMock(spec=discord.Guild)
         mock_guild.id = 12345
 
@@ -164,13 +169,12 @@ class TestAchievementCog:
         await achievement_cog.achievement_command(mock_interaction)
 
         mock_interaction.response.send_message.assert_called_once_with(
-            "❌ 無法獲取用戶資訊",
-            ephemeral=True
+            "❌ 無法獲取用戶資訊", ephemeral=True
         )
 
     @pytest.mark.asyncio
     async def test_achievement_command_panel_error(self, achievement_cog):
-        """測試成就指令面板載入失敗。"""
+        """測試成就指令面板載入失敗."""
         mock_guild = MagicMock(spec=discord.Guild)
         mock_guild.id = 12345
 
@@ -185,7 +189,9 @@ class TestAchievementCog:
         mock_interaction.followup.send = AsyncMock()
 
         # 模擬面板載入失敗
-        with patch('src.cogs.achievement.main.main.AchievementPanel') as mock_panel_class:
+        with patch(
+            "src.cogs.achievement.main.main.AchievementPanel"
+        ) as mock_panel_class:
             mock_panel_class.side_effect = Exception("Panel initialization failed")
 
             await achievement_cog.achievement_command(mock_interaction)
@@ -193,15 +199,15 @@ class TestAchievementCog:
             # 驗證錯誤處理
             mock_interaction.followup.send.assert_called_once()
             call_args = mock_interaction.followup.send.call_args
-            assert call_args[1]['ephemeral'] is True
+            assert call_args[1]["ephemeral"] is True
 
             # 檢查是否發送了錯誤 embed
-            embed = call_args[1]['embed']
+            embed = call_args[1]["embed"]
             assert "載入失敗" in embed.title
 
     @pytest.mark.asyncio
     async def test_cleanup(self, achievement_cog, mock_service_container):
-        """測試 Cog 清理。"""
+        """測試 Cog 清理."""
         achievement_cog._service_container = mock_service_container
 
         await achievement_cog.cleanup()
@@ -210,7 +216,7 @@ class TestAchievementCog:
 
     @pytest.mark.asyncio
     async def test_cleanup_no_container(self, achievement_cog):
-        """測試沒有服務容器時的清理。"""
+        """測試沒有服務容器時的清理."""
         achievement_cog._service_container = None
 
         # 應該不會拋出異常
@@ -218,20 +224,23 @@ class TestAchievementCog:
 
     @pytest.mark.asyncio
     async def test_cleanup_error(self, achievement_cog, mock_service_container):
-        """測試清理時發生錯誤。"""
-        mock_service_container._cleanup_services.side_effect = Exception("Cleanup failed")
+        """測試清理時發生錯誤."""
+        mock_service_container._cleanup_services.side_effect = Exception(
+            "Cleanup failed"
+        )
         achievement_cog._service_container = mock_service_container
 
-        # 應該不會拋出異常，但會記錄錯誤
+        # 應該不會拋出異常,但會記錄錯誤
         await achievement_cog.cleanup()
 
     def test_service_registration(self, achievement_cog, mock_service_container):
-        """測試服務註冊。"""
+        """測試服務註冊."""
         achievement_cog._service_container = mock_service_container
         achievement_cog.register_instance = MagicMock()
 
-        # 手動呼叫服務註冊方法（通常在初始化時呼叫）
+        # 手動呼叫服務註冊方法(通常在初始化時呼叫)
         import asyncio
+
         asyncio.run(achievement_cog._register_services())
 
         # 驗證所有服務都被註冊
@@ -239,12 +248,13 @@ class TestAchievementCog:
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
-        """測試 setup 函數。"""
-        with patch('src.cogs.achievement.main.main.AchievementCog') as mock_cog_class:
+        """測試 setup 函數."""
+        with patch("src.cogs.achievement.main.main.AchievementCog") as mock_cog_class:
             mock_cog = mock_cog_class.return_value
             mock_bot.add_cog = AsyncMock()
 
             from src.cogs.achievement.main.main import setup
+
             await setup(mock_bot)
 
             mock_cog_class.assert_called_once_with(mock_bot)
@@ -252,7 +262,7 @@ class TestAchievementCog:
 
     @pytest.mark.asyncio
     async def test_setup_function_error(self, mock_bot):
-        """測試 setup 函數錯誤處理。"""
+        """測試 setup 函數錯誤處理."""
         mock_bot.add_cog = AsyncMock(side_effect=Exception("Add cog failed"))
 
         from src.cogs.achievement.main.main import setup
@@ -266,15 +276,17 @@ class TestAchievementCogIntegration:
 
     @pytest.mark.asyncio
     async def test_full_initialization_flow(self):
-        """測試完整初始化流程。"""
+        """測試完整初始化流程."""
         mock_bot = MagicMock(spec=commands.Bot)
         mock_bot.loop = AsyncMock()
         mock_bot.loop.create_task = MagicMock()
 
-        with patch('src.cogs.achievement.main.main.get_database_pool') as mock_get_db:
+        with patch("src.cogs.achievement.main.main.get_database_pool") as mock_get_db:
             mock_get_db.return_value = MagicMock()
 
-            with patch('src.cogs.achievement.main.main.AchievementServiceContainer') as mock_container_class:
+            with patch(
+                "src.cogs.achievement.main.main.AchievementServiceContainer"
+            ) as mock_container_class:
                 mock_container = mock_container_class.return_value
                 mock_container._initialize_services = AsyncMock()
                 mock_container.achievement_service = MagicMock()

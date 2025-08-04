@@ -15,7 +15,6 @@ from ...database.database import ActivityDatabase
 
 logger = logging.getLogger("activity_meter")
 
-
 class DataManager:
     """
     數據管理器

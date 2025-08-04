@@ -6,6 +6,7 @@
 - 實現測試覆蓋率分析
 """
 
+import contextlib
 import logging
 import time
 from dataclasses import dataclass
@@ -13,13 +14,20 @@ from enum import Enum
 from typing import Any
 from unittest.mock import Mock
 
+from ..constants import (
+    DEFAULT_MAX_SCORE,
+    DEFAULT_TEST_RESPONSE_TIMEOUT,
+    DEFAULT_UI_RESPONSE_TIMEOUT,
+    MIN_ACCURACY_THRESHOLD,
+    MIN_SMOOTHNESS_THRESHOLD,
+    TEST_DATA_SIZE,
+)
 from .activity_module import ActivityModule
 from .calculator import ActivityCalculator
 from .logic_apis import LogicAPIs
 from .renderer import ActivityRenderer
 
 logger = logging.getLogger("activity_test_module")
-
 
 class TestType(Enum):
     """測試類型枚舉"""
@@ -29,7 +37,6 @@ class TestType(Enum):
     PERFORMANCE = "performance"
     USER_EXPERIENCE = "user_experience"
 
-
 class TestStatus(Enum):
     """測試狀態枚舉"""
 
@@ -37,7 +44,6 @@ class TestStatus(Enum):
     FAILED = "failed"
     SKIPPED = "skipped"
     ERROR = "error"
-
 
 @dataclass
 class TestResult:
@@ -54,7 +60,6 @@ class TestResult:
         if self.details is None:
             self.details = {}
 
-
 @dataclass
 class CoverageReport:
     """覆蓋率報告數據結構"""
@@ -67,7 +72,6 @@ class CoverageReport:
     def __post_init__(self):
         if self.uncovered_lines is None:
             self.uncovered_lines = []
-
 
 class ActivityTestModule:
     """
@@ -224,11 +228,12 @@ class ActivityTestModule:
 
             # 測試基本計算
             score = calculator.calculate_score(10, 100)
-            assert 0 <= score <= 100, f"分數應在0-100範圍內: {score}"
+            assert 0 <= score <= DEFAULT_MAX_SCORE, f"分數應在0-{DEFAULT_MAX_SCORE}範圍內: {score}"
 
             # 測試衰減計算
-            decayed_score = calculator.decay(50.0, 3600)  # 1小時後
-            assert decayed_score < 50.0, f"衰減後分數應小於原分數: {decayed_score}"
+            initial_decay_score = 50.0
+            decayed_score = calculator.decay(initial_decay_score, 3600)  # 1小時後
+            assert decayed_score < initial_decay_score, f"衰減後分數應小於原分數: {decayed_score}"
 
             return {"status": "success", "tests_passed": 2}
 
@@ -309,7 +314,7 @@ class ActivityTestModule:
             response_time = time.time() - start_time
 
             # 檢查是否在5秒內
-            assert response_time < 5.0, f"API響應時間應小於5秒: {response_time}"
+            assert response_time < DEFAULT_TEST_RESPONSE_TIMEOUT, f"API響應時間應小於{DEFAULT_TEST_RESPONSE_TIMEOUT}秒: {response_time}"
 
             return {"status": "success", "response_time": response_time}
 
@@ -338,7 +343,7 @@ class ActivityTestModule:
             # 處理數據
             processed_count = len(test_data)
 
-            assert processed_count == 1000, f"應處理1000條數據: {processed_count}"
+            assert processed_count == TEST_DATA_SIZE, f"應處理{TEST_DATA_SIZE}條數據: {processed_count}"
 
             return {"status": "success", "processed_count": processed_count}
 
@@ -354,7 +359,7 @@ class ActivityTestModule:
             # 這裡簡化為基本測試
             response_time = time.time() - start_time
 
-            assert response_time < 2.0, f"界面響應時間應小於2秒: {response_time}"
+            assert response_time < DEFAULT_UI_RESPONSE_TIMEOUT, f"界面響應時間應小於{DEFAULT_UI_RESPONSE_TIMEOUT}秒: {response_time}"
 
             return {"status": "success", "response_time": response_time}
 
@@ -384,7 +389,7 @@ class ActivityTestModule:
 
             # 檢查錯誤處理準確率
             accuracy = handled_errors / len(error_scenarios) * 100
-            assert accuracy >= 95, f"錯誤處理準確率應大於95%: {accuracy}%"
+            assert accuracy >= MIN_ACCURACY_THRESHOLD, f"錯誤處理準確率應大於{MIN_ACCURACY_THRESHOLD}%: {accuracy}%"
 
             return {"status": "success", "accuracy": accuracy}
 
@@ -400,15 +405,13 @@ class ActivityTestModule:
 
             successful_steps = 0
             for _step in flow_steps:
-                try:
+                with contextlib.suppress(Exception):
                     # 模擬操作步驟
                     successful_steps += 1
-                except Exception:
-                    pass
 
             # 檢查流程順暢度
             smoothness = successful_steps / len(flow_steps) * 100
-            assert smoothness >= 90, f"操作流程順暢度應大於90%: {smoothness}%"
+            assert smoothness >= MIN_SMOOTHNESS_THRESHOLD, f"操作流程順暢度應大於{MIN_SMOOTHNESS_THRESHOLD}%: {smoothness}%"
 
             return {"status": "success", "smoothness": smoothness}
 
@@ -423,7 +426,6 @@ class ActivityTestModule:
             CoverageReport: 覆蓋率報告
         """
         return self.coverage_tracker.generate_report()
-
 
 class CoverageTracker:
     """覆蓋率追蹤器"""
@@ -463,7 +465,6 @@ class CoverageTracker:
             coverage_rate=coverage_rate,
             uncovered_lines=self.uncovered_lines,
         )
-
 
 class TestFramework:
     """測試框架"""

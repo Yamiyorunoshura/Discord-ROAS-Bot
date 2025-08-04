@@ -14,6 +14,7 @@ import pytest_asyncio
 # 測試配置
 logging.basicConfig(level=logging.DEBUG)
 
+
 class TestActivityCalculator:
     """🧮 活躍度計算器測試類"""
 
@@ -21,6 +22,7 @@ class TestActivityCalculator:
     def calculator(self):
         """建立測試用計算器"""
         from cogs.activity_meter.main.calculator import ActivityCalculator
+
         return ActivityCalculator()
 
     def test_decay_no_time(self, calculator):
@@ -35,7 +37,7 @@ class TestActivityCalculator:
     def test_decay_within_grace_period(self, calculator):
         """測試寬限期內的衰減計算"""
         current_score = 50.0
-        time_diff = 1800  # 30分鐘，小於1小時寬限期
+        time_diff = 1800  # 30分鐘,小於1小時寬限期
 
         result = calculator.decay(current_score, time_diff)
 
@@ -44,7 +46,7 @@ class TestActivityCalculator:
     def test_decay_after_grace_period(self, calculator):
         """測試寬限期後的衰減計算"""
         current_score = 50.0
-        time_diff = 7200  # 2小時，大於寬限期
+        time_diff = 7200  # 2小時,大於寬限期
 
         result = calculator.decay(current_score, time_diff)
 
@@ -86,7 +88,7 @@ class TestActivityCalculator:
         """測試更新冷卻邏輯"""
         now = int(time.time())
         recent_time = now - 10  # 10秒前
-        old_time = now - 100    # 100秒前
+        old_time = now - 100  # 100秒前
 
         should_update_recent = calculator.should_update(recent_time, now)
         should_update_old = calculator.should_update(old_time, now)
@@ -124,6 +126,7 @@ class TestActivityCalculator:
 
         assert result <= 100, f"最大分數不應超過上限: {result}"
 
+
 class TestActivityDatabase:
     """🗄️ 活躍度資料庫測試類"""
 
@@ -131,10 +134,13 @@ class TestActivityDatabase:
     async def activity_db(self, test_db):
         """建立測試用活躍度資料庫"""
         from cogs.activity_meter.database.database import ActivityDatabase
+
         db = ActivityDatabase()
+
         # 覆蓋 _get_connection 方法使用測試資料庫
         async def mock_get_connection():
             return test_db
+
         db._get_connection = mock_get_connection
         await db.init_db()
         return db
@@ -143,16 +149,11 @@ class TestActivityDatabase:
     async def sample_activity_data(self, activity_db):
         """插入測試活躍度資料"""
         await activity_db.update_user_activity(
-            guild_id=12345,
-            user_id=67890,
-            score=75.5,
-            timestamp=int(time.time()) - 1800
+            guild_id=12345, user_id=67890, score=75.5, timestamp=int(time.time()) - 1800
         )
 
         await activity_db.increment_daily_message_count(
-            ymd="20240101",
-            guild_id=12345,
-            user_id=67890
+            ymd="20240101", guild_id=12345, user_id=67890
         )
 
         return activity_db
@@ -161,10 +162,13 @@ class TestActivityDatabase:
     async def test_database_initialization(self, test_db):
         """測試資料庫初始化"""
         from cogs.activity_meter.database.database import ActivityDatabase
+
         db = ActivityDatabase()
+
         # 覆蓋 _get_connection 方法使用測試資料庫
         async def mock_get_connection():
             return test_db
+
         db._get_connection = mock_get_connection
 
         await db.init_db()
@@ -211,6 +215,7 @@ class TestActivityDatabase:
         assert score == new_score, f"分數應已更新: {score} != {new_score}"
         assert last_msg == timestamp, f"時間戳應已更新: {last_msg} != {timestamp}"
 
+
 class TestActivityRenderer:
     """📊 活躍度渲染器測試類"""
 
@@ -218,14 +223,16 @@ class TestActivityRenderer:
     def renderer(self):
         """建立測試用渲染器"""
         from cogs.activity_meter.main.renderer import ActivityRenderer
+
         return ActivityRenderer()
 
     def test_render_progress_bar_normal(self, renderer):
         """測試正常進度條渲染"""
-        with patch('PIL.Image.new') as mock_image, \
-             patch('PIL.ImageDraw.Draw') as mock_draw, \
-             patch('PIL.ImageFont.truetype') as mock_font:
-
+        with (
+            patch("PIL.Image.new") as mock_image,
+            patch("PIL.ImageDraw.Draw") as mock_draw,
+            patch("PIL.ImageFont.truetype") as mock_font,
+        ):
             mock_img = Mock()
             mock_drawer = Mock()
             mock_font_obj = Mock()
@@ -246,6 +253,7 @@ class TestActivityRenderer:
             assert result is not None, "應返回渲染結果"
             assert isinstance(result, discord.File), "應返回Discord文件"
 
+
 class TestActivityMeterIntegration:
     """🔗 活躍度系統整合測試類"""
 
@@ -254,7 +262,9 @@ class TestActivityMeterIntegration:
         """建立測試用活躍度計量器"""
         from cogs.activity_meter.main.main import ActivityMeter
 
-        with patch('cogs.activity_meter.database.database.ActivityDatabase') as mock_db_class:
+        with patch(
+            "cogs.activity_meter.database.database.ActivityDatabase"
+        ) as mock_db_class:
             mock_db = AsyncMock()
             mock_db.init_db = AsyncMock()
             mock_db.get_user_activity.return_value = (75.5, int(time.time()) - 1800)
@@ -263,7 +273,7 @@ class TestActivityMeterIntegration:
             mock_db_class.return_value = mock_db
 
             # 模擬任務管理器
-            with patch('cogs.activity_meter.main.tasks.ActivityTasks') as mock_tasks:
+            with patch("cogs.activity_meter.main.tasks.ActivityTasks") as mock_tasks:
                 mock_tasks_instance = Mock()
                 mock_tasks_instance.start = Mock()
                 mock_tasks_instance.stop = Mock()
@@ -274,17 +284,21 @@ class TestActivityMeterIntegration:
                 return cog
 
     @pytest.mark.asyncio
-    async def test_activity_command_existing_user(self, activity_meter, mock_interaction, mock_member):
+    async def test_activity_command_existing_user(
+        self, activity_meter, mock_interaction, mock_member
+    ):
         """測試查詢現有用戶活躍度命令"""
         mock_interaction.guild.id = 12345
         mock_member.id = 67890
         mock_member.display_name = "測試用戶"
 
-        with patch.object(activity_meter, 'renderer') as mock_renderer:
+        with patch.object(activity_meter, "renderer") as mock_renderer:
             mock_renderer.render_progress_bar.return_value = Mock()
 
             # 直接調用命令的回調函數而不是Command對象
-            await activity_meter.activity.callback(activity_meter, mock_interaction, mock_member)
+            await activity_meter.activity.callback(
+                activity_meter, mock_interaction, mock_member
+            )
 
             # 驗證交互回應
             mock_interaction.followup.send.assert_called_once()
@@ -292,17 +306,19 @@ class TestActivityMeterIntegration:
             # 驗證資料庫查詢
             activity_meter.db.get_user_activity.assert_called_with(12345, 67890)
 
+
 # 測試工具函數
 def test_config_validation():
     """測試配置驗證"""
     from cogs.activity_meter.config import config
 
     # 驗證關鍵配置存在
-    assert hasattr(config, 'ACTIVITY_MAX_SCORE'), "應有最大分數配置"
-    assert hasattr(config, 'ACTIVITY_DECAY_PER_H'), "應有衰減率配置"
-    assert hasattr(config, 'ACTIVITY_DECAY_AFTER'), "應有寬限期配置"
-    assert hasattr(config, 'ACTIVITY_GAIN'), "應有增益配置"
-    assert hasattr(config, 'ACTIVITY_COOLDOWN'), "應有冷卻時間配置"
+    assert hasattr(config, "ACTIVITY_MAX_SCORE"), "應有最大分數配置"
+    assert hasattr(config, "ACTIVITY_DECAY_PER_H"), "應有衰減率配置"
+    assert hasattr(config, "ACTIVITY_DECAY_AFTER"), "應有寬限期配置"
+    assert hasattr(config, "ACTIVITY_GAIN"), "應有增益配置"
+    assert hasattr(config, "ACTIVITY_COOLDOWN"), "應有冷卻時間配置"
+
 
 def test_time_utilities():
     """測試時間工具函數"""

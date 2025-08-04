@@ -5,6 +5,8 @@
 
 import discord
 
+from .modals import AnnouncementTimeModal
+
 
 class CloseButton(discord.ui.Button):
     """關閉面板按鈕"""
@@ -26,7 +28,6 @@ class CloseButton(discord.ui.Button):
         # 刪除訊息
         if interaction.message:
             await interaction.message.delete()
-
 
 class RefreshButton(discord.ui.Button):
     """重新整理面板按鈕"""
@@ -57,7 +58,6 @@ class RefreshButton(discord.ui.Button):
                 f"❌ 重新整理時發生錯誤: {e!s}", ephemeral=True
             )
 
-
 class PreviewButton(discord.ui.Button):
     """預覽排行榜按鈕"""
 
@@ -77,7 +77,6 @@ class PreviewButton(discord.ui.Button):
 
         # 切換到預覽頁面
         await self.view.change_page(interaction, "preview")
-
 
 class SettingsButton(discord.ui.Button):
     """設定頁面按鈕"""
@@ -99,7 +98,6 @@ class SettingsButton(discord.ui.Button):
         # 切換到設定頁面
         await self.view.change_page(interaction, "settings")
 
-
 class StatsButton(discord.ui.Button):
     """統計頁面按鈕"""
 
@@ -119,7 +117,6 @@ class StatsButton(discord.ui.Button):
 
         # 切換到統計頁面
         await self.view.change_page(interaction, "stats")
-
 
 class TimeSettingButton(discord.ui.Button):
     """時間設定按鈕"""
@@ -146,7 +143,5 @@ class TimeSettingButton(discord.ui.Button):
             return
 
         # 創建並顯示時間設定Modal
-        from .modals import AnnouncementTimeModal
-
         modal = AnnouncementTimeModal(self.view)
         await interaction.response.send_modal(modal)

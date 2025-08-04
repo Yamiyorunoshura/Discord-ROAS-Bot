@@ -19,10 +19,17 @@ class TestLogicAPIs:
     @pytest.fixture
     def logic_apis(self):
         """建立測試用 LogicAPIs"""
-        with patch('cogs.activity_meter.main.logic_apis.ActivityDatabase') as mock_database, \
-             patch('cogs.activity_meter.main.logic_apis.ActivityRenderer') as mock_renderer, \
-             patch('cogs.activity_meter.main.logic_apis.ActivityCalculator') as mock_calculator:
-
+        with (
+            patch(
+                "cogs.activity_meter.main.logic_apis.ActivityDatabase"
+            ) as mock_database,
+            patch(
+                "cogs.activity_meter.main.logic_apis.ActivityRenderer"
+            ) as mock_renderer,
+            patch(
+                "cogs.activity_meter.main.logic_apis.ActivityCalculator"
+            ) as mock_calculator,
+        ):
             mock_database.return_value = Mock()
             mock_renderer.return_value = Mock()
             mock_calculator.return_value = Mock()
@@ -43,10 +50,7 @@ class TestLogicAPIs:
         mock_file = Mock()
         logic_apis.renderer.render_progress_bar.return_value = mock_file
 
-        data = {
-            "username": "測試用戶",
-            "score": 75.5
-        }
+        data = {"username": "測試用戶", "score": 75.5}
 
         result = logic_apis.renderer_logic_api(data)
 
@@ -76,10 +80,7 @@ class TestLogicAPIs:
         # 模擬渲染器拋出異常
         logic_apis.renderer.render_progress_bar.side_effect = Exception("渲染失敗")
 
-        data = {
-            "username": "測試用戶",
-            "score": 75.5
-        }
+        data = {"username": "測試用戶", "score": 75.5}
 
         result = logic_apis.renderer_logic_api(data)
 
@@ -93,11 +94,7 @@ class TestLogicAPIs:
         # 模擬數據庫保存成功
         logic_apis.database.save_settings.return_value = True
 
-        settings = {
-            "guild_id": "123456789",
-            "key": "auto_report",
-            "value": "true"
-        }
+        settings = {"guild_id": "123456789", "key": "auto_report", "value": "true"}
 
         result = logic_apis.settings_logic_api(settings)
 
@@ -125,11 +122,7 @@ class TestLogicAPIs:
         # 模擬數據庫保存失敗
         logic_apis.database.save_settings.return_value = False
 
-        settings = {
-            "guild_id": "123456789",
-            "key": "auto_report",
-            "value": "true"
-        }
+        settings = {"guild_id": "123456789", "key": "auto_report", "value": "true"}
 
         result = logic_apis.settings_logic_api(settings)
 
@@ -143,7 +136,7 @@ class TestLogicAPIs:
         mock_user_data = {
             "user_id": "123456789",
             "score": 75.5,
-            "last_activity": "2024-01-01T12:00:00"
+            "last_activity": "2024-01-01T12:00:00",
         }
         logic_apis.database.get_user_activity.return_value = mock_user_data
 
@@ -204,7 +197,7 @@ class TestLogicAPIs:
         # 模擬數據庫返回歷史數據
         mock_history_data = [
             {"score": 75.5, "timestamp": "2024-01-01"},
-            {"score": 80.0, "timestamp": "2024-01-02"}
+            {"score": 80.0, "timestamp": "2024-01-02"},
         ]
         logic_apis.database.get_user_activity_history.return_value = mock_history_data
 
@@ -218,7 +211,7 @@ class TestLogicAPIs:
         # 模擬數據庫返回排行榜數據
         mock_leaderboard_data = [
             {"user_id": "123", "score": 95.0, "messages": 500},
-            {"user_id": "456", "score": 85.0, "messages": 400}
+            {"user_id": "456", "score": 85.0, "messages": 400},
         ]
         logic_apis.database.get_leaderboard.return_value = mock_leaderboard_data
 
@@ -257,11 +250,7 @@ class TestLogicAPIs:
         logic_apis.calculator.calculate_level.return_value = 3
         logic_apis.calculator.get_next_level_score.return_value = 80.0
 
-        user_data = {
-            "user_id": "123456789",
-            "messages": 100,
-            "total_messages": 500
-        }
+        user_data = {"user_id": "123456789", "messages": 100, "total_messages": 500}
 
         result = logic_apis.calculate_activity_score_api(user_data)
 
@@ -291,12 +280,9 @@ class TestLogicAPIs:
         logic_apis.api_calls = {
             "renderer_logic": 10,
             "settings_logic": 5,
-            "get_user_data": 20
+            "get_user_data": 20,
         }
-        logic_apis.error_counts = {
-            "renderer_logic": 1,
-            "get_user_data": 2
-        }
+        logic_apis.error_counts = {"renderer_logic": 1, "get_user_data": 2}
 
         metrics = logic_apis.get_api_metrics()
 
@@ -310,10 +296,7 @@ class TestLogicAPIs:
     def test_validate_render_data(self, logic_apis):
         """測試渲染數據驗證"""
         # 有效數據
-        valid_data = {
-            "username": "測試用戶",
-            "score": 75.5
-        }
+        valid_data = {"username": "測試用戶", "score": 75.5}
         assert logic_apis._validate_render_data(valid_data) is True
 
         # 無效數據
@@ -329,7 +312,7 @@ class TestLogicAPIs:
         valid_settings = {
             "guild_id": "123456789",
             "key": "auto_report",
-            "value": "true"
+            "value": "true",
         }
         assert logic_apis._validate_settings(valid_settings) is True
 
@@ -343,10 +326,7 @@ class TestLogicAPIs:
     def test_validate_user_data(self, logic_apis):
         """測試用戶數據驗證"""
         # 有效用戶數據
-        valid_user_data = {
-            "user_id": "123456789",
-            "messages": 100
-        }
+        valid_user_data = {"user_id": "123456789", "messages": 100}
         assert logic_apis._validate_user_data(valid_user_data) is True
 
         # 無效用戶數據
@@ -355,6 +335,7 @@ class TestLogicAPIs:
             # 缺少 user_id
         }
         assert logic_apis._validate_user_data(invalid_user_data) is False
+
 
 class TestAPIResponse:
     """APIResponse 測試類"""
@@ -365,7 +346,7 @@ class TestAPIResponse:
             status="success",
             data={"key": "value"},
             message="操作成功",
-            execution_time=1.5
+            execution_time=1.5,
         )
 
         assert response.status == "success"

@@ -4,7 +4,6 @@
 此模組包含歡迎系統的所有常數、預設值和配置項目
 """
 
-import os
 from pathlib import Path
 
 # 字體配置 - 使用專案結構的字體路徑
@@ -21,7 +20,7 @@ LOG_BACKUP_COUNT = 2
 DEFAULT_SETTINGS = {
     "channel_id": None,
     "title": "歡迎 {member.name}!",
-    "description": "很高興見到你～",
+    "description": "很高興見到你~",
     "message": "歡迎 {member.mention} 加入 {guild.name}!",
     "avatar_x": 30,
     "avatar_y": 80,
@@ -39,15 +38,14 @@ DEFAULT_TEXT_COLOR = (255, 255, 255)  # 白色
 DEFAULT_AVATAR_SIZE = 80
 
 # 字型相關設定
-DEFAULT_FONT_PATH = os.path.join(WELCOME_FONTS_DIR, WELCOME_DEFAULT_FONT)
+DEFAULT_FONT_PATH = str(Path(WELCOME_FONTS_DIR) / WELCOME_DEFAULT_FONT)
 
 # 快取設定
 CACHE_TIMEOUT = 3600  # 1小時
 MAX_CACHE_SIZE = 50  # 最多快取50個伺服器的圖片
 
-
 # 權限檢查函數
-def is_allowed(inter, command_name):
+def is_allowed(inter, _command_name):
     """檢查用戶是否有權限執行指定指令"""
     if not inter.guild:
         return False
