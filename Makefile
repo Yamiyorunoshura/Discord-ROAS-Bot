@@ -33,6 +33,32 @@ lint: ## Run linting (ruff + mypy)
 	uv run mypy src
 	@echo "✅ Linting completed"
 
+lint-strict: ## Run strict mypy with quality config
+	@echo "🔍 Running strict mypy checks..."
+	uv run mypy --config-file=quality/mypy.ini src
+	@echo "✅ Strict linting completed"
+
+quality-check: ## Run comprehensive quality check using our quality system
+	@echo "🏆 Running comprehensive quality check..."
+	uv run python scripts/quality_check_tool.py src
+	@echo "✅ Quality check completed"
+
+quality-core: ## Check core module quality
+	@echo "🔍 Checking core module quality..."
+	uv run python scripts/quality_check_tool.py src/core
+	@echo "✅ Core quality check completed"
+
+quality-cogs: ## Check cogs module quality
+	@echo "🔍 Checking cogs module quality..."
+	uv run python scripts/quality_check_tool.py src/cogs
+	@echo "✅ Cogs quality check completed"
+
+quality-report: ## Generate detailed quality report
+	@echo "📊 Generating quality report..."
+	uv run mypy --config-file=quality/mypy.ini src --html-report quality_reports/mypy
+	uv run ruff check src --output-format=json > quality_reports/ruff_report.json || true
+	@echo "✅ Quality report generated in quality_reports/"
+
 format: ## Format code with black and ruff
 	@echo "🎨 Formatting code..."
 	uv run black src tests

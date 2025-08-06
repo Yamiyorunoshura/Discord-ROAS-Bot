@@ -178,6 +178,34 @@ services:
       - test
     command: ["tests/", "--cov=src", "--cov-report=html:/app/test-results/coverage"]
 
+  # 品質保證服務
+  quality-assurance:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: discord-bot-quality
+    environment:
+      <<: *common-env
+      ENVIRONMENT: ci
+      LOG_LEVEL: INFO
+    volumes:
+      - .:/app
+      - ./quality-reports:/app/quality-reports
+      - ./test-results:/app/test-results
+    networks:
+      - discord-bot-network
+    profiles:
+      - quality
+      - ci
+    command: ["python", "-m", "src.core.quality.ci_runner"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pathlib; exit(0 if pathlib.Path('/app/quality-reports/latest.json').exists() else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   # Redis 快取服務 (可選)
   redis:
     image: redis:7-alpine

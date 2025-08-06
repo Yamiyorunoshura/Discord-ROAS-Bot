@@ -89,6 +89,7 @@ SECOND_CONFIRMATION_STEP = 2  # 第二次確認步驟
 FULL_SUCCESS_RATE = 100  # 完全成功率(%)
 PARTIAL_SUCCESS_THRESHOLD = 50  # 部分成功門檻(%)
 
+
 class AdminPanelState(Enum):
     """管理面板狀態枚舉."""
 
@@ -99,6 +100,7 @@ class AdminPanelState(Enum):
     SETTINGS = "settings"  # 系統設定
     ERROR = "error"  # 錯誤狀態
     CLOSED = "closed"  # 已關閉
+
 
 class AdminPanel:
     """成就系統管理面板控制器.
@@ -405,9 +407,9 @@ class AdminPanel:
             # 最近活動
             recent_activity = achievement_stats.get("recent_activity", [])
             if recent_activity:
-                activity_text = "\n".join(
-                    [f"• {activity}" for activity in recent_activity[:3]]
-                )
+                activity_text = "\n".join([
+                    f"• {activity}" for activity in recent_activity[:3]
+                ])
                 embed.add_field(name="📝 最近活動", value=activity_text, inline=False)
 
             embed.color = 0xFF6B35
@@ -455,9 +457,9 @@ class AdminPanel:
             # 最近活動
             recent_activity = user_stats.get("recent_activity", [])
             if recent_activity:
-                activity_text = "\n".join(
-                    [f"• {activity}" for activity in recent_activity[:3]]
-                )
+                activity_text = "\n".join([
+                    f"• {activity}" for activity in recent_activity[:3]
+                ])
                 embed.add_field(name="📝 最近活動", value=activity_text, inline=False)
 
             # 功能說明
@@ -893,9 +895,9 @@ class AdminPanel:
             # 最近活動
             recent_activity = category_stats.get("recent_activity", [])
             if recent_activity:
-                activity_text = "\n".join(
-                    [f"• {activity}" for activity in recent_activity[:3]]
-                )
+                activity_text = "\n".join([
+                    f"• {activity}" for activity in recent_activity[:3]
+                ])
                 embed.add_field(name="📝 最近活動", value=activity_text, inline=False)
 
             # 功能說明
@@ -986,6 +988,7 @@ class AdminPanel:
 
         except Exception as e:
             logger.error(f"[管理面板]處理錯誤時發生異常: {e}")
+
 
 class AdminPanelView(ui.View):
     """管理面板的 Discord UI 視圖."""
@@ -1100,9 +1103,7 @@ class AdminPanelView(ui.View):
         """處理視圖超時."""
         try:
             self.panel.current_state = AdminPanelState.CLOSED
-            logger.info(
-                f"[管理面板]用戶 {self.panel.admin_user_id} 的面板因超時而關閉"
-            )
+            logger.info(f"[管理面板]用戶 {self.panel.admin_user_id} 的面板因超時而關閉")
         except Exception as e:
             logger.error(f"[管理面板]處理超時失敗: {e}")
 
@@ -1115,6 +1116,7 @@ class AdminPanelView(ui.View):
             await interaction.response.send_message(
                 "❌ 處理互動時發生錯誤,請稍後再試", ephemeral=True
             )
+
 
 class AchievementManagementView(ui.View):
     """成就管理專用視圖.
@@ -1562,6 +1564,7 @@ class AchievementManagementView(ui.View):
             logger.error(f"獲取管理服務失敗: {e}")
             raise RuntimeError(f"無法獲取管理服務: {e}") from e
 
+
 class CreateAchievementModal(ui.Modal):
     """成就新增模態框."""
 
@@ -1860,6 +1863,7 @@ class CreateAchievementConfirmView(ui.View):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+
 class AchievementSelectionView(ui.View):
     """成就選擇視圖."""
 
@@ -2037,6 +2041,7 @@ class AchievementSelectionView(ui.View):
         except Exception as e:
             logger.error(f"[成就選擇視圖]複製成就失敗: {e}")
             await interaction.followup.send("❌ 開啟複製表單時發生錯誤", ephemeral=True)
+
 
 class CopyAchievementModal(ui.Modal):
     """成就複製模態框."""
@@ -2223,6 +2228,7 @@ class CopyAchievementModal(ui.Modal):
             logger.error(f"獲取管理服務失敗: {e}")
             raise RuntimeError(f"無法獲取管理服務: {e}") from e
 
+
 class CopyCategorySelectionView(ui.View):
     """複製成就分類選擇視圖."""
 
@@ -2357,6 +2363,7 @@ class CopyCategorySelectionView(ui.View):
             logger.error(f"[複製分類選擇視圖]處理分類選擇失敗: {e}")
             await interaction.followup.send("❌ 處理分類選擇時發生錯誤", ephemeral=True)
 
+
 class CopyAchievementConfirmView(ui.View):
     """複製成就確認視圖."""
 
@@ -2414,6 +2421,7 @@ class CopyAchievementConfirmView(ui.View):
             "操作已取消", "✅ 成就複製操作已被取消."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class EditAchievementModal(ui.Modal):
     """成就編輯模態框."""
@@ -2503,7 +2511,9 @@ class EditAchievementModal(ui.Modal):
             logger.error(f"[成就編輯模態框]處理提交失敗: {e}")
             await interaction.followup.send("❌ 處理成就編輯時發生錯誤", ephemeral=True)
 
-    async def _validate_and_parse_inputs(self, interaction: discord.Interaction) -> dict[str, Any] | None:
+    async def _validate_and_parse_inputs(
+        self, interaction: discord.Interaction
+    ) -> dict[str, Any] | None:
         """驗證並解析輸入數據."""
         # 提取並清理輸入值
         name = self.name_input.value.strip()
@@ -2511,9 +2521,7 @@ class EditAchievementModal(ui.Modal):
         points_str = self.points_input.value.strip()
         type_str = self.type_input.value.strip()
         badge_url = (
-            self.badge_url_input.value.strip()
-            if self.badge_url_input.value
-            else None
+            self.badge_url_input.value.strip() if self.badge_url_input.value else None
         )
 
         # 基本驗證
@@ -2550,7 +2558,7 @@ class EditAchievementModal(ui.Modal):
             "description": description,
             "points": points,
             "type": type_str,
-            "badge_url": badge_url
+            "badge_url": badge_url,
         }
 
     def _detect_changes(self, validated_data: dict[str, Any]) -> dict[str, Any]:
@@ -2570,7 +2578,9 @@ class EditAchievementModal(ui.Modal):
 
         return changes
 
-    async def _send_change_preview(self, interaction: discord.Interaction, changes: dict[str, Any]) -> None:
+    async def _send_change_preview(
+        self, interaction: discord.Interaction, changes: dict[str, Any]
+    ) -> None:
         """發送變更預覽."""
         preview_embed = StandardEmbedBuilder.create_info_embed(
             "成就編輯預覽", f"即將更新成就「{self.achievement.name}」,請確認變更:"
@@ -2596,9 +2606,7 @@ class EditAchievementModal(ui.Modal):
         changes_text = []
         for field, new_value in changes.items():
             if field == "name":
-                changes_text.append(
-                    f"**名稱**: {self.achievement.name} → {new_value}"
-                )
+                changes_text.append(f"**名稱**: {self.achievement.name} → {new_value}")
             elif field == "description":
                 changes_text.append(
                     f"**描述**: {self.achievement.description} → {new_value}"
@@ -2616,6 +2624,7 @@ class EditAchievementModal(ui.Modal):
                 new_url = new_value or "無"
                 changes_text.append(f"**徽章**: {old_url} → {new_url}")
         return changes_text
+
 
 class EditAchievementConfirmView(ui.View):
     """成就編輯確認視圖."""
@@ -2673,6 +2682,7 @@ class EditAchievementConfirmView(ui.View):
             "操作已取消", "✅ 成就編輯操作已被取消."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class DeleteAchievementConfirmView(ui.View):
     """成就刪除確認視圖."""
@@ -2920,6 +2930,7 @@ class DeleteAchievementConfirmView(ui.View):
                 "載入失敗", "載入成就詳細資訊時發生錯誤."
             )
 
+
 class AchievementDetailView(ui.View):
     """成就詳細資訊視圖."""
 
@@ -3068,9 +3079,9 @@ class AchievementDetailView(ui.View):
             # 最近活動
             recent_activity = statistics.get("recent_activity", [])
             if recent_activity:
-                activity_text = "\n".join(
-                    [f"• {activity}" for activity in recent_activity[:5]]
-                )
+                activity_text = "\n".join([
+                    f"• {activity}" for activity in recent_activity[:5]
+                ])
                 embed.add_field(name="📝 最近活動", value=activity_text, inline=False)
 
             embed.color = 0xFF6B35
@@ -3121,6 +3132,7 @@ class AchievementDetailView(ui.View):
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             raise RuntimeError(f"無法獲取管理服務: {e}") from e
+
 
 class UserManagementView(ui.View):
     """用戶成就管理專用視圖.
@@ -3399,6 +3411,7 @@ class UserManagementView(ui.View):
                 "❌ 處理用戶管理操作時發生錯誤,請稍後再試", ephemeral=True
             )
 
+
 class UserSearchModal(ui.Modal):
     """用戶搜尋模態框."""
 
@@ -3640,6 +3653,7 @@ class UserSearchModal(ui.Modal):
 
         return embed
 
+
 class UserSelectionView(ui.View):
     """用戶選擇視圖."""
 
@@ -3785,6 +3799,7 @@ class UserSelectionView(ui.View):
                 "❌ 開啟搜尋時發生錯誤", ephemeral=True
             )
 
+
 class RevokeAchievementFlowView(ui.View):
     """成就撤銷流程視圖."""
 
@@ -3808,6 +3823,7 @@ class RevokeAchievementFlowView(ui.View):
             await interaction.response.send_message(
                 "❌ 開啟用戶搜尋時發生錯誤", ephemeral=True
             )
+
 
 class AdjustProgressFlowView(ui.View):
     """成就進度調整流程視圖."""
@@ -3842,6 +3858,7 @@ class AdjustProgressFlowView(ui.View):
         except Exception as e:
             logger.error(f"[進度調整視圖]返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class AdjustProgressUserSelectionView(ui.View):
     """進度調整用戶選擇視圖."""
@@ -3970,16 +3987,14 @@ class AdjustProgressUserSelectionView(ui.View):
                 )
                 is_completed = progress.current_value >= target_value
 
-                progress_list.append(
-                    {
-                        "achievement_id": progress.achievement_id,
-                        "achievement_name": achievement.name,
-                        "current_value": progress.current_value,
-                        "target_value": target_value,
-                        "progress_percentage": progress_percentage,
-                        "is_completed": is_completed,
-                    }
-                )
+                progress_list.append({
+                    "achievement_id": progress.achievement_id,
+                    "achievement_name": achievement.name,
+                    "current_value": progress.current_value,
+                    "target_value": target_value,
+                    "progress_percentage": progress_percentage,
+                    "is_completed": is_completed,
+                })
 
             return progress_list
         except Exception as e:
@@ -3999,6 +4014,7 @@ class AdjustProgressUserSelectionView(ui.View):
             await interaction.response.send_message(
                 "❌ 返回搜尋時發生錯誤", ephemeral=True
             )
+
 
 class AdjustProgressSelectionView(ui.View):
     """進度調整成就選擇視圖."""
@@ -4109,6 +4125,7 @@ class AdjustProgressSelectionView(ui.View):
         except Exception as e:
             logger.error(f"[進度調整選擇視圖]返回用戶選擇失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class AdjustProgressModal(ui.Modal):
     """進度調整模態框."""
@@ -4248,7 +4265,10 @@ class AdjustProgressModal(ui.Modal):
         """驗證調整原因."""
         reason = self.reason_input.value.strip()
         if not reason or len(reason) < MIN_REASON_LENGTH:
-            return {"valid": False, "error": f"調整原因至少需要 {MIN_REASON_LENGTH} 個字元"}
+            return {
+                "valid": False,
+                "error": f"調整原因至少需要 {MIN_REASON_LENGTH} 個字元",
+            }
         return {"valid": True, "value": reason}
 
     def _validate_notify_setting(self) -> dict:
@@ -4341,6 +4361,7 @@ class AdjustProgressModal(ui.Modal):
             )
 
         return embed
+
 
 class AdjustProgressConfirmView(ui.View):
     """進度調整確認視圖."""
@@ -4482,6 +4503,7 @@ class AdjustProgressConfirmView(ui.View):
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
+
 
 class AdjustProgressFollowupView(ui.View):
     """進度調整後續操作視圖."""
@@ -4660,6 +4682,7 @@ class AdjustProgressFollowupView(ui.View):
         logger.warning(f"無法獲取用戶 {user_id} 的調整歷史,返回空列表")
         return []
 
+
 class ResetDataFlowView(ui.View):
     """用戶資料重置流程視圖."""
 
@@ -4693,6 +4716,7 @@ class ResetDataFlowView(ui.View):
         except Exception as e:
             logger.error(f"[資料重置視圖]返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class ResetDataUserSelectionView(ui.View):
     """資料重置用戶選擇視圖."""
@@ -4840,6 +4864,7 @@ class ResetDataUserSelectionView(ui.View):
             await interaction.response.send_message(
                 "❌ 返回搜尋時發生錯誤", ephemeral=True
             )
+
 
 class ResetDataOptionsView(ui.View):
     """資料重置選項選擇視圖."""
@@ -5042,30 +5067,26 @@ class ResetDataOptionsView(ui.View):
             # 格式化成就資料
             achievements = []
             for achievement in user_achievements:
-                achievements.append(
-                    {
-                        "name": achievement.achievement_name
-                        if hasattr(achievement, "achievement_name")
-                        else f"成就 {achievement.achievement_id}",
-                        "earned_at": achievement.earned_at,
-                        "points": achievement.points
-                        if hasattr(achievement, "points")
-                        else 0,
-                    }
-                )
+                achievements.append({
+                    "name": achievement.achievement_name
+                    if hasattr(achievement, "achievement_name")
+                    else f"成就 {achievement.achievement_id}",
+                    "earned_at": achievement.earned_at,
+                    "points": achievement.points
+                    if hasattr(achievement, "points")
+                    else 0,
+                })
 
             # 格式化進度資料
             progress = []
             for prog in user_progress:
-                progress.append(
-                    {
-                        "achievement": prog.achievement_name
-                        if hasattr(prog, "achievement_name")
-                        else f"成就 {prog.achievement_id}",
-                        "current": prog.current_value,
-                        "target": prog.target_value,
-                    }
-                )
+                progress.append({
+                    "achievement": prog.achievement_name
+                    if hasattr(prog, "achievement_name")
+                    else f"成就 {prog.achievement_id}",
+                    "current": prog.current_value,
+                    "target": prog.target_value,
+                })
 
             return {
                 "achievements": achievements,
@@ -5076,6 +5097,7 @@ class ResetDataOptionsView(ui.View):
             logger.error(f"獲取用戶 {user_id} 詳細資料失敗: {e}")
             # 返回空資料而不是模擬資料
             return {"achievements": [], "progress": []}
+
 
 class SelectiveResetOptionsView(ui.View):
     """選擇性重置選項視圖."""
@@ -5253,6 +5275,7 @@ class SelectiveResetOptionsView(ui.View):
         except Exception as e:
             logger.error(f"[選擇性重置視圖]處理分類選擇失敗: {e}")
             await interaction.followup.send("❌ 處理分類選擇時發生錯誤", ephemeral=True)
+
 
 class ResetDataConfirmView(ui.View):
     """資料重置確認視圖 - 多重確認機制."""
@@ -5542,6 +5565,7 @@ class ResetDataConfirmView(ui.View):
             logger.error(f"[重置確認視圖]執行重置失敗: {e}")
             return {"success": False, "error": str(e)}
 
+
 class ResetConfirmationTextModal(ui.Modal):
     """重置確認文字輸入模態框."""
 
@@ -5627,7 +5651,8 @@ class ResetConfirmationTextModal(ui.Modal):
             # 檢查原因說明
             if not reason or len(reason) < MIN_RESET_REASON_LENGTH:
                 await interaction.response.send_message(
-                    f"❌ 重置原因說明至少需要 {MIN_RESET_REASON_LENGTH} 個字元", ephemeral=True
+                    f"❌ 重置原因說明至少需要 {MIN_RESET_REASON_LENGTH} 個字元",
+                    ephemeral=True,
                 )
                 return
 
@@ -5640,6 +5665,7 @@ class ResetConfirmationTextModal(ui.Modal):
             await interaction.response.send_message(
                 "❌ 處理確認時發生錯誤", ephemeral=True
             )
+
 
 class ResetDataFollowupView(ui.View):
     """資料重置後續操作視圖."""
@@ -5816,6 +5842,7 @@ class ResetDataFollowupView(ui.View):
         }
         return history_data.get(user_id, [current_reset])
 
+
 class BulkUserOperationView(ui.View):
     def __init__(self, panel: AdminPanel):
         super().__init__(timeout=300)
@@ -5854,12 +5881,17 @@ class BulkUserOperationView(ui.View):
         embed.add_field(name="❌ 失敗", value=str(results["failed_count"]), inline=True)
 
         if results["errors"]:
-            error_text = "\n".join(results["errors"][:MAX_ERROR_DISPLAY])  # 只顯示前幾個錯誤
+            error_text = "\n".join(
+                results["errors"][:MAX_ERROR_DISPLAY]
+            )  # 只顯示前幾個錯誤
             if len(results["errors"]) > MAX_ERROR_DISPLAY:
-                error_text += f"\n... 還有 {len(results['errors']) - MAX_ERROR_DISPLAY} 個錯誤"
+                error_text += (
+                    f"\n... 還有 {len(results['errors']) - MAX_ERROR_DISPLAY} 個錯誤"
+                )
             embed.add_field(name="🔍 錯誤詳情", value=error_text, inline=False)
 
         return embed
+
 
 class UserDetailManagementView(ui.View):
     def __init__(self, panel: AdminPanel, user_data: dict):
@@ -5932,6 +5964,7 @@ class UserDetailManagementView(ui.View):
                 "total_messages": 0,
             }
 
+
 class RealAdminService:
     """真實的管理服務實現."""
 
@@ -6002,6 +6035,7 @@ class RealAdminService:
         except Exception as e:
             logger.error(f"獲取成就詳細資訊失敗: {e}")
             return None
+
 
 class BulkOperationSelectionView(ui.View):
     """批量操作選擇視圖 - 支援多選成就功能."""
@@ -6333,11 +6367,15 @@ class BulkOperationSelectionView(ui.View):
             category_count[category_id] = category_count.get(category_id, 0) + 1
 
         category_info = []
-        for category_id, count in list(category_count.items())[:MAX_CATEGORY_DISPLAY]:  # 顯示前幾個分類
+        for category_id, count in list(category_count.items())[
+            :MAX_CATEGORY_DISPLAY
+        ]:  # 顯示前幾個分類
             category_info.append(f"• 分類 {category_id}: {count} 個")
 
         if len(category_count) > MAX_CATEGORY_DISPLAY:
-            category_info.append(f"• ... 還有 {len(category_count) - MAX_CATEGORY_DISPLAY} 個分類")
+            category_info.append(
+                f"• ... 還有 {len(category_count) - MAX_CATEGORY_DISPLAY} 個分類"
+            )
 
         embed.add_field(
             name="📂 分類分布",
@@ -6347,7 +6385,9 @@ class BulkOperationSelectionView(ui.View):
 
         # 成就列表預覽
         achievement_preview = []
-        for i, achievement in enumerate(selected_achievements[:MAX_PREVIEW_ITEMS]):  # 顯示前幾個
+        for i, achievement in enumerate(
+            selected_achievements[:MAX_PREVIEW_ITEMS]
+        ):  # 顯示前幾個
             status = "✅" if achievement.is_active else "❌"
             achievement_preview.append(f"{i + 1}. {status} {achievement.name}")
 
@@ -6394,6 +6434,7 @@ class BulkOperationSelectionView(ui.View):
             await interaction.response.send_message(
                 "❌ 處理批量選擇時發生錯誤,請稍後再試", ephemeral=True
             )
+
 
 class BulkOperationTypeSelectionView(ui.View):
     """批量操作類型選擇視圖."""
@@ -6508,11 +6549,15 @@ class BulkOperationTypeSelectionView(ui.View):
 
             # 顯示將要啟用的成就
             enable_list = []
-            for i, achievement in enumerate(to_enable[:MAX_PREVIEW_ITEMS]):  # 顯示前幾個
+            for i, achievement in enumerate(
+                to_enable[:MAX_PREVIEW_ITEMS]
+            ):  # 顯示前幾個
                 enable_list.append(f"{i + 1}. ❌ → ✅ {achievement.name}")
 
             if len(to_enable) > MAX_PREVIEW_ITEMS:
-                enable_list.append(f"... 還有 {len(to_enable) - MAX_PREVIEW_ITEMS} 個成就")
+                enable_list.append(
+                    f"... 還有 {len(to_enable) - MAX_PREVIEW_ITEMS} 個成就"
+                )
 
             embed.add_field(
                 name="🔄 狀態變更預覽",
@@ -6590,11 +6635,15 @@ class BulkOperationTypeSelectionView(ui.View):
 
             # 顯示將要停用的成就
             disable_list = []
-            for i, achievement in enumerate(to_disable[:MAX_PREVIEW_ITEMS]):  # 顯示前幾個
+            for i, achievement in enumerate(
+                to_disable[:MAX_PREVIEW_ITEMS]
+            ):  # 顯示前幾個
                 disable_list.append(f"{i + 1}. ✅ → ❌ {achievement.name}")
 
             if len(to_disable) > MAX_PREVIEW_ITEMS:
-                disable_list.append(f"... 還有 {len(to_disable) - MAX_PREVIEW_ITEMS} 個成就")
+                disable_list.append(
+                    f"... 還有 {len(to_disable) - MAX_PREVIEW_ITEMS} 個成就"
+                )
 
             embed.add_field(
                 name="🔄 狀態變更預覽",
@@ -6749,7 +6798,9 @@ class BulkOperationTypeSelectionView(ui.View):
         # 安全刪除的成就
         if dependency_analysis["safe_to_delete"]:
             safe_list = []
-            for _i, achievement in enumerate(dependency_analysis["safe_to_delete"][:MAX_DISPLAYED_ITEMS]):
+            for _i, achievement in enumerate(
+                dependency_analysis["safe_to_delete"][:MAX_DISPLAYED_ITEMS]
+            ):
                 safe_list.append(f"• ✅ {achievement.name}")
 
             if len(dependency_analysis["safe_to_delete"]) > MAX_DISPLAYED_ITEMS:
@@ -6933,6 +6984,7 @@ class BulkOperationTypeSelectionView(ui.View):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+
 class BulkStatusChangeConfirmView(ui.View):
     """批量狀態變更確認視圖."""
 
@@ -7002,6 +7054,7 @@ class BulkStatusChangeConfirmView(ui.View):
             "操作已取消", f"✅ 批量{action_type}操作已被取消,沒有進行任何變更."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class BulkOperationProgressView(ui.View):
     """批量操作進度追蹤視圖."""
@@ -7288,15 +7341,21 @@ class BulkOperationProgressView(ui.View):
                 )
 
             if self.errors:
-                error_text = "\n".join([f"• {error}" for error in self.errors[:MAX_ERROR_DISPLAY]])
+                error_text = "\n".join([
+                    f"• {error}" for error in self.errors[:MAX_ERROR_DISPLAY]
+                ])
                 if len(self.errors) > MAX_ERROR_DISPLAY:
-                    error_text += f"\n• ... 還有 {len(self.errors) - MAX_ERROR_DISPLAY} 個錯誤"
+                    error_text += (
+                        f"\n• ... 還有 {len(self.errors) - MAX_ERROR_DISPLAY} 個錯誤"
+                    )
 
                 embed.add_field(name="❌ 錯誤詳情", value=error_text, inline=False)
 
             if self.completed_achievements:
                 success_list = []
-                for _i, achievement in enumerate(self.completed_achievements[:MAX_DISPLAYED_ITEMS]):
+                for _i, achievement in enumerate(
+                    self.completed_achievements[:MAX_DISPLAYED_ITEMS]
+                ):
                     status_icon = "✅" if achievement.is_active else "❌"
                     success_list.append(f"• {status_icon} {achievement.name}")
 
@@ -7408,6 +7467,7 @@ class BulkOperationProgressView(ui.View):
             logger.error(f"獲取管理服務失敗: {e}")
             raise RuntimeError(f"無法獲取管理服務: {e}") from e
 
+
 class EnhancedMockAdminService:
     """增強的模擬管理服務,支援批量操作."""
 
@@ -7416,19 +7476,19 @@ class EnhancedMockAdminService:
     ):
         """模擬批量狀態更新."""
 
-
         result = BulkOperationResult()
 
         # 模擬處理每個成就
         for achievement_id in achievement_ids:
             try:
                 # 模擬可能的失敗情況
-                if achievement_id == MAGIC_ACHIEVEMENT_ID_FOR_TESTING:  # 模擬不存在的成就
+                if (
+                    achievement_id == MAGIC_ACHIEVEMENT_ID_FOR_TESTING
+                ):  # 模擬不存在的成就
                     result.add_error(f"成就 {achievement_id} 不存在")
                     continue
 
                 # 建立模擬的更新成就
-
 
                 updated_achievement = Achievement(
                     id=achievement_id,
@@ -7466,7 +7526,6 @@ class EnhancedMockAdminService:
     ):
         """模擬批量刪除."""
 
-
         result = BulkOperationResult()
 
         # 模擬處理每個成就
@@ -7483,11 +7542,11 @@ class EnhancedMockAdminService:
                         continue
 
                 # 模擬可能的失敗情況
-                if achievement_id == MAGIC_ACHIEVEMENT_ID_FOR_TESTING:  # 模擬不存在的成就
+                if (
+                    achievement_id == MAGIC_ACHIEVEMENT_ID_FOR_TESTING
+                ):  # 模擬不存在的成就
                     result.add_error(f"成就 {achievement_id} 不存在")
                     continue
-
-
 
                 deleted_achievement = Achievement(
                     id=achievement_id,
@@ -7546,7 +7605,6 @@ class EnhancedMockAdminService:
     ):
         """模擬批量分類變更."""
 
-
         result = BulkOperationResult()
         result.details["operation_type"] = "batch_category_change"
         result.details["target_category_id"] = target_category_id
@@ -7562,7 +7620,9 @@ class EnhancedMockAdminService:
         for achievement_id in achievement_ids:
             try:
                 # 模擬可能的失敗情況
-                if achievement_id == MAGIC_ACHIEVEMENT_ID_FOR_TESTING:  # 模擬不存在的成就
+                if (
+                    achievement_id == MAGIC_ACHIEVEMENT_ID_FOR_TESTING
+                ):  # 模擬不存在的成就
                     result.add_error(f"成就 {achievement_id} 不存在")
                     continue
 
@@ -7571,7 +7631,6 @@ class EnhancedMockAdminService:
                 )  # 模擬當前分類
                 if current_category_id == target_category_id:
                     # 建立模擬成就物件用於跳過統計
-
 
                     achievement = Achievement(
                         id=achievement_id,
@@ -7594,7 +7653,6 @@ class EnhancedMockAdminService:
                     continue
 
                 # 建立模擬的更新後成就
-
 
                 updated_achievement = Achievement(
                     id=achievement_id,
@@ -7639,6 +7697,7 @@ class EnhancedMockAdminService:
             f"目標分類: {target_category_name}"
         )
         return result
+
 
 class BulkDeleteConfirmView(ui.View):
     """批量刪除確認視圖."""
@@ -7763,15 +7822,23 @@ class BulkDeleteConfirmView(ui.View):
             # 詳細依賴信息
             if self.dependency_analysis["has_dependencies"]:
                 dep_details = []
-                for achievement in self.dependency_analysis["has_dependencies"][:MAX_PREVIEW_ITEMS]:
+                for achievement in self.dependency_analysis["has_dependencies"][
+                    :MAX_PREVIEW_ITEMS
+                ]:
                     dep_info = self.dependency_analysis["dependency_details"].get(
                         achievement.id, {}
                     )
                     user_count = dep_info.get("user_achievement_count", 0)
                     dep_details.append(f"• **{achievement.name}**: {user_count} 位用戶")
 
-                if len(self.dependency_analysis["has_dependencies"]) > MAX_PREVIEW_ITEMS:
-                    remaining = len(self.dependency_analysis["has_dependencies"]) - MAX_PREVIEW_ITEMS
+                if (
+                    len(self.dependency_analysis["has_dependencies"])
+                    > MAX_PREVIEW_ITEMS
+                ):
+                    remaining = (
+                        len(self.dependency_analysis["has_dependencies"])
+                        - MAX_PREVIEW_ITEMS
+                    )
                     dep_details.append(f"• ... 還有 {remaining} 個成就有依賴")
 
                 embed.add_field(
@@ -7781,11 +7848,16 @@ class BulkDeleteConfirmView(ui.View):
             # 安全刪除列表
             if self.dependency_analysis["safe_to_delete"]:
                 safe_details = []
-                for achievement in self.dependency_analysis["safe_to_delete"][:MAX_PREVIEW_ITEMS]:
+                for achievement in self.dependency_analysis["safe_to_delete"][
+                    :MAX_PREVIEW_ITEMS
+                ]:
                     safe_details.append(f"• ✅ {achievement.name}")
 
                 if len(self.dependency_analysis["safe_to_delete"]) > MAX_PREVIEW_ITEMS:
-                    remaining = len(self.dependency_analysis["safe_to_delete"]) - MAX_PREVIEW_ITEMS
+                    remaining = (
+                        len(self.dependency_analysis["safe_to_delete"])
+                        - MAX_PREVIEW_ITEMS
+                    )
                     safe_details.append(f"• ... 還有 {remaining} 個可安全刪除")
 
                 embed.add_field(
@@ -7819,6 +7891,7 @@ class BulkDeleteConfirmView(ui.View):
             "✅ 批量刪除操作已被取消,沒有進行任何變更.\n\n所有成就都保持原狀.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class ForceDeleteConfirmView(ui.View):
     """強制刪除最終確認視圖."""
@@ -7877,6 +7950,7 @@ class ForceDeleteConfirmView(ui.View):
             "所有成就都保持安全.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class BulkCategoryChangeView(ui.View):
     """批量分類變更視圖."""
@@ -7993,7 +8067,7 @@ class BulkCategoryChangeView(ui.View):
     ) -> discord.Embed:
         """創建變更確認嵌入訊息."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "📂 確認批量分類變更", "將成就移動到"**{target_category.name}**"分類"
+            "📂 確認批量分類變更", "將成就移動到" ** {target_category.name} ** "分類"
         )
 
         # 變更統計
@@ -8021,7 +8095,9 @@ class BulkCategoryChangeView(ui.View):
         # 預覽需要變更的成就(最多顯示 8 個)
         if change_analysis["changes_needed"]:
             preview_list = []
-            for i, achievement in enumerate(change_analysis["changes_needed"][:MAX_PREVIEW_ITEMS]):
+            for i, achievement in enumerate(
+                change_analysis["changes_needed"][:MAX_PREVIEW_ITEMS]
+            ):
                 status = "✅" if achievement.is_active else "❌"
                 preview_list.append(f"{i + 1}. {status} {achievement.name}")
 
@@ -8134,6 +8210,7 @@ class BulkCategoryChangeView(ui.View):
             await interaction.response.send_message(
                 "❌ 返回批量操作時發生錯誤", ephemeral=True
             )
+
 
 class BulkCategoryChangeConfirmView(ui.View):
     """批量分類變更確認視圖."""
@@ -8278,6 +8355,7 @@ class BulkCategoryChangeConfirmView(ui.View):
             "您可以隨時重新開始此操作.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class CategoryManagementView(ui.View):
     """分類管理專用視圖.
@@ -8881,7 +8959,6 @@ class CategoryManagementView(ui.View):
             # 這裡應該從依賴注入容器獲取實際的管理服務
             # 暫時直接實例化,實際應該使用單例模式
 
-
             return AchievementAdminService(
                 repository=None,  # 實際應該注入真實的 repository
                 permission_service=None,  # 實際應該注入真實的 permission service
@@ -8891,9 +8968,11 @@ class CategoryManagementView(ui.View):
             logger.error(f"獲取管理服務失敗: {e}")
             return None
 
+
 # ================================================================================
 # Task 2: 手動成就授予功能實作
 # ================================================================================
+
 
 class GrantAchievementFlowView(ui.View):
     """成就授予流程視圖."""
@@ -9166,6 +9245,7 @@ class GrantUserSearchModal(ui.Modal):
 
         return embed
 
+
 class GrantAchievementUserSelectionView(ui.View):
     """成就授予用戶選擇視圖."""
 
@@ -9277,6 +9357,7 @@ class GrantAchievementUserSelectionView(ui.View):
 
         return embed
 
+
 class GrantAchievementSelectionView(ui.View):
     """成就授予選擇視圖."""
 
@@ -9341,17 +9422,15 @@ class GrantAchievementSelectionView(ui.View):
                 # 轉換為字典格式以保持向後兼容性
                 achievement_dicts = []
                 for achievement in achievements:
-                    achievement_dicts.append(
-                        {
-                            "id": achievement.id,
-                            "name": achievement.name,
-                            "description": achievement.description,
-                            "points": achievement.points,
-                            "category": achievement.category.name
-                            if achievement.category
-                            else "未分類",
-                        }
-                    )
+                    achievement_dicts.append({
+                        "id": achievement.id,
+                        "name": achievement.name,
+                        "description": achievement.description,
+                        "points": achievement.points,
+                        "category": achievement.category.name
+                        if achievement.category
+                        else "未分類",
+                    })
 
                 return achievement_dicts
 
@@ -9472,6 +9551,7 @@ class GrantAchievementSelectionView(ui.View):
         embed.set_footer(text="請確認授予資訊並選擇操作")
 
         return embed
+
 
 class GrantAchievementConfirmView(ui.View):
     """成就授予確認視圖."""
@@ -9670,6 +9750,7 @@ class GrantAchievementConfirmView(ui.View):
 
         return embed
 
+
 class GrantSettingsModal(ui.Modal):
     """授予設定模態框."""
 
@@ -9718,6 +9799,7 @@ class GrantSettingsModal(ui.Modal):
             await interaction.response.send_message(
                 "❌ 處理設定時發生錯誤", ephemeral=True
             )
+
 
 class GrantAchievementFollowupView(ui.View):
     """成就授予後續操作視圖."""
@@ -9849,6 +9931,7 @@ class GrantAchievementFollowupView(ui.View):
 
         return embed
 
+
 # ================================================================================
 # Task 2 實作完成 - 手動成就授予功能
 # ================================================================================
@@ -9856,6 +9939,7 @@ class GrantAchievementFollowupView(ui.View):
 # ================================================================================
 # Task 3: 成就撤銷功能實作
 # ================================================================================
+
 
 class RevokeAchievementUserSelectionView(ui.View):
     """成就撤銷用戶選擇視圖."""
@@ -9969,6 +10053,7 @@ class RevokeAchievementUserSelectionView(ui.View):
 
         return embed
 
+
 class RevokeAchievementSelectionView(ui.View):
     """成就撤銷選擇視圖."""
 
@@ -10040,29 +10125,25 @@ class RevokeAchievementSelectionView(ui.View):
                 # 轉換為字典格式以保持兼容性
                 achievements = []
                 for achievement in user_achievements:
-                    achievements.append(
-                        {
-                            "id": achievement.achievement_id,
-                            "name": achievement.achievement.name
-                            if hasattr(achievement, "achievement")
-                            else f"成就 {achievement.achievement_id}",
-                            "description": achievement.achievement.description
-                            if hasattr(achievement, "achievement")
-                            else "成就描述",
-                            "points": achievement.achievement.points
-                            if hasattr(achievement, "achievement")
-                            else 0,
-                            "category": achievement.achievement.category.name
-                            if hasattr(achievement, "achievement")
-                            and hasattr(achievement.achievement, "category")
-                            else "未分類",
-                            "earned_at": achievement.earned_at.strftime(
-                                "%Y-%m-%d %H:%M"
-                            )
-                            if achievement.earned_at
-                            else "未知時間",
-                        }
-                    )
+                    achievements.append({
+                        "id": achievement.achievement_id,
+                        "name": achievement.achievement.name
+                        if hasattr(achievement, "achievement")
+                        else f"成就 {achievement.achievement_id}",
+                        "description": achievement.achievement.description
+                        if hasattr(achievement, "achievement")
+                        else "成就描述",
+                        "points": achievement.achievement.points
+                        if hasattr(achievement, "achievement")
+                        else 0,
+                        "category": achievement.achievement.category.name
+                        if hasattr(achievement, "achievement")
+                        and hasattr(achievement.achievement, "category")
+                        else "未分類",
+                        "earned_at": achievement.earned_at.strftime("%Y-%m-%d %H:%M")
+                        if achievement.earned_at
+                        else "未知時間",
+                    })
 
                 return achievements
             else:
@@ -10164,6 +10245,7 @@ class RevokeAchievementSelectionView(ui.View):
         embed.set_footer(text="⚠️ 危險操作 - 請仔細確認後執行")
 
         return embed
+
 
 class RevokeAchievementConfirmView(ui.View):
     """成就撤銷確認視圖."""
@@ -10432,6 +10514,7 @@ class RevokeAchievementConfirmView(ui.View):
 
         return embed
 
+
 class RevokeConfirmationModal(ui.Modal):
     """撤銷二次確認模態框."""
 
@@ -10489,6 +10572,7 @@ class RevokeConfirmationModal(ui.Modal):
                 "❌ 處理確認時發生錯誤", ephemeral=True
             )
 
+
 class RevokeSettingsModal(ui.Modal):
     """撤銷設定模態框."""
 
@@ -10537,6 +10621,7 @@ class RevokeSettingsModal(ui.Modal):
             await interaction.response.send_message(
                 "❌ 處理設定時發生錯誤", ephemeral=True
             )
+
 
 class RevokeAchievementFollowupView(ui.View):
     """成就撤銷後續操作視圖."""
@@ -10697,9 +10782,11 @@ class RevokeAchievementFollowupView(ui.View):
 
         return embed
 
+
 # ================================================================================
 # Task 6 實作批量用戶操作功能 (AC: 5, 8)
 # ================================================================================
+
 
 class BulkUserSelectionView(ui.View):
     """批量用戶選擇視圖."""
@@ -10806,6 +10893,7 @@ class BulkUserSelectionView(ui.View):
 
         return embed
 
+
 class BulkGrantAchievementView(ui.View):
     """批量授予成就視圖."""
 
@@ -10896,7 +10984,9 @@ class BulkGrantAchievementView(ui.View):
             )
 
         if len(self.selected_users) > MAX_DISPLAYED_ITEMS:
-            users_preview.append(f"... 還有 {len(self.selected_users) - MAX_DISPLAYED_ITEMS} 個用戶")
+            users_preview.append(
+                f"... 還有 {len(self.selected_users) - MAX_DISPLAYED_ITEMS} 個用戶"
+            )
 
         embed.add_field(
             name="👥 目標用戶", value="\n".join(users_preview), inline=False
@@ -10918,6 +11008,7 @@ class BulkGrantAchievementView(ui.View):
         embed.set_footer(text="確認後將開始批量授予操作")
 
         return embed
+
 
 class BulkGrantConfirmView(ui.View):
     """批量授予確認視圖."""
@@ -11088,6 +11179,7 @@ class BulkGrantConfirmView(ui.View):
 
         return embed
 
+
 class BulkGrantResultView(ui.View):
     """批量授予結果視圖."""
 
@@ -11122,7 +11214,9 @@ class BulkGrantResultView(ui.View):
                     )
 
                 if len(self.successful) > MAX_SUCCESS_DISPLAY:
-                    success_text.append(f"... 還有 {len(self.successful) - MAX_SUCCESS_DISPLAY} 個")
+                    success_text.append(
+                        f"... 還有 {len(self.successful) - MAX_SUCCESS_DISPLAY} 個"
+                    )
 
                 embed.add_field(
                     name=f"✅ 成功授予 ({len(self.successful)} 個)",
@@ -11139,7 +11233,9 @@ class BulkGrantResultView(ui.View):
                     fail_text.append(f"{i + 1}. {user_data['display_name']}: {error}")
 
                 if len(self.failed) > MAX_DISPLAYED_ITEMS:
-                    fail_text.append(f"... 還有 {len(self.failed) - MAX_DISPLAYED_ITEMS} 個")
+                    fail_text.append(
+                        f"... 還有 {len(self.failed) - MAX_DISPLAYED_ITEMS} 個"
+                    )
 
                 embed.add_field(
                     name=f"❌ 授予失敗 ({len(self.failed)} 個)",
@@ -11211,6 +11307,7 @@ class BulkGrantResultView(ui.View):
     ) -> None:
         """返回用戶管理."""
         await self.admin_panel.handle_navigation(interaction, AdminPanelState.USERS)
+
 
 class BulkRevokeAchievementView(ui.View):
     """批量撤銷成就視圖."""
@@ -11305,7 +11402,9 @@ class BulkRevokeAchievementView(ui.View):
             )
 
         if len(self.selected_users) > MAX_DISPLAYED_ITEMS:
-            users_preview.append(f"... 還有 {len(self.selected_users) - MAX_DISPLAYED_ITEMS} 個用戶")
+            users_preview.append(
+                f"... 還有 {len(self.selected_users) - MAX_DISPLAYED_ITEMS} 個用戶"
+            )
 
         embed.add_field(
             name="👥 目標用戶", value="\n".join(users_preview), inline=False
@@ -11338,6 +11437,7 @@ class BulkRevokeAchievementView(ui.View):
         embed.set_footer(text="請仔細確認後再執行批量撤銷操作")
 
         return embed
+
 
 class BulkRevokeConfirmView(ui.View):
     """批量撤銷確認視圖."""
@@ -11498,6 +11598,7 @@ class BulkRevokeConfirmView(ui.View):
         )
 
         return embed
+
 
 class BulkResetConfirmView(ui.View):
     """批量重置確認視圖."""
@@ -11678,6 +11779,7 @@ class BulkResetConfirmView(ui.View):
 
         return embed
 
+
 # ================================================================================
 # Task 6 實作完成 - 批量用戶操作功能
 # ================================================================================
@@ -11685,6 +11787,7 @@ class BulkResetConfirmView(ui.View):
 # ================================================================================
 # Task 3 實作完成 - 成就撤銷功能
 # ================================================================================
+
 
 class AchievementCriteriaSelectionView(ui.View):
     """成就條件選擇視圖."""

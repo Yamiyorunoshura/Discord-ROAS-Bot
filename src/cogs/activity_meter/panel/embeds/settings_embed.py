@@ -32,7 +32,7 @@ async def create_settings_embed(
         discord.Embed: 設定面板嵌入
     """
     embed = discord.Embed(
-        title="⚙️ 活躍度系統設定",
+        title="活躍度系統設定",
         description="您可以在此設定活躍度系統的各項參數",
         color=discord.Color.blue(),
     )
@@ -73,7 +73,7 @@ async def create_settings_embed(
 
     # 設定說明
     embed.add_field(
-        name="🔧 如何設定",
+        name="⚙️ 如何設定",
         value=(
             "• 使用上方下拉選單選擇進度條風格\n"
             "• 選擇公告頻道和公告時間\n"
@@ -85,7 +85,7 @@ async def create_settings_embed(
 
     # 功能說明
     embed.add_field(
-        name="📊 系統功能",
+        name="⚙️ 系統功能",
         value=(
             "• 自動計算用戶活躍度分數\n"
             "• 每日排行榜自動播報\n"

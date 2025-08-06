@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AchievementServiceContainer:
     """成就系統服務容器.
 
@@ -212,6 +213,7 @@ class AchievementServiceContainer:
             raise RuntimeError("服務容器尚未初始化")
         return self._cache_service
 
+
 class AchievementServiceFactory:
     """成就系統服務工廠.
 
@@ -276,6 +278,7 @@ class AchievementServiceFactory:
         progress_tracker = ProgressTracker(repository)
         return TriggerEngine(repository, progress_tracker)
 
+
 # 整合到現有的依賴注入系統
 async def register_achievement_services(
     container: Container, database_pool: DatabasePool
@@ -312,6 +315,7 @@ async def register_achievement_services(
     except Exception as e:
         logger.error("成就系統服務註冊失敗", extra={"error": str(e)}, exc_info=True)
         raise
+
 
 __all__ = [
     "AchievementServiceContainer",

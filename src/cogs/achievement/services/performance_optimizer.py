@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # 常數定義
 MAX_CACHE_SIZE = 10000  # 最大快取大小
 
+
 class CacheType(str, Enum):
     """快取類型列舉."""
 
@@ -44,6 +45,7 @@ class CacheType(str, Enum):
     PROGRESS = "progress"
     TRIGGER_RESULT = "trigger_result"
     USER_STATS = "user_stats"
+
 
 @dataclass
 class CacheConfig:
@@ -63,6 +65,7 @@ class CacheConfig:
 
     auto_refresh: bool = True
     """是否自動重新整理"""
+
 
 @dataclass
 class BatchOperation:
@@ -85,6 +88,7 @@ class BatchOperation:
 
     created_at: datetime = field(default_factory=datetime.now)
     """創建時間"""
+
 
 class PerformanceOptimizer:
     """效能優化器.
@@ -758,6 +762,7 @@ class PerformanceOptimizer:
     def get_performance_stats(self) -> dict[str, Any]:
         """取得效能統計資訊."""
         return self._stats.copy()
+
 
 __all__ = [
     "BatchOperation",

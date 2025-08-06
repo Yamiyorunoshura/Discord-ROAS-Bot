@@ -23,12 +23,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class CurrencyButton(Button):
     """貨幣面板基礎按鈕類"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.logger = logger
+
 
 class TransferButton(CurrencyButton):
     """轉帳按鈕"""
@@ -47,7 +49,7 @@ class TransferButton(CurrencyButton):
                 embed = discord.Embed(
                     title="❌ 權限不足",
                     description="只有面板擁有者可以執行轉帳操作",
-                    color=discord.Color.red()
+                    color=discord.Color.red(),
                 )
                 await interaction.response.send_message(embed=embed, ephemeral=True)
                 return
@@ -57,7 +59,7 @@ class TransferButton(CurrencyButton):
                 currency_service=view.currency_service,
                 currency_panel_view=view,
                 guild_id=view.guild_id,
-                from_user_id=view.author_id
+                from_user_id=view.author_id,
             )
 
             await interaction.response.send_modal(transfer_modal)
@@ -67,9 +69,10 @@ class TransferButton(CurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="開啟轉帳視窗時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class LeaderboardButton(CurrencyButton):
     """排行榜按鈕"""
@@ -92,9 +95,10 @@ class LeaderboardButton(CurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="載入排行榜時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class RefreshButton(CurrencyButton):
     """重新整理按鈕"""
@@ -117,9 +121,10 @@ class RefreshButton(CurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="重新整理面板時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class CloseButton(CurrencyButton):
     """關閉按鈕"""
@@ -139,7 +144,7 @@ class CloseButton(CurrencyButton):
                 embed = discord.Embed(
                     title="❌ 權限不足",
                     description="只有面板擁有者可以關閉面板",
-                    color=discord.Color.red()
+                    color=discord.Color.red(),
                 )
                 await interaction.response.send_message(embed=embed, ephemeral=True)
                 return
@@ -148,7 +153,7 @@ class CloseButton(CurrencyButton):
             embed = discord.Embed(
                 title="💰 貨幣面板已關閉",
                 description="感謝使用貨幣系統!",
-                color=discord.Color.blue()
+                color=discord.Color.blue(),
             )
 
             # 禁用所有組件

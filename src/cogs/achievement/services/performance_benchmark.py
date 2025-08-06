@@ -30,6 +30,7 @@ SUCCESS_RATE_THRESHOLD = 0.95  # 95% 成功率門檻
 SLOW_RESPONSE_THRESHOLD_MS = 200  # 慢回應時間閾值(毫秒)
 HIGH_P95_THRESHOLD_MS = 500  # 高P95回應時間閾值(毫秒)
 
+
 class TestType(str, Enum):
     """測試類型."""
 
@@ -38,6 +39,7 @@ class TestType(str, Enum):
     STRESS = "stress"
     REGRESSION = "regression"
 
+
 class TestStatus(str, Enum):
     """測試狀態."""
 
@@ -45,6 +47,7 @@ class TestStatus(str, Enum):
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
+
 
 @dataclass
 class TestScenario:
@@ -70,6 +73,7 @@ class TestScenario:
 
     iterations: int = 100
     """迭代次數"""
+
 
 @dataclass
 class TestResult:
@@ -122,6 +126,7 @@ class TestResult:
 
     metrics: dict[str, Any] = field(default_factory=dict)
     """額外指標"""
+
 
 class PerformanceBenchmark:
     """成就系統效能基準測試器."""
@@ -254,7 +259,7 @@ class PerformanceBenchmark:
     # 測試場景實作
     # =============================================================================
 
-    async def _test_get_achievement_single(self, **kwargs) -> float:  # noqa: ARG002
+    async def _test_get_achievement_single(self, **kwargs) -> float:
         """測試單個成就查詢."""
         if not self._test_achievements:
             await self.prepare_test_data()
@@ -273,7 +278,7 @@ class PerformanceBenchmark:
         return (end_time - start_time) * 1000
 
     async def _test_get_achievement_batch(
-        self, batch_size: int = 50, **kwargs  # noqa: ARG002
+        self, batch_size: int = 50, **kwargs
     ) -> float:
         """測試批量成就查詢."""
         if not self._test_achievements:
@@ -297,7 +302,7 @@ class PerformanceBenchmark:
         return (end_time - start_time) * 1000
 
     async def _test_list_achievements_paginated(
-        self, page_size: int = 20, **kwargs  # noqa: ARG002
+        self, page_size: int = 20, **kwargs
     ) -> float:
         """測試分頁成就列表查詢."""
         page = random.randint(1, 5)
@@ -313,7 +318,7 @@ class PerformanceBenchmark:
 
         return (end_time - start_time) * 1000
 
-    async def _test_user_achievements_query(self, **kwargs) -> float:  # noqa: ARG002
+    async def _test_user_achievements_query(self, **kwargs) -> float:
         """測試用戶成就查詢."""
         if not self._test_user_ids:
             await self.prepare_test_data()
@@ -330,7 +335,7 @@ class PerformanceBenchmark:
         # 這個測試允許空結果,因為測試用戶可能沒有成就
         return (end_time - start_time) * 1000
 
-    async def _test_cache_performance(self, **kwargs) -> float:  # noqa: ARG002
+    async def _test_cache_performance(self, **kwargs) -> float:
         """測試快取效能."""
         if not self._test_achievements:
             await self.prepare_test_data()
@@ -352,7 +357,7 @@ class PerformanceBenchmark:
         return (end_time - start_time) * 1000
 
     async def _test_concurrent_operations(
-        self, concurrency: int = 50, **kwargs  # noqa: ARG002
+        self, concurrency: int = 50, **kwargs
     ) -> float:
         """測試並發操作效能."""
         if not self._test_achievements:
@@ -379,7 +384,7 @@ class PerformanceBenchmark:
 
         return (end_time - start_time) * 1000
 
-    async def _test_memory_stress(self, data_size: int = 10000, **kwargs) -> float:  # noqa: ARG002
+    async def _test_memory_stress(self, data_size: int = 10000, **kwargs) -> float:
         """測試記憶體壓力."""
         # 創建大量資料來測試記憶體使用
         large_dataset = []
@@ -388,13 +393,11 @@ class PerformanceBenchmark:
 
         # 生成大量測試資料
         for i in range(data_size):
-            large_dataset.append(
-                {
-                    "id": i,
-                    "data": f"test_data_{i}" * 100,  # 創建較大的字串
-                    "timestamp": datetime.now(),
-                }
-            )
+            large_dataset.append({
+                "id": i,
+                "data": f"test_data_{i}" * 100,  # 創建較大的字串
+                "timestamp": datetime.now(),
+            })
 
         # 模擬處理這些資料
         processed_count = 0
@@ -667,9 +670,11 @@ class PerformanceBenchmark:
         while time.time() - test_start < duration_seconds:
             try:
                 # 隨機選擇操作
-                operation_type = random.choice(
-                    ["get_achievement", "list_achievements", "user_achievements"]
-                )
+                operation_type = random.choice([
+                    "get_achievement",
+                    "list_achievements",
+                    "user_achievements",
+                ])
 
                 start_time = time.perf_counter()
 
@@ -749,9 +754,9 @@ class PerformanceBenchmark:
                 report["results_by_type"][test_type] = {
                     "total_tests": len(results),
                     "completed_tests": len(completed_results),
-                    "failed_tests": len(
-                        [r for r in results if r.status == TestStatus.FAILED]
-                    ),
+                    "failed_tests": len([
+                        r for r in results if r.status == TestStatus.FAILED
+                    ]),
                     "avg_response_time_ms": statistics.mean(avg_response_times),
                     "avg_success_rate": statistics.mean(success_rates),
                     "scenarios": [
@@ -795,14 +800,20 @@ class PerformanceBenchmark:
 
         if completed_results:
             # 檢查平均回應時間
-            slow_tests = [r for r in completed_results if r.avg_response_time_ms > SLOW_RESPONSE_THRESHOLD_MS]
+            slow_tests = [
+                r
+                for r in completed_results
+                if r.avg_response_time_ms > SLOW_RESPONSE_THRESHOLD_MS
+            ]
             if slow_tests:
                 recommendations.append(
                     f"發現 {len(slow_tests)} 個慢測試場景,建議優化查詢效能"
                 )
 
             # 檢查成功率
-            low_success_tests = [r for r in completed_results if r.success_rate < SUCCESS_RATE_THRESHOLD]
+            low_success_tests = [
+                r for r in completed_results if r.success_rate < SUCCESS_RATE_THRESHOLD
+            ]
             if low_success_tests:
                 recommendations.append(
                     f"發現 {len(low_success_tests)} 個成功率較低的測試場景,建議檢查錯誤處理"
@@ -810,7 +821,9 @@ class PerformanceBenchmark:
 
             # 檢查P95回應時間
             high_p95_tests = [
-                r for r in completed_results if r.p95_response_time_ms > HIGH_P95_THRESHOLD_MS
+                r
+                for r in completed_results
+                if r.p95_response_time_ms > HIGH_P95_THRESHOLD_MS
             ]
             if high_p95_tests:
                 recommendations.append(
@@ -860,6 +873,7 @@ class PerformanceBenchmark:
             }
             for result in recent_results
         ]
+
 
 __all__ = [
     "PerformanceBenchmark",

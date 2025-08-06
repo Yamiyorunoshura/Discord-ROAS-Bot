@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class TriggerEngine:
     """成就觸發檢查引擎.
 
@@ -167,7 +168,7 @@ class TriggerEngine:
         else:
             return False, f"不支援的成就類型: {achievement_type}"
 
-    async def _check_counter_trigger(  # noqa: PLR0911
+    async def _check_counter_trigger(
         self,
         user_id: int,
         achievement: Achievement,
@@ -1246,8 +1247,8 @@ class TriggerEngine:
 
     async def _evaluate_milestone_condition(
         self,
-        user_id: int,  # noqa: ARG002
-        condition_name: str,  # noqa: ARG002
+        user_id: int,
+        condition_name: str,
         condition_def: dict[str, Any],
         trigger_context: dict[str, Any],
     ) -> bool:
@@ -1289,6 +1290,7 @@ class TriggerEngine:
                 return start <= current_time <= end
 
         return False
+
 
 __all__ = [
     "TriggerEngine",

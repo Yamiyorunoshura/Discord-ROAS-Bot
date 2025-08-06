@@ -17,6 +17,7 @@ from src.core.config import get_settings
 if TYPE_CHECKING:
     from ..main.main import AntiLink
 
+
 class AntiLinkDatabase:
     """
     反惡意連結資料庫管理器
@@ -136,10 +137,13 @@ class AntiLinkDatabase:
             str | None: 配置值
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
-                "SELECT value FROM config WHERE guild_id = ? AND key = ?",
-                (guild_id, key),
-            ) as cursor:
+            async with (
+                aiosqlite.connect(self._get_db_path()) as db,
+                db.execute(
+                    "SELECT value FROM config WHERE guild_id = ? AND key = ?",
+                    (guild_id, key),
+                ) as cursor,
+            ):
                 row = await cursor.fetchone()
                 return row[0] if row else default
 
@@ -182,9 +186,12 @@ class AntiLinkDatabase:
             Dict[str, str]: 配置字典
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
-                "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
-            ) as cursor:
+            async with (
+                aiosqlite.connect(self._get_db_path()) as db,
+                db.execute(
+                    "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
+                ) as cursor,
+            ):
                 rows = await cursor.fetchall()
                 return {row[0]: row[1] for row in rows}
 
@@ -324,9 +331,12 @@ class AntiLinkDatabase:
             Dict[str, int]: 統計資料字典
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
-                "SELECT stat_type, count FROM stats WHERE guild_id = ?", (guild_id,)
-            ) as cursor:
+            async with (
+                aiosqlite.connect(self._get_db_path()) as db,
+                db.execute(
+                    "SELECT stat_type, count FROM stats WHERE guild_id = ?", (guild_id,)
+                ) as cursor,
+            ):
                 rows = await cursor.fetchall()
                 return {row[0]: row[1] for row in rows}
 
@@ -391,28 +401,29 @@ class AntiLinkDatabase:
             List[Dict[str, Any]]: 操作日誌列表
         """
         try:
-            async with aiosqlite.connect(self._get_db_path()) as db, db.execute(
-                """
+            async with (
+                aiosqlite.connect(self._get_db_path()) as db,
+                db.execute(
+                    """
                 SELECT user_id, action, details, timestamp
                 FROM action_logs
                 WHERE guild_id = ?
                 ORDER BY timestamp DESC
                 LIMIT ?
             """,
-                (guild_id, limit),
-            ) as cursor:
+                    (guild_id, limit),
+                ) as cursor,
+            ):
                 rows = await cursor.fetchall()
 
                 logs = []
                 for row in rows:
-                    logs.append(
-                            {
-                                "user_id": row[0],
-                                "action": row[1],
-                                "details": row[2],
-                                "timestamp": row[3],
-                            }
-                        )
+                    logs.append({
+                        "user_id": row[0],
+                        "action": row[1],
+                        "details": row[2],
+                        "timestamp": row[3],
+                    })
 
                     return logs
 

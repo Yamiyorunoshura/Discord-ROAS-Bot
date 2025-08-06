@@ -12,6 +12,7 @@ from ...base import ProtectionCog
 
 logger = logging.getLogger("anti_spam")
 
+
 class AntiSpamDatabase:
     """
     反垃圾訊息保護模組資料庫操作類

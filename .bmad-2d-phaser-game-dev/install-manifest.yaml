@@ -1,11 +1,10 @@
 version: 1.12.0
-installed_at: '2025-08-02T20:15:41.437Z'
+installed_at: '2025-08-05T16:15:28.320Z'
 install_type: expansion-pack
 expansion_pack_id: bmad-2d-phaser-game-dev
 expansion_pack_name: bmad-2d-phaser-game-dev
 ides_setup:
-  - cursor
-  - claude-code
+  - kilo
 files:
   - path: .bmad-2d-phaser-game-dev\config.yaml
     hash: 538579910d4be123
@@ -15,12 +14,6 @@ files:
     modified: false
   - path: .bmad-2d-phaser-game-dev\workflows\game-dev-greenfield.yaml
     hash: 12cfcbc74c9a2416
-    modified: false
-  - path: .bmad-2d-phaser-game-dev\utils\workflow-management.md
-    hash: b148df3ebb1f9c61
-    modified: false
-  - path: .bmad-2d-phaser-game-dev\utils\bmad-doc-template.md
-    hash: 4b2f7c4408835b9e
     modified: false
   - path: .bmad-2d-phaser-game-dev\templates\project-brief-tmpl.yaml
     hash: cd4b269b0722c361
@@ -76,6 +69,12 @@ files:
   - path: .bmad-2d-phaser-game-dev\tasks\advanced-elicitation.md
     hash: 1ab304ac31d73c19
     modified: false
+  - path: .bmad-2d-phaser-game-dev\utils\workflow-management.md
+    hash: b148df3ebb1f9c61
+    modified: false
+  - path: .bmad-2d-phaser-game-dev\utils\bmad-doc-template.md
+    hash: 4b2f7c4408835b9e
+    modified: false
   - path: .bmad-2d-phaser-game-dev\data\elicitation-methods.md
     hash: 82d24b664e1a58ff
     modified: false
@@ -91,12 +90,6 @@ files:
   - path: .bmad-2d-phaser-game-dev\agent-teams\phaser-2d-nodejs-game-team.yaml
     hash: abc777bfc19aff14
     modified: false
-  - path: .bmad-2d-phaser-game-dev\checklists\game-story-dod-checklist.md
-    hash: 1c04d3dac10a357a
-    modified: false
-  - path: .bmad-2d-phaser-game-dev\checklists\game-design-checklist.md
-    hash: 0f802420a3e7f7ed
-    modified: false
   - path: .bmad-2d-phaser-game-dev\agents\game-sm.md
     hash: 0e4397413b65aeb1
     modified: false
@@ -111,4 +104,10 @@ files:
     modified: false
   - path: .bmad-2d-phaser-game-dev\agents\analyst.md
     hash: 7033e1af889bf0c1
+    modified: false
+  - path: .bmad-2d-phaser-game-dev\checklists\game-story-dod-checklist.md
+    hash: 1c04d3dac10a357a
+    modified: false
+  - path: .bmad-2d-phaser-game-dev\checklists\game-design-checklist.md
+    hash: 0f802420a3e7f7ed
     modified: false

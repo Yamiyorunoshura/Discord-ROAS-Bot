@@ -13,6 +13,7 @@ from discord import ui
 if TYPE_CHECKING:
     from ...main.main import AntiSpam
 
+
 class StatsButton(ui.Button):
     """統計資料按鈕"""
 
@@ -32,6 +33,7 @@ class StatsButton(ui.Button):
                 "❌ 無法載入統計資料.", ephemeral=True
             )
 
+
 class TestButton(ui.Button):
     """測試功能按鈕"""
 
@@ -48,6 +50,7 @@ class TestButton(ui.Button):
             color=discord.Color.orange(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class HelpButton(ui.Button):
     """幫助按鈕"""
@@ -67,6 +70,7 @@ class HelpButton(ui.Button):
                 "❌ 無法載入幫助資訊.", ephemeral=True
             )
 
+
 class ResetButton(ui.Button):
     """重置設定按鈕"""
 
@@ -84,6 +88,7 @@ class ResetButton(ui.Button):
             await interaction.response.send_message(
                 "❌ 無法執行重置操作.", ephemeral=True
             )
+
 
 class CloseButton(ui.Button):
     """關閉面板按鈕"""
@@ -109,6 +114,7 @@ class CloseButton(ui.Button):
                     item.disabled = True
 
         await interaction.response.edit_message(embed=embed, view=view)
+
 
 class CategorySelectButton(ui.Button):
     """分類選擇按鈕"""
@@ -138,6 +144,7 @@ class CategorySelectButton(ui.Button):
         else:
             await interaction.response.send_message("❌ 無法切換分類.", ephemeral=True)
 
+
 class SensitivityButton(ui.Button):
     """靈敏度設定按鈕"""
 
@@ -156,6 +163,7 @@ class SensitivityButton(ui.Button):
             sensitivity_view = SensitivitySelectView(view.cog, view.user_id, view.guild)
             embed = await sensitivity_view.build_embed()
             await interaction.response.edit_message(embed=embed, view=sensitivity_view)
+
 
 class SensitivitySelectView(ui.View):
     """靈敏度選擇視圖"""
@@ -213,6 +221,7 @@ class SensitivitySelectView(ui.View):
             )
             return False
         return True
+
 
 class SensitivityLevelButton(ui.Button):
     """靈敏度等級按鈕"""
@@ -278,6 +287,7 @@ class SensitivityLevelButton(ui.Button):
                 f"❌ 設定更新失敗:{e!s}", ephemeral=True
             )
 
+
 class BackButton(ui.Button):
     """返回按鈕"""
 
@@ -288,9 +298,11 @@ class BackButton(ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         """返回主面板"""
-        # We need to import here to avoid circular import issues
-        # This is a necessary exception to the top-level import rule
-        from ..main_view import AntiSpamMainView  # noqa: PLC0415
+        # 使用延遲導入避免循環引用
+        if TYPE_CHECKING:
+            raise AssertionError()  # 這行不會執行
+        else:
+            from ..main_view import AntiSpamMainView
 
         view = self.view
         main_view = AntiSpamMainView(view.cog, view.user_id, view.guild)

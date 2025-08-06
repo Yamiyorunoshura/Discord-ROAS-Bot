@@ -24,12 +24,14 @@ logger = logging.getLogger(__name__)
 # 類型變量
 T = TypeVar("T")
 
+
 class ServiceLifetime(Enum):
     """服務生命週期枚舉"""
 
     TRANSIENT = "transient"  # 每次請求都創建新實例
     SINGLETON = "singleton"  # 整個應用程序生命週期內只有一個實例
     SCOPED = "scoped"  # 在特定範圍內是單例
+
 
 class ServiceDescriptor:
     """服務描述符"""
@@ -48,20 +50,24 @@ class ServiceDescriptor:
         self.instance = instance
         self.lifetime = lifetime
 
+
 class DependencyResolutionError(Exception):
     """依賴解析錯誤"""
 
     pass
+
 
 class CircularDependencyError(DependencyResolutionError):
     """循環依賴錯誤"""
 
     pass
 
+
 class ServiceNotFoundError(DependencyResolutionError):
     """服務未找到錯誤"""
 
     pass
+
 
 class DependencyContainer:
     """
@@ -98,7 +104,7 @@ class DependencyContainer:
 
     async def _register_core_services(self):
         """註冊核心服務"""
-        from .database_pool import get_global_pool  # noqa: PLC0415
+        from .database_pool import get_global_pool
 
         pool = await get_global_pool()
         self.register_instance(type(pool), pool)
@@ -350,6 +356,7 @@ class DependencyContainer:
             ],
         }
 
+
 class GlobalContainerManager:
     """全局依賴容器管理器單例"""
 
@@ -375,9 +382,11 @@ class GlobalContainerManager:
                     await cls._instance.dispose()
                     cls._instance = None
 
+
 async def get_global_container() -> DependencyContainer:
     """獲取全局依賴容器實例(兼容性函數)"""
     return await GlobalContainerManager.get_instance()
+
 
 async def dispose_global_container():
     """釋放全局依賴容器(兼容性函數)"""

@@ -605,7 +605,7 @@ class PRDTestValidator:
                 "parameters": {"user_id": 456},
             }
 
-            response = await self.activity_module.get_unified_activity_api(request_data)
+            await self.activity_module.get_unified_activity_api(request_data)
             end_time = time.time()
 
             response_time = end_time - start_time
@@ -647,19 +647,15 @@ class PRDTestValidator:
 
         # 統計需求實現狀況
         total_requirements = len(self.requirements)
-        implemented_requirements = len(
-            [
-                r
-                for r in self.requirements
-                if r.status == PRDRequirementStatus.IMPLEMENTED
-            ]
-        )
-        tested_requirements = len(
-            [r for r in self.requirements if r.status == PRDRequirementStatus.TESTED]
-        )
-        verified_requirements = len(
-            [r for r in self.requirements if r.status == PRDRequirementStatus.VERIFIED]
-        )
+        implemented_requirements = len([
+            r for r in self.requirements if r.status == PRDRequirementStatus.IMPLEMENTED
+        ])
+        tested_requirements = len([
+            r for r in self.requirements if r.status == PRDRequirementStatus.TESTED
+        ])
+        verified_requirements = len([
+            r for r in self.requirements if r.status == PRDRequirementStatus.VERIFIED
+        ])
 
         # 計算覆蓋率和通過率
         coverage_percentage = (

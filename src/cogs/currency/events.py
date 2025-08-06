@@ -24,6 +24,7 @@ class CurrencyEventType(Enum):
     TRANSFER = "currency.transfer"
     BALANCE_UPDATE = "currency.balance_update"
 
+
 @dataclass
 class CurrencyTransferEvent:
     """貨幣轉帳事件.
@@ -79,6 +80,7 @@ class CurrencyTransferEvent:
         """驗證事件資料的有效性."""
         return validate_currency_transfer_event(self.to_dict())
 
+
 @dataclass
 class CurrencyBalanceUpdateEvent:
     """貨幣餘額更新事件.
@@ -127,6 +129,7 @@ class CurrencyBalanceUpdateEvent:
     def validate(self) -> bool:
         """驗證事件資料的有效性."""
         return validate_currency_balance_update_event(self.to_dict())
+
 
 # JSON Schema 定義
 CURRENCY_TRANSFER_EVENT_SCHEMA = {
@@ -255,6 +258,7 @@ CURRENCY_BALANCE_UPDATE_EVENT_SCHEMA = {
     "additionalProperties": False,
 }
 
+
 def validate_currency_transfer_event(data: dict[str, Any]) -> bool:
     """驗證轉帳事件資料.
 
@@ -271,6 +275,7 @@ def validate_currency_transfer_event(data: dict[str, Any]) -> bool:
     validator.validate(data)
     return True
 
+
 def validate_currency_balance_update_event(data: dict[str, Any]) -> bool:
     """驗證餘額更新事件資料.
 
@@ -286,6 +291,7 @@ def validate_currency_balance_update_event(data: dict[str, Any]) -> bool:
     validator = Draft7Validator(CURRENCY_BALANCE_UPDATE_EVENT_SCHEMA)
     validator.validate(data)
     return True
+
 
 def create_transfer_event(
     transaction_id: str,
@@ -339,6 +345,7 @@ def create_transfer_event(
     event.validate()
     return event
 
+
 def create_balance_update_event(
     guild_id: int,
     user_id: int,
@@ -381,6 +388,7 @@ def create_balance_update_event(
     # 驗證事件資料
     event.validate()
     return event
+
 
 __all__ = [
     "CURRENCY_BALANCE_UPDATE_EVENT_SCHEMA",

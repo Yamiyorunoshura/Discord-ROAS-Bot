@@ -34,16 +34,17 @@ try:
     from src.cogs.core.health_checker import HealthChecker, get_health_checker
 except ImportError:
     # 如果無法導入舊模組,使用佔位符
-    MultiLevelCache = None
-    get_global_cache_manager = None
-    HealthChecker = None
-    get_health_checker = None
+    MultiLevelCache = None  # type: ignore[assignment]
+    get_global_cache_manager = None  # type: ignore[assignment]
+    HealthChecker = None  # type: ignore[assignment]  
+    get_health_checker = None  # type: ignore[assignment]
 
 T = TypeVar("T")
 P = TypeVar("P")
 
 # 常數定義
 MAX_INJECTION_HISTORY = 1000
+
 
 class ServiceLifetime(Enum):
     """服務生命週期枚舉"""
@@ -52,12 +53,14 @@ class ServiceLifetime(Enum):
     TRANSIENT = "transient"  # 暫時性:每次請求都創建新實例
     SCOPED = "scoped"  # 作用域:在特定範圍內是單例
 
+
 class InjectionCondition(Enum):
     """條件注入類型"""
 
     ENVIRONMENT = "environment"  # 基於環境變數
     FEATURE_FLAG = "feature_flag"  # 基於功能開關
     CUSTOM = "custom"  # 自定義條件
+
 
 @dataclass
 class ConditionalRule:
@@ -67,6 +70,7 @@ class ConditionalRule:
     key: str
     expected_value: Any
     condition_func: Callable[[], bool] | None = None
+
 
 @dataclass
 class PerformanceMetrics:
@@ -79,25 +83,30 @@ class PerformanceMetrics:
     failed_injections: int = 0
     circular_dependencies_detected: int = 0
 
+
 class ContainerException(Exception):
     """容器基礎異常"""
 
     pass
+
 
 class ServiceNotFoundException(ContainerException):
     """服務未找到異常"""
 
     pass
 
+
 class CircularDependencyException(ContainerException):
     """循環依賴異常"""
 
     pass
 
+
 class ConditionalInjectionException(ContainerException):
     """條件注入異常"""
 
     pass
+
 
 class ServiceDescriptor:
     """服務描述符 - 描述服務註冊信息"""
@@ -159,6 +168,7 @@ class ServiceDescriptor:
         """更新訪問統計"""
         self.access_count += 1
         self.last_accessed = time.time()
+
 
 class Container:
     """企業級依賴注入容器
@@ -763,25 +773,21 @@ class Container:
             for service_type, descriptors in self._services.items():
                 service_info = []
                 for descriptor in descriptors:
-                    service_info.append(
-                        {
-                            "lifetime": descriptor.lifetime.value,
-                            "implementation": (
-                                descriptor.implementation.__name__
-                                if hasattr(descriptor.implementation, "__name__")
-                                else str(descriptor.implementation)
-                            ),
-                            "tags": descriptor.tags,
-                            "priority": descriptor.priority,
-                            "access_count": descriptor.access_count,
-                            "last_accessed": descriptor.last_accessed,
-                            "created_at": descriptor.created_at,
-                            "has_singleton_instance": service_type in self._singletons,
-                            "conditional_rules_count": len(
-                                descriptor.conditional_rules
-                            ),
-                        }
-                    )
+                    service_info.append({
+                        "lifetime": descriptor.lifetime.value,
+                        "implementation": (
+                            descriptor.implementation.__name__
+                            if hasattr(descriptor.implementation, "__name__")
+                            else str(descriptor.implementation)
+                        ),
+                        "tags": descriptor.tags,
+                        "priority": descriptor.priority,
+                        "access_count": descriptor.access_count,
+                        "last_accessed": descriptor.last_accessed,
+                        "created_at": descriptor.created_at,
+                        "has_singleton_instance": service_type in self._singletons,
+                        "conditional_rules_count": len(descriptor.conditional_rules),
+                    })
 
                 info["services"][service_type.__name__] = service_info
 
@@ -883,9 +889,11 @@ class Container:
             ):
                 raise ServiceNotFoundException(f"依賴服務未註冊: {param_type}")
 
+
 # 全局容器實例
 _container: Container | None = None
 _container_lock = threading.RLock()
+
 
 def get_container() -> Container:
     """獲取全局容器實例"""
@@ -896,10 +904,12 @@ def get_container() -> Container:
                 globals()["_container"] = Container()
     return _container
 
+
 def reset_container() -> None:
     """重置全局容器(主要用於測試)"""
     with _container_lock:
         globals()["_container"] = None
+
 
 def configure_container(configurator: Callable[[Container], None]) -> Container:
     """配置全局容器
@@ -914,7 +924,9 @@ def configure_container(configurator: Callable[[Container], None]) -> Container:
     configurator(container)
     return container
 
+
 # 裝飾器和工具函數
+
 
 def injectable[T](
     service_type: type[T] | None = None,
@@ -955,6 +967,7 @@ def injectable[T](
 
     return decorator
 
+
 def singleton[T](
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
@@ -962,6 +975,7 @@ def singleton[T](
 ) -> Callable[[type[T]], type[T]]:
     """單例服務註冊裝飾器"""
     return injectable(service_type, ServiceLifetime.SINGLETON, tags, conditional_rules)
+
 
 def scoped[T](
     service_type: type[T] | None = None,
@@ -971,6 +985,7 @@ def scoped[T](
     """作用域服務註冊裝飾器"""
     return injectable(service_type, ServiceLifetime.SCOPED, tags, conditional_rules)
 
+
 def transient[T](
     service_type: type[T] | None = None,
     tags: list[str] | None = None,
@@ -978,6 +993,7 @@ def transient[T](
 ) -> Callable[[type[T]], type[T]]:
     """暫時性服務註冊裝飾器"""
     return injectable(service_type, ServiceLifetime.TRANSIENT, tags, conditional_rules)
+
 
 def inject(func: Callable) -> Callable:
     """依賴注入裝飾器
@@ -1052,13 +1068,16 @@ def inject(func: Callable) -> Callable:
     else:
         return wrapper
 
+
 # 條件注入工具函數
+
 
 def when_environment(key: str, value: Any) -> ConditionalRule:
     """創建環境變數條件規則"""
     return ConditionalRule(
         condition_type=InjectionCondition.ENVIRONMENT, key=key, expected_value=value
     )
+
 
 def when_feature_flag(flag_name: str, enabled: bool = True) -> ConditionalRule:
     """創建功能開關條件規則"""
@@ -1068,6 +1087,7 @@ def when_feature_flag(flag_name: str, enabled: bool = True) -> ConditionalRule:
         expected_value=enabled,
     )
 
+
 def when_custom(condition_func: Callable[[], bool]) -> ConditionalRule:
     """創建自定義條件規則"""
     return ConditionalRule(
@@ -1076,6 +1096,7 @@ def when_custom(condition_func: Callable[[], bool]) -> ConditionalRule:
         expected_value=True,
         condition_func=condition_func,
     )
+
 
 Lifetime = ServiceLifetime
 

@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AwardStatus(str, Enum):
     """頒發狀態列舉."""
 
@@ -40,6 +41,7 @@ class AwardStatus(str, Enum):
     FAILED = "failed"
     DUPLICATE = "duplicate"
     INVALID = "invalid"
+
 
 @dataclass
 class AwardRequest:
@@ -72,6 +74,7 @@ class AwardRequest:
     processing_priority: int = 0
     """處理優先級"""
 
+
 @dataclass
 class AwardResult:
     """成就頒發結果.
@@ -96,6 +99,7 @@ class AwardResult:
 
     notification_sent: bool = False
     """是否已發送通知"""
+
 
 class AchievementAwarder:
     """自動成就頒發器.
@@ -133,9 +137,7 @@ class AchievementAwarder:
 
         # 併發控制
         self._award_semaphore = asyncio.Semaphore(max_concurrent_awards)
-        self._active_awards: set[str] = (
-            set()
-        )  # 正在處理的頒發(user_id:achievement_id)
+        self._active_awards: set[str] = set()  # 正在處理的頒發(user_id:achievement_id)
         self._award_locks: dict[str, asyncio.Lock] = {}
 
         # 統計資訊
@@ -260,15 +262,15 @@ class AchievementAwarder:
             "批量成就頒發完成",
             extra={
                 "total_requests": len(requests),
-                "successful": len(
-                    [r for r in award_results if r.status == AwardStatus.SUCCESS]
-                ),
-                "failed": len(
-                    [r for r in award_results if r.status == AwardStatus.FAILED]
-                ),
-                "duplicates": len(
-                    [r for r in award_results if r.status == AwardStatus.DUPLICATE]
-                ),
+                "successful": len([
+                    r for r in award_results if r.status == AwardStatus.SUCCESS
+                ]),
+                "failed": len([
+                    r for r in award_results if r.status == AwardStatus.FAILED
+                ]),
+                "duplicates": len([
+                    r for r in award_results if r.status == AwardStatus.DUPLICATE
+                ]),
             },
         )
 
@@ -698,6 +700,7 @@ class AchievementAwarder:
             "last_reset": datetime.now(),
         }
         logger.info("頒發統計已重置")
+
 
 __all__ = [
     "AchievementAwarder",

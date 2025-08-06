@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AchievementMigrations:
     """成就系統資料庫遷移管理器."""
 
@@ -412,6 +413,7 @@ class AchievementMigrations:
 
         self.logger.info("所有成就相關表格已刪除")
 
+
 async def initialize_achievement_database(pool: DatabasePool) -> None:
     """初始化成就系統資料庫.
 
@@ -424,6 +426,7 @@ async def initialize_achievement_database(pool: DatabasePool) -> None:
     # 驗證 Schema
     if not await migrations.verify_schema():
         raise RuntimeError("成就資料庫 Schema 驗證失敗")
+
 
 __all__ = [
     "AchievementMigrations",

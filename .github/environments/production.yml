@@ -1,0 +1,111 @@
+# Production Environment Configuration
+name: production
+description: "生產環境 - 正式運行環境，需要最高的穩定性和安全性"
+
+# GitHub Environment Protection Rules
+protection_rules:
+  required_reviewers: 2
+  wait_timer: 300  # 5 minutes cooling period
+  prevent_self_review: true
+
+# Environment Variables
+variables:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "WARNING"
+  DEBUG: "false"
+  CONTAINER_REGISTRY: "ghcr.io"
+  DEPLOY_NAMESPACE: "discord-bot-prod"
+  
+  # Resource Limits
+  MEMORY_LIMIT: "2Gi"
+  CPU_LIMIT: "2.0"
+  REPLICA_COUNT: "3"  # High availability
+  
+  # Monitoring Settings
+  METRICS_ENABLED: "true"
+  HEALTH_CHECK_INTERVAL: "10s"
+  HEALTH_CHECK_TIMEOUT: "3s"
+  
+  # Feature Flags
+  ACTIVITY_METER_ENABLED: "true"
+  MESSAGE_LISTENER_ENABLED: "true"
+  PROTECTION_ENABLED: "true"
+  WELCOME_ENABLED: "true"
+  SYNC_DATA_ENABLED: "true"
+
+# Secrets (these should be configured in GitHub repository settings)
+secrets:
+  - DISCORD_TOKEN_PROD
+  - DATABASE_ENCRYPTION_KEY_PROD
+  - WEBHOOK_URL_PROD
+  - SENTRY_DSN_PROD
+
+# Deployment Strategy
+deployment:
+  strategy: "blue_green"  # Zero-downtime deployment
+  max_unavailable: "0%"
+  max_surge: "100%"
+  
+  # Health Checks
+  readiness_probe:
+    path: "/health"
+    port: 8080
+    initial_delay: 60
+    period: 5
+    timeout: 3
+    failure_threshold: 3
+  
+  liveness_probe:
+    path: "/health"
+    port: 8080
+    initial_delay: 120
+    period: 10
+    timeout: 5
+    failure_threshold: 3
+
+# Database Configuration
+database:
+  backup_enabled: true
+  backup_interval: "15m"
+  backup_retention: "30d"
+  point_in_time_recovery: true
+  wal_mode: true
+  query_timeout: 15
+  connection_pool_size: 20
+
+# Logging Configuration
+logging:
+  level: "WARNING"
+  format: "json"
+  file_retention_days: 90
+  max_file_size: "100MB"
+  
+# Security Configuration
+security:
+  enable_encryption: true
+  rate_limiting: true
+  ddos_protection: true
+  security_headers: true
+
+# Monitoring and Alerting
+monitoring:
+  metrics_collection: true
+  alerting_enabled: true
+  uptime_monitoring: true
+  performance_monitoring: true
+  error_tracking: true
+  
+  # Alert Thresholds
+  alert_thresholds:
+    error_rate: "5%"
+    response_time_p95: "2s"
+    memory_usage: "80%"
+    cpu_usage: "70%"
+    disk_usage: "85%"
+
+# Rollback Configuration
+rollback:
+  enabled: true
+  automatic_rollback: true
+  rollback_timeout: "300s"
+  health_check_after_rollback: true

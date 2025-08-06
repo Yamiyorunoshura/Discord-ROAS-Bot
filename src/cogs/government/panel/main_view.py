@@ -26,6 +26,7 @@ from .embeds import create_main_panel_embed
 
 logger = logging.getLogger(__name__)
 
+
 class GovernmentPanelView(discord.ui.View):
     """政府面板主視圖類別.
 
@@ -41,7 +42,7 @@ class GovernmentPanelView(discord.ui.View):
         bot: commands.Bot,
         guild_id: int,
         user_id: int,
-        government_service: GovernmentService | None = None
+        government_service: GovernmentService | None = None,
     ):
         """初始化政府面板視圖.
 
@@ -88,7 +89,7 @@ class GovernmentPanelView(discord.ui.View):
             label="🔄 重新整理",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_refresh",
-            row=0
+            row=0,
         )
         refresh_btn.callback = self.refresh_button
         self.add_item(refresh_btn)
@@ -97,7 +98,7 @@ class GovernmentPanelView(discord.ui.View):
             label="🔍 搜尋",
             style=discord.ButtonStyle.primary,
             custom_id="roas_gov_search",
-            row=0
+            row=0,
         )
         search_btn.callback = self.search_button
         self.add_item(search_btn)
@@ -106,7 +107,7 @@ class GovernmentPanelView(discord.ui.View):
             label="📋 篩選",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_filter",
-            row=0
+            row=0,
         )
         filter_btn.callback = self.filter_button
         self.add_item(filter_btn)
@@ -118,7 +119,7 @@ class GovernmentPanelView(discord.ui.View):
                 style=discord.ButtonStyle.secondary,
                 custom_id="roas_gov_prev",
                 row=1,
-                disabled=(self.current_page == 0)
+                disabled=(self.current_page == 0),
             )
             prev_btn.callback = self.prev_button
             self.add_item(prev_btn)
@@ -132,7 +133,7 @@ class GovernmentPanelView(discord.ui.View):
                 style=discord.ButtonStyle.secondary,
                 custom_id="roas_gov_next",
                 row=1,
-                disabled=(self.current_page >= total_pages - 1)
+                disabled=(self.current_page >= total_pages - 1),
             )
             next_btn.callback = self.next_button
             self.add_item(next_btn)
@@ -143,7 +144,7 @@ class GovernmentPanelView(discord.ui.View):
                 label="⚙️ 管理",
                 style=discord.ButtonStyle.danger,
                 custom_id="roas_gov_manage",
-                row=2
+                row=2,
             )
             manage_btn.callback = self.manage_button
             self.add_item(manage_btn)
@@ -152,7 +153,7 @@ class GovernmentPanelView(discord.ui.View):
                 label="🔄 同步角色",
                 style=discord.ButtonStyle.secondary,
                 custom_id="roas_gov_sync_roles",
-                row=2
+                row=2,
             )
             sync_btn.callback = self.sync_roles_button
             self.add_item(sync_btn)
@@ -169,9 +170,11 @@ class GovernmentPanelView(discord.ui.View):
         current_time = time.time()
 
         # 檢查快取是否有效
-        if (not force_refresh and
-            self._cache_timestamp and
-            current_time - self._cache_timestamp < self._cache_ttl):
+        if (
+            not force_refresh
+            and self._cache_timestamp
+            and current_time - self._cache_timestamp < self._cache_ttl
+        ):
             return
 
         try:
@@ -179,7 +182,7 @@ class GovernmentPanelView(discord.ui.View):
             tasks = [
                 self.service.get_departments_by_guild(self.guild_id),
                 self.service.get_department_hierarchy(self.guild_id),
-                self.service.get_department_statistics(self.guild_id)
+                self.service.get_department_statistics(self.guild_id),
             ]
 
             start_time = time.time()
@@ -190,7 +193,9 @@ class GovernmentPanelView(discord.ui.View):
             self.logger.info(f"政府面板資料載入完成,耗時: {load_time:.2f}ms")
 
             if load_time > PANEL_LOAD_TIME_WARNING_MS:
-                self.logger.warning(f"政府面板載入時間超標: {load_time:.2f}ms > {PANEL_LOAD_TIME_WARNING_MS}ms")
+                self.logger.warning(
+                    f"政府面板載入時間超標: {load_time:.2f}ms > {PANEL_LOAD_TIME_WARNING_MS}ms"
+                )
 
             # 轉換部門資料為顯示格式
             self._departments_cache = [
@@ -201,8 +206,10 @@ class GovernmentPanelView(discord.ui.View):
                     "parent_id": str(dept.parent_id) if dept.parent_id else None,
                     "role_id": dept.role_id,
                     "is_active": dept.is_active,
-                    "member_count": getattr(dept, 'member_count', 0),
-                    "created_at": dept.created_at.isoformat() if dept.created_at else None
+                    "member_count": getattr(dept, "member_count", 0),
+                    "created_at": dept.created_at.isoformat()
+                    if dept.created_at
+                    else None,
                 }
                 for dept in departments
             ]
@@ -233,7 +240,7 @@ class GovernmentPanelView(discord.ui.View):
             current_page=self.current_page,
             total_pages=self._calculate_total_pages(filtered_departments),
             search_query=self.search_query,
-            filter_type=self.filter_type
+            filter_type=self.filter_type,
         )
 
     def _apply_filters(self) -> list[dict[str, Any]]:
@@ -244,9 +251,12 @@ class GovernmentPanelView(discord.ui.View):
         if self.search_query:
             query_lower = self.search_query.lower()
             departments = [
-                dept for dept in departments
-                if (query_lower in dept["name"].lower() or
-                    query_lower in dept["description"].lower())
+                dept
+                for dept in departments
+                if (
+                    query_lower in dept["name"].lower()
+                    or query_lower in dept["description"].lower()
+                )
             ]
 
         # 類型篩選
@@ -261,7 +271,9 @@ class GovernmentPanelView(discord.ui.View):
 
         return departments
 
-    def _paginate_departments(self, departments: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _paginate_departments(
+        self, departments: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """分頁處理部門列表."""
         start_idx = self.current_page * self.items_per_page
         end_idx = start_idx + self.items_per_page
@@ -269,7 +281,9 @@ class GovernmentPanelView(discord.ui.View):
 
     def _calculate_total_pages(self, departments: list[dict[str, Any]]) -> int:
         """計算總頁數."""
-        return max(1, (len(departments) + self.items_per_page - 1) // self.items_per_page)
+        return max(
+            1, (len(departments) + self.items_per_page - 1) // self.items_per_page
+        )
 
     def _needs_pagination(self) -> bool:
         """檢查是否需要分頁."""
@@ -312,9 +326,7 @@ class GovernmentPanelView(discord.ui.View):
 
         except Exception as e:
             self.logger.error(f"重新整理面板失敗: {e}")
-            await interaction.followup.send(
-                f"❌ 重新整理失敗: {e!s}", ephemeral=True
-            )
+            await interaction.followup.send(f"❌ 重新整理失敗: {e!s}", ephemeral=True)
 
     async def search_button(self, interaction: discord.Interaction) -> None:
         """搜尋按鈕."""
@@ -445,7 +457,7 @@ class GovernmentPanelView(discord.ui.View):
         modal = AdminManageModal(
             government_service=self.service,
             guild_id=self.guild_id,
-            admin_id=interaction.user.id
+            admin_id=interaction.user.id,
         )
         await interaction.response.send_modal(modal)
 
@@ -463,10 +475,7 @@ class GovernmentPanelView(discord.ui.View):
             # 執行角色同步
             results = await self.service.sync_roles_for_guild(self.guild_id)
 
-            embed = discord.Embed(
-                title="🔄 角色同步完成",
-                color=discord.Color.green()
-            )
+            embed = discord.Embed(title="🔄 角色同步完成", color=discord.Color.green())
 
             embed.add_field(
                 name="同步結果",
@@ -476,18 +485,16 @@ class GovernmentPanelView(discord.ui.View):
                     f"**更新角色:** {results['roles_updated']}\n"
                     f"**錯誤數量:** {len(results.get('errors', []))}"
                 ),
-                inline=False
+                inline=False,
             )
 
-            if results.get('errors'):
-                error_text = "\n".join(results['errors'][:MAX_RECENT_ERRORS_DISPLAY])
-                if len(results['errors']) > MAX_RECENT_ERRORS_DISPLAY:
+            if results.get("errors"):
+                error_text = "\n".join(results["errors"][:MAX_RECENT_ERRORS_DISPLAY])
+                if len(results["errors"]) > MAX_RECENT_ERRORS_DISPLAY:
                     error_text += f"\n... 還有 {len(results['errors']) - MAX_RECENT_ERRORS_DISPLAY} 個錯誤"
 
                 embed.add_field(
-                    name="⚠️ 錯誤詳情",
-                    value=f"```{error_text}```",
-                    inline=False
+                    name="⚠️ 錯誤詳情", value=f"```{error_text}```", inline=False
                 )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
@@ -497,13 +504,13 @@ class GovernmentPanelView(discord.ui.View):
 
         except Exception as e:
             self.logger.error(f"同步角色失敗: {e}")
-            await interaction.followup.send(
-                f"❌ 同步角色失敗: {e!s}", ephemeral=True
-            )
+            await interaction.followup.send(f"❌ 同步角色失敗: {e!s}", ephemeral=True)
 
     async def on_timeout(self) -> None:
         """視圖超時處理."""
-        self.logger.info(f"政府面板視圖超時 (guild: {self.guild_id}, user: {self.user_id})")
+        self.logger.info(
+            f"政府面板視圖超時 (guild: {self.guild_id}, user: {self.user_id})"
+        )
 
         # 禁用所有按鈕
         for item in self.children:
@@ -511,7 +518,7 @@ class GovernmentPanelView(discord.ui.View):
                 item.disabled = True
 
     async def on_error(
-        self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item  # noqa: ARG002
+        self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item
     ) -> None:
         """視圖錯誤處理."""
         self.logger.error(f"政府面板視圖錯誤: {error}", exc_info=True)
@@ -521,6 +528,4 @@ class GovernmentPanelView(discord.ui.View):
                 f"❌ 操作失敗: {error!s}", ephemeral=True
             )
         else:
-            await interaction.followup.send(
-                f"❌ 操作失敗: {error!s}", ephemeral=True
-            )
+            await interaction.followup.send(f"❌ 操作失敗: {error!s}", ephemeral=True)

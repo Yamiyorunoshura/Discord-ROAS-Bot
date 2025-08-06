@@ -17,6 +17,7 @@ from .permission_manager import PermissionManager
 
 logger = logging.getLogger("activity_meter")
 
+
 class ActivityMeterError(Exception):
     """活躍度系統錯誤基類"""
 
@@ -24,6 +25,7 @@ class ActivityMeterError(Exception):
         self.error_code = error_code
         self.message = message
         super().__init__(f"[{error_code}] {message}")
+
 
 class PageManager:
     """

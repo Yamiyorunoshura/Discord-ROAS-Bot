@@ -18,6 +18,7 @@ from ..main.numpy_calculator import OptimizedActivityCalculator
 
 logger = logging.getLogger("activity_meter")
 
+
 class BatchCalculationService:
     """
     批量計算服務
@@ -52,7 +53,7 @@ class BatchCalculationService:
             "numpy_calculations": 0,
             "fallback_calculations": 0,
             "average_improvement": 0.0,
-            "last_performance_check": 0
+            "last_performance_check": 0,
         }
 
         logger.info("批量計算服務已初始化")
@@ -92,10 +93,7 @@ class BatchCalculationService:
 
             loop = asyncio.get_event_loop()
             new_scores = await loop.run_in_executor(
-                self.executor,
-                self._calculate_bulk_decay,
-                scores,
-                deltas
+                self.executor, self._calculate_bulk_decay, scores, deltas
             )
 
             calculation_time = time.perf_counter() - start_time
@@ -103,7 +101,9 @@ class BatchCalculationService:
             # 批量更新資料庫
             updates = [
                 (guild_id, user_id, new_score, now)
-                for i, (user_id, new_score) in enumerate(zip(user_ids, new_scores, strict=False))
+                for i, (user_id, new_score) in enumerate(
+                    zip(user_ids, new_scores, strict=False)
+                )
                 if new_score != scores[i]  # 只更新有變化的記錄
             ]
 
@@ -122,14 +122,16 @@ class BatchCalculationService:
                 "updated_count": len(updates),
                 "total_processed": len(scores),
                 "calculation_time": calculation_time,
-                "using_numpy": self.optimized_calculator.use_numpy
+                "using_numpy": self.optimized_calculator.use_numpy,
             }
 
         except Exception as e:
             logger.error(f"批量衰減計算失敗: {e}")
             raise
 
-    async def bulk_update_rankings(self, guild_id: int, date_str: str) -> dict[str, Any]:
+    async def bulk_update_rankings(
+        self, guild_id: int, date_str: str
+    ) -> dict[str, Any]:
         """
         批量更新排行榜計算
 
@@ -159,7 +161,9 @@ class BatchCalculationService:
                 msg_count = data["msg_count"]
 
                 # 獲取當前活躍度
-                score, last_msg_time = await self.db.get_user_activity(guild_id, user_id)
+                score, last_msg_time = await self.db.get_user_activity(
+                    guild_id, user_id
+                )
 
                 user_ids.append(user_id)
                 current_scores.append(score)
@@ -174,7 +178,7 @@ class BatchCalculationService:
                 self._calculate_bulk_ranking_scores,
                 current_scores,
                 msg_counts,
-                now
+                now,
             )
 
             calculation_time = time.perf_counter() - start_time
@@ -196,7 +200,7 @@ class BatchCalculationService:
             return {
                 "processed_count": len(updates),
                 "calculation_time": calculation_time,
-                "using_numpy": self.optimized_calculator.use_numpy
+                "using_numpy": self.optimized_calculator.use_numpy,
             }
 
         except Exception as e:
@@ -212,14 +216,17 @@ class BatchCalculationService:
             current_time = time.time()
 
             # 每小時檢查一次性能
-            if current_time - self.stats["last_performance_check"] > PERFORMANCE_CHECK_INTERVAL:
+            if (
+                current_time - self.stats["last_performance_check"]
+                > PERFORMANCE_CHECK_INTERVAL
+            ):
                 logger.info("執行 NumPy 性能檢查...")
 
                 loop = asyncio.get_event_loop()
                 performance_good = await loop.run_in_executor(
                     self.executor,
                     self.optimized_calculator.check_numpy_performance,
-                    5000  # 測試 5000 筆資料
+                    5000,  # 測試 5000 筆資料
                 )
 
                 if not performance_good and self.optimized_calculator.use_numpy:
@@ -235,9 +242,7 @@ class BatchCalculationService:
             logger.error(f"背景計算優化失敗: {e}")
 
     def _calculate_bulk_decay(
-        self,
-        scores: list[float],
-        deltas: list[int]
+        self, scores: list[float], deltas: list[int]
     ) -> list[float]:
         """
         執行批量衰減計算(在執行緒池中執行)
@@ -251,11 +256,13 @@ class BatchCalculationService:
         """
         try:
             if self.optimized_calculator.use_numpy:
-                result = self.optimized_calculator.bulk_decay_calculation(scores, deltas)
+                result = self.optimized_calculator.bulk_decay_calculation(
+                    scores, deltas
+                )
                 self.stats["numpy_calculations"] += len(scores)
 
                 # 轉換 NumPy 陣列為列表
-                if hasattr(result, 'tolist'):
+                if hasattr(result, "tolist"):
                     return result.tolist()
                 return list(result)
             else:
@@ -270,10 +277,7 @@ class BatchCalculationService:
             return result
 
     def _calculate_bulk_ranking_scores(
-        self,
-        current_scores: list[float],
-        msg_counts: list[int],
-        _now: int
+        self, current_scores: list[float], msg_counts: list[int], _now: int
     ) -> list[float]:
         """
         計算排行榜分數(考慮訊息數量加成)
@@ -306,15 +310,12 @@ class BatchCalculationService:
             Dict[str, Any]: 性能統計
         """
         total = self.stats["total_calculations"]
-        numpy_ratio = (
-            self.stats["numpy_calculations"] / total
-            if total > 0 else 0
-        )
+        numpy_ratio = self.stats["numpy_calculations"] / total if total > 0 else 0
 
         return {
             **self.stats,
             "numpy_usage_ratio": numpy_ratio,
-            "calculator_status": self.optimized_calculator.get_status()
+            "calculator_status": self.optimized_calculator.get_status(),
         }
 
     async def shutdown(self) -> None:

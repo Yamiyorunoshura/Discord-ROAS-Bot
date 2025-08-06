@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class CacheConfigUpdate:
     """快取配置更新資料類別."""
@@ -42,6 +43,7 @@ class CacheConfigUpdate:
         return {
             k: v for k, v in asdict(self).items() if v is not None and k != "cache_type"
         }
+
 
 class CacheConfigManager:
     """快取配置管理器.
@@ -193,10 +195,16 @@ class CacheConfigManager:
         )
 
         # 基於命中率調整 TTL
-        if hit_rate < MIN_HIT_RATE_THRESHOLD and total_requests > MIN_REQUEST_COUNT_FOR_ADJUSTMENT:
+        if (
+            hit_rate < MIN_HIT_RATE_THRESHOLD
+            and total_requests > MIN_REQUEST_COUNT_FOR_ADJUSTMENT
+        ):
             # 命中率低,增加 TTL
             recommended_config.ttl = min(current_config.ttl * 1.5, 1800)
-        elif hit_rate > HIGH_HIT_RATE_THRESHOLD and total_requests > HIGH_REQUEST_COUNT_THRESHOLD:
+        elif (
+            hit_rate > HIGH_HIT_RATE_THRESHOLD
+            and total_requests > HIGH_REQUEST_COUNT_THRESHOLD
+        ):
             # 命中率高,可以稍微減少 TTL 以保持資料新鮮度
             recommended_config.ttl = max(current_config.ttl * 0.8, 60)
 
@@ -204,7 +212,10 @@ class CacheConfigManager:
         if usage_rate > HIGH_HIT_RATE_THRESHOLD:
             # 使用率高,增加快取大小
             recommended_config.maxsize = min(current_config.maxsize * 1.5, 5000)
-        elif usage_rate < CACHE_SIZE_REDUCTION_THRESHOLD and current_config.maxsize > MINIMUM_CACHE_SIZE:
+        elif (
+            usage_rate < CACHE_SIZE_REDUCTION_THRESHOLD
+            and current_config.maxsize > MINIMUM_CACHE_SIZE
+        ):
             # 使用率低,減少快取大小以節省記憶體
             recommended_config.maxsize = max(current_config.maxsize * 0.7, 50)
 
@@ -288,6 +299,7 @@ class CacheConfigManager:
         """
         self._validation_rules.update(rules)
         logger.info("配置驗證規則已更新", extra={"updated_rules": list(rules.keys())})
+
 
 __all__ = [
     "CacheConfigManager",

@@ -3,12 +3,16 @@
 負責管理面板狀態和UI元件的協調
 """
 
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 import discord
 from discord import ui
 
-from ..main.main import AntiExecutable
+if TYPE_CHECKING:
+    from ..main.main import AntiExecutable
 from .components.buttons import (
     AddBlacklistButton,
     AddFormatButton,
@@ -134,8 +138,12 @@ class AntiExecutableMainView(ui.View):
         try:
             panel_handlers = {
                 "main": lambda: self.main_embed.create_embed(),
-                "whitelist": lambda: self.whitelist_embed.create_embed(self.page_number),
-                "blacklist": lambda: self.blacklist_embed.create_embed(self.page_number),
+                "whitelist": lambda: self.whitelist_embed.create_embed(
+                    self.page_number
+                ),
+                "blacklist": lambda: self.blacklist_embed.create_embed(
+                    self.page_number
+                ),
                 "formats": lambda: self.formats_embed.create_embed(),
                 "stats": lambda: self.stats_embed.create_embed(),
             }

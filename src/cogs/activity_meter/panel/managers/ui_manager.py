@@ -101,7 +101,7 @@ class UIManager:
             logger.error(f"錯誤處理失敗: {e}")
             # 發送通用錯誤訊息
             await interaction.response.send_message(
-                "❌ 發生未預期的錯誤,請稍後再試", ephemeral=True
+                "發生未預期的錯誤,請稍後再試", ephemeral=True
             )
 
     def _get_error_message(self, error_type: str, context: str) -> str:
@@ -116,15 +116,15 @@ class UIManager:
             str: 用戶友好的錯誤訊息
         """
         error_messages = {
-            "page_switch_failed": f"❌ 頁面切換失敗:{context}",
-            "time_format_error": "❌ 時間格式錯誤,請使用 HH:MM 格式",
-            "permission_denied": "❌ 權限不足,需要管理伺服器權限",
-            "database_error": f"❌ 數據庫操作失敗:{context}",
-            "render_error": f"❌ 頁面渲染失敗:{context}",
-            "unknown_error": f"❌ 未知錯誤:{context}",
+            "page_switch_failed": f"頁面切換失敗:{context}",
+            "time_format_error": "時間格式錯誤,請使用 HH:MM 格式",
+            "permission_denied": "權限不足,需要管理伺服器權限",
+            "database_error": f"數據庫操作失敗:{context}",
+            "render_error": f"頁面渲染失敗:{context}",
+            "unknown_error": f"未知錯誤:{context}",
         }
 
-        return error_messages.get(error_type, f"❌ 錯誤:{context}")
+        return error_messages.get(error_type, f"錯誤:{context}")
 
     async def _render_settings_page(
         self, guild_id: int, user: discord.Member
@@ -133,14 +133,14 @@ class UIManager:
         settings = await self.data_manager.get_settings(guild_id)
 
         embed = discord.Embed(
-            title="⚙️ 活躍度系統設定",
+            title="活躍度系統設定",
             description="管理活躍度系統的各項設定",
             color=discord.Color.blue(),
         )
 
         # 添加設定項目
         embed.add_field(
-            name="📊 活躍度增益",
+            name="🎯 活躍度增益",
             value=f"`{settings.get('activity_gain', 5.0)}` 分/訊息",
             inline=True,
         )
@@ -152,8 +152,8 @@ class UIManager:
         )
 
         embed.add_field(
-            name="🔄 系統狀態",
-            value="✅ 啟用中" if settings.get("system_enabled", True) else "❌ 已停用",
+            name="⚡ 系統狀態",
+            value="啟用中" if settings.get("system_enabled", True) else "已停用",
             inline=True,
         )
 
@@ -180,7 +180,7 @@ class UIManager:
         rankings = await self.data_manager.get_rankings(guild_id, "daily")
 
         embed = discord.Embed(
-            title="📊 排行榜預覽",
+            title="🏆 排行榜預覽",
             description="這是自動播報排行榜的預覽效果",
             color=discord.Color.green(),
         )
@@ -236,7 +236,7 @@ class UIManager:
         stats = await self.data_manager.get_stats(guild_id)
 
         embed = discord.Embed(
-            title="📈 活躍度系統統計",
+            title="📊 活躍度系統統計",
             description="伺服器活躍度統計資訊",
             color=discord.Color.gold(),
         )
@@ -256,7 +256,7 @@ class UIManager:
 
             today_text = "\n".join(today_lines)
 
-        embed.add_field(name="🔹 今日排行", value=today_text, inline=True)
+        embed.add_field(name="🏆 今日排行", value=today_text, inline=True)
 
         # 顯示昨日排行榜
         yesterday_text = "昨天沒有記錄"
@@ -273,7 +273,7 @@ class UIManager:
 
             yesterday_text = "\n".join(yesterday_lines)
 
-        embed.add_field(name="🔹 昨日排行", value=yesterday_text, inline=True)
+        embed.add_field(name="📅 昨日排行", value=yesterday_text, inline=True)
 
         # 顯示總體統計
         total_messages = stats.get("total_messages", 0)
@@ -301,7 +301,7 @@ class UIManager:
 
         # 暫時顯示佔位符內容
         embed.add_field(
-            name="📜 歷史記錄", value="歷史記錄功能將在後續版本中實現", inline=False
+            name="📊 歷史記錄", value="歷史記錄功能將在後續版本中實現", inline=False
         )
 
         embed.set_footer(text="活躍度系統 • 歷史面板")

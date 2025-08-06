@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 # 設置日誌
 logger = logging.getLogger(__name__)
 
+
 # 示例服務類別
 class ExampleService:
     """示例服務類別"""
@@ -45,6 +46,7 @@ class ExampleService:
         """獲取示例訊息"""
         return f"Hello from {self.name}! Initialized: {self.initialized}"
 
+
 class DatabaseService:
     """資料庫服務類別"""
 
@@ -53,7 +55,7 @@ class DatabaseService:
 
     async def initialize(self):
         """初始化資料庫連接"""
-        from .database_pool import get_global_pool  # noqa: PLC0415
+        from .database_pool import get_global_pool
 
         self.pool = await get_global_pool()
         logger.info("[DatabaseService]資料庫服務初始化完成")
@@ -70,6 +72,7 @@ class DatabaseService:
             "active_connections": status.get("active_connections", 0),
             "available_connections": status.get("available_connections", 0),
         }
+
 
 class ExampleCog(BaseCog):
     """
@@ -221,7 +224,8 @@ class ExampleCog(BaseCog):
                 services = container_info.get("services", [])
                 if services:
                     service_names = [
-                        s.get("service_type", "未知") for s in services[:MAX_SERVICES_DISPLAY]
+                        s.get("service_type", "未知")
+                        for s in services[:MAX_SERVICES_DISPLAY]
                     ]  # 只顯示前幾個
                     embed.add_field(
                         name="註冊的服務",
@@ -301,6 +305,7 @@ class ExampleCog(BaseCog):
         except Exception as e:
             logger.error(f"[ExampleCog]作用域測試指令失敗: {e}")
             await interaction.followup.send(f"❌ 執行失敗: {e}")
+
 
 # 設置函數
 async def setup(bot):

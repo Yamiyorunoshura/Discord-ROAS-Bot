@@ -32,6 +32,7 @@ from src.cogs.currency.service import get_currency_service
 
 logger = logging.getLogger(__name__)
 
+
 class CurrencyCog(BaseCog):
     """貨幣系統 Cog.
 
@@ -124,7 +125,9 @@ class CurrencyCog(BaseCog):
     # =============================================================================
 
     # 注意: 以下指令將在面板系統穩定後移除,請使用新的面板指令
-    currency_group = app_commands.Group(name="currency", description="貨幣系統指令 (即將移除, 請使用 /貨幣面板)")
+    currency_group = app_commands.Group(
+        name="currency", description="貨幣系統指令 (即將移除, 請使用 /貨幣面板)"
+    )
 
     @currency_group.command(name="balance", description="查詢你的貨幣餘額")
     async def balance(self, interaction: discord.Interaction):
@@ -299,9 +302,9 @@ class CurrencyCog(BaseCog):
                     # 添加排名圖示
                     if rank == 1:
                         rank_emoji = "🥇"
-                    elif rank == 2:  # noqa: PLR2004
+                    elif rank == 2:
                         rank_emoji = "🥈"
-                    elif rank == 3:  # noqa: PLR2004
+                    elif rank == 3:
                         rank_emoji = "🥉"
                     else:
                         rank_emoji = f"**{rank}.**"
@@ -370,7 +373,8 @@ class CurrencyCog(BaseCog):
 
     # 注意: 以下指令將在面板系統穩定後移除,請使用新的面板指令
     admin_currency_group = app_commands.Group(
-        name="admin-currency", description="管理員貨幣系統指令 (即將移除,請使用 /貨幣管理面板)"
+        name="admin-currency",
+        description="管理員貨幣系統指令 (即將移除,請使用 /貨幣管理面板)",
     )
 
     @admin_currency_group.command(name="add", description="增加用戶貨幣")
@@ -553,6 +557,7 @@ class CurrencyCog(BaseCog):
                 await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception as e:
             self.logger.error(f"發送錯誤回應失敗: {e}")
+
 
 async def setup(bot: commands.Bot):
     """設置 Cog."""

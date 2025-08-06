@@ -339,16 +339,14 @@ class MigrationManager:
             else:
                 report_lines.append(f"- ❌ {old_path} → {new_path}")
 
-        report_lines.extend(
-            [
-                "",
-                "## 後續步驟",
-                "1. 運行完整測試套件: `uv run pytest`",
-                "2. 驗證所有功能正常運作",
-                "3. 更新 CI/CD 配置",
-                "4. 部署到測試環境驗證",
-            ]
-        )
+        report_lines.extend([
+            "",
+            "## 後續步驟",
+            "1. 運行完整測試套件: `uv run pytest`",
+            "2. 驗證所有功能正常運作",
+            "3. 更新 CI/CD 配置",
+            "4. 部署到測試環境驗證",
+        ])
 
         return "\n".join(report_lines)
 

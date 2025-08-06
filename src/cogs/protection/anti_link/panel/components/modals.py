@@ -2,10 +2,15 @@
 反惡意連結保護模組 - 對話框元件
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 from discord import ui
 
-from ..main_view import AntiLinkMainView
+if TYPE_CHECKING:
+    from ..main_view import AntiLinkMainView
 
 
 class WhitelistModal(ui.Modal):
@@ -50,6 +55,7 @@ class WhitelistModal(ui.Modal):
             f"✅ 已添加白名單網域:{domain}", ephemeral=True
         )
 
+
 class BlacklistModal(ui.Modal):
     """黑名單添加對話框"""
 
@@ -89,6 +95,7 @@ class BlacklistModal(ui.Modal):
         await interaction.response.send_message(
             f"✅ 已添加黑名單網域:{domain}", ephemeral=True
         )
+
 
 class RemoveModal(ui.Modal):
     """移除網域對話框"""

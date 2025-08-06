@@ -46,6 +46,7 @@ HIGH_BOT_LATENCY_THRESHOLD = 0.5
 
 logger = logging.getLogger(__name__)
 
+
 class PerformanceDashboardView(StandardPanelView):
     """性能監控儀表板視圖"""
 
@@ -472,12 +473,10 @@ class PerformanceDashboardView(StandardPanelView):
                 # 訂閱者統計
                 top_subscribers = event_stats.get("top_subscribers", [])
                 if top_subscribers:
-                    subscribers_text = "\n".join(
-                        [
-                            f"• {sub['name']}: {sub['events']} 事件"
-                            for sub in top_subscribers[:3]
-                        ]
-                    )
+                    subscribers_text = "\n".join([
+                        f"• {sub['name']}: {sub['events']} 事件"
+                        for sub in top_subscribers[:3]
+                    ])
                     embed.add_field(
                         name="👥 活躍訂閱者", value=subscribers_text, inline=False
                     )
@@ -580,24 +579,26 @@ class PerformanceDashboardView(StandardPanelView):
             alerts = await self._get_performance_alerts()
 
             if alerts["critical"]:
-                critical_text = "\n".join(
-                    [f"🔴 {alert}" for alert in alerts["critical"]]
-                )
+                critical_text = "\n".join([
+                    f"🔴 {alert}" for alert in alerts["critical"]
+                ])
                 embed.add_field(name="🚨 嚴重警報", value=critical_text, inline=False)
 
             if alerts["warnings"]:
-                warning_text = "\n".join(
-                    [f"🟡 {alert}" for alert in alerts["warnings"]]
-                )
+                warning_text = "\n".join([
+                    f"🟡 {alert}" for alert in alerts["warnings"]
+                ])
                 embed.add_field(name="⚠️ 警告", value=warning_text, inline=False)
 
             if alerts["recommendations"]:
                 rec_text = "\n".join([f"💡 {rec}" for rec in alerts["recommendations"]])
                 embed.add_field(name="📋 優化建議", value=rec_text, inline=False)
 
-            if not any(
-                [alerts["critical"], alerts["warnings"], alerts["recommendations"]]
-            ):
+            if not any([
+                alerts["critical"],
+                alerts["warnings"],
+                alerts["recommendations"],
+            ]):
                 embed.add_field(
                     name="✅ 系統狀態良好", value="目前沒有性能警報或建議", inline=False
                 )
@@ -828,16 +829,32 @@ class PerformanceDashboardView(StandardPanelView):
             if system_info["cpu_percent"] > CRITICAL_CPU_THRESHOLD:
                 alerts["critical"].append(f"CPU 使用率超過 {CRITICAL_CPU_THRESHOLD}%")
             if system_info["memory_percent"] > CRITICAL_MEMORY_THRESHOLD:
-                alerts["critical"].append(f"記憶體使用率超過 {CRITICAL_MEMORY_THRESHOLD}%")
+                alerts["critical"].append(
+                    f"記憶體使用率超過 {CRITICAL_MEMORY_THRESHOLD}%"
+                )
             if system_info["disk_percent"] > CRITICAL_DISK_THRESHOLD:
-                alerts["critical"].append(f"磁碟空間不足 {100-CRITICAL_DISK_THRESHOLD}%")
+                alerts["critical"].append(
+                    f"磁碟空間不足 {100 - CRITICAL_DISK_THRESHOLD}%"
+                )
 
             # 檢查警告
-            if WARNING_CPU_MIN_THRESHOLD <= system_info["cpu_percent"] <= WARNING_CPU_MAX_THRESHOLD:
+            if (
+                WARNING_CPU_MIN_THRESHOLD
+                <= system_info["cpu_percent"]
+                <= WARNING_CPU_MAX_THRESHOLD
+            ):
                 alerts["warnings"].append("CPU 使用率較高")
-            if WARNING_MEMORY_MIN_THRESHOLD <= system_info["memory_percent"] <= WARNING_MEMORY_MAX_THRESHOLD:
+            if (
+                WARNING_MEMORY_MIN_THRESHOLD
+                <= system_info["memory_percent"]
+                <= WARNING_MEMORY_MAX_THRESHOLD
+            ):
                 alerts["warnings"].append("記憶體使用率較高")
-            if WARNING_DISK_MIN_THRESHOLD <= system_info["disk_percent"] <= WARNING_DISK_MAX_THRESHOLD:
+            if (
+                WARNING_DISK_MIN_THRESHOLD
+                <= system_info["disk_percent"]
+                <= WARNING_DISK_MAX_THRESHOLD
+            ):
                 alerts["warnings"].append("磁碟空間不足")
 
             # 生成建議
@@ -889,6 +906,7 @@ class PerformanceDashboardView(StandardPanelView):
         if self.auto_refresh_task and not self.auto_refresh_task.done():
             self.auto_refresh_task.cancel()
         await super().on_timeout()
+
 
 class PerformanceDashboard:
     """性能監控儀表板管理器"""

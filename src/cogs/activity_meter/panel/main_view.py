@@ -50,6 +50,7 @@ ERROR_CODES = {
     "E402": "設定保存失敗",
 }
 
+
 class ActivityMeterError(Exception):
     """活躍度系統錯誤基類"""
 
@@ -57,6 +58,7 @@ class ActivityMeterError(Exception):
         self.error_code = error_code
         self.message = message
         super().__init__(f"[{error_code}] {message}")
+
 
 class ActivityPanelView(StandardPanelView):
     """
@@ -208,13 +210,13 @@ class ActivityPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="預覽",
                     style=discord.ButtonStyle.primary,
-                    emoji="👁️",
+
                     callback=self.preview_style_callback,
                 ),
                 self.create_standard_button(
                     label="自訂選項",
                     style=discord.ButtonStyle.secondary,
-                    emoji="🎨",
+
                     callback=self.custom_options_callback,
                 ),
                 self.create_standard_button(
@@ -483,7 +485,7 @@ class ActivityPanelView(StandardPanelView):
             preview_button = self.create_standard_button(
                 label="進度條預覽",
                 style=discord.ButtonStyle.primary,
-                emoji="👀",
+                emoji="📊",
                 custom_id="preview_progress",
             )
             preview_button.row = 3  # 明確指定行,避免與設定頁面衝突
@@ -536,13 +538,13 @@ class ActivityPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="設定",
                     style=discord.ButtonStyle.primary,
-                    emoji="⚙️",
+                    emoji="⚙",
                     callback=self.settings_callback,
                 ),
                 self.create_standard_button(
                     label="統計",
                     style=discord.ButtonStyle.secondary,
-                    emoji="📊",
+
                     callback=self.stats_callback,
                 ),
                 self.create_standard_button(
@@ -591,7 +593,7 @@ class ActivityPanelView(StandardPanelView):
         return self.create_standard_button(
             label="設定",
             style=discord.ButtonStyle.primary,
-            emoji="⚙️",
+            emoji="⚙",
             callback=self.settings_callback,
         )
 
@@ -627,7 +629,7 @@ class ActivityPanelView(StandardPanelView):
     ):
         """發送成功響應"""
         embed = discord.Embed(
-            title="✅ 成功", description=message, color=discord.Color.green()
+            title="成功", description=message, color=discord.Color.green()
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -664,7 +666,7 @@ class ActivityPanelView(StandardPanelView):
         """檢查用戶權限"""
         if not self.can_view_panel(interaction.user):
             await interaction.response.send_message(
-                "❌ 您沒有權限查看此面板", ephemeral=True
+                "您沒有權限查看此面板", ephemeral=True
             )
             return False
         return True
@@ -695,24 +697,24 @@ class ActivityPanelView(StandardPanelView):
     def build_initial_embed(self) -> discord.Embed:
         """構建初始狀態的嵌入訊息"""
         embed = discord.Embed(
-            title="📊 活躍度系統管理面板",
+            title="⚙️ 活躍度系統管理面板",
             description="歡迎使用活躍度系統管理面板!請選擇要使用的功能頁面.",
             color=discord.Color.blue(),
         )
 
         # 添加頁面簡介
         embed.add_field(
-            name="📋 設定頁面",
+            name="⚙️ 設定頁面",
             value="管理進度條風格、公告頻道和公告時間設定",
             inline=False,
         )
 
         embed.add_field(
-            name="👀 預覽頁面", value="預覽當前設定的進度條風格效果", inline=False
+            name="👁️ 預覽頁面", value="預覽當前設定的進度條風格效果", inline=False
         )
 
         embed.add_field(
-            name="📊 統計頁面",
+            name="📈 統計頁面",
             value="查看活躍度系統的統計資訊(月度排行榜、訊息量變化)",
             inline=False,
         )
@@ -743,7 +745,7 @@ class ActivityPanelView(StandardPanelView):
                 await interaction.response.edit_message(embed=embed, view=self)
             except Exception:
                 error_embed = self.create_error_embed(
-                    "❌ 面板更新失敗", "無法更新面板顯示,請重新開啟面板"
+                    "面板更新失敗", "無法更新面板顯示,請重新開啟面板"
                 )
                 await interaction.response.send_message(
                     embed=error_embed, ephemeral=True
@@ -766,20 +768,20 @@ class ActivityPanelView(StandardPanelView):
 
             if isinstance(error, ActivityMeterError):
                 embed = self.create_error_embed(
-                    f"❌ 錯誤 {error.error_code}", error.message
+                    f"錯誤 {error.error_code}", error.message
                 )
             # 捕捉常見權限/驗證錯誤
             elif isinstance(error, PermissionError):
                 embed = self.create_error_embed(
-                    "❌ 錯誤 E001", "權限不足:需要管理伺服器權限"
+                    "錯誤 E001", "權限不足:需要管理伺服器權限"
                 )
             elif isinstance(error, ValueError):
                 embed = self.create_error_embed(
-                    "❌ 錯誤 E999", f"輸入格式錯誤:{error!s}"
+                    "錯誤 E999", f"輸入格式錯誤:{error!s}"
                 )
             else:
                 embed = self.create_error_embed(
-                    "❌ 未知錯誤", "發生未預期的錯誤,請稍後再試"
+                    "未知錯誤", "發生未預期的錯誤,請稍後再試"
                 )
 
             # 嘗試用edit_message,若失敗則fallback send_message
@@ -793,7 +795,7 @@ class ActivityPanelView(StandardPanelView):
             logger.error(f"錯誤處理失敗: {e}")
             with contextlib.suppress(Exception):
                 await interaction.response.send_message(
-                    "❌ 發生錯誤,請稍後再試", ephemeral=True
+                    "發生錯誤,請稍後再試", ephemeral=True
                 )
 
     def create_user_friendly_error_embed(self, error: Exception):
@@ -811,19 +813,19 @@ class ActivityPanelView(StandardPanelView):
 
         if error_type == "component_limit":
             embed.add_field(
-                name="📊 問題類型",
+                name="⚠️ 問題類型",
                 value="組件數量超過Discord UI限制,正在優化佈局...",
                 inline=False,
             )
         elif error_type == "discord_ui_limit":
             embed.add_field(
-                name="📊 問題類型",
+                name="⚠️ 問題類型",
                 value="佈局不符合Discord UI規範,正在重新排列...",
                 inline=False,
             )
         else:
             embed.add_field(
-                name="📊 問題類型", value="未知佈局問題,正在嘗試修復...", inline=False
+                name="⚠️ 問題類型", value="未知佈局問題,正在嘗試修復...", inline=False
             )
 
         embed.add_field(
@@ -906,16 +908,16 @@ class ActivityPanelView(StandardPanelView):
             str: 用戶友好的錯誤訊息
         """
         error_messages = {
-            "page_switch_failed": "❌ 頁面切換失敗,請稍後再試",
-            "time_format_error": "❌ 時間格式錯誤,請使用 HH:MM 格式",
-            "permission_denied": "❌ 權限不足,需要管理伺服器權限",
-            "database_error": f"❌ 數據庫操作失敗:{context.get('details', '未知錯誤')}",
-            "render_error": f"❌ 頁面渲染失敗:{context.get('details', '未知錯誤')}",
-            "unknown_error": f"❌ 未知錯誤:{context.get('details', '請稍後再試')}",
+            "page_switch_failed": "頁面切換失敗,請稍後再試",
+            "time_format_error": "時間格式錯誤,請使用 HH:MM 格式",
+            "permission_denied": "權限不足,需要管理伺服器權限",
+            "database_error": f"數據庫操作失敗:{context.get('details', '未知錯誤')}",
+            "render_error": f"頁面渲染失敗:{context.get('details', '未知錯誤')}",
+            "unknown_error": f"未知錯誤:{context.get('details', '請稍後再試')}",
         }
 
         return error_messages.get(
-            error_type, f"❌ 錯誤:{context.get('details', '請稍後再試')}"
+            error_type, f"錯誤:{context.get('details', '請稍後再試')}"
         )
 
     def _get_cache(self, key: str) -> Any | None:
@@ -939,7 +941,7 @@ class ActivityPanelView(StandardPanelView):
     async def refresh_callback(self, interaction: discord.Interaction):
         """重新整理回調(已棄用,移除重新整理按鈕)"""
         await interaction.response.send_message(
-            "🔄 重新整理功能已移除,設定會自動保存", ephemeral=True
+            "ℹ️ 重新整理功能已移除,設定會自動保存", ephemeral=True
         )
 
     async def close_callback(self, interaction: discord.Interaction):
@@ -948,7 +950,7 @@ class ActivityPanelView(StandardPanelView):
             # 檢查權限
             if interaction.user.id != self.author_id:
                 await interaction.response.send_message(
-                    "❌ 只有原作者可以關閉此面板", ephemeral=True
+                    "只有原作者可以關閉此面板", ephemeral=True
                 )
                 return
 
@@ -956,7 +958,7 @@ class ActivityPanelView(StandardPanelView):
             if interaction.message:
                 await interaction.message.delete()
             else:
-                await interaction.response.send_message("✅ 面板已關閉", ephemeral=True)
+                await interaction.response.send_message("面板已關閉", ephemeral=True)
 
         except Exception as e:
             await self.handle_error(interaction, e)
@@ -1007,7 +1009,7 @@ class ActivityPanelView(StandardPanelView):
         try:
             if not self.can_edit_settings(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限編輯設定", ephemeral=True
+                    "您沒有權限編輯設定", ephemeral=True
                 )
                 return
 
@@ -1019,7 +1021,7 @@ class ActivityPanelView(StandardPanelView):
 
             # 發送預覽
             embed = discord.Embed(
-                title="👀 進度條風格預覽",
+                title="📊 進度條風格預覽",
                 description=f"當前風格:**{current_style}**\n\n以下是使用此風格的進度條效果:",
                 color=discord.Color.blue(),
             )
@@ -1036,7 +1038,7 @@ class ActivityPanelView(StandardPanelView):
         try:
             if not self.can_edit_settings(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限編輯設定", ephemeral=True
+                    "您沒有權限編輯設定", ephemeral=True
                 )
                 return
 
@@ -1057,13 +1059,13 @@ class ActivityPanelView(StandardPanelView):
         try:
             if not self.can_edit_settings(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限編輯設定", ephemeral=True
+                    "您沒有權限編輯設定", ephemeral=True
                 )
                 return
 
             # 設定已通過自動保存機制保存,這裡只顯示提示
             await interaction.response.send_message(
-                "✅ 設定已通過自動保存機制保存", ephemeral=True
+                "設定已通過自動保存機制保存", ephemeral=True
             )
 
         except Exception as e:
@@ -1074,7 +1076,7 @@ class ActivityPanelView(StandardPanelView):
         try:
             if not self.can_view_panel(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限查看此面板", ephemeral=True
+                    "您沒有權限查看此面板", ephemeral=True
                 )
                 return
 
@@ -1089,7 +1091,7 @@ class ActivityPanelView(StandardPanelView):
 
             if not top_users:
                 embed.add_field(
-                    name="📊 無數據", value="過去一個月沒有活躍度數據", inline=False
+                    name="ℹ️ 無數據", value="過去一個月沒有活躍度數據", inline=False
                 )
             else:
                 for i, (user_id, avg_score, message_count) in enumerate(top_users, 1):
@@ -1112,7 +1114,7 @@ class ActivityPanelView(StandardPanelView):
         try:
             if not self.can_view_panel(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限查看此面板", ephemeral=True
+                    "您沒有權限查看此面板", ephemeral=True
                 )
                 return
 
@@ -1134,12 +1136,12 @@ class ActivityPanelView(StandardPanelView):
                 )
             else:
                 change_percentage = 0
-                change_emoji = "📊"
+                change_emoji = "ℹ️"
                 change_text = "無法比較(上個月無數據)"
                 color = discord.Color.blue()
 
             embed = discord.Embed(
-                title="📈 訊息量變化趨勢",
+                title="📊 訊息量變化趨勢",
                 description="本月與上個月的訊息總量比較",
                 color=color,
             )
@@ -1170,7 +1172,6 @@ class ActivityPanelView(StandardPanelView):
     async def get_current_custom_options(self) -> dict:
         """獲取當前自訂選項"""
         try:
-
             # 從數據庫載入自訂選項
             async with self.db.pool.acquire() as conn:
                 result = await conn.fetchrow(
@@ -1208,7 +1209,6 @@ class ActivityPanelView(StandardPanelView):
     async def render_progress_preview(self, style: str) -> discord.File:
         """渲染進度條預覽圖片"""
         try:
-
             # 獲取風格配置
             style_config = STYLE_CONFIGS.get(style, STYLE_CONFIGS["classic"])
 
@@ -1289,7 +1289,7 @@ class ActivityPanelView(StandardPanelView):
             # 檢查風格是否有效
             if style not in STYLE_CONFIGS:
                 await interaction.response.send_message(
-                    "❌ 無效的進度條風格", ephemeral=True
+                    "無效的進度條風格", ephemeral=True
                 )
                 return
 
@@ -1308,14 +1308,14 @@ class ActivityPanelView(StandardPanelView):
             channel = interaction.guild.get_channel(channel_id)
             if not channel:
                 await interaction.response.send_message(
-                    "❌ 找不到指定的頻道", ephemeral=True
+                    "找不到指定的頻道", ephemeral=True
                 )
                 return
 
             # 檢查機器人權限
             if not channel.permissions_for(interaction.guild.me).send_messages:
                 await interaction.response.send_message(
-                    "❌ 機器人沒有在該頻道發送訊息的權限", ephemeral=True
+                    "機器人沒有在該頻道發送訊息的權限", ephemeral=True
                 )
                 return
 
@@ -1335,7 +1335,7 @@ class ActivityPanelView(StandardPanelView):
             # 檢查時間是否有效
             if not 0 <= hour <= MAX_HOUR:
                 await interaction.response.send_message(
-                    "❌ 無效的時間格式", ephemeral=True
+                    "無效的時間格式", ephemeral=True
                 )
                 return
 
@@ -1345,12 +1345,13 @@ class ActivityPanelView(StandardPanelView):
         except Exception as e:
             await self.handle_error(interaction, e)
 
+
 class ProgressBarPreviewButton(discord.ui.Button):
     """進度條風格預覽按鈕"""
 
     def __init__(self, view):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="預覽進度條風格", emoji="👀", row=1
+            style=discord.ButtonStyle.primary, label="預覽進度條風格", emoji="👁️", row=1
         )
         # 在 Discord.py 2.5.2 中,不能直接設置屬性
         # 使用 __dict__ 來設置 view 屬性
@@ -1362,7 +1363,7 @@ class ProgressBarPreviewButton(discord.ui.Button):
             # 檢查權限
             if not self.view.can_view_panel(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限查看此面板", ephemeral=True
+                    "您沒有權限查看此面板", ephemeral=True
                 )
                 return
 
@@ -1374,7 +1375,7 @@ class ProgressBarPreviewButton(discord.ui.Button):
 
             # 發送預覽
             embed = discord.Embed(
-                title="👀 進度條風格預覽",
+                title="📊 進度條風格預覽",
                 description=f"當前風格:**{current_style}**\n\n以下是使用此風格的進度條效果:",
                 color=discord.Color.blue(),
             )

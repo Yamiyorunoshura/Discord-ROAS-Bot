@@ -22,6 +22,7 @@ MAX_SYNC_INTERVAL = 1440  # 最大同步間隔(分鐘)
 MIN_RETRY_COUNT = 1  # 最小重試次數
 MAX_RETRY_COUNT = 5  # 最大重試次數
 
+
 class AutoSyncSettingsModal(ui.Modal):
     """自動同步設定對話框"""
 
@@ -70,7 +71,9 @@ class AutoSyncSettingsModal(ui.Modal):
         )
         self.add_item(self.notification_channel)
 
-    async def _validate_inputs(self, interaction: discord.Interaction) -> tuple[bool, dict[str, Any] | None]:
+    async def _validate_inputs(
+        self, interaction: discord.Interaction
+    ) -> tuple[bool, dict[str, Any] | None]:
         """驗證輸入值,返回 (是否成功, 驗證結果或None)"""
         # 驗證同步間隔
         interval_result = await self._validate_sync_interval(interaction)
@@ -90,7 +93,9 @@ class AutoSyncSettingsModal(ui.Modal):
             return False, None
         retry_count = retry_count_result
 
-        notification_channel_result = await self._validate_notification_channel(interaction)
+        notification_channel_result = await self._validate_notification_channel(
+            interaction
+        )
         if notification_channel_result is None:
             return False, None
         notification_channel_id = notification_channel_result
@@ -102,18 +107,23 @@ class AutoSyncSettingsModal(ui.Modal):
             "notification_channel_id": notification_channel_id,
         }
 
-    async def _validate_sync_interval(self, interaction: discord.Interaction) -> int | None:
+    async def _validate_sync_interval(
+        self, interaction: discord.Interaction
+    ) -> int | None:
         """驗證同步間隔"""
         try:
             interval = int(self.sync_interval.value)
             if interval < MIN_SYNC_INTERVAL or interval > MAX_SYNC_INTERVAL:
                 await interaction.response.send_message(
-                    f"❌ 同步間隔無效,請輸入 {MIN_SYNC_INTERVAL}-{MAX_SYNC_INTERVAL} 之間的數值", ephemeral=True
+                    f"❌ 同步間隔無效,請輸入 {MIN_SYNC_INTERVAL}-{MAX_SYNC_INTERVAL} 之間的數值",
+                    ephemeral=True,
                 )
                 return None
             return interval
         except ValueError:
-            await interaction.response.send_message("❌ 同步間隔必須是數字", ephemeral=True)
+            await interaction.response.send_message(
+                "❌ 同步間隔必須是數字", ephemeral=True
+            )
             return None
 
     async def _validate_sync_type(self, interaction: discord.Interaction) -> str | None:
@@ -126,21 +136,28 @@ class AutoSyncSettingsModal(ui.Modal):
             return None
         return sync_type
 
-    async def _validate_retry_count(self, interaction: discord.Interaction) -> int | None:
+    async def _validate_retry_count(
+        self, interaction: discord.Interaction
+    ) -> int | None:
         """驗證重試次數"""
         try:
             retry_count = int(self.retry_count.value)
             if retry_count < MIN_RETRY_COUNT or retry_count > MAX_RETRY_COUNT:
                 await interaction.response.send_message(
-                    f"❌ 重試次數無效,請輸入 {MIN_RETRY_COUNT}-{MAX_RETRY_COUNT} 之間的數值", ephemeral=True
+                    f"❌ 重試次數無效,請輸入 {MIN_RETRY_COUNT}-{MAX_RETRY_COUNT} 之間的數值",
+                    ephemeral=True,
                 )
                 return None
             return retry_count
         except ValueError:
-            await interaction.response.send_message("❌ 重試次數必須是數字", ephemeral=True)
+            await interaction.response.send_message(
+                "❌ 重試次數必須是數字", ephemeral=True
+            )
             return None
 
-    async def _validate_notification_channel(self, interaction: discord.Interaction) -> int | None:
+    async def _validate_notification_channel(
+        self, interaction: discord.Interaction
+    ) -> int | None:
         """驗證通知頻道"""
         if not self.notification_channel.value.strip():
             return None
@@ -149,11 +166,15 @@ class AutoSyncSettingsModal(ui.Modal):
             notification_channel_id = int(self.notification_channel.value.strip())
             channel = interaction.guild.get_channel(notification_channel_id)
             if not channel:
-                await interaction.response.send_message("❌ 找不到指定的通知頻道", ephemeral=True)
+                await interaction.response.send_message(
+                    "❌ 找不到指定的通知頻道", ephemeral=True
+                )
                 return None
             return notification_channel_id
         except ValueError:
-            await interaction.response.send_message("❌ 通知頻道 ID 必須是數字", ephemeral=True)
+            await interaction.response.send_message(
+                "❌ 通知頻道 ID 必須是數字", ephemeral=True
+            )
             return None
 
     async def on_submit(self, interaction: discord.Interaction):
@@ -245,6 +266,7 @@ class AutoSyncSettingsModal(ui.Modal):
         """獲取同步類型名稱"""
         type_names = {"full": "完整同步", "roles": "角色同步", "channels": "頻道同步"}
         return type_names.get(sync_type, "未知")
+
 
 class SyncRangeModal(ui.Modal):
     """同步範圍設定對話框"""

@@ -10,6 +10,7 @@ import time
 
 logger = logging.getLogger("welcome")
 
+
 class WelcomeCache:
     """歡迎圖片快取管理類別"""
 

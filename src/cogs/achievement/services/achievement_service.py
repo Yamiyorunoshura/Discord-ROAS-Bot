@@ -311,7 +311,9 @@ class AchievementService:
     # 分類樹業務邏輯
     # =============================================================================
 
-    async def get_achievement_categories(self, _guild_id: int | None = None) -> list[AchievementCategory]:
+    async def get_achievement_categories(
+        self, _guild_id: int | None = None
+    ) -> list[AchievementCategory]:
         """取得成就分類列表(API 兼容方法).
 
         Args:
@@ -420,7 +422,9 @@ class AchievementService:
             )
             raise
 
-    async def get_category_tree(self, root_id: int | None = None) -> list[dict[str, Any]]:
+    async def get_category_tree(
+        self, root_id: int | None = None
+    ) -> list[dict[str, Any]]:
         """取得分類樹結構.
 
         Args:

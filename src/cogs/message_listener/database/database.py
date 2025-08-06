@@ -21,6 +21,7 @@ MESSAGE_TABLE_COLUMN_COUNT = 8  # messages 表的欄位數量
 
 logger = logging.getLogger("message_listener")
 
+
 class MessageListenerDB:
     """
     訊息監聽系統資料庫操作類別
@@ -159,23 +160,21 @@ class MessageListenerDB:
                         result.append(dict(zip(column_names, row, strict=False)))
                     elif len(row) == MESSAGE_TABLE_COLUMN_COUNT and not column_names:
                         # 向後相容: 如果是完整的 messages 表查詢
-                        result.append(
-                            {
-                                "message_id": row[0],
-                                "channel_id": row[1],
-                                "guild_id": row[2],
-                                "author_id": row[3],
-                                "content": row[4],
-                                "timestamp": row[5],
-                                "attachments": row[6],
-                                "deleted": row[7],
-                            }
-                        )
+                        result.append({
+                            "message_id": row[0],
+                            "channel_id": row[1],
+                            "guild_id": row[2],
+                            "author_id": row[3],
+                            "content": row[4],
+                            "timestamp": row[5],
+                            "attachments": row[6],
+                            "deleted": row[7],
+                        })
                     else:
                         # 如果無法匹配, 使用通用索引
-                        result.append(
-                            {f"col_{i}": value for i, value in enumerate(row)}
-                        )
+                        result.append({
+                            f"col_{i}": value for i, value in enumerate(row)
+                        })
 
                 return result
         except Exception as exc:
@@ -198,15 +197,13 @@ class MessageListenerDB:
             if message.attachments:
                 attachments_data = []
                 for attachment in message.attachments:
-                    attachments_data.append(
-                        {
-                            "id": str(attachment.id),
-                            "filename": attachment.filename,
-                            "url": attachment.url,
-                            "size": attachment.size,
-                            "content_type": getattr(attachment, "content_type", None),
-                        }
-                    )
+                    attachments_data.append({
+                        "id": str(attachment.id),
+                        "filename": attachment.filename,
+                        "url": attachment.url,
+                        "size": attachment.size,
+                        "content_type": getattr(attachment, "content_type", None),
+                    })
                 attachments_json = json.dumps(attachments_data)
 
             # 儲存訊息

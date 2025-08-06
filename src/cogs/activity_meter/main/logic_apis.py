@@ -1,9 +1,9 @@
 """
-🎯 LogicAPIs - 程式邏輯個別API
-- 為每個程式邏輯功能提供獨立的API接口
-- 實現數據驗證和錯誤處理
-- 支援權限檢查和性能監控
-- 提供標準化的API響應格式
+¯ LogicAPIs - ç¨å¼éè¼¯åå¥API
+- çºæ¯åç¨å¼éè¼¯åè½æä¾ç¨ç«çAPIæ¥å£
+- å¯¦ç¾æ¸æé©è­åé¯èª¤èç
+- æ¯æ´æ¬éæª¢æ¥åæ§è½ç£æ§
+- æä¾æ¨æºåçAPIé¿ææ ¼å¼
 """
 
 import logging
@@ -18,9 +18,10 @@ from .renderer import ActivityRenderer
 
 logger = logging.getLogger("logic_apis")
 
+
 @dataclass
 class APIResponse:
-    """API響應數據結構"""
+    """APIé¿ææ¸æçµæ§"""
 
     status: str
     data: dict[str, Any | None] = None
@@ -32,141 +33,142 @@ class APIResponse:
         if not self.timestamp:
             self.timestamp = datetime.now().isoformat()
 
+
 class LogicAPIs:
     """
-    程式邏輯個別API
-    - 為每個程式邏輯功能提供獨立的API接口
-    - 實現標準化的API響應格式
-    - 支援數據驗證和錯誤處理
+    ç¨å¼éè¼¯åå¥API
+    - çºæ¯åç¨å¼éè¼¯åè½æä¾ç¨ç«çAPIæ¥å£
+    - å¯¦ç¾æ¨æºåçAPIé¿ææ ¼å¼
+    - æ¯æ´æ¸æé©è­åé¯èª¤èç
     """
 
     def __init__(self):
-        """初始化邏輯API"""
+        """åå§åéè¼¯API"""
         self.database = ActivityDatabase()
         self.renderer = ActivityRenderer()
         self.calculator = ActivityCalculator()
 
-        # API調用統計
+        # APIèª¿ç¨çµ±è¨
         self.api_calls = {}
         self.error_counts = {}
 
-        logger.info("✅ LogicAPIs 初始化成功")
+        logger.info("LogicAPIs åå§åæå")
 
     def renderer_logic_api(self, data: dict[str, Any]) -> APIResponse:
         """
-        渲染邏輯API
+        æ¸²æéè¼¯API
 
         Args:
-            data: 渲染數據
+            data: æ¸²ææ¸æ
 
         Returns:
-            APIResponse: API響應
+            APIResponse: APIé¿æ
         """
         start_time = time.time()
 
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("renderer_logic")
 
-            # 驗證輸入數據
+            # é©è­è¼¸å¥æ¸æ
             if not self._validate_render_data(data):
                 return APIResponse(
                     status="error",
-                    message="渲染數據格式錯誤",
+                    message="æ¸²ææ¸ææ ¼å¼é¯èª¤",
                     execution_time=time.time() - start_time,
                 )
 
-            # 執行渲染邏輯
+            # å·è¡æ¸²æéè¼¯
             rendered_data = self.renderer.render_progress_bar(
-                data.get("username", "未知用戶"), data.get("score", 0)
+                data.get("username", "æªç¥ç¨æ¶"), data.get("score", 0)
             )
 
             return APIResponse(
                 status="success",
                 data={"rendered_file": rendered_data},
-                message="渲染成功",
+                message="æ¸²ææå",
                 execution_time=time.time() - start_time,
             )
 
         except Exception as e:
             self._record_error("renderer_logic", str(e))
-            logger.error(f"❌ 渲染邏輯API失敗: {e}")
+            logger.error(f"æ¸²æéè¼¯APIå¤±æ: {e}")
             return APIResponse(
                 status="error",
-                message=f"渲染失敗: {e!s}",
+                message=f"æ¸²æå¤±æ: {e!s}",
                 execution_time=time.time() - start_time,
             )
 
     def settings_logic_api(self, settings: dict[str, Any]) -> APIResponse:
         """
-        設定邏輯API
+        è¨­å®éè¼¯API
 
         Args:
-            settings: 設定數據
+            settings: è¨­å®æ¸æ
 
         Returns:
-            APIResponse: API響應
+            APIResponse: APIé¿æ
         """
         start_time = time.time()
 
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("settings_logic")
 
-            # 驗證設定數據
+            # é©è­è¨­å®æ¸æ
             if not self._validate_settings(settings):
                 return APIResponse(
                     status="error",
-                    message="設定數據格式錯誤",
+                    message="è¨­å®æ¸ææ ¼å¼é¯èª¤",
                     execution_time=time.time() - start_time,
                 )
 
-            # 保存設定
+            # ä¿å­è¨­å®
             success = self.database.save_settings(settings)
 
             if success:
                 return APIResponse(
                     status="success",
-                    message="設定保存成功",
+                    message="è¨­å®ä¿å­æå",
                     execution_time=time.time() - start_time,
                 )
             else:
                 return APIResponse(
                     status="error",
-                    message="設定保存失敗",
+                    message="è¨­å®ä¿å­å¤±æ",
                     execution_time=time.time() - start_time,
                 )
 
         except Exception as e:
             self._record_error("settings_logic", str(e))
-            logger.error(f"❌ 設定邏輯API失敗: {e}")
+            logger.error(f"è¨­å®éè¼¯APIå¤±æ: {e}")
             return APIResponse(
                 status="error",
-                message=f"設定保存失敗: {e!s}",
+                message=f"è¨­å®ä¿å­å¤±æ: {e!s}",
                 execution_time=time.time() - start_time,
             )
 
     def get_user_data(self, user_id: str) -> dict[str, Any | None]:
         """
-        獲取用戶數據
+        ç²åç¨æ¶æ¸æ
 
         Args:
-            user_id: 用戶ID
+            user_id: ç¨æ¶ID
 
         Returns:
-            Dict[str, Any | None]: 用戶數據
+            Dict[str, Any | None]: ç¨æ¶æ¸æ
         """
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("get_user_data")
 
-            # 從數據庫獲取用戶數據
+            # å¾æ¸æåº«ç²åç¨æ¶æ¸æ
             user_data = self.database.get_user_activity(user_id)
 
             if not user_data:
                 return None
 
-            # 添加額外的計算數據
+            # æ·»å é¡å¤çè¨ç®æ¸æ
             user_data["level"] = self.calculator.calculate_level(
                 user_data.get("score", 0)
             )
@@ -178,110 +180,110 @@ class LogicAPIs:
 
         except Exception as e:
             self._record_error("get_user_data", str(e))
-            logger.error(f"❌ 獲取用戶數據失敗: {user_id}, 錯誤: {e}")
+            logger.error(f"ç²åç¨æ¶æ¸æå¤±æ: {user_id}, é¯èª¤: {e}")
             return None
 
     def get_user_rank(self, user_id: str) -> int | None:
         """
-        獲取用戶排名
+        ç²åç¨æ¶æå
 
         Args:
-            user_id: 用戶ID
+            user_id: ç¨æ¶ID
 
         Returns:
-            int | None: 用戶排名
+            int | None: ç¨æ¶æå
         """
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("get_user_rank")
 
-            # 從數據庫獲取用戶排名
+            # å¾æ¸æåº«ç²åç¨æ¶æå
             rank = self.database.get_user_rank(user_id)
 
             return rank
 
         except Exception as e:
             self._record_error("get_user_rank", str(e))
-            logger.error(f"❌ 獲取用戶排名失敗: {user_id}, 錯誤: {e}")
+            logger.error(f"ç²åç¨æ¶æåå¤±æ: {user_id}, é¯èª¤: {e}")
             return None
 
     def get_user_activity_history(
         self, user_id: str, days: int = 30
     ) -> list[dict[str, Any]]:
         """
-        獲取用戶活躍度歷史
+        ç²åç¨æ¶æ´»èºåº¦æ­·å²
 
         Args:
-            user_id: 用戶ID
-            days: 歷史天數
+            user_id: ç¨æ¶ID
+            days: æ­·å²å¤©æ¸
 
         Returns:
-            List[Dict[str, Any]]: 活躍度歷史數據
+            List[Dict[str, Any]]: æ´»èºåº¦æ­·å²æ¸æ
         """
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("get_user_activity_history")
 
-            # 從數據庫獲取歷史數據
+            # å¾æ¸æåº«ç²åæ­·å²æ¸æ
             history_data = self.database.get_user_activity_history(user_id, days)
 
             return history_data
 
         except Exception as e:
             self._record_error("get_user_activity_history", str(e))
-            logger.error(f"❌ 獲取活躍度歷史失敗: {user_id}, 錯誤: {e}")
+            logger.error(f"ç²åæ´»èºåº¦æ­·å²å¤±æ: {user_id}, é¯èª¤: {e}")
             return []
 
     def get_leaderboard(self, guild_id: str, limit: int = 10) -> list[dict[str, Any]]:
         """
-        獲取排行榜
+        ç²åæè¡æ¦
 
         Args:
-            guild_id: 伺服器ID
-            limit: 排行榜數量限制
+            guild_id: ä¼ºæå¨ID
+            limit: æè¡æ¦æ¸ééå¶
 
         Returns:
-            List[Dict[str, Any]]: 排行榜數據
+            List[Dict[str, Any]]: æè¡æ¦æ¸æ
         """
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("get_leaderboard")
 
-            # 從數據庫獲取排行榜數據
+            # å¾æ¸æåº«ç²åæè¡æ¦æ¸æ
             leaderboard_data = self.database.get_leaderboard(guild_id, limit)
 
             return leaderboard_data
 
         except Exception as e:
             self._record_error("get_leaderboard", str(e))
-            logger.error(f"❌ 獲取排行榜失敗: {guild_id}, 錯誤: {e}")
+            logger.error(f"ç²åæè¡æ¦å¤±æ: {guild_id}, é¯èª¤: {e}")
             return []
 
     def update_user_activity(
         self, user_id: str, guild_id: str, activity_type: str = "message"
     ) -> bool:
         """
-        更新用戶活躍度
+        æ´æ°ç¨æ¶æ´»èºåº¦
 
         Args:
-            user_id: 用戶ID
-            guild_id: 伺服器ID
-            activity_type: 活躍度類型
+            user_id: ç¨æ¶ID
+            guild_id: ä¼ºæå¨ID
+            activity_type: æ´»èºåº¦é¡å
 
         Returns:
-            bool: 更新是否成功
+            bool: æ´æ°æ¯å¦æå
         """
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("update_user_activity")
 
-            # 計算新的活躍度分數
+            # è¨ç®æ°çæ´»èºåº¦åæ¸
             current_score = self.database.get_user_score(user_id, guild_id) or 0
             new_score = self.calculator.calculate_new_score(
                 current_score, activity_type
             )
 
-            # 更新數據庫
+            # æ´æ°æ¸æåº«
             success = self.database.update_user_activity(
                 guild_id=guild_id,
                 user_id=user_id,
@@ -293,39 +295,39 @@ class LogicAPIs:
 
         except Exception as e:
             self._record_error("update_user_activity", str(e))
-            logger.error(f"❌ 更新用戶活躍度失敗: {user_id}, 錯誤: {e}")
+            logger.error(f"æ´æ°ç¨æ¶æ´»èºåº¦å¤±æ: {user_id}, é¯èª¤: {e}")
             return False
 
     def calculate_activity_score_api(self, user_data: dict[str, Any]) -> APIResponse:
         """
-        計算活躍度分數API
+        è¨ç®æ´»èºåº¦åæ¸API
 
         Args:
-            user_data: 用戶數據
+            user_data: ç¨æ¶æ¸æ
 
         Returns:
-            APIResponse: API響應
+            APIResponse: APIé¿æ
         """
         start_time = time.time()
 
         try:
-            # 記錄API調用
+            # è¨éAPIèª¿ç¨
             self._record_api_call("calculate_activity_score")
 
-            # 驗證用戶數據
+            # é©è­ç¨æ¶æ¸æ
             if not self._validate_user_data(user_data):
                 return APIResponse(
                     status="error",
-                    message="用戶數據格式錯誤",
+                    message="ç¨æ¶æ¸ææ ¼å¼é¯èª¤",
                     execution_time=time.time() - start_time,
                 )
 
-            # 計算活躍度分數
+            # è¨ç®æ´»èºåº¦åæ¸
             score = self.calculator.calculate_score(
                 user_data.get("messages", 0), user_data.get("total_messages", 0)
             )
 
-            # 計算等級
+            # è¨ç®ç­ç´
             level = self.calculator.calculate_level(score)
 
             return APIResponse(
@@ -335,77 +337,77 @@ class LogicAPIs:
                     "level": level,
                     "next_level_score": self.calculator.get_next_level_score(score),
                 },
-                message="活躍度分數計算成功",
+                message="æ´»èºåº¦åæ¸è¨ç®æå",
                 execution_time=time.time() - start_time,
             )
 
         except Exception as e:
             self._record_error("calculate_activity_score", str(e))
-            logger.error(f"❌ 計算活躍度分數失敗: {e}")
+            logger.error(f"è¨ç®æ´»èºåº¦åæ¸å¤±æ: {e}")
             return APIResponse(
                 status="error",
-                message=f"計算活躍度分數失敗: {e!s}",
+                message=f"è¨ç®æ´»èºåº¦åæ¸å¤±æ: {e!s}",
                 execution_time=time.time() - start_time,
             )
 
     def _validate_render_data(self, data: dict[str, Any]) -> bool:
         """
-        驗證渲染數據
+        é©è­æ¸²ææ¸æ
 
         Args:
-            data: 渲染數據
+            data: æ¸²ææ¸æ
 
         Returns:
-            bool: 驗證是否通過
+            bool: é©è­æ¯å¦éé
         """
         required_fields = ["username", "score"]
         return all(field in data for field in required_fields)
 
     def _validate_settings(self, settings: dict[str, Any]) -> bool:
         """
-        驗證設定數據
+        é©è­è¨­å®æ¸æ
 
         Args:
-            settings: 設定數據
+            settings: è¨­å®æ¸æ
 
         Returns:
-            bool: 驗證是否通過
+            bool: é©è­æ¯å¦éé
         """
         required_fields = ["guild_id", "key", "value"]
         return all(field in settings for field in required_fields)
 
     def _validate_user_data(self, user_data: dict[str, Any]) -> bool:
         """
-        驗證用戶數據
+        é©è­ç¨æ¶æ¸æ
 
         Args:
-            user_data: 用戶數據
+            user_data: ç¨æ¶æ¸æ
 
         Returns:
-            bool: 驗證是否通過
+            bool: é©è­æ¯å¦éé
         """
         required_fields = ["user_id"]
         return all(field in user_data for field in required_fields)
 
     def _record_api_call(self, api_name: str):
-        """記錄API調用"""
+        """è¨éAPIèª¿ç¨"""
         if api_name not in self.api_calls:
             self.api_calls[api_name] = 0
         self.api_calls[api_name] += 1
 
     def _record_error(self, api_name: str, error_message: str):
-        """記錄錯誤"""
+        """è¨éé¯èª¤"""
         if api_name not in self.error_counts:
             self.error_counts[api_name] = 0
         self.error_counts[api_name] += 1
-        logger.error(f"API錯誤: {api_name} - {error_message}")
+        logger.error(f"APIé¯èª¤: {api_name} - {error_message}")
 
     def get_api_metrics(self) -> dict[str, Any]:
         """
-        獲取API指標
+        ç²åAPIææ¨
 
         Returns:
-            Dict[str, Any]: API指標數據
+            Dict[str, Any]: APIææ¨æ¸æ
         """
         return {
             "api_calls": self.api_calls,
@@ -414,7 +416,7 @@ class LogicAPIs:
         }
 
     def _calculate_success_rates(self) -> dict[str, float]:
-        """計算成功率"""
+        """è¨ç®æåç"""
         success_rates = {}
         for api_name in self.api_calls:
             total_calls = self.api_calls[api_name]

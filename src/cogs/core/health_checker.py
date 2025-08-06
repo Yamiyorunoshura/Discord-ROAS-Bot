@@ -30,6 +30,7 @@ class HealthStatus(Enum):
     CRITICAL = "critical"
     UNKNOWN = "unknown"
 
+
 @dataclass
 class HealthCheckResult:
     """健康檢查結果"""
@@ -40,6 +41,7 @@ class HealthCheckResult:
     details: dict[str, Any]
     timestamp: datetime
     response_time_ms: float | None = None
+
 
 @dataclass
 class ModuleStatus:
@@ -52,6 +54,7 @@ class ModuleStatus:
     warning_count: int = 0
     uptime_seconds: float = 0
     last_error: str | None = None
+
 
 class HealthChecker:
     """系統健康檢查器"""
@@ -588,6 +591,7 @@ class HealthChecker:
             else None,
         }
 
+
 class HealthCheckerManager:
     """健康檢查器管理器"""
 
@@ -600,8 +604,10 @@ class HealthCheckerManager:
             self._health_checker = HealthChecker()
         return self._health_checker
 
+
 # 全域管理器實例
 _health_checker_manager = HealthCheckerManager()
+
 
 def get_health_checker() -> HealthChecker:
     """
@@ -611,6 +617,7 @@ def get_health_checker() -> HealthChecker:
         HealthChecker: 健康檢查器實例
     """
     return _health_checker_manager.get_health_checker()
+
 
 async def start_health_monitoring():
     """啟動健康監控的便捷函數"""

@@ -27,15 +27,18 @@ CONNECTION_EXPIRY_SECONDS = 3600  # 1 hour in seconds
 SQL_PREVIEW_LENGTH = 100  # Maximum length for SQL preview in logs
 BETWEEN_VALUES_COUNT = 2  # Required number of values for BETWEEN operator
 
+
 class DatabaseError(Exception):
     """Base database error."""
 
     pass
 
+
 class ConnectionPoolError(DatabaseError):
     """Connection pool related error."""
 
     pass
+
 
 class DatabaseConnection:
     """Wrapper for database connection with Python 3.12 compatibility."""
@@ -96,6 +99,7 @@ class DatabaseConnection:
     def is_expired(self) -> bool:
         """Check if connection is expired (older than 1 hour)."""
         return time.time() - self._created_at > CONNECTION_EXPIRY_SECONDS
+
 
 class DatabasePool:
     """Database connection pool with Python 3.12 compatibility."""
@@ -348,6 +352,7 @@ class DatabasePool:
             "max_overflow": self.max_overflow,
         }
 
+
 class BaseRepository:
     """Base repository class with common database operations."""
 
@@ -396,7 +401,9 @@ class BaseRepository:
                 await conn.rollback()
                 self.logger.error(
                     "Query execution failed",
-                    sql=sql[:SQL_PREVIEW_LENGTH] + "..." if len(sql) > SQL_PREVIEW_LENGTH else sql,
+                    sql=sql[:SQL_PREVIEW_LENGTH] + "..."
+                    if len(sql) > SQL_PREVIEW_LENGTH
+                    else sql,
                     error=str(e),
                 )
                 raise DatabaseError(f"Query failed: {e}") from e
@@ -468,8 +475,10 @@ class BaseRepository:
         row = await self.execute_query(sql, parameters, fetch_one=True)
         return row is not None
 
+
 # Global database pools
 _pools: dict[str, DatabasePool] = {}
+
 
 async def get_database_pool(
     database_name: str, settings: Settings | None = None
@@ -494,11 +503,13 @@ async def get_database_pool(
 
     return _pools[database_name]
 
+
 async def close_all_pools() -> None:
     """Close all database pools."""
     for pool in _pools.values():
         await pool.close_all()
     _pools.clear()
+
 
 class JoinType(Enum):
     """SQL JOIN 類型列舉."""
@@ -509,11 +520,13 @@ class JoinType(Enum):
     FULL = "FULL OUTER JOIN"
     CROSS = "CROSS JOIN"
 
+
 class OrderDirection(Enum):
     """排序方向列舉."""
 
     ASC = "ASC"
     DESC = "DESC"
+
 
 @dataclass
 class QueryCondition:
@@ -544,7 +557,10 @@ class QueryCondition:
 
         # Handle BETWEEN operator
         elif operator_upper == "BETWEEN":
-            if isinstance(self.value, list | tuple) and len(self.value) == BETWEEN_VALUES_COUNT:
+            if (
+                isinstance(self.value, list | tuple)
+                and len(self.value) == BETWEEN_VALUES_COUNT
+            ):
                 sql_condition = f"{self.field} BETWEEN ? AND ?"
                 parameters = self.value
             else:
@@ -567,6 +583,7 @@ class QueryCondition:
 
         return sql_condition, parameters
 
+
 @dataclass
 class JoinClause:
     """JOIN 子句資料類別."""
@@ -581,6 +598,7 @@ class JoinClause:
         table_part = f"{self.table} AS {self.alias}" if self.alias else self.table
         return f"{self.join_type.value} {table_part} ON {self.on_condition}"
 
+
 @dataclass
 class OrderByClause:
     """ORDER BY 子句資料類別."""
@@ -591,6 +609,7 @@ class OrderByClause:
     def to_sql(self) -> str:
         """轉換為 SQL ORDER BY 子句."""
         return f"{self.field} {self.direction.value}"
+
 
 class QueryBuilder:
     """現代化 SQL 查詢建構器.
@@ -1120,6 +1139,7 @@ class QueryBuilder:
     def __repr__(self) -> str:
         """詳細字串表示."""
         return f"QueryBuilder(table='{self.table}', alias='{self.alias}')"
+
 
 __all__ = [
     "BaseRepository",

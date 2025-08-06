@@ -3,3 +3,5 @@
 """
 
 from .settings_embed import build_settings_embed
+
+__all__ = ["build_settings_embed"]

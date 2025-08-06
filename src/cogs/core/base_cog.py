@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 # 類型變量
 T = TypeVar("T")
 
+
 class BaseCog(commands.Cog):
     """
     基礎Cog類別
@@ -265,6 +266,7 @@ class BaseCog(commands.Cog):
             "service_names": list(self._services.keys()),
         }
 
+
 class ServiceMixin:
     """
     服務混入類
@@ -313,6 +315,7 @@ class ServiceMixin:
         """清理服務緩存"""
         self._services.clear()
 
+
 async def inject_service[T](service_type: type[T], scope: str | None = None) -> T:
     """
     全局服務注入函數
@@ -326,6 +329,7 @@ async def inject_service[T](service_type: type[T], scope: str | None = None) -> 
     """
     container = await get_global_container()
     return await container.resolve(service_type, scope)
+
 
 def requires_service[T](service_type: type[T], scope: str | None = None):
     """
@@ -347,6 +351,7 @@ def requires_service[T](service_type: type[T], scope: str | None = None):
         return wrapper
 
     return decorator
+
 
 class BasePanelView(discord.ui.View, ABC):
     """
@@ -425,7 +430,8 @@ class BasePanelView(discord.ui.View, ABC):
 
             # 檢查版主權限
             if self.moderator_only and (
-                not hasattr(interaction.user, "guild_permissions") or not (
+                not hasattr(interaction.user, "guild_permissions")
+                or not (
                     interaction.user.guild_permissions.manage_messages
                     or interaction.user.guild_permissions.administrator
                 )
@@ -661,6 +667,7 @@ class BasePanelView(discord.ui.View, ABC):
             interaction: Discord 交互對象
         """
         pass
+
 
 class StandardPanelView(BasePanelView):
     """
@@ -1009,6 +1016,7 @@ class StandardPanelView(BasePanelView):
     async def refresh_view(self, interaction: discord.Interaction) -> None:
         """實現抽象方法"""
         await self.refresh_callback(interaction)
+
 
 class StandardEmbedBuilder:
     """

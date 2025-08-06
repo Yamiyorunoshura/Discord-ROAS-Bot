@@ -20,6 +20,7 @@ class ProgressBarStyle(Enum):
     MINIMAL = "minimal"
     GRADIENT = "gradient"
 
+
 # 風格配置
 STYLE_CONFIGS = {
     "classic": {
@@ -62,6 +63,7 @@ STYLE_CONFIGS = {
     },
 }
 
+
 class PageSelector(discord.ui.Select):
     """頁面選擇下拉選單"""
 
@@ -73,7 +75,6 @@ class PageSelector(discord.ui.Select):
             discord.SelectOption(
                 label="預覽",
                 value="preview",
-                emoji="👀",
                 description="預覽目前進度條風格效果",
             ),
             discord.SelectOption(
@@ -95,7 +96,7 @@ class PageSelector(discord.ui.Select):
             # 檢查權限
             if not self.view.can_view_panel(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限查看此面板", ephemeral=True
+                    "您沒有權限查看此面板", ephemeral=True
                 )
                 return
 
@@ -113,14 +114,15 @@ class PageSelector(discord.ui.Select):
         except Exception as e:
             await self.view.handle_error(interaction, e)
 
+
 class StyleSelector(discord.ui.Select):
     """進度條風格選擇器"""
 
     def __init__(self, view):
         options = [
-            discord.SelectOption(label="經典", value="classic", emoji="📊"),
-            discord.SelectOption(label="現代", value="modern", emoji="🎨"),
-            discord.SelectOption(label="霓虹", value="neon", emoji="✨"),
+            discord.SelectOption(label="經典", value="classic", emoji="🎨"),
+            discord.SelectOption(label="現代", value="modern", emoji="🖥️"),
+            discord.SelectOption(label="霓虹", value="neon", emoji="💫"),
             discord.SelectOption(label="極簡", value="minimal", emoji="⚪"),
             discord.SelectOption(label="漸層", value="gradient", emoji="🌈"),
         ]
@@ -139,7 +141,7 @@ class StyleSelector(discord.ui.Select):
             # 檢查權限
             if not self.view.can_edit_settings(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限編輯設定", ephemeral=True
+                    "您沒有權限編輯設定", ephemeral=True
                 )
                 return
 
@@ -156,7 +158,7 @@ class StyleSelector(discord.ui.Select):
 
                 # 發送預覽
                 embed = discord.Embed(
-                    title="👀 進度條風格預覽",
+                    title="📊 進度條風格預覽",
                     description=f"已選擇風格:**{selected_style}**\n\n以下是使用此風格的進度條效果:",
                     color=discord.Color.blue(),
                 )
@@ -170,6 +172,7 @@ class StyleSelector(discord.ui.Select):
 
         except Exception as e:
             await self.view.handle_error(interaction, e)
+
 
 class ChannelSelector(discord.ui.Select):
     """公告頻道選擇器"""
@@ -186,12 +189,12 @@ class ChannelSelector(discord.ui.Select):
                 if ch.permissions_for(guild.me).send_messages
             ]
             options = [
-                discord.SelectOption(label=ch.name, value=str(ch.id), emoji="📝")
+                discord.SelectOption(label=ch.name, value=str(ch.id), emoji="📢")
                 for ch in channels[:25]  # Discord限制最多25個選項
             ]
         except Exception:
             # 如果獲取頻道失敗,使用預設選項
-            options = [discord.SelectOption(label="預設頻道", value="0", emoji="📝")]
+            options = [discord.SelectOption(label="預設頻道", value="0", emoji="📢")]
 
         super().__init__(
             placeholder="選擇公告頻道",
@@ -208,7 +211,7 @@ class ChannelSelector(discord.ui.Select):
             # 檢查權限
             if not self.view.can_edit_settings(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限編輯設定", ephemeral=True
+                    "您沒有權限編輯設定", ephemeral=True
                 )
                 return
 
@@ -220,6 +223,7 @@ class ChannelSelector(discord.ui.Select):
 
         except Exception as e:
             await self.view.handle_error(interaction, e)
+
 
 class TimeSelector(discord.ui.Select):
     """公告時間選擇器"""
@@ -245,7 +249,7 @@ class TimeSelector(discord.ui.Select):
             # 檢查權限
             if not self.view.can_edit_settings(interaction.user):
                 await interaction.response.send_message(
-                    "❌ 您沒有權限編輯設定", ephemeral=True
+                    "您沒有權限編輯設定", ephemeral=True
                 )
                 return
 

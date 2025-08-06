@@ -24,6 +24,7 @@ LEADERBOARD_SPLIT_THRESHOLD = 5
 
 logger = logging.getLogger(__name__)
 
+
 class LeaderboardEmbedRenderer:
     """排行榜 Embed 渲染器"""
 
@@ -72,7 +73,7 @@ class LeaderboardEmbedRenderer:
                 title="🏆 伺服器貨幣排行榜",
                 description=f"第 {page_display}/{total_pages} 頁 • 共 {total_count:,} 位用戶",
                 color=discord.Color.gold(),
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             if not entries:
@@ -80,7 +81,7 @@ class LeaderboardEmbedRenderer:
                 embed.add_field(
                     name="📝 排行榜",
                     value="還沒有用戶擁有貨幣\n快開始賺取第一筆貨幣吧!",
-                    inline=False
+                    inline=False,
                 )
             else:
                 # 渲染排行榜條目
@@ -92,7 +93,7 @@ class LeaderboardEmbedRenderer:
             # 設置頁腳
             embed.set_footer(
                 text="使用下方按鈕導航 • 點擊「我的排名」快速跳轉",
-                icon_url="https://cdn.discordapp.com/emojis/749358574832967832.png"
+                icon_url="https://cdn.discordapp.com/emojis/749358574832967832.png",
             )
 
             return embed
@@ -104,7 +105,7 @@ class LeaderboardEmbedRenderer:
             error_embed = discord.Embed(
                 title="❌ 載入錯誤",
                 description="無法載入排行榜資訊,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             return error_embed
 
@@ -143,28 +144,22 @@ class LeaderboardEmbedRenderer:
                     embed.add_field(
                         name="📊 排名 (上半部)",
                         value="\n".join(rank_lines[:mid_point]),
-                        inline=True
+                        inline=True,
                     )
 
                     embed.add_field(
                         name="📊 排名 (下半部)",
                         value="\n".join(rank_lines[mid_point:]),
-                        inline=True
+                        inline=True,
                     )
                 else:
                     embed.add_field(
-                        name="📊 排名",
-                        value="\n".join(rank_lines),
-                        inline=False
+                        name="📊 排名", value="\n".join(rank_lines), inline=False
                     )
 
         except Exception as e:
             self.logger.error(f"添加排行榜條目失敗: {e}")
-            embed.add_field(
-                name="📊 排名",
-                value="載入排行榜時發生錯誤",
-                inline=False
-            )
+            embed.add_field(name="📊 排名", value="載入排行榜時發生錯誤", inline=False)
 
     def _get_rank_emoji(self, rank: int) -> str:
         """獲取排名圖示"""
@@ -197,7 +192,7 @@ class LeaderboardEmbedRenderer:
             start_rank = self.current_page * self.per_page + 1
             end_rank = min(
                 (self.current_page + 1) * self.per_page,
-                self.leaderboard_data.get("total_count", 0)
+                self.leaderboard_data.get("total_count", 0),
             )
 
             nav_info = f"📍 顯示排名 {start_rank}-{end_rank}\n"
@@ -208,11 +203,7 @@ class LeaderboardEmbedRenderer:
 
             nav_info += "📊 點擊「我的排名」快速定位"
 
-            embed.add_field(
-                name="🧭 導航資訊",
-                value=nav_info,
-                inline=False
-            )
+            embed.add_field(name="🧭 導航資訊", value=nav_info, inline=False)
 
         except Exception as e:
             self.logger.warning(f"添加導航資訊失敗: {e}")

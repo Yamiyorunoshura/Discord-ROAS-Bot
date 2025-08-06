@@ -16,6 +16,7 @@ MESSAGE_CONTENT_MAX_LENGTH = 500
 
 logger = logging.getLogger("anti_executable")
 
+
 class ExecutableActions:
     """可執行檔案動作處理器"""
 

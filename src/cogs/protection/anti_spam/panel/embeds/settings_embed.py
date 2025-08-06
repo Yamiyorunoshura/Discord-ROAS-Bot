@@ -35,6 +35,7 @@ async def create_settings_embed(
     else:
         return await _create_category_embed(cog, guild, category)
 
+
 async def _create_overview_embed(
     cog: "AntiSpam", guild: discord.Guild
 ) -> discord.Embed:
@@ -114,6 +115,7 @@ async def _create_overview_embed(
     embed.set_footer(text="選擇上方的分類進行詳細設定")
     return embed
 
+
 async def _create_category_embed(
     cog: "AntiSpam", guild: discord.Guild, category_id: str
 ) -> discord.Embed:
@@ -162,13 +164,16 @@ async def _create_category_embed(
     embed.set_footer(text="點擊下方按鈕進行設定或查看其他功能")
     return embed
 
+
 def _format_config_value(key: str, value: str, guild: discord.Guild) -> str:
     """格式化設定值顯示"""
     try:
         # 定義格式化規則
         formatters = {
             "spam_notify_channel": lambda v: _format_channel_value(v, guild),
-            "spam_response_enabled": lambda v: "啟用" if v.lower() == "true" else "停用",
+            "spam_response_enabled": lambda v: "啟用"
+            if v.lower() == "true"
+            else "停用",
             "spam_timeout_minutes": lambda v: f"{v} 分鐘",
             "spam_similar_threshold": lambda v: f"{float(v):.1%}",
             "spam_response_message": lambda v: f'"{v}"' if v else "預設訊息",
@@ -176,12 +181,16 @@ def _format_config_value(key: str, value: str, guild: discord.Guild) -> str:
 
         # 處理多個鍵的通用格式
         limit_keys = [
-            "spam_freq_limit", "spam_identical_limit",
-            "spam_similar_limit", "spam_sticker_limit"
+            "spam_freq_limit",
+            "spam_identical_limit",
+            "spam_similar_limit",
+            "spam_sticker_limit",
         ]
         window_keys = [
-            "spam_freq_window", "spam_identical_window",
-            "spam_similar_window", "spam_sticker_window"
+            "spam_freq_window",
+            "spam_identical_window",
+            "spam_similar_window",
+            "spam_sticker_window",
         ]
 
         # 根據鍵類型進行格式化
@@ -196,6 +205,7 @@ def _format_config_value(key: str, value: str, guild: discord.Guild) -> str:
 
     except Exception:
         return value
+
 
 def _format_channel_value(value: str, guild: discord.Guild) -> str:
     """格式化頻道值"""

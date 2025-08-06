@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class ProgressTracker:
     """成就進度追蹤服務.
 
@@ -362,7 +363,7 @@ class ProgressTracker:
         return float(current_metrics.get(counter_field, 0))
 
     async def _calculate_milestone_progress(
-        self, user_id: int, criteria: dict[str, Any], current_metrics: dict[str, Any]  # noqa: ARG002
+        self, user_id: int, criteria: dict[str, Any], current_metrics: dict[str, Any]
     ) -> float:
         """計算里程碑型成就進度."""
         milestone_type = criteria.get("milestone_type")
@@ -611,6 +612,7 @@ class ProgressTracker:
                 exc_info=True,
             )
             raise
+
 
 __all__ = [
     "ProgressTracker",

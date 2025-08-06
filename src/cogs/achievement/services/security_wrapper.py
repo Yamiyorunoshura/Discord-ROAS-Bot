@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class SecurityOperationWrapper:
     """安全操作包裝器.
 
@@ -425,19 +426,15 @@ class SecurityOperationWrapper:
         try:
             # 根據結果類型提取資料
             if isinstance(result, dict):
-                history_data.update(
-                    {
-                        "target_type": result.get("target_type", ""),
-                        "target_id": result.get("target_id", ""),
-                        "target_name": result.get("target_name", ""),
-                        "old_values": result.get("old_values", {}),
-                        "new_values": result.get("new_values", {}),
-                        "affected_users": result.get("affected_users", []),
-                        "affected_achievements": result.get(
-                            "affected_achievements", []
-                        ),
-                    }
-                )
+                history_data.update({
+                    "target_type": result.get("target_type", ""),
+                    "target_id": result.get("target_id", ""),
+                    "target_name": result.get("target_name", ""),
+                    "old_values": result.get("old_values", {}),
+                    "new_values": result.get("new_values", {}),
+                    "affected_users": result.get("affected_users", []),
+                    "affected_achievements": result.get("affected_achievements", []),
+                })
 
             # 從參數中提取資料
             if args and hasattr(args[0], "user") and hasattr(args[0].user, "id"):
@@ -459,6 +456,7 @@ class SecurityOperationWrapper:
             logger.warning(f"[安全操作]提取歷史資料失敗: {e}")
 
         return history_data
+
 
 class SecurityChallengeModal(discord.ui.Modal):
     """安全挑戰模態框."""
@@ -550,6 +548,7 @@ class SecurityChallengeModal(discord.ui.Modal):
                 "❌ 處理安全驗證時發生錯誤", ephemeral=True
             )
 
+
 # 便利裝飾器函數
 def secure_grant_achievement(wrapper: SecurityOperationWrapper):
     """授予成就的安全裝飾器."""
@@ -563,6 +562,7 @@ def secure_grant_achievement(wrapper: SecurityOperationWrapper):
         requires_approval=False,
     )
 
+
 def secure_revoke_achievement(wrapper: SecurityOperationWrapper):
     """撤銷成就的安全裝飾器."""
     return wrapper.secure_operation(
@@ -575,6 +575,7 @@ def secure_revoke_achievement(wrapper: SecurityOperationWrapper):
         requires_approval=False,
     )
 
+
 def secure_reset_user_data(wrapper: SecurityOperationWrapper):
     """重置用戶資料的安全裝飾器."""
     return wrapper.secure_operation(
@@ -586,6 +587,7 @@ def secure_reset_user_data(wrapper: SecurityOperationWrapper):
         requires_token=True,
         requires_approval=True,
     )
+
 
 def secure_bulk_operation(wrapper: SecurityOperationWrapper):
     """批量操作的安全裝飾器."""

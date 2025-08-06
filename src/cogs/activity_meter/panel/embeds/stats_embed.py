@@ -44,7 +44,7 @@ async def create_stats_embed(
 
     if not guild:
         embed.add_field(
-            name="❌ 無法獲取統計", value="無法獲取伺服器資訊", inline=False
+            name="無法獲取統計", value="無法獲取伺服器資訊", inline=False
         )
         return embed
 
@@ -81,7 +81,7 @@ async def create_stats_embed(
 
         today_text = "\n".join(today_lines)
 
-    embed.add_field(name="🔹 今日排行", value=today_text, inline=True)
+    embed.add_field(name="🏆 今日排行", value=today_text, inline=True)
 
     # 顯示昨日排行榜
     yesterday_text = "昨天沒有記錄"
@@ -98,14 +98,14 @@ async def create_stats_embed(
 
         yesterday_text = "\n".join(yesterday_lines)
 
-    embed.add_field(name="🔹 昨日排行", value=yesterday_text, inline=True)
+    embed.add_field(name="📅 昨日排行", value=yesterday_text, inline=True)
 
     # 顯示月度統計
     days_in_month = int(now.strftime("%d"))
     daily_average = total_messages / days_in_month if days_in_month > 0 else 0
 
     embed.add_field(
-        name="📅 本月統計",
+        name="📈 本月統計",
         value=f"總訊息數:{total_messages} 則\n日均訊息:{daily_average:.1f} 則",
         inline=False,
     )
@@ -132,7 +132,7 @@ async def create_stats_embed(
     )
 
     embed.add_field(
-        name="📊 統計功能",
+        name="💡 統計功能",
         value=(
             "• 點擊「查看月度排行榜」查看過去一個月平均活躍度最高的成員\n"
             "• 點擊「查看訊息量變化」比較本月與上個月的訊息總量變化\n"

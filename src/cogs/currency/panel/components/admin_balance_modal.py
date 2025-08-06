@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AdminBalanceModal(Modal):
     """管理員餘額操作 Modal"""
 
@@ -45,7 +46,7 @@ class AdminBalanceModal(Modal):
         super().__init__(
             title="💰 管理員餘額操作",
             timeout=300.0,
-            custom_id="roas_currency_admin_balance_modal"
+            custom_id="roas_currency_admin_balance_modal",
         )
 
         self.currency_service = currency_service
@@ -62,7 +63,7 @@ class AdminBalanceModal(Modal):
             min_length=1,
             max_length=100,
             required=True,
-            custom_id="roas_currency_admin_target_user"
+            custom_id="roas_currency_admin_target_user",
         )
 
         self.operation_input = TextInput(
@@ -72,7 +73,7 @@ class AdminBalanceModal(Modal):
             min_length=3,
             max_length=10,
             required=True,
-            custom_id="roas_currency_admin_operation"
+            custom_id="roas_currency_admin_operation",
         )
 
         self.amount_input = TextInput(
@@ -82,7 +83,7 @@ class AdminBalanceModal(Modal):
             min_length=1,
             max_length=20,
             required=True,
-            custom_id="roas_currency_admin_amount"
+            custom_id="roas_currency_admin_amount",
         )
 
         self.reason_input = TextInput(
@@ -92,7 +93,7 @@ class AdminBalanceModal(Modal):
             min_length=1,
             max_length=200,
             required=True,
-            custom_id="roas_currency_admin_reason"
+            custom_id="roas_currency_admin_reason",
         )
 
         # 添加欄位到 Modal
@@ -129,9 +130,13 @@ class AdminBalanceModal(Modal):
             await self._send_error_response(interaction, f"輸入錯誤: {e}")
         except Exception as e:
             self.logger.error(f"管理員餘額操作失敗: {e}")
-            await self._send_error_response(interaction, "餘額操作時發生錯誤,請稍後再試")
+            await self._send_error_response(
+                interaction, "餘額操作時發生錯誤,請稍後再試"
+            )
 
-    async def _validate_all_inputs(self, interaction: discord.Interaction) -> tuple | None:
+    async def _validate_all_inputs(
+        self, interaction: discord.Interaction
+    ) -> tuple | None:
         """驗證所有輸入並返回解析結果"""
         # 驗證邏輯整合
         validations = [
@@ -158,7 +163,10 @@ class AdminBalanceModal(Modal):
         # 執行額外驗證
         error_checks = [
             (target_user_id == self.admin_id, "不能對自己執行餘額操作"),
-            (await self._is_target_bot(interaction, target_user_id), "不能對機器人執行餘額操作"),
+            (
+                await self._is_target_bot(interaction, target_user_id),
+                "不能對機器人執行餘額操作",
+            ),
         ]
 
         for condition, error_msg in error_checks:
@@ -168,7 +176,9 @@ class AdminBalanceModal(Modal):
 
         return target_user_id, operation, amount, reason
 
-    async def _is_target_bot(self, interaction: discord.Interaction, target_user_id: int) -> bool:
+    async def _is_target_bot(
+        self, interaction: discord.Interaction, target_user_id: int
+    ) -> bool:
         """檢查目標用戶是否為機器人"""
         try:
             target_user = interaction.guild.get_member(target_user_id)
@@ -176,58 +186,77 @@ class AdminBalanceModal(Modal):
         except Exception:
             return False
 
-    async def _execute_balance_operation(self, target_user_id: int, operation: str,
-                                       amount: int, reason: str) -> tuple:
+    async def _execute_balance_operation(
+        self, target_user_id: int, operation: str, amount: int, reason: str
+    ) -> tuple:
         """執行餘額操作並返回結果"""
         operation_map = {
-            "add": ("增加", lambda: self.currency_service.add_balance(
-                guild_id=self.guild_id,
-                user_id=target_user_id,
-                amount=amount,
-                reason=reason,
-                admin_id=self.admin_id
-            )),
-            "remove": ("減少", lambda: self.currency_service.add_balance(
-                guild_id=self.guild_id,
-                user_id=target_user_id,
-                amount=-amount,
-                reason=reason,
-                admin_id=self.admin_id
-            )),
-            "set": ("設定為", lambda: self.currency_service.set_balance(
-                guild_id=self.guild_id,
-                user_id=target_user_id,
-                new_balance=amount,
-                reason=reason,
-                admin_user_id=self.admin_id
-            ))
+            "add": (
+                "增加",
+                lambda: self.currency_service.add_balance(
+                    guild_id=self.guild_id,
+                    user_id=target_user_id,
+                    amount=amount,
+                    reason=reason,
+                    admin_id=self.admin_id,
+                ),
+            ),
+            "remove": (
+                "減少",
+                lambda: self.currency_service.add_balance(
+                    guild_id=self.guild_id,
+                    user_id=target_user_id,
+                    amount=-amount,
+                    reason=reason,
+                    admin_id=self.admin_id,
+                ),
+            ),
+            "set": (
+                "設定為",
+                lambda: self.currency_service.set_balance(
+                    guild_id=self.guild_id,
+                    user_id=target_user_id,
+                    new_balance=amount,
+                    reason=reason,
+                    admin_user_id=self.admin_id,
+                ),
+            ),
         }
 
         operation_display, operation_func = operation_map[operation]
         result = await operation_func()
         return result, operation_display
 
-    async def _send_success_response(self, interaction: discord.Interaction,
-                                   target_user_id: int, operation_display: str,
-                                   amount: int, result: dict, reason: str):
+    async def _send_success_response(
+        self,
+        interaction: discord.Interaction,
+        target_user_id: int,
+        operation_display: str,
+        amount: int,
+        result: dict,
+        reason: str,
+    ):
         """發送成功回應"""
-        embed = discord.Embed(
-            title="✅ 餘額操作成功",
-            color=discord.Color.green()
-        )
+        embed = discord.Embed(title="✅ 餘額操作成功", color=discord.Color.green())
 
         # 獲取目標用戶顯示名稱
         target_display = self._get_target_display_name(interaction, target_user_id)
 
         embed.add_field(name="目標用戶", value=target_display, inline=True)
-        embed.add_field(name="操作類型", value=f"{operation_display} {amount:,} 貨幣", inline=True)
-        embed.add_field(name="操作後餘額", value=f"{result['new_balance']:,} 貨幣", inline=True)
+        embed.add_field(
+            name="操作類型", value=f"{operation_display} {amount:,} 貨幣", inline=True
+        )
+        embed.add_field(
+            name="操作後餘額", value=f"{result['new_balance']:,} 貨幣", inline=True
+        )
         embed.add_field(name="操作原因", value=reason, inline=False)
         embed.set_footer(text=f"操作者: {interaction.user.display_name}")
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
-    def _get_target_display_name(self, interaction: discord.Interaction, target_user_id: int) -> str:
+    def _get_target_display_name(
+        self, interaction: discord.Interaction, target_user_id: int
+    ) -> str:
         """獲取目標用戶的顯示名稱"""
         try:
             target_user = interaction.guild.get_member(target_user_id)
@@ -265,15 +294,13 @@ class AdminBalanceModal(Modal):
 
             # 如果都不是,返回錯誤
             await self._send_error_response(
-                interaction,
-                "目標用戶格式錯誤,請輸入用戶ID或使用@提及用戶"
+                interaction, "目標用戶格式錯誤,請輸入用戶ID或使用@提及用戶"
             )
             return None
 
         except (ValueError, TypeError):
             await self._send_error_response(
-                interaction,
-                "目標用戶格式錯誤,請輸入有效的用戶ID"
+                interaction, "目標用戶格式錯誤,請輸入有效的用戶ID"
             )
             return None
 
@@ -303,8 +330,7 @@ class AdminBalanceModal(Modal):
             return operation_aliases[operation_text]
 
         await self._send_error_response(
-            interaction,
-            "操作類型錯誤,請輸入: add(增加), remove(減少), set(設定)"
+            interaction, "操作類型錯誤,請輸入: add(增加), remove(減少), set(設定)"
         )
         return None
 
@@ -331,21 +357,16 @@ class AdminBalanceModal(Modal):
 
         except (ValueError, TypeError):
             await self._send_error_response(
-                interaction,
-                "金額格式錯誤,請輸入有效的正整數"
+                interaction, "金額格式錯誤,請輸入有效的正整數"
             )
             return None
 
     async def _send_error_response(
-        self,
-        interaction: discord.Interaction,
-        message: str
+        self, interaction: discord.Interaction, message: str
     ):
         """發送錯誤回應"""
         embed = discord.Embed(
-            title="❌ 餘額操作錯誤",
-            description=message,
-            color=discord.Color.red()
+            title="❌ 餘額操作錯誤", description=message, color=discord.Color.red()
         )
 
         try:

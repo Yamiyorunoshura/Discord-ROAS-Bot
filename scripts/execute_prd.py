@@ -283,7 +283,7 @@ safety>=2.3.0
         # 顯示覆蓋率報告
         self.print_step("生成覆蓋率報告")
         if os.path.exists("htmlcov/index.html"):
-            print(f"   📊 覆蓋率報告: {os.path.abspath('htmlcov/index.html')}")
+            print(f"   📊 覆蓋率報告: {Path('htmlcov/index.html').resolve()}")
 
         # 提交測試改進
         self.print_step("提交測試改進")

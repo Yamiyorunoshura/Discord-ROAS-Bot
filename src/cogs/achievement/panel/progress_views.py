@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AdjustProgressView(ui.View):
     """調整進度視圖."""
 
@@ -50,8 +51,6 @@ class AdjustProgressView(ui.View):
     async def create_progress_list_embed(self) -> discord.Embed:
         """創建進度列表 Embed."""
         try:
-
-
             container = ServiceContainer()
             repository = await container.get_repository()
 
@@ -237,7 +236,9 @@ class AdjustProgressView(ui.View):
             await interaction.response.edit_message(embed=embed, view=self)
 
     @ui.button(label="🔄 重新整理", style=discord.ButtonStyle.secondary)
-    async def refresh_button(self, interaction: discord.Interaction, _button: ui.Button):
+    async def refresh_button(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """重新整理進度列表."""
         try:
             self.current_page = 0
@@ -253,10 +254,6 @@ class AdjustProgressView(ui.View):
     async def back_button(self, interaction: discord.Interaction, _button: ui.Button):
         """返回用戶管理界面."""
         try:
-
-
-
-
             management_view = UserDetailManagementView(self.admin_panel, self.user_data)
 
             # 重新創建用戶摘要 embed
@@ -277,6 +274,7 @@ class AdjustProgressView(ui.View):
         except Exception as e:
             logger.error(f"返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class AdjustProgressModal(ui.Modal):
     """進度調整模態框."""
@@ -345,9 +343,6 @@ class AdjustProgressModal(ui.Modal):
                 return
 
             # 執行進度調整
-
-
-
 
             pool = await get_database_pool("achievement")
             async with AchievementServiceContainer(
@@ -419,6 +414,7 @@ class AdjustProgressModal(ui.Modal):
                 await interaction.edit_original_response(embed=embed, view=None)
             except Exception:
                 pass
+
 
 class AdjustProgressResultView(ui.View):
     """進度調整結果視圖."""
@@ -509,10 +505,6 @@ class AdjustProgressResultView(ui.View):
     ):
         """返回用戶管理界面."""
         try:
-
-
-
-
             management_view = UserDetailManagementView(self.admin_panel, self.user_data)
 
             # 重新創建用戶摘要 embed
@@ -542,8 +534,6 @@ class AdjustProgressResultView(ui.View):
     ):
         """搜尋其他用戶."""
         try:
-
-
             modal = UserSearchModal(self.admin_panel, "adjust")
             await interaction.response.send_modal(modal)
         except Exception as e:
@@ -558,8 +548,6 @@ class AdjustProgressResultView(ui.View):
     ):
         """返回用戶管理主頁面."""
         try:
-
-
             await self.admin_panel.handle_navigation(interaction, AdminPanelState.USERS)
         except Exception as e:
             logger.error(f"返回用戶管理失敗: {e}")

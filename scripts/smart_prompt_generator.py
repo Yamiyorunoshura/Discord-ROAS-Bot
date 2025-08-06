@@ -635,7 +635,7 @@ class SmartPromptGenerator:
                 return self.generate_api_service_template()
             else:
                 return self.generate_generic_template()
-        elif project_type == "python" or project_type == "java":
+        elif project_type in {"python", "java"}:
             return self.generate_api_service_template()
         else:
             return self.generate_generic_template()
@@ -643,9 +643,9 @@ class SmartPromptGenerator:
     def fill_template(self, template: str) -> str:
         """填充模板內容"""
         # 填充核心功能
-        core_features = "\n".join(
-            [f"- {feature}" for feature in self.requirements.get("core_features", [])]
-        )
+        core_features = "\n".join([
+            f"- {feature}" for feature in self.requirements.get("core_features", [])
+        ])
         template = template.replace("{core_features}", core_features)
 
         # 填充技術棧

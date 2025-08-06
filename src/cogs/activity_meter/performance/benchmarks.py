@@ -14,6 +14,7 @@ from ..main.calculator import ActivityCalculator
 
 logger = logging.getLogger("activity_meter")
 
+
 class PerformanceBenchmark:
     """
     性能基準測試類別
@@ -45,7 +46,7 @@ class PerformanceBenchmark:
             "sample_sizes": sample_sizes,
             "standard_times": [],
             "numpy_times": [],
-            "improvement_ratios": []
+            "improvement_ratios": [],
         }
 
         for size in sample_sizes:
@@ -62,7 +63,9 @@ class PerformanceBenchmark:
                 results["numpy_times"].append(numpy_time)
 
                 # 計算改善比例
-                improvement = standard_time / numpy_time if numpy_time > 0 else float('inf')
+                improvement = (
+                    standard_time / numpy_time if numpy_time > 0 else float("inf")
+                )
                 results["improvement_ratios"].append(improvement)
             else:
                 results["numpy_times"].append(0)
@@ -85,7 +88,7 @@ class PerformanceBenchmark:
             "sample_sizes": sample_sizes,
             "standard_times": [],
             "numpy_times": [],
-            "improvement_ratios": []
+            "improvement_ratios": [],
         }
 
         for size in sample_sizes:
@@ -102,7 +105,9 @@ class PerformanceBenchmark:
                 results["numpy_times"].append(numpy_time)
 
                 # 計算改善比例
-                improvement = standard_time / numpy_time if numpy_time > 0 else float('inf')
+                improvement = (
+                    standard_time / numpy_time if numpy_time > 0 else float("inf")
+                )
                 results["improvement_ratios"].append(improvement)
             else:
                 results["numpy_times"].append(0)
@@ -120,10 +125,7 @@ class PerformanceBenchmark:
         Returns:
             List[Tuple[float, int]]: (score, delta) 資料對
         """
-        return [
-            (random.uniform(0, 100), random.randint(0, 86400))
-            for _ in range(size)
-        ]
+        return [(random.uniform(0, 100), random.randint(0, 86400)) for _ in range(size)]
 
     def _generate_score_test_data(self, size: int) -> list[tuple[float, int, int]]:
         """
@@ -137,11 +139,7 @@ class PerformanceBenchmark:
         """
         now = int(time.time())
         return [
-            (
-                random.uniform(0, 100),
-                now - random.randint(0, 86400),
-                now
-            )
+            (random.uniform(0, 100), now - random.randint(0, 86400), now)
             for _ in range(size)
         ]
 
@@ -172,12 +170,16 @@ class PerformanceBenchmark:
         end_time = time.perf_counter()
         return end_time - start_time
 
-    def _benchmark_standard_score(self, test_data: list[tuple[float, int, int]]) -> float:
+    def _benchmark_standard_score(
+        self, test_data: list[tuple[float, int, int]]
+    ) -> float:
         """基準測試標準分數計算"""
         start_time = time.perf_counter()
 
         for current_score, last_msg_time, now in test_data:
-            self.standard_calculator.calculate_new_score(current_score, last_msg_time, now)
+            self.standard_calculator.calculate_new_score(
+                current_score, last_msg_time, now
+            )
 
         end_time = time.perf_counter()
         return end_time - start_time
@@ -210,12 +212,7 @@ class PerformanceBenchmark:
         Returns:
             str: 格式化的報告文字
         """
-        report_lines = [
-            "=" * 60,
-            "活躍度計算性能基準測試報告",
-            "=" * 60,
-            ""
-        ]
+        report_lines = ["=" * 60, "活躍度計算性能基準測試報告", "=" * 60, ""]
 
         for result in results:
             test_name = result["test_name"]
@@ -224,14 +221,12 @@ class PerformanceBenchmark:
             numpy_times = result["numpy_times"]
             improvements = result["improvement_ratios"]
 
-            report_lines.extend([
-                f"測試項目: {test_name}",
-                "-" * 40,
-                ""
-            ])
+            report_lines.extend([f"測試項目: {test_name}", "-" * 40, ""])
 
             # 表頭
-            report_lines.append(f"{'樣本大小':<10} {'標準(秒)':<12} {'NumPy(秒)':<12} {'改善倍數':<10}")
+            report_lines.append(
+                f"{'樣本大小':<10} {'標準(秒)':<12} {'NumPy(秒)':<12} {'改善倍數':<10}"
+            )
             report_lines.append("-" * 50)
 
             # 資料行
@@ -248,15 +243,12 @@ class PerformanceBenchmark:
             if improvements and any(imp > 0 for imp in improvements):
                 valid_improvements = [imp for imp in improvements if imp > 0]
                 avg_improvement = sum(valid_improvements) / len(valid_improvements)
-                report_lines.extend([
-                    "",
-                    f"平均性能改善: {avg_improvement:.2f}x",
-                    ""
-                ])
+                report_lines.extend(["", f"平均性能改善: {avg_improvement:.2f}x", ""])
 
             report_lines.append("")
 
         return "\n".join(report_lines)
+
 
 def run_comprehensive_benchmark() -> str:
     """
@@ -290,6 +282,7 @@ def run_comprehensive_benchmark() -> str:
     logger.info(f"\n{report}")
 
     return report
+
 
 if __name__ == "__main__":
     # 直接執行基準測試

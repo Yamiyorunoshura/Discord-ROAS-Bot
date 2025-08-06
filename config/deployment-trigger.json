@@ -1,0 +1,93 @@
+{
+  "webhook_secret": "",
+  "notification_webhook": "",
+  "allowed_environments": [
+    "development", 
+    "testing", 
+    "production"
+  ],
+  "deployment_settings": {
+    "development": {
+      "auto_deploy": true,
+      "require_approval": false,
+      "notify_channels": ["#dev-deployments"],
+      "health_check_timeout": 60,
+      "rollback_enabled": false
+    },
+    "testing": {
+      "auto_deploy": true,
+      "require_approval": true,
+      "notify_channels": ["#testing-deployments", "#qa-team"],
+      "health_check_timeout": 120,
+      "rollback_enabled": true,
+      "smoke_tests_required": true
+    },
+    "production": {
+      "auto_deploy": false,
+      "require_approval": true,
+      "notify_channels": ["#prod-deployments", "#alerts"],
+      "health_check_timeout": 300,
+      "rollback_enabled": true,
+      "smoke_tests_required": true,
+      "backup_required": true
+    }
+  },
+  "notification_templates": {
+    "deployment_started": {
+      "title": "🚀 部署開始",
+      "color": "0x3498db",
+      "fields": [
+        {"name": "環境", "value": "{environment}", "inline": true},
+        {"name": "版本", "value": "{version}", "inline": true},
+        {"name": "分支", "value": "{branch}", "inline": true},
+        {"name": "提交", "value": "{commit}", "inline": true},
+        {"name": "觸發者", "value": "{triggered_by}", "inline": true},
+        {"name": "時間", "value": "{timestamp}", "inline": true}
+      ]
+    },
+    "deployment_success": {
+      "title": "✅ 部署成功",
+      "color": "0x2ecc71",
+      "fields": [
+        {"name": "環境", "value": "{environment}", "inline": true},
+        {"name": "版本", "value": "{version}", "inline": true},
+        {"name": "耗時", "value": "{duration}", "inline": true},
+        {"name": "健康檢查", "value": "✅ 通過", "inline": true}
+      ]
+    },
+    "deployment_failed": {
+      "title": "❌ 部署失敗",
+      "color": "0xe74c3c",
+      "fields": [
+        {"name": "環境", "value": "{environment}", "inline": true},
+        {"name": "版本", "value": "{version}", "inline": true},
+        {"name": "錯誤階段", "value": "{failed_stage}", "inline": true},
+        {"name": "錯誤訊息", "value": "```\n{error_message}\n```", "inline": false}
+      ]
+    },
+    "rollback_triggered": {
+      "title": "🔄 自動回滾觸發",
+      "color": "0xf39c12",
+      "fields": [
+        {"name": "環境", "value": "{environment}", "inline": true},
+        {"name": "失敗版本", "value": "{failed_version}", "inline": true},
+        {"name": "回滾到", "value": "{rollback_version}", "inline": true},
+        {"name": "原因", "value": "{rollback_reason}", "inline": false}
+      ]
+    }
+  },
+  "monitoring": {
+    "health_check_endpoints": [
+      "/health",
+      "/health/ready",
+      "/health/live"
+    ],
+    "metrics_endpoints": [
+      "/metrics",
+      "/health/metrics"
+    ],
+    "expected_response_codes": [200, 204],
+    "retry_attempts": 3,
+    "retry_delay": 10
+  }
+}

@@ -21,6 +21,7 @@ logger = logging.getLogger("message_listener")
 # 常數定義
 PREVIEW_TEXT_MAX_LENGTH = 100
 
+
 class RenderPreviewModal(ui.Modal):
     """渲染預覽對話框"""
 
@@ -239,6 +240,7 @@ class RenderPreviewModal(ui.Modal):
             logger.error(f"渲染預覽執行失敗: {e}")
             return None
 
+
 class QuickPreviewModal(ui.Modal):
     """快速預覽對話框"""
 
@@ -297,6 +299,7 @@ class QuickPreviewModal(ui.Modal):
         except Exception as e:
             logger.error(f"快速預覽失敗: {e}")
             await interaction.followup.send(f"❌ 快速預覽失敗:{e!s}", ephemeral=True)
+
 
 class PreviewSettingsModal(ui.Modal):
     """預覽設定對話框"""

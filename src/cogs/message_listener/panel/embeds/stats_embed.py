@@ -45,7 +45,9 @@ def _add_stats_fields(embed: discord.Embed, stats: dict[str, Any]) -> None:
     embed.add_field(name="📅 本月", value=f"{stats['monthly']:,}", inline=True)
 
 
-def _add_channel_fields(embed: discord.Embed, channels: list[tuple[int, int]], bot: Any) -> None:
+def _add_channel_fields(
+    embed: discord.Embed, channels: list[tuple[int, int]], bot: Any
+) -> None:
     """添加頻道統計字段"""
     if not channels:
         embed.add_field(name="📈 熱門頻道", value="暫無數據", inline=False)
@@ -96,7 +98,9 @@ async def _get_guild_count(cog) -> int:
     return guilds_count[0]["count"] if guilds_count else 0
 
 
-async def _add_channel_stats(cog, embed: discord.Embed, guild_id: int | None = None) -> None:
+async def _add_channel_stats(
+    cog, embed: discord.Embed, guild_id: int | None = None
+) -> None:
     """添加頻道統計資訊"""
     if guild_id:
         channels_stats = await cog.db.select(
@@ -142,7 +146,9 @@ async def _add_channel_stats(cog, embed: discord.Embed, guild_id: int | None = N
         )
 
 
-async def _add_user_stats(cog, embed: discord.Embed, guild_id: int | None = None) -> None:
+async def _add_user_stats(
+    cog, embed: discord.Embed, guild_id: int | None = None
+) -> None:
     """添加用戶統計資訊"""
     if guild_id:
         users_stats = await cog.db.select(

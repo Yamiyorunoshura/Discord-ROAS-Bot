@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class OpenAPIGenerator:
     """OpenAPI 3.0 文件生成器.
 
@@ -934,6 +935,7 @@ class OpenAPIGenerator:
         logger.info("Swagger UI HTML 已生成")
         return html_template
 
+
 class APIDocumentationValidator:
     """API 文件驗證器.
 
@@ -1032,12 +1034,11 @@ class APIDocumentationValidator:
                     responses = operation["responses"]
 
                     # 檢查是否有成功回應
-                    success_codes = [
-                        code for code in responses if code.startswith("2")
-                    ]
+                    success_codes = [code for code in responses if code.startswith("2")]
 
                     if not success_codes:
                         self.warnings.append(f"路徑 {path} 方法 {method} 缺少成功回應")
+
 
 def generate_api_documentation(
     output_dir: Path, title: str = "Discord ROAS Bot API", version: str = "2.0.0"
@@ -1094,6 +1095,7 @@ def generate_api_documentation(
     except Exception as e:
         logger.error(f"API 文件生成失敗: {e}", exc_info=True)
         return {"success": False, "error": str(e), "message": "API 文件生成失敗"}
+
 
 __all__ = [
     "APIDocumentationValidator",

@@ -41,6 +41,7 @@ MIN_CSV_COLUMNS = 2
 logger = setup_module_logger("anti_link")
 error_handler = create_error_handler("anti_link", logger)
 
+
 class AntiLink(ProtectionCog):
     """
     反惡意連結保護模組

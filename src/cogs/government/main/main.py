@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class GovernmentCog(BaseCog):
     """政府系統 Cog.
 
@@ -72,7 +73,7 @@ class GovernmentCog(BaseCog):
                 bot=self.bot,
                 guild_id=interaction.guild_id,
                 user_id=interaction.user.id,
-                government_service=self.service
+                government_service=self.service,
             )
 
             # 載入資料並創建初始 Embed
@@ -261,9 +262,7 @@ class GovernmentCog(BaseCog):
             if department.role_id:
                 role = interaction.guild.get_role(department.role_id)
                 if role:
-                    embed.add_field(
-                        name="關聯角色", value=role.mention, inline=True
-                    )
+                    embed.add_field(name="關聯角色", value=role.mention, inline=True)
 
             if parent_dept:
                 embed.add_field(name="上級部門", value=parent_dept, inline=True)
@@ -271,9 +270,7 @@ class GovernmentCog(BaseCog):
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except GovernmentServiceError as e:
-            await interaction.followup.send(
-                f"❌ 創建部門失敗: {e!s}", ephemeral=True
-            )
+            await interaction.followup.send(f"❌ 創建部門失敗: {e!s}", ephemeral=True)
         except Exception as e:
             self.logger.error(f"創建部門失敗: {e}")
             await interaction.followup.send(
@@ -390,7 +387,9 @@ class GovernmentCog(BaseCog):
             )
 
             if results["errors"]:
-                error_text = "\n".join(results["errors"][:MAX_ERRORS_DISPLAY])  # 最多顯示錯誤數量
+                error_text = "\n".join(
+                    results["errors"][:MAX_ERRORS_DISPLAY]
+                )  # 最多顯示錯誤數量
                 if len(results["errors"]) > MAX_ERRORS_DISPLAY:
                     error_text += f"\n... 還有 {len(results['errors']) - MAX_ERRORS_DISPLAY} 個錯誤"
 
@@ -401,9 +400,7 @@ class GovernmentCog(BaseCog):
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except RoleSyncError as e:
-            await interaction.followup.send(
-                f"❌ 角色同步失敗: {e!s}", ephemeral=True
-            )
+            await interaction.followup.send(f"❌ 角色同步失敗: {e!s}", ephemeral=True)
         except Exception as e:
             self.logger.error(f"角色同步失敗: {e}")
             await interaction.followup.send(
@@ -429,7 +426,7 @@ class GovernmentCog(BaseCog):
         embed.add_field(
             name="狀態",
             value="🟢 啟用" if department.is_active else "🔴 停用",
-            inline=True
+            inline=True,
         )
 
         # Discord 角色
@@ -448,7 +445,9 @@ class GovernmentCog(BaseCog):
         if department.children:
             active_children = [c for c in department.children if c.is_active]
             if active_children:
-                children_names = [c.name for c in active_children[:MAX_CHILDREN_DISPLAY]]
+                children_names = [
+                    c.name for c in active_children[:MAX_CHILDREN_DISPLAY]
+                ]
                 children_text = ", ".join(children_names)
                 if len(active_children) > MAX_CHILDREN_DISPLAY:
                     children_text += f" 等 {len(active_children)} 個"
@@ -497,6 +496,7 @@ class GovernmentCog(BaseCog):
 
         embed.set_footer(text=f"共 {len(hierarchy)} 個根部門")
         return embed
+
 
 class ConfirmDeletionView(discord.ui.View):
     """確認刪除部門的視圖."""
@@ -579,9 +579,11 @@ class ConfirmDeletionView(discord.ui.View):
         for item in self.children:
             item.disabled = True
 
+
 async def setup(bot: commands.Bot) -> None:
     """載入 Cog."""
     await bot.add_cog(GovernmentCog(bot))
+
 
 async def teardown(bot: commands.Bot) -> None:
     """卸載 Cog."""

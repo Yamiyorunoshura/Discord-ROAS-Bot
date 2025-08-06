@@ -2,12 +2,18 @@
 反可執行檔案保護模組 - 主要面板 Embed 生成器
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 
-from ...main.main import AntiExecutable
+if TYPE_CHECKING:
+    from ...main.main import AntiExecutable
 
 # 常數定義
 MAX_DISPLAY_FORMATS = 10
+
 
 class MainEmbed:
     """主要面板 Embed 生成器"""

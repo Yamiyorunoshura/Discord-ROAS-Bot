@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 CACHE_HIT_RATE_THRESHOLD = 0.6  # 快取命中率閾值
 SLOW_QUERY_RATIO_THRESHOLD = 0.2  # 慢查詢比例閾值
 
+
 class AchievementPerformanceService:
     """成就系統整合效能服務.
 
@@ -677,6 +678,7 @@ class AchievementPerformanceService:
         )
 
         logger.error(f"操作失敗: {operation},錯誤: {error}")
+
 
 __all__ = [
     "AchievementPerformanceService",

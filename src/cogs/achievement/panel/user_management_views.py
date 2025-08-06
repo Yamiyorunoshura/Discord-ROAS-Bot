@@ -38,6 +38,7 @@ MAX_LABEL_LENGTH = 100  # UI 標籤最大長度
 MAX_DESCRIPTION_LENGTH = 100  # 描述最大長度
 TRUNCATE_SUFFIX_LENGTH = 97  # 截斷後的長度(保留3個字符給...)
 
+
 class UserSearchResultView(ui.View):
     """用戶搜尋結果視圖."""
 
@@ -126,8 +127,6 @@ class UserSearchResultView(ui.View):
         try:
             # 獲取用戶成就摘要
 
-
-
             container = ServiceContainer()
             repository = await container.get_repository()
 
@@ -163,9 +162,9 @@ class UserSearchResultView(ui.View):
 
         # 添加用戶統計信息
         total_users = len(user_data.get("users", []))
-        active_users = len(
-            [u for u in user_data.get("users", []) if u.get("active", False)]
-        )
+        active_users = len([
+            u for u in user_data.get("users", []) if u.get("active", False)
+        ])
 
         embed.add_field(
             name="📊 用戶統計",
@@ -177,6 +176,7 @@ class UserSearchResultView(ui.View):
         view = BulkOperationSelectionView(user_data)
 
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
 
 class BulkOperationSelectionView(ui.View):
     """批量操作選擇視圖."""
@@ -297,8 +297,6 @@ class BulkOperationSelectionView(ui.View):
     ):
         """重新搜尋按鈕."""
         try:
-
-
             modal = UserSearchModal(self.admin_panel, self.action)
             await interaction.response.send_modal(modal)
         except Exception as e:
@@ -311,12 +309,11 @@ class BulkOperationSelectionView(ui.View):
     async def back_button(self, interaction: discord.Interaction, _button: ui.Button):
         """返回用戶管理主頁面."""
         try:
-
-
             await self.admin_panel.handle_navigation(interaction, AdminPanelState.USERS)
         except Exception as e:
             logger.error(f"返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class UserDetailManagementView(ui.View):
     """用戶詳情管理視圖."""
@@ -425,7 +422,6 @@ class UserDetailManagementView(ui.View):
         try:
             # 顯示成就撤銷界面
 
-
             revoke_view = RevokeAchievementView(self.admin_panel, self.user_data)
             embed = await revoke_view.create_user_achievements_embed()
 
@@ -442,7 +438,6 @@ class UserDetailManagementView(ui.View):
         try:
             # 顯示進度調整界面
 
-
             adjust_view = AdjustProgressView(self.admin_panel, self.user_data)
             embed = await adjust_view.create_progress_list_embed()
 
@@ -458,7 +453,6 @@ class UserDetailManagementView(ui.View):
         """處理重置資料操作."""
         try:
             # 顯示資料重置界面
-
 
             reset_view = ResetDataView(self.admin_panel, self.user_data)
             embed = await reset_view.create_reset_options_embed()
@@ -492,8 +486,6 @@ class UserDetailManagementView(ui.View):
     ):
         """搜尋其他用戶."""
         try:
-
-
             modal = UserSearchModal(self.admin_panel, self.action)
             await interaction.response.send_modal(modal)
         except Exception as e:
@@ -508,12 +500,11 @@ class UserDetailManagementView(ui.View):
     ):
         """返回用戶管理."""
         try:
-
-
             await self.admin_panel.handle_navigation(interaction, AdminPanelState.USERS)
         except Exception as e:
             logger.error(f"返回用戶管理失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class UserAchievementDetailsView(ui.View):
     """用戶成就詳情視圖."""
@@ -534,8 +525,6 @@ class UserAchievementDetailsView(ui.View):
     async def create_details_embed(self) -> discord.Embed:
         """創建用戶成就詳情 Embed."""
         try:
-
-
             container = ServiceContainer()
             repository = await container.get_repository()
 
@@ -628,8 +617,6 @@ class UserAchievementDetailsView(ui.View):
     async def next_page(self, interaction: discord.Interaction, _button: ui.Button):
         """下一頁."""
         try:
-
-
             container = ServiceContainer()
             repository = await container.get_repository()
 
@@ -649,7 +636,9 @@ class UserAchievementDetailsView(ui.View):
             await interaction.response.send_message("❌ 翻頁時發生錯誤", ephemeral=True)
 
     @ui.button(label="🔄 重新整理", style=discord.ButtonStyle.secondary)
-    async def refresh_button(self, interaction: discord.Interaction, _button: ui.Button):
+    async def refresh_button(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """重新整理資料."""
         try:
             embed = await self.create_details_embed()
@@ -667,8 +656,6 @@ class UserAchievementDetailsView(ui.View):
             management_view = UserDetailManagementView(self.admin_panel, self.user_data)
 
             # 重新創建用戶摘要 embed
-
-
 
             container = ServiceContainer()
             repository = await container.get_repository()
@@ -692,6 +679,7 @@ class UserAchievementDetailsView(ui.View):
         """更新分頁按鈕狀態."""
         # 這個方法需要在實際使用時根據總頁數動態調整按鈕狀態
         pass
+
 
 class ConfirmationModal(ui.Modal):
     """確認操作模態框."""
@@ -732,6 +720,7 @@ class ConfirmationModal(ui.Modal):
                 f"❌ 確認文字不正確,{self.operation_name}已取消", ephemeral=True
             )
 
+
 class GrantAchievementView(ui.View):
     """授予成就視圖."""
 
@@ -752,8 +741,6 @@ class GrantAchievementView(ui.View):
     async def create_achievement_selection_embed(self) -> discord.Embed:
         """創建成就選擇 Embed."""
         try:
-
-
             container = ServiceContainer()
             repository = await container.get_repository()
 
@@ -934,7 +921,9 @@ class GrantAchievementView(ui.View):
             await interaction.response.edit_message(embed=embed, view=self)
 
     @ui.button(label="🔄 重新整理", style=discord.ButtonStyle.secondary)
-    async def refresh_button(self, interaction: discord.Interaction, _button: ui.Button):
+    async def refresh_button(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """重新整理成就列表."""
         try:
             self.current_page = 0
@@ -954,8 +943,6 @@ class GrantAchievementView(ui.View):
 
             # 重新創建用戶摘要 embed
 
-
-
             container = ServiceContainer()
             repository = await container.get_repository()
 
@@ -973,6 +960,7 @@ class GrantAchievementView(ui.View):
         except Exception as e:
             logger.error(f"返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class GrantConfirmationView(ui.View):
     """授予成就確認視圖."""
@@ -1076,9 +1064,6 @@ class GrantConfirmationView(ui.View):
 
             # 從服務容器獲取用戶管理服務
 
-
-
-
             pool = await get_database_pool("achievement")
             async with AchievementServiceContainer(
                 pool, self.admin_panel.bot
@@ -1164,7 +1149,7 @@ class GrantConfirmationView(ui.View):
             # 創建通知 Embed
             embed = StandardEmbedBuilder.create_success_embed(
                 "🎉 恭喜!您獲得了新成就!",
-                "您在伺服器中獲得了成就"**{self.achievement.name}**"",
+                "您在伺服器中獲得了成就" ** {self.achievement.name} ** "",
             )
 
             embed.add_field(
@@ -1194,6 +1179,7 @@ class GrantConfirmationView(ui.View):
 
         except Exception as e:
             logger.error(f"處理用戶通知時發生錯誤: {e}")
+
 
 class GrantSettingsModal(ui.Modal):
     """授予設定模態框."""
@@ -1247,6 +1233,7 @@ class GrantSettingsModal(ui.Modal):
             await interaction.response.send_message(
                 "❌ 處理設定時發生錯誤", ephemeral=True
             )
+
 
 class GrantResultView(ui.View):
     """授予結果視圖."""
@@ -1333,8 +1320,6 @@ class GrantResultView(ui.View):
 
             # 重新創建用戶摘要 embed
 
-
-
             container = ServiceContainer()
             repository = await container.get_repository()
 
@@ -1361,8 +1346,6 @@ class GrantResultView(ui.View):
     ):
         """搜尋其他用戶."""
         try:
-
-
             modal = UserSearchModal(self.admin_panel, "grant")
             await interaction.response.send_modal(modal)
         except Exception as e:
@@ -1377,8 +1360,6 @@ class GrantResultView(ui.View):
     ):
         """返回用戶管理主頁面."""
         try:
-
-
             await self.admin_panel.handle_navigation(interaction, AdminPanelState.USERS)
         except Exception as e:
             logger.error(f"返回用戶管理失敗: {e}")

@@ -1,0 +1,87 @@
+# Testing Environment Configuration
+name: testing
+description: "測試環境 - 用於整合測試和預發布驗證"
+
+# GitHub Environment Protection Rules
+protection_rules:
+  required_reviewers: 1
+  wait_timer: 0
+  prevent_self_review: true
+
+# Environment Variables
+variables:
+  ENVIRONMENT: "testing"
+  LOG_LEVEL: "INFO"
+  DEBUG: "false"
+  CONTAINER_REGISTRY: "ghcr.io"
+  DEPLOY_NAMESPACE: "discord-bot-test"
+  
+  # Resource Limits
+  MEMORY_LIMIT: "1Gi"
+  CPU_LIMIT: "1.0"
+  REPLICA_COUNT: "2"
+  
+  # Monitoring Settings
+  METRICS_ENABLED: "true"
+  HEALTH_CHECK_INTERVAL: "15s"
+  HEALTH_CHECK_TIMEOUT: "5s"
+  
+  # Feature Flags
+  ACTIVITY_METER_ENABLED: "true"
+  MESSAGE_LISTENER_ENABLED: "true"
+  PROTECTION_ENABLED: "true"
+  WELCOME_ENABLED: "true"
+  SYNC_DATA_ENABLED: "true"
+
+# Secrets (these should be configured in GitHub repository settings)
+secrets:
+  - DISCORD_TOKEN_TEST
+  - DATABASE_ENCRYPTION_KEY_TEST
+  - WEBHOOK_URL_TEST
+
+# Deployment Strategy
+deployment:
+  strategy: "rolling_update"
+  max_unavailable: "25%"
+  max_surge: "25%"
+  
+  # Health Checks
+  readiness_probe:
+    path: "/health"
+    port: 8080
+    initial_delay: 45
+    period: 10
+    timeout: 5
+    failure_threshold: 3
+  
+  liveness_probe:
+    path: "/health"
+    port: 8080
+    initial_delay: 90
+    period: 30
+    timeout: 10
+    failure_threshold: 5
+
+# Database Configuration
+database:
+  backup_enabled: true
+  backup_interval: "1h"
+  backup_retention: "7d"
+  wal_mode: true
+  query_timeout: 30
+  connection_pool_size: 10
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  file_retention_days: 14
+  max_file_size: "50MB"
+
+# Testing Configuration
+testing:
+  smoke_tests_enabled: true
+  integration_tests_enabled: true
+  performance_tests_enabled: false
+  load_test_duration: "5m"
+  load_test_users: 10

@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # 常數定義
 MAX_BATCH_USERS = 50  # 批量操作最大用戶數量
 
+
 class UserSearchService:
     """用戶搜尋服務."""
 
@@ -136,9 +137,9 @@ class UserSearchService:
 
             # 計算統計資料
             earned_count = len(user_achievements)
-            in_progress_count = len(
-                [p for p in user_progress if p.current_value < p.target_value]
-            )
+            in_progress_count = len([
+                p for p in user_progress if p.current_value < p.target_value
+            ])
             total_points = sum(ach.points for _, ach in user_achievements)
 
             return {
@@ -164,6 +165,7 @@ class UserSearchService:
                 "total_points": 0,
                 "last_achievement": None,
             }
+
 
 class UserAchievementAdminService:
     """用戶成就管理服務."""
@@ -350,7 +352,7 @@ class UserAchievementAdminService:
             )
             return False, f"撤銷成就時發生錯誤: {e!s}"
 
-    async def update_user_progress(  # noqa: PLR0911
+    async def update_user_progress(
         self,
         admin_user_id: int,
         target_user_id: int,
@@ -625,33 +627,33 @@ class UserAchievementAdminService:
 
                     if success:
                         results["successful"] += 1
-                        results["details"].append(
-                            {
-                                "user_id": user_id,
-                                "status": "success",
-                                "message": message,
-                            }
-                        )
+                        results["details"].append({
+                            "user_id": user_id,
+                            "status": "success",
+                            "message": message,
+                        })
                     elif "已擁有" in message:
                         results["skipped"] += 1
-                        results["details"].append(
-                            {
-                                "user_id": user_id,
-                                "status": "skipped",
-                                "message": message,
-                            }
-                        )
+                        results["details"].append({
+                            "user_id": user_id,
+                            "status": "skipped",
+                            "message": message,
+                        })
                     else:
                         results["failed"] += 1
-                        results["details"].append(
-                            {"user_id": user_id, "status": "failed", "message": message}
-                        )
+                        results["details"].append({
+                            "user_id": user_id,
+                            "status": "failed",
+                            "message": message,
+                        })
 
                 except Exception as e:
                     results["failed"] += 1
-                    results["details"].append(
-                        {"user_id": user_id, "status": "error", "message": str(e)}
-                    )
+                    results["details"].append({
+                        "user_id": user_id,
+                        "status": "error",
+                        "message": str(e),
+                    })
 
             # 記錄批量操作審計日誌
             await self.audit_logger.log_user_achievement_operation(
@@ -728,33 +730,33 @@ class UserAchievementAdminService:
 
                     if success:
                         results["successful"] += 1
-                        results["details"].append(
-                            {
-                                "user_id": user_id,
-                                "status": "success",
-                                "message": message,
-                            }
-                        )
+                        results["details"].append({
+                            "user_id": user_id,
+                            "status": "success",
+                            "message": message,
+                        })
                     elif "未擁有" in message:
                         results["skipped"] += 1
-                        results["details"].append(
-                            {
-                                "user_id": user_id,
-                                "status": "skipped",
-                                "message": message,
-                            }
-                        )
+                        results["details"].append({
+                            "user_id": user_id,
+                            "status": "skipped",
+                            "message": message,
+                        })
                     else:
                         results["failed"] += 1
-                        results["details"].append(
-                            {"user_id": user_id, "status": "failed", "message": message}
-                        )
+                        results["details"].append({
+                            "user_id": user_id,
+                            "status": "failed",
+                            "message": message,
+                        })
 
                 except Exception as e:
                     results["failed"] += 1
-                    results["details"].append(
-                        {"user_id": user_id, "status": "error", "message": str(e)}
-                    )
+                    results["details"].append({
+                        "user_id": user_id,
+                        "status": "error",
+                        "message": str(e),
+                    })
 
             # 記錄批量操作審計日誌
             await self.audit_logger.log_user_achievement_operation(

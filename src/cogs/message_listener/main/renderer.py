@@ -37,6 +37,7 @@ from . import utils
 # 設定日誌記錄器
 logger = setup_logger()
 
+
 class EnhancedMessageRenderer:
     """
     增強版訊息渲染器類別
@@ -431,8 +432,12 @@ class EnhancedMessageRenderer:
 
             # 截斷過長的回覆內容
             if len(replied_content) > MAX_REPLY_CONTENT_LENGTH:
-                truncate_length = MAX_REPLY_CONTENT_LENGTH - len(REPLY_CONTENT_TRUNCATE_SUFFIX)
-                replied_content = replied_content[:truncate_length] + REPLY_CONTENT_TRUNCATE_SUFFIX
+                truncate_length = MAX_REPLY_CONTENT_LENGTH - len(
+                    REPLY_CONTENT_TRUNCATE_SUFFIX
+                )
+                replied_content = (
+                    replied_content[:truncate_length] + REPLY_CONTENT_TRUNCATE_SUFFIX
+                )
 
             reply_text = f"回覆 @{replied_user}:{replied_content}"
             get_text_width(reply_text, self.timestamp_font)
@@ -595,6 +600,7 @@ class EnhancedMessageRenderer:
         except Exception as exc:
             logger.error(f"[訊息監聽]渲染訊息失敗:{exc}")
             return None
+
 
 # 為了向後相容性,提供MessageRenderer別名
 MessageRenderer = EnhancedMessageRenderer

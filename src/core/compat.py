@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import AsyncIterable, AsyncIterator, Awaitable, Coroutine
 
+
 class AsyncIteratorWrapper[T]:
     """Wrapper to fix 'coroutine' object is not an async iterator errors."""
 
@@ -28,6 +29,7 @@ class AsyncIteratorWrapper[T]:
         if self._iterator is None:
             self._iterator = self._async_iterable.__aiter__()
         return await self._iterator.__anext__()
+
 
 def ensure_async_iterator(obj: Any) -> AsyncIterator[Any]:
     """Ensure object is an async iterator, fixing Python 3.12 compatibility issues.
@@ -74,6 +76,7 @@ def ensure_async_iterator(obj: Any) -> AsyncIterator[Any]:
 
     return _single_item()
 
+
 async def safe_async_iterator[T](
     coro_or_iter: Awaitable[AsyncIterable[T]] | AsyncIterable[T],
 ) -> AsyncIterator[T]:
@@ -106,6 +109,7 @@ async def safe_async_iterator[T](
     else:
         yield async_iterable
 
+
 class AsyncContextManagerWrapper:
     """Wrapper for async context managers to fix Python 3.12 issues."""
 
@@ -126,6 +130,7 @@ class AsyncContextManagerWrapper:
         if hasattr(self._context_manager, "__aexit__"):
             await self._context_manager.__aexit__(exc_type, exc_val, exc_tb)
 
+
 def fix_async_context_manager(obj: Any) -> AsyncContextManagerWrapper:
     """Fix async context manager compatibility issues.
 
@@ -136,6 +141,7 @@ def fix_async_context_manager(obj: Any) -> AsyncContextManagerWrapper:
         Wrapped async context manager
     """
     return AsyncContextManagerWrapper(obj)
+
 
 # Database cursor compatibility fixes
 class AsyncCursorWrapper:
@@ -162,7 +168,8 @@ class AsyncCursorWrapper:
     async def fetchall(self) -> list[Any]:
         """Fetch all rows."""
         if hasattr(self._cursor, "fetchall"):
-            return await self._cursor.fetchall()
+            result: list[Any] = await self._cursor.fetchall()
+            return result
         else:
             rows = []
             try:
@@ -196,6 +203,7 @@ class AsyncCursorWrapper:
             return self._cursor.rowcount  # type: ignore[no-any-return]
         return -1
 
+
 def fix_database_cursor(cursor: Any) -> AsyncCursorWrapper:
     """Fix database cursor for Python 3.12 compatibility.
 
@@ -206,6 +214,7 @@ def fix_database_cursor(cursor: Any) -> AsyncCursorWrapper:
         Wrapped cursor with proper async iteration
     """
     return AsyncCursorWrapper(cursor)
+
 
 # HTTP session compatibility fixes
 class AsyncHTTPSessionWrapper:
@@ -240,6 +249,7 @@ class AsyncHTTPSessionWrapper:
                 else:
                     self._session.close()
 
+
 def fix_http_session(session_factory: Any) -> AsyncHTTPSessionWrapper:
     """Fix HTTP session for Python 3.12 compatibility.
 
@@ -250,6 +260,7 @@ def fix_http_session(session_factory: Any) -> AsyncHTTPSessionWrapper:
         Wrapped session with proper async context management
     """
     return AsyncHTTPSessionWrapper(session_factory)
+
 
 # General purpose async wrapper
 async def ensure_awaitable(obj: Any) -> Any:
@@ -266,8 +277,11 @@ async def ensure_awaitable(obj: Any) -> Any:
     else:
         return obj
 
+
 # Task creation helpers for Python 3.12
-def create_task_safe[T](coro: Coroutine[Any, Any, T], *, name: str | None = None) -> asyncio.Task[T]:
+def create_task_safe[T](
+    coro: Coroutine[Any, Any, T], *, name: str | None = None
+) -> asyncio.Task[T]:
     """Safely create asyncio task with Python 3.12 compatibility.
 
     Args:
@@ -287,6 +301,7 @@ def create_task_safe[T](coro: Coroutine[Any, Any, T], *, name: str | None = None
         # Fallback for edge cases
         loop = asyncio.get_event_loop()
         return loop.create_task(coro)
+
 
 # Gather with proper error handling
 async def gather_safe(
@@ -308,6 +323,7 @@ async def gather_safe(
             return [e for _ in coros]
         else:
             raise
+
 
 __all__ = [
     "AsyncContextManagerWrapper",

@@ -28,6 +28,7 @@ SETTINGS_REFRESH_INTERVAL = 60  # 設定重新整理間隔(秒)
 logger = setup_module_logger("message_listener")
 error_handler = create_error_handler("message_listener", logger)
 
+
 class MessageListenerCog(commands.Cog):
     """
     訊息監聽與日誌管理 Cog
@@ -80,7 +81,9 @@ class MessageListenerCog(commands.Cog):
         try:
             # 避免頻繁重新整理
             current_time = dt.datetime.utcnow().timestamp()
-            if current_time - self._last_refresh < SETTINGS_REFRESH_INTERVAL:  # 1分鐘內不重複整理
+            if (
+                current_time - self._last_refresh < SETTINGS_REFRESH_INTERVAL
+            ):  # 1分鐘內不重複整理
                 return
 
             # 取得所有設定
@@ -336,13 +339,13 @@ class MessageListenerCog(commands.Cog):
                 if len(content) > MESSAGE_CONTENT_MAX_DISPLAY:
                     content += "..."
                 embed.add_field(
-                    name=f"訊息 {i+1}",
-                    value=content or "[無內容]",
-                    inline=False
+                    name=f"訊息 {i + 1}", value=content or "[無內容]", inline=False
                 )
 
             if len(results) > MAX_RECENT_MESSAGES_DISPLAY:
-                embed.set_footer(text=f"...還有 {len(results) - MAX_RECENT_MESSAGES_DISPLAY} 條訊息")
+                embed.set_footer(
+                    text=f"...還有 {len(results) - MAX_RECENT_MESSAGES_DISPLAY} 條訊息"
+                )
 
             await interaction.response.send_message(embed=embed, ephemeral=True)
 

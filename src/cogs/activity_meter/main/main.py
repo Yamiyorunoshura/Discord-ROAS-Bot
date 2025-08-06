@@ -117,12 +117,12 @@ class ActivityMeter(commands.Cog):
     def create_error_embed(self, error_code: str, error_message: str) -> discord.Embed:
         """創建錯誤嵌入"""
         embed = discord.Embed(
-            title=f"❌ 錯誤 {error_code}",
+            title=f"錯誤 {error_code}",
             description=error_message,
             color=discord.Color.red(),
         )
         embed.add_field(
-            name="💡 建議操作", value="請檢查權限設定或聯繫管理員", inline=False
+            name="建議操作", value="請檢查權限設定或聯繫管理員", inline=False
         )
         return embed
 
@@ -161,7 +161,7 @@ class ActivityMeter(commands.Cog):
         member = member or inter.user
 
         if not isinstance(member, discord.Member):
-            await inter.followup.send("❌ 只能查詢伺服器成員的活躍度.", ephemeral=True)
+            await inter.followup.send("只能查詢伺服器成員的活躍度.", ephemeral=True)
             return
 
         try:
@@ -180,10 +180,10 @@ class ActivityMeter(commands.Cog):
             await inter.followup.send(file=activity_bar, ephemeral=True)
         except ActivityMeterError as e:
             await inter.followup.send(
-                f"❌ [{e.error_code}] {e.message}", ephemeral=True
+                f"[{e.error_code}] {e.message}", ephemeral=True
             )
         except Exception:
-            await inter.followup.send("❌ 未知錯誤,請稍後再試.", ephemeral=True)
+            await inter.followup.send("未知錯誤,請稍後再試.", ephemeral=True)
 
     @app_commands.command(name="動畫活躍度", description="查看動畫 GIF 活躍度進度條")
     @app_commands.describe(
@@ -217,7 +217,7 @@ class ActivityMeter(commands.Cog):
         member = member or inter.user
 
         if not isinstance(member, discord.Member):
-            await inter.followup.send("❌ 只能查詢伺服器成員的活躍度.", ephemeral=True)
+            await inter.followup.send("只能查詢伺服器成員的活躍度.", ephemeral=True)
             return
 
         try:
@@ -237,16 +237,16 @@ class ActivityMeter(commands.Cog):
             )
 
             await inter.followup.send(
-                content=f"✨ {member.display_name} 的動畫活躍度進度條 ({animation_style})",
+                content=f" {member.display_name} 的動畫活躍度進度條 ({animation_style})",
                 file=animated_bar,
                 ephemeral=True,
             )
         except ActivityMeterError as e:
             await inter.followup.send(
-                f"❌ [{e.error_code}] {e.message}", ephemeral=True
+                f"[{e.error_code}] {e.message}", ephemeral=True
             )
         except Exception:
-            await inter.followup.send("❌ 動畫生成失敗,請稍後再試.", ephemeral=True)
+            await inter.followup.send("動畫生成失敗,請稍後再試.", ephemeral=True)
 
     @app_commands.command(name="今日排行榜", description="查看今日訊息數排行榜")
     async def daily_ranking(self, inter: discord.Interaction, rank_limit: int = 10):
@@ -296,7 +296,7 @@ class ActivityMeter(commands.Cog):
 
             # 創建嵌入
             embed = discord.Embed(
-                title=f"📈 今日活躍排行榜 - {getattr(inter.guild, 'name', '未知伺服器')}",
+                title=f"今日活躍排行榜 - {getattr(inter.guild, 'name', '未知伺服器')}",
                 description="\n".join(lines),
                 colour=discord.Colour.green(),
             )
@@ -304,10 +304,10 @@ class ActivityMeter(commands.Cog):
             await inter.followup.send(embed=embed, ephemeral=True)
         except ActivityMeterError as e:
             await inter.followup.send(
-                f"❌ [{e.error_code}] {e.message}", ephemeral=True
+                f"[{e.error_code}] {e.message}", ephemeral=True
             )
         except Exception:
-            await inter.followup.send("❌ 未知錯誤,請稍後再試.", ephemeral=True)
+            await inter.followup.send("未知錯誤,請稍後再試.", ephemeral=True)
 
     @app_commands.command(
         name="設定排行榜頻道", description="設定每日自動播報排行榜的頻道"
@@ -325,21 +325,21 @@ class ActivityMeter(commands.Cog):
         """
         if not config.is_allowed(inter, "設定排行榜頻道"):
             await inter.response.send_message(
-                "❌ 你沒有權限執行本指令.", ephemeral=True
+                "你沒有權限執行本指令.", ephemeral=True
             )
             return
 
         try:
             await self.db.set_report_channel(getattr(inter.guild, "id", 0), channel.id)
             await inter.response.send_message(
-                f"✅ 已設定為 {channel.mention}", ephemeral=True
+                f"已設定為 {channel.mention}", ephemeral=True
             )
         except ActivityMeterError as e:
             await inter.response.send_message(
-                f"❌ [{e.error_code}] {e.message}", ephemeral=True
+                f"[{e.error_code}] {e.message}", ephemeral=True
             )
         except Exception:
-            await inter.response.send_message("❌ 未知錯誤,請稍後再試.", ephemeral=True)
+            await inter.response.send_message("未知錯誤,請稍後再試.", ephemeral=True)
 
     @app_commands.command(name="活躍度面板", description="開啟活躍度系統設定面板")
     async def activity_panel(self, interaction: discord.Interaction):
@@ -352,7 +352,7 @@ class ActivityMeter(commands.Cog):
         # 權限檢查
         if not interaction.guild:
             await interaction.response.send_message(
-                "❌ 此指令只能在伺服器中使用", ephemeral=True
+                "此指令只能在伺服器中使用", ephemeral=True
             )
             return
 
@@ -361,7 +361,7 @@ class ActivityMeter(commands.Cog):
             or not interaction.user.guild_permissions.manage_guild
         ):
             await interaction.response.send_message(
-                "❌ 需要「管理伺服器」權限才能使用此指令", ephemeral=True
+                "需要「管理伺服器」權限才能使用此指令", ephemeral=True
             )
             return
 
@@ -376,12 +376,12 @@ class ActivityMeter(commands.Cog):
 
         except ActivityMeterError as e:
             await interaction.response.send_message(
-                f"❌ [{e.error_code}] {e.message}", ephemeral=True
+                f"[{e.error_code}] {e.message}", ephemeral=True
             )
         except Exception as exc:
             # 如果面板載入失敗,使用簡單的 Embed
             embed = discord.Embed(
-                title="📊 活躍度系統",
+                title="活躍度系統",
                 description="管理活躍度系統設定和統計資訊",
                 color=discord.Color.blue(),
             )
@@ -401,15 +401,15 @@ class ActivityMeter(commands.Cog):
                 if channel_id:
                     channel = interaction.guild.get_channel(channel_id)
                     embed.add_field(
-                        name="📢 播報頻道",
+                        name="播報頻道",
                         value=channel.mention if channel else "頻道已刪除",
                         inline=True,
                     )
                 else:
-                    embed.add_field(name="📢 播報頻道", value="未設定", inline=True)
+                    embed.add_field(name="播報頻道", value="未設定", inline=True)
 
             except Exception:
-                embed.add_field(name="📢 播報頻道", value="無法載入", inline=True)
+                embed.add_field(name="播報頻道", value="無法載入", inline=True)
 
             embed.set_footer(text=f"面板載入失敗: {exc}")
 
@@ -434,9 +434,7 @@ class ActivityMeter(commands.Cog):
         # 使用 run_in_executor 進行背景處理, 避免阻塞事件迴圈
         loop = asyncio.get_event_loop()
         task = loop.create_task(
-            self._process_message_activity(
-                msg.guild.id, msg.author.id, now, ymd
-            )
+            self._process_message_activity(msg.guild.id, msg.author.id, now, ymd)
         )
         # 確保異常不會被忽略
         task.add_done_callback(lambda t: t.exception())
@@ -467,9 +465,7 @@ class ActivityMeter(commands.Cog):
                 # 使用 run_in_executor 進行計算密集型操作
                 loop = asyncio.get_event_loop()
                 new_score = await loop.run_in_executor(
-                    None,
-                    self.calculator.calculate_new_score,
-                    score, last_msg, now
+                    None, self.calculator.calculate_new_score, score, last_msg, now
                 )
 
                 # 更新活躍度

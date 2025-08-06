@@ -38,21 +38,30 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class GovernmentServiceError(Exception):
     """政府服務錯誤基礎類別."""
+
     pass
+
 
 class DiscordPermissionError(GovernmentServiceError):
     """Discord 權限錯誤."""
+
     pass
+
 
 class RoleSyncError(GovernmentServiceError):
     """角色同步錯誤."""
+
     pass
+
 
 class FileSyncError(GovernmentServiceError):
     """檔案同步錯誤."""
+
     pass
+
 
 class DepartmentChangedEvent:
     """部門變更事件模型."""
@@ -75,6 +84,7 @@ class DepartmentChangedEvent:
         self.changes = changes or {}
         self.actor_id = actor_id
         self.timestamp = datetime.utcnow().isoformat()
+
 
 class GovernmentService:
     """政府系統服務類別.
@@ -134,7 +144,9 @@ class GovernmentService:
                     if parent_id:
                         parent_dept = await repo.get_department_by_id(parent_id)
                         if not parent_dept or parent_dept.guild_id != guild_id:
-                            raise ValueError(f"上級部門不存在或不屬於此伺服器: {parent_id}")
+                            raise ValueError(
+                                f"上級部門不存在或不屬於此伺服器: {parent_id}"
+                            )
 
                     # 創建 Discord 角色(如果需要)
                     role_id = None
@@ -229,12 +241,29 @@ class GovernmentService:
                     changes = {}
                     if name and name != original_dept.name:
                         changes["name"] = {"old": original_dept.name, "new": name}
-                    if description is not None and description != original_dept.description:
-                        changes["description"] = {"old": original_dept.description, "new": description}
+                    if (
+                        description is not None
+                        and description != original_dept.description
+                    ):
+                        changes["description"] = {
+                            "old": original_dept.description,
+                            "new": description,
+                        }
                     if parent_id is not None and parent_id != original_dept.parent_id:
-                        changes["parent_id"] = {"old": str(original_dept.parent_id) if original_dept.parent_id else None, "new": str(parent_id) if parent_id else None}
-                    if permissions is not None and permissions != original_dept.permissions:
-                        changes["permissions"] = {"old": original_dept.permissions, "new": permissions}
+                        changes["parent_id"] = {
+                            "old": str(original_dept.parent_id)
+                            if original_dept.parent_id
+                            else None,
+                            "new": str(parent_id) if parent_id else None,
+                        }
+                    if (
+                        permissions is not None
+                        and permissions != original_dept.permissions
+                    ):
+                        changes["permissions"] = {
+                            "old": original_dept.permissions,
+                            "new": permissions,
+                        }
 
                     # 更新部門
                     updated_dept = await repo.update_department(
@@ -539,7 +568,9 @@ class GovernmentService:
         except Exception as e:
             self.logger.error(f"刪除 Discord 角色失敗: {e}")
 
-    async def _convert_permissions(self, permissions: dict[str, Any]) -> discord.Permissions:
+    async def _convert_permissions(
+        self, permissions: dict[str, Any]
+    ) -> discord.Permissions:
         """轉換權限設定為 Discord 權限."""
         # 基礎權限
         perms = discord.Permissions.none()
@@ -568,7 +599,9 @@ class GovernmentService:
 
         return perms
 
-    async def _update_department_role(self, department_id: uuid.UUID, role_id: int) -> None:
+    async def _update_department_role(
+        self, department_id: uuid.UUID, role_id: int
+    ) -> None:
         """更新部門的角色 ID."""
         try:
             async with get_db_session() as session:
@@ -617,8 +650,7 @@ class GovernmentService:
 
             # 寫入檔案
             self.departments_file_path.write_text(
-                json.dumps(file_data, ensure_ascii=False, indent=2),
-                encoding="utf-8"
+                json.dumps(file_data, ensure_ascii=False, indent=2), encoding="utf-8"
             )
 
             self.logger.debug(f"部門資料同步到檔案完成: {guild_id}")
@@ -678,6 +710,7 @@ class GovernmentService:
         except Exception as e:
             self.logger.error(f"批量更新顯示順序失敗: {e}")
             raise GovernmentServiceError(f"批量更新顯示順序失敗: {e}") from e
+
 
 __all__ = [
     "DepartmentChangedEvent",

@@ -29,6 +29,7 @@ class AchievementErrorType(str, Enum):
     INTEGRATION_ERROR = "integration_error"
     CONFIGURATION_ERROR = "configuration_error"
 
+
 @dataclass
 class ErrorContext:
     """錯誤上下文資料."""
@@ -38,6 +39,7 @@ class ErrorContext:
     category_id: int | None = None
     operation: str | None = None
     additional_data: dict[str, Any] | None = None
+
 
 class AchievementError(Exception):
     """成就系統基礎例外類型."""
@@ -86,17 +88,20 @@ class AchievementError(Exception):
             else None,
         }
 
+
 class AchievementValidationError(AchievementError):
     """成就驗證錯誤."""
 
     def __init__(self, message: str, context: ErrorContext | None = None):
         super().__init__(message, AchievementErrorType.VALIDATION_ERROR, context)
 
+
 class AchievementBusinessRuleError(AchievementError):
     """成就業務規則錯誤."""
 
     def __init__(self, message: str, context: ErrorContext | None = None):
         super().__init__(message, AchievementErrorType.BUSINESS_RULE_ERROR, context)
+
 
 class AchievementDataAccessError(AchievementError):
     """成就資料存取錯誤."""
@@ -111,6 +116,7 @@ class AchievementDataAccessError(AchievementError):
             message, AchievementErrorType.DATA_ACCESS_ERROR, context, original_exception
         )
 
+
 class AchievementCacheError(AchievementError):
     """成就快取錯誤."""
 
@@ -123,6 +129,7 @@ class AchievementCacheError(AchievementError):
         super().__init__(
             message, AchievementErrorType.CACHE_ERROR, context, original_exception
         )
+
 
 class AchievementServiceError(AchievementError):
     """成就服務錯誤."""
@@ -137,6 +144,7 @@ class AchievementServiceError(AchievementError):
             message, AchievementErrorType.SERVICE_ERROR, context, original_exception
         )
 
+
 class AchievementIntegrationError(AchievementError):
     """成就整合錯誤."""
 
@@ -150,11 +158,13 @@ class AchievementIntegrationError(AchievementError):
             message, AchievementErrorType.INTEGRATION_ERROR, context, original_exception
         )
 
+
 class AchievementConfigurationError(AchievementError):
     """成就配置錯誤."""
 
     def __init__(self, message: str, context: ErrorContext | None = None):
         super().__init__(message, AchievementErrorType.CONFIGURATION_ERROR, context)
+
 
 class AchievementErrorHandler:
     """成就系統錯誤處理器.
@@ -290,6 +300,7 @@ class AchievementErrorHandler:
         """重置錯誤統計資料."""
         self._error_counts.clear()
 
+
 class AchievementLogger:
     """成就系統專用日誌記錄器.
 
@@ -393,6 +404,7 @@ class AchievementLogger:
             extra=log_data,
         )
 
+
 def create_error_context(
     user_id: int | None = None,
     achievement_id: int | None = None,
@@ -419,6 +431,7 @@ def create_error_context(
         operation=operation,
         additional_data=kwargs if kwargs else None,
     )
+
 
 __all__ = [
     "AchievementBusinessRuleError",

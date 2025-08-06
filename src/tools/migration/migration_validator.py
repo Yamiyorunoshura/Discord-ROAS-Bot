@@ -34,10 +34,12 @@ if TYPE_CHECKING:
 # 常數定義
 SLOW_OPERATION_THRESHOLD_SECONDS = 2.0  # 慢操作閾值(秒)
 
+
 class ValidationError(Exception):
     """驗證錯誤異常"""
 
     pass
+
 
 class MigrationValidator:
     """遷移驗證器
@@ -197,25 +199,21 @@ class MigrationValidator:
                         )
                         count = (await cursor.fetchone())[0]
 
-                        result["checks"].append(
-                            {
-                                "check": f"table_exists_{table_name}",
-                                "status": "passed",
-                                "details": f"表 {table_name} 存在,包含 {count} 條記錄",
-                            }
-                        )
+                        result["checks"].append({
+                            "check": f"table_exists_{table_name}",
+                            "status": "passed",
+                            "details": f"表 {table_name} 存在,包含 {count} 條記錄",
+                        })
 
                         self._validation_stats["passed_checks"] += 1
 
                 except Exception as e:
                     result["errors"].append(f"表 {table_name} 檢查失敗: {e}")
-                    result["checks"].append(
-                        {
-                            "check": f"table_exists_{table_name}",
-                            "status": "failed",
-                            "details": str(e),
-                        }
-                    )
+                    result["checks"].append({
+                        "check": f"table_exists_{table_name}",
+                        "status": "failed",
+                        "details": str(e),
+                    })
 
                     self._validation_stats["failed_checks"] += 1
 
@@ -270,25 +268,21 @@ class MigrationValidator:
                     )
 
                     if comparison_result["match"]:
-                        result["checks"].append(
-                            {
-                                "check": f"data_consistency_guild_{guild_id}",
-                                "status": "passed",
-                                "details": f"伺服器 {guild_id} 數據一致",
-                            }
-                        )
+                        result["checks"].append({
+                            "check": f"data_consistency_guild_{guild_id}",
+                            "status": "passed",
+                            "details": f"伺服器 {guild_id} 數據一致",
+                        })
                         self._validation_stats["passed_checks"] += 1
                     else:
                         result["warnings"].append(
                             f"伺服器 {guild_id} 數據不一致: {comparison_result['differences']}"
                         )
-                        result["checks"].append(
-                            {
-                                "check": f"data_consistency_guild_{guild_id}",
-                                "status": "warning",
-                                "details": f"發現差異: {comparison_result['differences']}",
-                            }
-                        )
+                        result["checks"].append({
+                            "check": f"data_consistency_guild_{guild_id}",
+                            "status": "warning",
+                            "details": f"發現差異: {comparison_result['differences']}",
+                        })
                         self._validation_stats["warnings"] += 1
 
                     self._validation_stats["total_checks"] += 1
@@ -337,15 +331,13 @@ class MigrationValidator:
             # 簡化版數據完整性檢查
             integrity_report = {"status": "healthy", "issues": []}
 
-            result["checks"].append(
-                {
-                    "check": "repository_integrity",
-                    "status": "passed"
-                    if integrity_report["status"] == "healthy"
-                    else "warning",
-                    "details": integrity_report,
-                }
-            )
+            result["checks"].append({
+                "check": "repository_integrity",
+                "status": "passed"
+                if integrity_report["status"] == "healthy"
+                else "warning",
+                "details": integrity_report,
+            })
 
             if integrity_report["status"] != "healthy":
                 result["warnings"].extend(integrity_report.get("issues", []))
@@ -459,13 +451,11 @@ class MigrationValidator:
                 )
                 result["status"] = "warning"
 
-            result["checks"].append(
-                {
-                    "check": "performance_benchmark",
-                    "status": result["status"],
-                    "details": f"讀取: {read_benchmark['avg_time']:.2f}s, 寫入: {write_benchmark['avg_time']:.2f}s",
-                }
-            )
+            result["checks"].append({
+                "check": "performance_benchmark",
+                "status": result["status"],
+                "details": f"讀取: {read_benchmark['avg_time']:.2f}s, 寫入: {write_benchmark['avg_time']:.2f}s",
+            })
 
         except Exception as e:
             result["status"] = "failed"
@@ -491,7 +481,7 @@ class MigrationValidator:
 
         try:
             # 檢查背景圖片目錄
-            from pathlib import Path  # noqa: PLC0415
+            from pathlib import Path
 
             bg_dir = Path(self._config.background_dir)
 
@@ -510,21 +500,19 @@ class MigrationValidator:
                     test_file.write_text("test")
                     test_file.unlink()
 
-                    result["checks"].append(
-                        {
-                            "check": "background_directory_permissions",
-                            "status": "passed",
-                            "details": f"目錄 {bg_dir} 可讀寫",
-                        }
-                    )
+                    result["checks"].append({
+                        "check": "background_directory_permissions",
+                        "status": "passed",
+                        "details": f"目錄 {bg_dir} 可讀寫",
+                    })
                 except Exception as e:
                     result["errors"].append(f"背景目錄權限錯誤: {e}")
                     result["status"] = "failed"
 
             # 檢查字體目錄
-            from pathlib import Path  # noqa: PLC0415
+            from pathlib import Path
 
-            from src.cogs.welcome.config.config import (  # noqa: PLC0415
+            from src.cogs.welcome.config.config import (
                 WELCOME_FONTS_DIR,
             )
 
@@ -541,13 +529,11 @@ class MigrationValidator:
                     fonts_dir.glob("*.ttf")
                 )
 
-                result["checks"].append(
-                    {
-                        "check": "fonts_availability",
-                        "status": "passed" if available_fonts else "warning",
-                        "details": f"可用字體: {len(available_fonts)} 個",
-                    }
-                )
+                result["checks"].append({
+                    "check": "fonts_availability",
+                    "status": "passed" if available_fonts else "warning",
+                    "details": f"可用字體: {len(available_fonts)} 個",
+                })
 
                 if not available_fonts:
                     result["warnings"].append("沒有可用的字體文件")
@@ -976,10 +962,11 @@ class MigrationValidator:
         except Exception as e:
             self._logger.error(f"保存驗證報告失敗: {e}")
 
+
 async def main() -> None:
     """主函數 - 用於測試和手動執行驗證"""
     # 使用動態導入避免在模組載入時的循環導入
-    from src.core.container import Container  # noqa: PLC0415
+    from src.core.container import Container
 
     # 初始化容器
     container = Container()
@@ -996,6 +983,7 @@ async def main() -> None:
 
     except Exception as e:
         print(f"驗證失敗: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

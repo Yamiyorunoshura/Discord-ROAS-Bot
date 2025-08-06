@@ -20,6 +20,7 @@ WELCOME_DB_PATH = str(_settings.get_database_path("welcome"))
 
 logger = logging.getLogger("welcome")
 
+
 class WelcomeDB:
     """歡迎訊息資料庫管理類別"""
 

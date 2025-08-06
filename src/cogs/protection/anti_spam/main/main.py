@@ -31,12 +31,14 @@ MAX_ACTION_LOGS = 100
 logger = setup_module_logger("anti_spam")
 error_handler = create_error_handler("anti_spam", logger)
 
+
 # 相似度計算函數
 def _similar(a: str, b: str) -> float:
     """計算兩個字串的相似度"""
     if not a or not b:
         return 0.0
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
 
 class AntiSpam(ProtectionCog):
     """
@@ -477,7 +479,9 @@ class AntiSpam(ProtectionCog):
 
             # 保持最近的記錄
             if len(self.action_logs[guild_id]) > MAX_ACTION_LOGS:
-                self.action_logs[guild_id] = self.action_logs[guild_id][-MAX_ACTION_LOGS:]
+                self.action_logs[guild_id] = self.action_logs[guild_id][
+                    -MAX_ACTION_LOGS:
+                ]
 
             # 記錄到資料庫
             await self.db.add_action_log(guild_id, user_id, action, details)

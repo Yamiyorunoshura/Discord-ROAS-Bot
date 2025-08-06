@@ -66,27 +66,21 @@ class QualityImprovementToolkit:
                 with open("reports/security_scan.json") as f:
                     security_data = json.load(f)
 
-                high_risk = len(
-                    [
-                        issue
-                        for issue in security_data.get("results", [])
-                        if issue.get("issue_severity") == "HIGH"
-                    ]
-                )
-                medium_risk = len(
-                    [
-                        issue
-                        for issue in security_data.get("results", [])
-                        if issue.get("issue_severity") == "MEDIUM"
-                    ]
-                )
-                low_risk = len(
-                    [
-                        issue
-                        for issue in security_data.get("results", [])
-                        if issue.get("issue_severity") == "LOW"
-                    ]
-                )
+                high_risk = len([
+                    issue
+                    for issue in security_data.get("results", [])
+                    if issue.get("issue_severity") == "HIGH"
+                ])
+                medium_risk = len([
+                    issue
+                    for issue in security_data.get("results", [])
+                    if issue.get("issue_severity") == "MEDIUM"
+                ])
+                low_risk = len([
+                    issue
+                    for issue in security_data.get("results", [])
+                    if issue.get("issue_severity") == "LOW"
+                ])
 
                 self.report["metrics"]["security"] = {
                     "high_risk": high_risk,
@@ -139,9 +133,7 @@ class QualityImprovementToolkit:
             self.report["metrics"]["type_check"] = {
                 "total_errors": len(error_lines),
                 "error_types": error_types,
-                "files_with_errors": len(
-                    set(line.split(":")[0] for line in error_lines)
-                ),
+                "files_with_errors": len({line.split(":")[0] for line in error_lines}),
             }
 
             self.log_progress("type_check", "mypy_analysis")
@@ -156,7 +148,7 @@ class QualityImprovementToolkit:
         print("🔍 執行測試覆蓋率檢查...")
 
         try:
-            result = subprocess.run(
+            subprocess.run(
                 [
                     "pytest",
                     "--cov=cogs",
@@ -341,7 +333,7 @@ python_functions = "test_*"
 addopts = "--cov=cogs --cov-report=html --cov-report=term-missing --cov-fail-under=70"
 markers = [
     "unit: 單元測試",
-    "integration: 整合測試", 
+    "integration: 整合測試",
     "slow: 慢速測試",
     "security: 安全測試"
 ]
@@ -531,9 +523,7 @@ def main():
         print("  python quality_improvement_toolkit.py assessment  # 完整評估")
         print("  python quality_improvement_toolkit.py stage1     # 階段1:安全修復")
         print("  python quality_improvement_toolkit.py stage2     # 階段2:類型修復")
-        print(
-            "  python quality_improvement_toolkit.py stage3     # 階段3:測試基礎設施"
-        )
+        print("  python quality_improvement_toolkit.py stage3     # 階段3:測試基礎設施")
         return
 
     command = sys.argv[1]

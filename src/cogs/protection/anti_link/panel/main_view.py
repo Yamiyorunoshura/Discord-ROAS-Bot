@@ -3,12 +3,16 @@
 負責管理面板狀態和UI元件的協調
 """
 
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 import discord
 from discord import ui
 
-from ..main.main import AntiLink
+if TYPE_CHECKING:
+    from ..main.main import AntiLink
 from .components.buttons import (
     AddBlacklistButton,
     AddWhitelistButton,
@@ -124,8 +128,12 @@ class AntiLinkMainView(ui.View):
                 "preview": lambda: self.preview_embed.create_embed(),
                 "config": lambda: self.config_embed.create_embed(),
                 "stats": lambda: self.stats_embed.create_embed(),
-                "whitelist": lambda: self.whitelist_embed.create_embed(self.page_number),
-                "blacklist": lambda: self.blacklist_embed.create_embed(self.page_number),
+                "whitelist": lambda: self.whitelist_embed.create_embed(
+                    self.page_number
+                ),
+                "blacklist": lambda: self.blacklist_embed.create_embed(
+                    self.page_number
+                ),
             }
 
             handler = panel_handlers.get(self.current_panel, panel_handlers["preview"])

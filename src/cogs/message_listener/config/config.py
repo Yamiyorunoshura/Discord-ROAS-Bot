@@ -164,6 +164,7 @@ CHINESE_FONTS = [
     "DroidSansFallback.ttf",  # Droid Sans Fallback (Android)
 ]
 
+
 # 日誌設定
 def setup_logger():
     """設定日誌記錄器"""
@@ -189,6 +190,7 @@ def setup_logger():
     logger.addHandler(console_handler)
 
     return logger
+
 
 # 權限檢查函數
 def is_allowed(inter, _command_name=None):  # command_name 現在是可選參數, 但未使用

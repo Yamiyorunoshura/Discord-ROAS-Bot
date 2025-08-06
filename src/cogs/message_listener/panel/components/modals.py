@@ -40,7 +40,9 @@ class BatchSizeModal(Modal):
                 MIN_BATCH_SIZE = 1
                 MAX_BATCH_SIZE = 50
                 if size < MIN_BATCH_SIZE or size > MAX_BATCH_SIZE:
-                    raise ValueError(f"批次大小必須在 {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE} 之間")
+                    raise ValueError(
+                        f"批次大小必須在 {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE} 之間"
+                    )
             except ValueError as exc:
                 await interaction.response.send_message(
                     f"❌ 無效的批次大小: {exc}", ephemeral=True
@@ -76,6 +78,7 @@ class BatchSizeModal(Modal):
             await interaction.response.send_message(
                 f"❌ 設定批次大小失敗: {exc}", ephemeral=True
             )
+
 
 class BatchTimeModal(Modal):
     """批次時間設定模態框"""
@@ -114,7 +117,9 @@ class BatchTimeModal(Modal):
                 MIN_BATCH_TIME = 1
                 MAX_BATCH_TIME = 60
                 if minutes < MIN_BATCH_TIME or minutes > MAX_BATCH_TIME:
-                    raise ValueError(f"批次時間必須在 {MIN_BATCH_TIME}-{MAX_BATCH_TIME} 分鐘之間")
+                    raise ValueError(
+                        f"批次時間必須在 {MIN_BATCH_TIME}-{MAX_BATCH_TIME} 分鐘之間"
+                    )
 
                 # 轉換為秒
                 seconds = minutes * 60

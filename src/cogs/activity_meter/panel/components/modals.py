@@ -40,20 +40,20 @@ class SetChannelModal(discord.ui.Modal, title="設定排行榜頻道"):
             guild = interaction.guild
             if not guild:
                 await interaction.response.send_message(
-                    "❌ 無法獲取伺服器資訊", ephemeral=True
+                    "無法獲取伺服器資訊", ephemeral=True
                 )
                 return
 
             channel = guild.get_channel(channel_id)
             if not channel:
                 await interaction.response.send_message(
-                    "❌ 找不到指定的頻道", ephemeral=True
+                    "找不到指定的頻道", ephemeral=True
                 )
                 return
 
             if not isinstance(channel, discord.TextChannel):
                 await interaction.response.send_message(
-                    "❌ 指定的頻道不是文字頻道", ephemeral=True
+                    "指定的頻道不是文字頻道", ephemeral=True
                 )
                 return
 
@@ -62,7 +62,7 @@ class SetChannelModal(discord.ui.Modal, title="設定排行榜頻道"):
 
             # 回應
             await interaction.response.send_message(
-                f"✅ 已設定排行榜頻道為 {channel.mention}", ephemeral=True
+                f"已設定排行榜頻道為 {channel.mention}", ephemeral=True
             )
 
             # 重新整理面板
@@ -71,10 +71,11 @@ class SetChannelModal(discord.ui.Modal, title="設定排行榜頻道"):
 
         except ValueError:
             await interaction.response.send_message(
-                "❌ 請輸入有效的頻道 ID", ephemeral=True
+                "請輸入有效的頻道 ID", ephemeral=True
             )
         except Exception as e:
-            await interaction.response.send_message(f"❌ 設定失敗:{e}", ephemeral=True)
+            await interaction.response.send_message(f"設定失敗:{e}", ephemeral=True)
+
 
 class AnnouncementTimeModal(discord.ui.Modal, title="設定公告時間"):
     """公告時間設定對話框"""
@@ -155,17 +156,18 @@ class AnnouncementTimeModal(discord.ui.Modal, title="設定公告時間"):
 
             # 提供成功反饋
             await interaction.response.send_message(
-                f"✅ 公告時間已設定為 {time_str}", ephemeral=True
+                f"公告時間已設定為 {time_str}", ephemeral=True
             )
 
         except ValueError as e:
             await interaction.response.send_message(
-                f"❌ {e!s},請使用 HH:MM 格式", ephemeral=True
+                f"{e!s},請使用 HH:MM 格式", ephemeral=True
             )
         except Exception as e:
             await interaction.response.send_message(
-                f"❌ 設定失敗:{e!s}", ephemeral=True
+                f"設定失敗:{e!s}", ephemeral=True
             )
+
 
 class CustomOptionsModal(discord.ui.Modal, title="自訂進度條選項"):
     """自訂進度條選項對話框"""
@@ -284,13 +286,13 @@ class CustomOptionsModal(discord.ui.Modal, title="自訂進度條選項"):
             # 驗證布林值
             if not self.validate_boolean(show_percentage_value):
                 await interaction.response.send_message(
-                    "❌ 顯示百分比必須是 true 或 false", ephemeral=True
+                    "顯示百分比必須是 true 或 false", ephemeral=True
                 )
                 return
 
             if not self.validate_boolean(show_level_badge_value):
                 await interaction.response.send_message(
-                    "❌ 顯示等級徽章必須是 true 或 false", ephemeral=True
+                    "顯示等級徽章必須是 true 或 false", ephemeral=True
                 )
                 return
 
@@ -299,7 +301,7 @@ class CustomOptionsModal(discord.ui.Modal, title="自訂進度條選項"):
                 animation_style_value
             ):
                 await interaction.response.send_message(
-                    "❌ 無效的動畫樣式, 請選擇: pulse, slide, sparkle, wave, glow",
+                    "無效的動畫樣式, 請選擇: pulse, slide, sparkle, wave, glow",
                     ephemeral=True,
                 )
                 return
@@ -309,7 +311,7 @@ class CustomOptionsModal(discord.ui.Modal, title="自訂進度條選項"):
                 progress_style_value
             ):
                 await interaction.response.send_message(
-                    "❌ 無效的進度樣式, 請選擇: gradient, solid, striped",
+                    "無效的進度樣式, 請選擇: gradient, solid, striped",
                     ephemeral=True,
                 )
                 return
@@ -335,7 +337,7 @@ class CustomOptionsModal(discord.ui.Modal, title="自訂進度條選項"):
 
             # 成功回應
             embed = discord.Embed(
-                title="✅ 自訂選項已保存",
+                title="自訂選項已保存",
                 description="您的進度條自訂選項已成功保存!",
                 color=discord.Color.green(),
             )
@@ -354,5 +356,5 @@ class CustomOptionsModal(discord.ui.Modal, title="自訂進度條選項"):
 
         except Exception as e:
             await interaction.response.send_message(
-                f"❌ 保存自訂選項失敗: {e}", ephemeral=True
+                f"保存自訂選項失敗: {e}", ephemeral=True
             )

@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class ValidationLevel(Enum):
     """驗證級別枚舉."""
 
@@ -31,6 +32,7 @@ class ValidationLevel(Enum):
     COMPREHENSIVE = "comprehensive"  # 全面檢查
     STRICT = "strict"  # 嚴格檢查
 
+
 class ValidationResult(Enum):
     """驗證結果枚舉."""
 
@@ -38,6 +40,7 @@ class ValidationResult(Enum):
     WARNING = "warning"
     FAILED = "failed"
     ERROR = "error"
+
 
 @dataclass
 class ValidationRule:
@@ -50,6 +53,7 @@ class ValidationRule:
     validator_func: Callable
     fix_suggestion: str | None = None
     enabled: bool = True
+
 
 @dataclass
 class ValidationIssue:
@@ -65,6 +69,7 @@ class ValidationIssue:
     fix_suggestion: str | None = None
     detected_at: datetime = field(default_factory=datetime.utcnow)
 
+
 @dataclass
 class ValidationReport:
     """驗證報告."""
@@ -79,6 +84,7 @@ class ValidationReport:
     completed_at: datetime | None = None
     duration_ms: float | None = None
     summary: dict[str, int] = field(default_factory=dict)
+
 
 class DataIntegrityValidator:
     """資料完整性驗證器.
@@ -231,7 +237,6 @@ class DataIntegrityValidator:
             ValidationReport: 驗證報告
         """
 
-
         report = ValidationReport(
             report_id=str(uuid4()),
             validation_level=level,
@@ -301,9 +306,7 @@ class DataIntegrityValidator:
             return report
 
         except Exception as e:
-            logger.error(
-                f"[資料驗證器]用戶資料驗證失敗 {user_id}: {e}", exc_info=True
-            )
+            logger.error(f"[資料驗證器]用戶資料驗證失敗 {user_id}: {e}", exc_info=True)
             report.completed_at = datetime.utcnow()
             report.duration_ms = (
                 report.completed_at - report.started_at
@@ -322,7 +325,6 @@ class DataIntegrityValidator:
         Returns:
             ValidationReport: 驗證報告
         """
-
 
         report = ValidationReport(
             report_id=str(uuid4()),
@@ -380,7 +382,6 @@ class DataIntegrityValidator:
         Returns:
             ValidationReport: 驗證報告
         """
-
 
         report = ValidationReport(
             report_id=str(uuid4()),
@@ -461,9 +462,7 @@ class DataIntegrityValidator:
             if rule.level in allowed_levels and (
                 (
                     target_type == "user"
-                    and any(
-                        keyword in rule.rule_id for keyword in ["user", "progress"]
-                    )
+                    and any(keyword in rule.rule_id for keyword in ["user", "progress"])
                 )
                 or (
                     target_type == "achievement"
@@ -535,8 +534,6 @@ class DataIntegrityValidator:
                 )
 
                 if not achievement:
-
-
                     issue = ValidationIssue(
                         issue_id=str(uuid4()),
                         rule_id=rule.rule_id,
@@ -585,8 +582,6 @@ class DataIntegrityValidator:
             # 找出重複項
             for achievement_id, count in achievement_counts.items():
                 if count > 1:
-
-
                     issue = ValidationIssue(
                         issue_id=str(uuid4()),
                         rule_id=rule.rule_id,
@@ -640,8 +635,6 @@ class DataIntegrityValidator:
                     progress = progress_map[achievement_id]
 
                     if progress.current_value < progress.target_value:
-
-
                         issue = ValidationIssue(
                             issue_id=str(uuid4()),
                             rule_id=rule.rule_id,
@@ -681,8 +674,6 @@ class DataIntegrityValidator:
             for progress in user_progress:
                 # 檢查進度值是否為負數
                 if progress.current_value < 0:
-
-
                     issue = ValidationIssue(
                         issue_id=str(uuid4()),
                         rule_id=rule.rule_id,
@@ -701,8 +692,6 @@ class DataIntegrityValidator:
 
                 # 檢查進度值是否異常大
                 if progress.current_value > progress.target_value * 10:  # 超過目標10倍
-
-
                     issue = ValidationIssue(
                         issue_id=str(uuid4()),
                         rule_id=rule.rule_id,
@@ -743,8 +732,6 @@ class DataIntegrityValidator:
 
             # 檢查條件配置
             if not achievement.criteria or not isinstance(achievement.criteria, dict):
-
-
                 issue = ValidationIssue(
                     issue_id=str(uuid4()),
                     rule_id=rule.rule_id,
@@ -765,8 +752,6 @@ class DataIntegrityValidator:
             required_fields = ["target_value"]
             for field in required_fields:
                 if field not in achievement.criteria:
-
-
                     issue = ValidationIssue(
                         issue_id=str(uuid4()),
                         rule_id=rule.rule_id,
@@ -785,24 +770,24 @@ class DataIntegrityValidator:
 
             # 檢查目標值是否合理
             target_value = achievement.criteria.get("target_value")
-            if target_value is not None and (not isinstance(target_value, int | float) or target_value <= 0):
-
-
-                    issue = ValidationIssue(
-                        issue_id=str(uuid4()),
-                        rule_id=rule.rule_id,
-                        severity=ValidationResult.FAILED,
-                        target_id=achievement_id,
-                        target_type="achievement",
-                        message=f"成就目標值無效 ID: {achievement_id}",
-                        details={
-                            "achievement_name": achievement.name,
-                            "target_value": target_value,
-                            "target_value_type": type(target_value).__name__,
-                        },
-                        fix_suggestion="設置正確的數值型目標值",
-                    )
-                    issues.append(issue)
+            if target_value is not None and (
+                not isinstance(target_value, int | float) or target_value <= 0
+            ):
+                issue = ValidationIssue(
+                    issue_id=str(uuid4()),
+                    rule_id=rule.rule_id,
+                    severity=ValidationResult.FAILED,
+                    target_id=achievement_id,
+                    target_type="achievement",
+                    message=f"成就目標值無效 ID: {achievement_id}",
+                    details={
+                        "achievement_name": achievement.name,
+                        "target_value": target_value,
+                        "target_value_type": type(target_value).__name__,
+                    },
+                    fix_suggestion="設置正確的數值型目標值",
+                )
+                issues.append(issue)
 
         except Exception as e:
             logger.error(f"[資料驗證器]成就條件驗證失敗 {achievement_id}: {e}")
@@ -829,8 +814,6 @@ class DataIntegrityValidator:
                     achievement.category_id
                 )
                 if not category:
-
-
                     issue = ValidationIssue(
                         issue_id=str(uuid4()),
                         rule_id=rule.rule_id,
@@ -852,7 +835,7 @@ class DataIntegrityValidator:
         return issues
 
     async def _validate_global_stats_consistency(
-        self, target_id: Any, rule: ValidationRule  # noqa: ARG002
+        self, target_id: Any, rule: ValidationRule
     ) -> list[ValidationIssue]:
         """驗證全域統計一致性."""
         issues = []
@@ -878,8 +861,6 @@ class DataIntegrityValidator:
                     if actual_value > 0:
                         diff_ratio = abs(cached_value - actual_value) / actual_value
                         if diff_ratio > tolerance:
-
-
                             issue = ValidationIssue(
                                 issue_id=str(uuid4()),
                                 rule_id=rule.rule_id,
@@ -904,7 +885,7 @@ class DataIntegrityValidator:
         return issues
 
     async def _validate_cache_consistency(
-        self, target_id: Any, rule: ValidationRule  # noqa: ARG002
+        self, target_id: Any, rule: ValidationRule
     ) -> list[ValidationIssue]:
         """驗證快取一致性."""
         issues = []
@@ -957,9 +938,9 @@ class DataIntegrityValidator:
         return {
             **self._stats,
             "registered_rules": len(self._validation_rules),
-            "enabled_rules": len(
-                [r for r in self._validation_rules.values() if r.enabled]
-            ),
+            "enabled_rules": len([
+                r for r in self._validation_rules.values() if r.enabled
+            ]),
         }
 
     def get_available_rules(self) -> list[dict[str, Any]]:
@@ -970,15 +951,13 @@ class DataIntegrityValidator:
         """
         rules_info = []
         for rule in self._validation_rules.values():
-            rules_info.append(
-                {
-                    "rule_id": rule.rule_id,
-                    "name": rule.name,
-                    "description": rule.description,
-                    "level": rule.level.value,
-                    "enabled": rule.enabled,
-                    "fix_suggestion": rule.fix_suggestion,
-                }
-            )
+            rules_info.append({
+                "rule_id": rule.rule_id,
+                "name": rule.name,
+                "description": rule.description,
+                "level": rule.level.value,
+                "enabled": rule.enabled,
+                "fix_suggestion": rule.fix_suggestion,
+            })
 
         return rules_info

@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+
 class AdminPermissionService:
     """成就系統管理員權限服務.
 
@@ -84,20 +85,18 @@ class AdminPermissionService:
 
             # 增強審計日誌
             if result.audit_log:
-                result.audit_log.update(
-                    {
-                        "service": "AdminPermissionService",
-                        "discord_user": {
-                            "id": user.id,
-                            "name": user.display_name,
-                            "discriminator": user.discriminator,
-                        },
-                        "guild_context": {
-                            "id": user.guild.id if user.guild else None,
-                            "name": user.guild.name if user.guild else None,
-                        },
-                    }
-                )
+                result.audit_log.update({
+                    "service": "AdminPermissionService",
+                    "discord_user": {
+                        "id": user.id,
+                        "name": user.display_name,
+                        "discriminator": user.discriminator,
+                    },
+                    "guild_context": {
+                        "id": user.guild.id if user.guild else None,
+                        "name": user.guild.name if user.guild else None,
+                    },
+                })
 
             logger.debug(
                 f"[權限檢查]用戶 {user.id} 對操作 '{action}' 的檢查結果: {result.allowed}"
@@ -282,9 +281,7 @@ class AdminPermissionService:
                                 embed=embed, ephemeral=True
                             )
                     except Exception as send_error:
-                        logger.error(
-                            f"[權限裝飾器]發送執行錯誤訊息失敗: {send_error}"
-                        )
+                        logger.error(f"[權限裝飾器]發送執行錯誤訊息失敗: {send_error}")
 
                     return None
 
@@ -312,12 +309,10 @@ class AdminPermissionService:
         base_stats = self._permission_system.get_permission_stats()
 
         # 添加管理員權限服務特定的統計
-        base_stats.update(
-            {
-                "service": "AdminPermissionService",
-                "audit_enabled": self._audit_enabled,
-            }
-        )
+        base_stats.update({
+            "service": "AdminPermissionService",
+            "audit_enabled": self._audit_enabled,
+        })
 
         return base_stats
 
@@ -330,6 +325,7 @@ class AdminPermissionService:
             logger.info("[管理員權限服務]清理完成")
         except Exception as e:
             logger.error(f"[管理員權限服務]清理時發生錯誤: {e}")
+
 
 class _AdminPermissionServiceSingleton:
     """管理員權限服務單例類."""
@@ -355,6 +351,7 @@ def get_admin_permission_service() -> AdminPermissionService:
         AdminPermissionService: 管理員權限服務實例
     """
     return _AdminPermissionServiceSingleton.get_instance()
+
 
 def require_achievement_admin(
     action: str = "成就管理操作",

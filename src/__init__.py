@@ -10,6 +10,7 @@ __description__ = (
     "Advanced Discord server management bot with modern Python architecture"
 )
 
+
 # Version info tuple for programmatic access - handle non-standard versions
 def _parse_version(version_str: str) -> tuple:
     """Parse version string into tuple of integers and strings."""
@@ -21,6 +22,7 @@ def _parse_version(version_str: str) -> tuple:
         except ValueError:
             result.append(part)
     return tuple(result)
+
 
 VERSION_INFO = _parse_version(__version__)
 

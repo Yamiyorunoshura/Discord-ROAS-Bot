@@ -48,6 +48,7 @@ app = typer.Typer(
     add_completion=False,
 )
 
+
 def setup_event_loop() -> None:
     """Set up the optimal event loop for the platform."""
     # Use uvloop on Unix systems for better performance
@@ -59,8 +60,10 @@ def setup_event_loop() -> None:
     else:
         console.print("[yellow]uvloop not available, using default event loop[/yellow]")
 
+
 def check_python_version() -> None:
     """Check if Python version is compatible."""
+
 
 def print_banner() -> None:
     """Print application banner."""
@@ -78,6 +81,7 @@ def print_banner() -> None:
     )
 
     console.print(panel)
+
 
 async def validate_and_load_configuration() -> Settings:
     """Validate environment and load configuration using simple Settings.
@@ -122,6 +126,7 @@ async def validate_and_load_configuration() -> Settings:
     except Exception as e:
         console.print(f"[red]Failed to load configuration: {e}[/red]")
         raise typer.Exit(1) from e
+
 
 @app.command()
 def run(
@@ -225,6 +230,7 @@ def run(
     except Exception as e:
         console.print(f"💥 [red bold]Application error: {e}[/red bold]")
         sys.exit(1)
+
 
 @app.command()
 def validate_config(
@@ -343,6 +349,7 @@ def validate_config(
         console.print(f"💥 [red bold]Validation error: {e}[/red bold]")
         sys.exit(1)
 
+
 @app.command()
 def create_config() -> None:
     """Create a sample configuration file."""
@@ -395,6 +402,7 @@ SECURITY_RATE_LIMIT_WINDOW=60
         console.print(f"❌ [red]Failed to create configuration file: {e}[/red]")
         sys.exit(1)
 
+
 @app.command()
 def version() -> None:
     """Show version information."""
@@ -404,9 +412,11 @@ def version() -> None:
     console.print(f"Python: {sys.version.split()[0]}")
     console.print(f"Platform: {sys.platform}")
 
+
 def cli() -> None:
     """CLI entry point for setuptools."""
     app()
+
 
 if __name__ == "__main__":
     cli()

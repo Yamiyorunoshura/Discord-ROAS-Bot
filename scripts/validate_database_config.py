@@ -88,7 +88,7 @@ async def validate_config_file(config_path: Path) -> dict[str, Any]:
 
     # 驗證配置結構
     try:
-        db_config = DatabaseConfig(**config_data["database"])
+        DatabaseConfig(**config_data["database"])
         print("Configuration file syntax validation passed")
         return config_data
     except ValidationError as e:
@@ -145,7 +145,6 @@ async def check_migration_status() -> bool:
         Whether migration status is normal
     """
     try:
-        from alembic import command
         from alembic.config import Config
 
         # 檢查 Alembic 配置

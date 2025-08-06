@@ -61,7 +61,9 @@ async def settings_embed(cog) -> discord.Embed:
                 channels_text.append(f"未知頻道 ({channel_id})")
 
         if monitored_count > MAX_CHANNELS_DISPLAY:
-            channels_text.append(f"...以及 {monitored_count - MAX_CHANNELS_DISPLAY} 個頻道")
+            channels_text.append(
+                f"...以及 {monitored_count - MAX_CHANNELS_DISPLAY} 個頻道"
+            )
 
         monitored_value = "\n".join(channels_text)
     else:

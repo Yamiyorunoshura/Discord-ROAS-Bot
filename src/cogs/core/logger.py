@@ -41,6 +41,7 @@ class PerformanceMetrics:
     active_connections: int | None = None
     error_rate: float | None = None
 
+
 class PerformanceMonitor:
     """性能監控器"""
 
@@ -119,6 +120,7 @@ class PerformanceMonitor:
             if recent_metrics
             else None,
         }
+
 
 class LogAnalyzer:
     """日誌分析器"""
@@ -226,11 +228,14 @@ class LogAnalyzer:
 
         # 生成建議
         if report["overall_status"] == "warning":
-            report["recommendations"].extend(
-                ["檢查錯誤日誌中的具體問題", "監控系統資源使用情況", "考慮重啟相關服務"]
-            )
+            report["recommendations"].extend([
+                "檢查錯誤日誌中的具體問題",
+                "監控系統資源使用情況",
+                "考慮重啟相關服務",
+            ])
 
         return report
+
 
 class DiscordBotLogger:
     """Discord 機器人日誌管理器"""
@@ -508,7 +513,7 @@ class DiscordBotLogger:
 
         # 根據耗時判斷日誌等級
         WARNING_THRESHOLD = 5000  # 5秒
-        INFO_THRESHOLD = 1000     # 1秒
+        INFO_THRESHOLD = 1000  # 1秒
         if duration_ms > WARNING_THRESHOLD:
             logger.warning(perf_msg)
         elif duration_ms > INFO_THRESHOLD:
@@ -561,15 +566,13 @@ class DiscordBotLogger:
         for log_file in self.logs_dir.glob("*.log*"):
             try:
                 file_size = log_file.stat().st_size
-                stats["log_files"].append(
-                    {
-                        "name": log_file.name,
-                        "size_mb": round(file_size / (1024 * 1024), 2),
-                        "modified": datetime.fromtimestamp(
-                            log_file.stat().st_mtime
-                        ).isoformat(),
-                    }
-                )
+                stats["log_files"].append({
+                    "name": log_file.name,
+                    "size_mb": round(file_size / (1024 * 1024), 2),
+                    "modified": datetime.fromtimestamp(
+                        log_file.stat().st_mtime
+                    ).isoformat(),
+                })
                 stats["total_size_mb"] += file_size / (1024 * 1024)
             except Exception:
                 pass
@@ -577,7 +580,7 @@ class DiscordBotLogger:
         stats["total_size_mb"] = round(stats["total_size_mb"], 2)
         return stats
 
-    def analyze_logs(self, hours: int = DEFAULT_LOG_ANALYSIS_HOURS) -> dict[str, Any]:  # noqa: ARG002
+    def analyze_logs(self, hours: int = DEFAULT_LOG_ANALYSIS_HOURS) -> dict[str, Any]:
         """
         分析日誌內容
 
@@ -610,7 +613,10 @@ class DiscordBotLogger:
         if performance_summary.get("average_cpu_percent", 0) > HIGH_CPU_THRESHOLD:
             overall_status = "warning"
 
-        if performance_summary.get("average_memory_percent", 0) > CRITICAL_MEMORY_THRESHOLD:
+        if (
+            performance_summary.get("average_memory_percent", 0)
+            > CRITICAL_MEMORY_THRESHOLD
+        ):
             overall_status = "critical"
 
         return {
@@ -629,13 +635,22 @@ class DiscordBotLogger:
         """生成系統建議"""
         recommendations = []
 
-        if performance.get("average_cpu_percent", 0) > HIGH_CPU_RECOMMENDATION_THRESHOLD:
+        if (
+            performance.get("average_cpu_percent", 0)
+            > HIGH_CPU_RECOMMENDATION_THRESHOLD
+        ):
             recommendations.append("CPU 使用率較高,建議檢查是否有性能瓶頸")
 
-        if performance.get("average_memory_percent", 0) > HIGH_MEMORY_RECOMMENDATION_THRESHOLD:
+        if (
+            performance.get("average_memory_percent", 0)
+            > HIGH_MEMORY_RECOMMENDATION_THRESHOLD
+        ):
             recommendations.append("記憶體使用率較高,建議檢查記憶體洩漏")
 
-        if performance.get("average_response_time_ms", 0) > SLOW_RESPONSE_TIME_THRESHOLD:
+        if (
+            performance.get("average_response_time_ms", 0)
+            > SLOW_RESPONSE_TIME_THRESHOLD
+        ):
             recommendations.append("響應時間較慢,建議優化處理邏輯")
 
         if log_analysis.get("issues"):
@@ -645,6 +660,7 @@ class DiscordBotLogger:
             recommendations.append("系統運行正常,無特殊建議")
 
         return recommendations
+
 
 class LoggerManager:
     """日誌管理器管理器"""
@@ -658,8 +674,10 @@ class LoggerManager:
             self._logger_manager = DiscordBotLogger()
         return self._logger_manager
 
+
 # 全域管理器實例
 _logger_manager_instance = LoggerManager()
+
 
 def get_logger_manager() -> DiscordBotLogger:
     """
@@ -669,6 +687,7 @@ def get_logger_manager() -> DiscordBotLogger:
         DiscordBotLogger: 日誌管理器實例
     """
     return _logger_manager_instance.get_logger_manager()
+
 
 def setup_module_logger(module_name: str, **kwargs) -> logging.Logger:
     """

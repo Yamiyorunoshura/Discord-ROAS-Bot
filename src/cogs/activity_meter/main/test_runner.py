@@ -1,6 +1,6 @@
 """
-活躍度測試系統執行器
-用於運行完整的活躍度測試系統,直接調用實際程式邏輯進行測試
+æ´»èºåº¦æ¸¬è©¦ç³»çµ±å·è¡å¨
+ç¨æ¼éè¡å®æ´çæ´»èºåº¦æ¸¬è©¦ç³»çµ±,ç´æ¥èª¿ç¨å¯¦éç¨å¼éè¼¯é²è¡æ¸¬è©¦
 """
 
 import asyncio
@@ -10,47 +10,48 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-# 使用統一的核心模塊
+# ä½¿ç¨çµ±ä¸çæ ¸å¿æ¨¡å¡
 from ...core import create_error_handler, setup_module_logger
 from ..constants import MIN_SUCCESS_RATE_THRESHOLD
 
-# 導入測試模塊
+# å°å¥æ¸¬è©¦æ¨¡å¡
 from .activity_test_module import ActivityTestModule, TestReport
 from .logic_apis import LogicAPIError
 
-# 設置模塊日誌記錄器
+# è¨­ç½®æ¨¡å¡æ¥èªè¨éå¨
 logger = setup_module_logger("activity_test_runner")
 error_handler = create_error_handler("activity_test_runner", logger)
 
+
 class ActivityTestRunner:
     """
-    活躍度測試系統執行器
-    負責運行完整的活躍度測試系統,直接調用實際程式邏輯進行測試
+    æ´»èºåº¦æ¸¬è©¦ç³»çµ±å·è¡å¨
+    è² è²¬éè¡å®æ´çæ´»èºåº¦æ¸¬è©¦ç³»çµ±,ç´æ¥èª¿ç¨å¯¦éç¨å¼éè¼¯é²è¡æ¸¬è©¦
     """
 
     def __init__(self):
-        """初始化測試執行器"""
+        """åå§åæ¸¬è©¦å·è¡å¨"""
         self.logger = logger.getChild("test_runner")
         self.test_module = ActivityTestModule()
 
-        # 測試結果存儲路徑
+        # æ¸¬è©¦çµæå­å²è·¯å¾
         self.results_dir = Path("test_results")
         self.results_dir.mkdir(exist_ok=True)
 
     async def run_complete_test_suite(self) -> TestReport:
         """
-        運行完整的測試套件
-        執行所有類型的測試,包括功能測試、性能測試、錯誤處理測試
+        éè¡å®æ´çæ¸¬è©¦å¥ä»¶
+        å·è¡ææé¡åçæ¸¬è©¦,åæ¬åè½æ¸¬è©¦ãæ§è½æ¸¬è©¦ãé¯èª¤èçæ¸¬è©¦
 
         Returns:
-            TestReport: 完整的測試報告
+            TestReport: å®æ´çæ¸¬è©¦å ±å
         """
         try:
-            self.logger.info("開始運行完整的活躍度測試套件")
+            self.logger.info("éå§éè¡å®æ´çæ´»èºåº¦æ¸¬è©¦å¥ä»¶")
             start_time = time.time()
 
-            # 1. 運行基本功能測試
-            self.logger.info("執行基本功能測試...")
+            # 1. éè¡åºæ¬åè½æ¸¬è©¦
+            self.logger.info("å·è¡åºæ¬åè½æ¸¬è©¦...")
             functional_test_config = {
                 "test_types": [
                     "calculation",
@@ -67,8 +68,8 @@ class ActivityTestRunner:
                 functional_test_config
             )
 
-            # 2. 運行性能測試
-            self.logger.info("執行性能測試...")
+            # 2. éè¡æ§è½æ¸¬è©¦
+            self.logger.info("å·è¡æ§è½æ¸¬è©¦...")
             performance_results = {}
 
             performance_endpoints = [
@@ -84,29 +85,29 @@ class ActivityTestRunner:
                     )
                     performance_results[endpoint] = performance_data
                 except Exception as e:
-                    self.logger.error(f"性能測試 {endpoint} 失敗: {e}")
+                    self.logger.error(f"æ§è½æ¸¬è©¦ {endpoint} å¤±æ: {e}")
                     performance_results[endpoint] = {"error": str(e)}
 
-            # 3. 運行錯誤處理測試
-            self.logger.info("執行錯誤處理測試...")
+            # 3. éè¡é¯èª¤èçæ¸¬è©¦
+            self.logger.info("å·è¡é¯èª¤èçæ¸¬è©¦...")
             error_scenarios = [
                 {
-                    "name": "無效的請求類型",
+                    "name": "ç¡æçè«æ±é¡å",
                     "test_data": {"request_type": "invalid_type"},
-                    "expected_error": "未知的請求類型",
+                    "expected_error": "æªç¥çè«æ±é¡å",
                 },
                 {
-                    "name": "缺少必要參數",
+                    "name": "ç¼ºå°å¿è¦åæ¸",
                     "test_data": {"request_type": "get_activity_score"},
-                    "expected_error": "缺少必要字段",
+                    "expected_error": "ç¼ºå°å¿è¦å­æ®µ",
                 },
                 {
-                    "name": "無效的數據格式",
+                    "name": "ç¡æçæ¸ææ ¼å¼",
                     "test_data": {
                         "request_type": "calculate_activity_score",
                         "parameters": "invalid",
                     },
-                    "expected_error": "必須是字典格式",
+                    "expected_error": "å¿é æ¯å­å¸æ ¼å¼",
                 },
             ]
 
@@ -117,33 +118,36 @@ class ActivityTestRunner:
                     )
                 )
             except Exception as e:
-                self.logger.error(f"錯誤處理測試失敗: {e}")
+                self.logger.error(f"é¯èª¤èçæ¸¬è©¦å¤±æ: {e}")
                 error_handling_results = {"error": str(e)}
 
-            # 4. 生成綜合測試報告
+            # 4. çæç¶åæ¸¬è©¦å ±å
             end_time = time.time()
             total_execution_time = end_time - start_time
 
-            # 合併所有測試結果
+            # åä½µæææ¸¬è©¦çµæ
             all_test_results = functional_report.test_results
 
-            # 統計綜合結果
+            # çµ±è¨ç¶åçµæ
             total_tests = functional_report.total_tests
             passed_tests = functional_report.passed_tests
             failed_tests = functional_report.failed_tests
             error_tests = functional_report.error_tests
 
-            # 檢查性能測試結果
+            # æª¢æ¥æ§è½æ¸¬è©¦çµæ
             performance_passed = all(
                 result.get("passed", False)
                 for result in performance_results.values()
                 if "passed" in result
             )
 
-            # 檢查錯誤處理測試結果
-            error_handling_passed = error_handling_results.get("success_rate", 0) >= MIN_SUCCESS_RATE_THRESHOLD
+            # æª¢æ¥é¯èª¤èçæ¸¬è©¦çµæ
+            error_handling_passed = (
+                error_handling_results.get("success_rate", 0)
+                >= MIN_SUCCESS_RATE_THRESHOLD
+            )
 
-            # 生成綜合報告
+            # çæç¶åå ±å
             comprehensive_report = TestReport(
                 report_id=f"comprehensive_test_{int(time.time())}",
                 timestamp=time.time(),
@@ -164,28 +168,28 @@ class ActivityTestRunner:
                 },
             )
 
-            # 保存測試報告
+            # ä¿å­æ¸¬è©¦å ±å
             await self._save_test_report(comprehensive_report)
 
             self.logger.info(
-                f"完整測試套件執行完成: 總時間 {total_execution_time:.2f}秒"
+                f"å®æ´æ¸¬è©¦å¥ä»¶å·è¡å®æ: ç¸½æé {total_execution_time:.2f}ç§"
             )
             return comprehensive_report
 
         except Exception as e:
-            self.logger.error(f"運行完整測試套件時發生錯誤: {e}")
-            raise LogicAPIError("E3001", f"完整測試套件執行失敗: {e!s}") from e
+            self.logger.error(f"éè¡å®æ´æ¸¬è©¦å¥ä»¶æç¼çé¯èª¤: {e}")
+            raise LogicAPIError("E3001", f"å®æ´æ¸¬è©¦å¥ä»¶å·è¡å¤±æ: {e!s}") from e
 
     async def run_functional_tests(self) -> TestReport:
         """
-        運行功能測試
-        測試活躍度系統的基本功能
+        éè¡åè½æ¸¬è©¦
+        æ¸¬è©¦æ´»èºåº¦ç³»çµ±çåºæ¬åè½
 
         Returns:
-            TestReport: 功能測試報告
+            TestReport: åè½æ¸¬è©¦å ±å
         """
         try:
-            self.logger.info("開始運行功能測試")
+            self.logger.info("éå§éè¡åè½æ¸¬è©¦")
 
             test_config = {
                 "test_types": [
@@ -201,32 +205,32 @@ class ActivityTestRunner:
 
             test_report = await self.test_module.test_real_logic(test_config)
 
-            # 保存功能測試報告
+            # ä¿å­åè½æ¸¬è©¦å ±å
             await self._save_test_report(test_report, "functional")
 
             self.logger.info(
-                f"功能測試完成: {test_report.passed_tests}/{test_report.total_tests} 通過"
+                f"åè½æ¸¬è©¦å®æ: {test_report.passed_tests}/{test_report.total_tests} éé"
             )
             return test_report
 
         except Exception as e:
-            self.logger.error(f"運行功能測試時發生錯誤: {e}")
-            raise LogicAPIError("E3002", f"功能測試執行失敗: {e!s}") from e
+            self.logger.error(f"éè¡åè½æ¸¬è©¦æç¼çé¯èª¤: {e}")
+            raise LogicAPIError("E3002", f"åè½æ¸¬è©¦å·è¡å¤±æ: {e!s}") from e
 
     async def run_performance_tests(self) -> dict[str, Any]:
         """
-        運行性能測試
-        測試活躍度系統的性能表現
+        éè¡æ§è½æ¸¬è©¦
+        æ¸¬è©¦æ´»èºåº¦ç³»çµ±çæ§è½è¡¨ç¾
 
         Returns:
-            Dict[str, Any]: 性能測試結果
+            Dict[str, Any]: æ§è½æ¸¬è©¦çµæ
         """
         try:
-            self.logger.info("開始運行性能測試")
+            self.logger.info("éå§éè¡æ§è½æ¸¬è©¦")
 
             performance_results = {}
 
-            # 測試各個端點的性能
+            # æ¸¬è©¦ååç«¯é»çæ§è½
             endpoints = [
                 "calculate_activity_score",
                 "get_unified_activity_api",
@@ -241,75 +245,75 @@ class ActivityTestRunner:
                         await self.test_module.test_real_logic_response_time(endpoint)
                     )
                     performance_results[endpoint] = performance_data
-                    self.logger.info(f"端點 {endpoint} 性能測試完成")
+                    self.logger.info(f"ç«¯é» {endpoint} æ§è½æ¸¬è©¦å®æ")
                 except Exception as e:
-                    self.logger.error(f"端點 {endpoint} 性能測試失敗: {e}")
+                    self.logger.error(f"ç«¯é» {endpoint} æ§è½æ¸¬è©¦å¤±æ: {e}")
                     performance_results[endpoint] = {"error": str(e)}
 
-            # 保存性能測試結果
+            # ä¿å­æ§è½æ¸¬è©¦çµæ
             await self._save_performance_results(performance_results)
 
-            # 統計性能測試結果
-            successful_tests = len(
-                [r for r in performance_results.values() if "error" not in r]
-            )
+            # çµ±è¨æ§è½æ¸¬è©¦çµæ
+            successful_tests = len([
+                r for r in performance_results.values() if "error" not in r
+            ])
             total_tests = len(performance_results)
 
-            self.logger.info(f"性能測試完成: {successful_tests}/{total_tests} 成功")
+            self.logger.info(f"æ§è½æ¸¬è©¦å®æ: {successful_tests}/{total_tests} æå")
             return performance_results
 
         except Exception as e:
-            self.logger.error(f"運行性能測試時發生錯誤: {e}")
-            raise LogicAPIError("E3003", f"性能測試執行失敗: {e!s}") from e
+            self.logger.error(f"éè¡æ§è½æ¸¬è©¦æç¼çé¯èª¤: {e}")
+            raise LogicAPIError("E3003", f"æ§è½æ¸¬è©¦å·è¡å¤±æ: {e!s}") from e
 
     async def run_error_handling_tests(self) -> dict[str, Any]:
         """
-        運行錯誤處理測試
-        測試活躍度系統的錯誤處理能力
+        éè¡é¯èª¤èçæ¸¬è©¦
+        æ¸¬è©¦æ´»èºåº¦ç³»çµ±çé¯èª¤èçè½å
 
         Returns:
-            Dict[str, Any]: 錯誤處理測試結果
+            Dict[str, Any]: é¯èª¤èçæ¸¬è©¦çµæ
         """
         try:
-            self.logger.info("開始運行錯誤處理測試")
+            self.logger.info("éå§éè¡é¯èª¤èçæ¸¬è©¦")
 
-            # 定義錯誤測試場景
+            # å®ç¾©é¯èª¤æ¸¬è©¦å ´æ¯
             error_scenarios = [
                 {
-                    "name": "無效的請求類型",
+                    "name": "ç¡æçè«æ±é¡å",
                     "test_data": {"request_type": "invalid_type"},
-                    "expected_error": "未知的請求類型",
+                    "expected_error": "æªç¥çè«æ±é¡å",
                 },
                 {
-                    "name": "缺少必要參數",
+                    "name": "ç¼ºå°å¿è¦åæ¸",
                     "test_data": {"request_type": "get_activity_score"},
-                    "expected_error": "缺少必要字段",
+                    "expected_error": "ç¼ºå°å¿è¦å­æ®µ",
                 },
                 {
-                    "name": "無效的數據格式",
+                    "name": "ç¡æçæ¸ææ ¼å¼",
                     "test_data": {
                         "request_type": "calculate_activity_score",
                         "parameters": "invalid",
                     },
-                    "expected_error": "必須是字典格式",
+                    "expected_error": "å¿é æ¯å­å¸æ ¼å¼",
                 },
                 {
-                    "name": "無效的活躍度分數",
+                    "name": "ç¡æçæ´»èºåº¦åæ¸",
                     "test_data": {
                         "request_type": "render_activity",
-                        "user_name": "測試用戶",
-                        "activity_score": 150,  # 超出範圍
+                        "user_name": "æ¸¬è©¦ç¨æ¶",
+                        "activity_score": 150,  # è¶åºç¯å
                     },
-                    "expected_error": "活躍度分數必須在0-100範圍內",
+                    "expected_error": "æ´»èºåº¦åæ¸å¿é å¨0-100ç¯åå§",
                 },
                 {
-                    "name": "無效的用戶ID",
+                    "name": "ç¡æçç¨æ¶ID",
                     "test_data": {
                         "request_type": "get_activity_score",
                         "guild_id": "invalid",
                         "user_id": "invalid",
                     },
-                    "expected_error": "必須是數字",
+                    "expected_error": "å¿é æ¯æ¸å­",
                 },
             ]
 
@@ -317,30 +321,30 @@ class ActivityTestRunner:
                 await self.test_module.test_real_logic_error_handling(error_scenarios)
             )
 
-            # 保存錯誤處理測試結果
+            # ä¿å­é¯èª¤èçæ¸¬è©¦çµæ
             await self._save_error_handling_results(error_handling_results)
 
             self.logger.info(
-                f"錯誤處理測試完成: {error_handling_results.get('passed_error_tests', 0)}/{error_handling_results.get('total_error_tests', 0)} 通過"
+                f"é¯èª¤èçæ¸¬è©¦å®æ: {error_handling_results.get('passed_error_tests', 0)}/{error_handling_results.get('total_error_tests', 0)} éé"
             )
             return error_handling_results
 
         except Exception as e:
-            self.logger.error(f"運行錯誤處理測試時發生錯誤: {e}")
-            raise LogicAPIError("E3004", f"錯誤處理測試執行失敗: {e!s}") from e
+            self.logger.error(f"éè¡é¯èª¤èçæ¸¬è©¦æç¼çé¯èª¤: {e}")
+            raise LogicAPIError("E3004", f"é¯èª¤èçæ¸¬è©¦å·è¡å¤±æ: {e!s}") from e
 
     async def run_coverage_analysis(self) -> dict[str, Any]:
         """
-        運行覆蓋率分析
-        分析測試對實際程式邏輯的覆蓋率
+        éè¡è¦èçåæ
+        åææ¸¬è©¦å°å¯¦éç¨å¼éè¼¯çè¦èç
 
         Returns:
-            Dict[str, Any]: 覆蓋率分析結果
+            Dict[str, Any]: è¦èçåæçµæ
         """
         try:
-            self.logger.info("開始運行覆蓋率分析")
+            self.logger.info("éå§éè¡è¦èçåæ")
 
-            # 運行基本測試以獲取測試結果
+            # éè¡åºæ¬æ¸¬è©¦ä»¥ç²åæ¸¬è©¦çµæ
             test_config = {
                 "test_types": [
                     "calculation",
@@ -355,33 +359,33 @@ class ActivityTestRunner:
 
             test_report = await self.test_module.test_real_logic(test_config)
 
-            # 分析覆蓋率
+            # åæè¦èç
             coverage_data = await self.test_module.analyze_test_coverage(
                 test_report.test_results
             )
 
-            # 保存覆蓋率分析結果
+            # ä¿å­è¦èçåæçµæ
             await self._save_coverage_results(coverage_data)
 
             self.logger.info(
-                f"覆蓋率分析完成: 模塊覆蓋率 {coverage_data.get('module_coverage', 0):.1f}%, API覆蓋率 {coverage_data.get('api_coverage', 0):.1f}%"
+                f"è¦èçåæå®æ: æ¨¡å¡è¦èç {coverage_data.get('module_coverage', 0):.1f}%, APIè¦èç {coverage_data.get('api_coverage', 0):.1f}%"
             )
             return coverage_data
 
         except Exception as e:
-            self.logger.error(f"運行覆蓋率分析時發生錯誤: {e}")
-            raise LogicAPIError("E3005", f"覆蓋率分析執行失敗: {e!s}") from e
+            self.logger.error(f"éè¡è¦èçåææç¼çé¯èª¤: {e}")
+            raise LogicAPIError("E3005", f"è¦èçåæå·è¡å¤±æ: {e!s}") from e
 
     async def _save_test_report(
         self, test_report: TestReport, report_type: str = "comprehensive"
     ):
-        """保存測試報告"""
+        """ä¿å­æ¸¬è©¦å ±å"""
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{report_type}_test_report_{timestamp}.json"
             filepath = self.results_dir / filename
 
-            # 轉換測試報告為可序列化的格式
+            # è½ææ¸¬è©¦å ±åçºå¯åºååçæ ¼å¼
             report_data = {
                 "report_id": test_report.report_id,
                 "timestamp": test_report.timestamp,
@@ -409,13 +413,13 @@ class ActivityTestRunner:
             with filepath.open("w", encoding="utf-8") as f:
                 json.dump(report_data, f, ensure_ascii=False, indent=2)
 
-            self.logger.info(f"測試報告已保存: {filepath}")
+            self.logger.info(f"æ¸¬è©¦å ±åå·²ä¿å­: {filepath}")
 
         except Exception as e:
-            self.logger.error(f"保存測試報告時發生錯誤: {e}")
+            self.logger.error(f"ä¿å­æ¸¬è©¦å ±åæç¼çé¯èª¤: {e}")
 
     async def _save_performance_results(self, performance_results: dict[str, Any]):
-        """保存性能測試結果"""
+        """ä¿å­æ§è½æ¸¬è©¦çµæ"""
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"performance_results_{timestamp}.json"
@@ -424,15 +428,15 @@ class ActivityTestRunner:
             with filepath.open("w", encoding="utf-8") as f:
                 json.dump(performance_results, f, ensure_ascii=False, indent=2)
 
-            self.logger.info(f"性能測試結果已保存: {filepath}")
+            self.logger.info(f"æ§è½æ¸¬è©¦çµæå·²ä¿å­: {filepath}")
 
         except Exception as e:
-            self.logger.error(f"保存性能測試結果時發生錯誤: {e}")
+            self.logger.error(f"ä¿å­æ§è½æ¸¬è©¦çµææç¼çé¯èª¤: {e}")
 
     async def _save_error_handling_results(
         self, error_handling_results: dict[str, Any]
     ):
-        """保存錯誤處理測試結果"""
+        """ä¿å­é¯èª¤èçæ¸¬è©¦çµæ"""
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"error_handling_results_{timestamp}.json"
@@ -441,13 +445,13 @@ class ActivityTestRunner:
             with filepath.open("w", encoding="utf-8") as f:
                 json.dump(error_handling_results, f, ensure_ascii=False, indent=2)
 
-            self.logger.info(f"錯誤處理測試結果已保存: {filepath}")
+            self.logger.info(f"é¯èª¤èçæ¸¬è©¦çµæå·²ä¿å­: {filepath}")
 
         except Exception as e:
-            self.logger.error(f"保存錯誤處理測試結果時發生錯誤: {e}")
+            self.logger.error(f"ä¿å­é¯èª¤èçæ¸¬è©¦çµææç¼çé¯èª¤: {e}")
 
     async def _save_coverage_results(self, coverage_results: dict[str, Any]):
-        """保存覆蓋率分析結果"""
+        """ä¿å­è¦èçåæçµæ"""
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"coverage_results_{timestamp}.json"
@@ -456,65 +460,67 @@ class ActivityTestRunner:
             with filepath.open("w", encoding="utf-8") as f:
                 json.dump(coverage_results, f, ensure_ascii=False, indent=2)
 
-            self.logger.info(f"覆蓋率分析結果已保存: {filepath}")
+            self.logger.info(f"è¦èçåæçµæå·²ä¿å­: {filepath}")
 
         except Exception as e:
-            self.logger.error(f"保存覆蓋率分析結果時發生錯誤: {e}")
+            self.logger.error(f"ä¿å­è¦èçåæçµææç¼çé¯èª¤: {e}")
 
     async def close(self):
-        """關閉測試執行器,清理資源"""
+        """ééæ¸¬è©¦å·è¡å¨,æ¸çè³æº"""
         try:
             await self.test_module.close()
-            self.logger.info("活躍度測試執行器已關閉")
+            self.logger.info("æ´»èºåº¦æ¸¬è©¦å·è¡å¨å·²éé")
         except Exception as e:
-            self.logger.error(f"關閉活躍度測試執行器時發生錯誤: {e}")
+            self.logger.error(f"ééæ´»èºåº¦æ¸¬è©¦å·è¡å¨æç¼çé¯èª¤: {e}")
 
-# 異步主函數,用於直接運行測試
+
+# ç°æ­¥ä¸»å½æ¸,ç¨æ¼ç´æ¥éè¡æ¸¬è©¦
 async def main():
-    """主函數,用於直接運行活躍度測試系統"""
+    """ä¸»å½æ¸,ç¨æ¼ç´æ¥éè¡æ´»èºåº¦æ¸¬è©¦ç³»çµ±"""
     runner = ActivityTestRunner()
 
     try:
-        print("🚀 開始運行 Discord ADR Bot 活躍度測試系統")
+        print("éå§éè¡ Discord ADR Bot æ´»èºåº¦æ¸¬è©¦ç³»çµ±")
         print("=" * 60)
 
-        # 運行完整測試套件
-        print("📋 執行完整測試套件...")
+        # éè¡å®æ´æ¸¬è©¦å¥ä»¶
+        print("å·è¡å®æ´æ¸¬è©¦å¥ä»¶...")
         comprehensive_report = await runner.run_complete_test_suite()
 
-        print("✅ 測試完成!")
-        print("📊 測試統計:")
-        print(f"   - 總測試數: {comprehensive_report.total_tests}")
-        print(f"   - 通過測試: {comprehensive_report.passed_tests}")
-        print(f"   - 失敗測試: {comprehensive_report.failed_tests}")
-        print(f"   - 錯誤測試: {comprehensive_report.error_tests}")
-        print(f"   - 總執行時間: {comprehensive_report.total_execution_time:.2f}秒")
-        print(f"   - 平均執行時間: {comprehensive_report.average_execution_time:.2f}秒")
+        print("æ¸¬è©¦å®æ!")
+        print("æ¸¬è©¦çµ±è¨:")
+        print(f"   - ç¸½æ¸¬è©¦æ¸: {comprehensive_report.total_tests}")
+        print(f"   - ééæ¸¬è©¦: {comprehensive_report.passed_tests}")
+        print(f"   - å¤±ææ¸¬è©¦: {comprehensive_report.failed_tests}")
+        print(f"   - é¯èª¤æ¸¬è©¦: {comprehensive_report.error_tests}")
+        print(f"   - ç¸½å·è¡æé: {comprehensive_report.total_execution_time:.2f}ç§")
+        print(f"   - å¹³åå·è¡æé: {comprehensive_report.average_execution_time:.2f}ç§")
 
         if comprehensive_report.coverage_data:
             coverage = comprehensive_report.coverage_data
-            print("📈 覆蓋率分析:")
-            print(f"   - 模塊覆蓋率: {coverage.get('module_coverage', 0):.1f}%")
-            print(f"   - API覆蓋率: {coverage.get('api_coverage', 0):.1f}%")
+            print(" è¦èçåæ:")
+            print(f"   - æ¨¡å¡è¦èç: {coverage.get('module_coverage', 0):.1f}%")
+            print(f"   - APIè¦èç: {coverage.get('api_coverage', 0):.1f}%")
 
         if comprehensive_report.performance_summary:
             perf_summary = comprehensive_report.performance_summary
-            print("⚡ 性能測試:")
+            print("â¡ æ§è½æ¸¬è©¦:")
             if "performance_results" in perf_summary:
                 for endpoint, result in perf_summary["performance_results"].items():
                     if "avg_response_time" in result:
-                        print(f"   - {endpoint}: {result['avg_response_time']:.3f}秒")
+                        print(f"   - {endpoint}: {result['avg_response_time']:.3f}ç§")
 
         print("=" * 60)
-        print("🎉 活躍度測試系統運行完成!")
+        print("æ´»èºåº¦æ¸¬è©¦ç³»çµ±éè¡å®æ!")
 
     except Exception as e:
-        print(f"❌ 測試執行失敗: {e}")
-        logger.error(f"測試執行失敗: {e}")
+        print(f"æ¸¬è©¦å·è¡å¤±æ: {e}")
+        logger.error(f"æ¸¬è©¦å·è¡å¤±æ: {e}")
 
     finally:
         await runner.close()
 
+
 if __name__ == "__main__":
-    # 運行測試系統
+    # éè¡æ¸¬è©¦ç³»çµ±
     asyncio.run(main())

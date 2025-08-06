@@ -84,6 +84,7 @@ RECENT_PERFORMANCE_SIZE = 5
 # 設定日誌記錄器
 logger = setup_logger()
 
+
 class SmartBatchProcessor:
     """
     智能批量處理器 - 增強版
@@ -338,7 +339,9 @@ class SmartBatchProcessor:
         else:
             return 0.8  # 分散
 
-    def _calculate_dynamic_weights(self, _factors: dict[str, float]) -> dict[str, float]:
+    def _calculate_dynamic_weights(
+        self, _factors: dict[str, float]
+    ) -> dict[str, float]:
         """動態計算權重"""
         # 基於當前性能狀況調整權重
         if len(self.performance_history) < MIN_HISTORY_SIZE:
@@ -358,7 +361,9 @@ class SmartBatchProcessor:
             p["processing_time"] for p in recent_performance
         ) / len(recent_performance)
 
-        if avg_processing_time > PERFORMANCE_BAD_TIME:  # 處理時間過長,更重視內容和媒體因子
+        if (
+            avg_processing_time > PERFORMANCE_BAD_TIME
+        ):  # 處理時間過長,更重視內容和媒體因子
             return {
                 "content": 0.35,
                 "media": 0.35,
@@ -468,12 +473,18 @@ class SmartBatchProcessor:
         self.performance_history.append(performance_record)
 
         # 動態調整當前批量大小
-        if success_rate > PERFORMANCE_GOOD_RATE and processing_time < PERFORMANCE_NORMAL_TIME:
+        if (
+            success_rate > PERFORMANCE_GOOD_RATE
+            and processing_time < PERFORMANCE_NORMAL_TIME
+        ):
             # 性能良好,可以增加批量
             self.current_batch_size = min(
                 self.max_batch_size, int(self.current_batch_size * 1.1)
             )
-        elif success_rate < PERFORMANCE_BAD_RATE or processing_time > PERFORMANCE_BAD_TIME:
+        elif (
+            success_rate < PERFORMANCE_BAD_RATE
+            or processing_time > PERFORMANCE_BAD_TIME
+        ):
             # 性能不佳,減少批量
             self.current_batch_size = max(
                 self.min_batch_size, int(self.current_batch_size * 0.8)
@@ -492,9 +503,10 @@ class SmartBatchProcessor:
             channel_id: 頻道 ID
             message_count: 訊息數量
         """
-        self.channel_activity[channel_id].append(
-            {"count": message_count, "timestamp": time.time()}
-        )
+        self.channel_activity[channel_id].append({
+            "count": message_count,
+            "timestamp": time.time(),
+        })
 
     def get_channel_activity_level(self, channel_id: int) -> str:
         """
@@ -523,6 +535,7 @@ class SmartBatchProcessor:
             return "medium"
         else:
             return "low"
+
 
 class MessageProcessor:
     """

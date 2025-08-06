@@ -13,6 +13,7 @@ import discord
 if TYPE_CHECKING:
     from ...main.main import AntiSpam
 
+
 async def create_stats_embed(cog: "AntiSpam", guild: discord.Guild) -> discord.Embed:
     """
     創建統計資料嵌入
@@ -100,6 +101,7 @@ async def create_stats_embed(cog: "AntiSpam", guild: discord.Guild) -> discord.E
         text=f"統計更新時間:{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
     return embed
+
 
 def _format_action_description(action: str, details: str) -> str:
     """格式化操作描述"""

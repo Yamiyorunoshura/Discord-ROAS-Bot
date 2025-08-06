@@ -31,7 +31,7 @@ async def create_preview_embed(
         discord.Embed: 排行榜預覽嵌入
     """
     embed = discord.Embed(
-        title="👀 進度條風格預覽",
+        title="🎨 進度條風格預覽",
         description="預覽當前設定的進度條風格效果",
         color=discord.Color.green(),
     )
@@ -43,7 +43,7 @@ async def create_preview_embed(
         )
 
     if not guild:
-        embed.add_field(name="❌ 無法預覽", value="無法獲取伺服器資訊", inline=False)
+        embed.add_field(name="無法預覽", value="無法獲取伺服器資訊", inline=False)
         return embed
 
     # 獲取當前進度條風格設定
@@ -64,7 +64,7 @@ async def create_preview_embed(
 
     # 顯示當前風格
     embed.add_field(
-        name="🎨 當前風格",
+        name="⚙️ 當前風格",
         value=f"**{current_style_name}** ({progress_style})",
         inline=True,
     )
@@ -90,7 +90,7 @@ async def create_preview_embed(
     }
 
     embed.add_field(
-        name="✨ 風格特點",
+        name="🌟 風格特點",
         value=style_features.get(progress_style, "經典風格,適合大多數場景"),
         inline=False,
     )

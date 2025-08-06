@@ -18,6 +18,7 @@ from .detector import ExecutableDetector
 
 logger = logging.getLogger("anti_executable")
 
+
 class AntiExecutable(ProtectionCog):
     """
     反可執行檔案保護模組

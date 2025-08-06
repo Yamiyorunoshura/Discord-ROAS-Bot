@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class CurrencyAdminPanelView(StandardPanelView):
     """
     貨幣系統管理員面板視圖
@@ -112,7 +113,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 "description": "交易記錄查詢與審計",
                 "embed_builder": self.build_audit_embed,
                 "components": [],
-            }
+            },
         }
 
     def _setup_components(self):
@@ -121,131 +122,168 @@ class CurrencyAdminPanelView(StandardPanelView):
 
         if self.current_page == "main":
             # 主控台組件
-            self.add_item(UserSearchButton(
-                style=discord.ButtonStyle.primary,
-                custom_id="roas_currency_admin_users"
-            ))
-            self.add_item(EconomicStatsButton(
-                style=discord.ButtonStyle.secondary,
-                custom_id="roas_currency_admin_stats"
-            ))
-            self.add_item(AuditRecordsButton(
-                style=discord.ButtonStyle.secondary,
-                custom_id="roas_currency_admin_audit"
-            ))
-            self.add_item(BatchOperationButton(
-                style=discord.ButtonStyle.danger,
-                custom_id="roas_currency_admin_batch"
-            ))
+            self.add_item(
+                UserSearchButton(
+                    style=discord.ButtonStyle.primary,
+                    custom_id="roas_currency_admin_users",
+                )
+            )
+            self.add_item(
+                EconomicStatsButton(
+                    style=discord.ButtonStyle.secondary,
+                    custom_id="roas_currency_admin_stats",
+                )
+            )
+            self.add_item(
+                AuditRecordsButton(
+                    style=discord.ButtonStyle.secondary,
+                    custom_id="roas_currency_admin_audit",
+                )
+            )
+            self.add_item(
+                BatchOperationButton(
+                    style=discord.ButtonStyle.danger,
+                    custom_id="roas_currency_admin_batch",
+                )
+            )
 
         elif self.current_page == "users":
             # 用戶管理頁面組件
-            self.add_item(BalanceManageButton(
-                style=discord.ButtonStyle.primary,
-                custom_id="roas_currency_admin_balance"
-            ))
-            self.add_item(self.create_standard_button(
-                label="搜尋用戶",
-                style="secondary",
-                emoji="🔍",
-                custom_id="roas_currency_admin_search",
-                callback=self.search_user_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="上一頁",
-                style="secondary",
-                emoji="⬅️",
-                disabled=self.current_users_page <= 0,
-                custom_id="roas_currency_admin_users_prev",
-                callback=self.users_prev_page_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="下一頁",
-                style="secondary",
-                emoji="➡️",
-                custom_id="roas_currency_admin_users_next",
-                callback=self.users_next_page_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="返回主控台",
-                style="secondary",
-                emoji="🏠",
-                custom_id="roas_currency_admin_back_main",
-                callback=self.back_to_main_callback
-            ))
+            self.add_item(
+                BalanceManageButton(
+                    style=discord.ButtonStyle.primary,
+                    custom_id="roas_currency_admin_balance",
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="搜尋用戶",
+                    style="secondary",
+                    emoji="🔍",
+                    custom_id="roas_currency_admin_search",
+                    callback=self.search_user_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="上一頁",
+                    style="secondary",
+                    emoji="⬅️",
+                    disabled=self.current_users_page <= 0,
+                    custom_id="roas_currency_admin_users_prev",
+                    callback=self.users_prev_page_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="下一頁",
+                    style="secondary",
+                    emoji="➡️",
+                    custom_id="roas_currency_admin_users_next",
+                    callback=self.users_next_page_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="返回主控台",
+                    style="secondary",
+                    emoji="🏠",
+                    custom_id="roas_currency_admin_back_main",
+                    callback=self.back_to_main_callback,
+                )
+            )
 
         elif self.current_page == "stats":
             # 經濟統計頁面組件
-            self.add_item(self.create_standard_button(
-                label="刷新統計",
-                style="primary",
-                emoji="📊",
-                custom_id="roas_currency_admin_refresh_stats",
-                callback=self.refresh_stats_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="導出報告",
-                style="secondary",
-                emoji="📄",
-                custom_id="roas_currency_admin_export_stats",
-                callback=self.export_stats_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="返回主控台",
-                style="secondary",
-                emoji="🏠",
-                custom_id="roas_currency_admin_back_main_stats",
-                callback=self.back_to_main_callback
-            ))
+            self.add_item(
+                self.create_standard_button(
+                    label="刷新統計",
+                    style="primary",
+                    emoji="📊",
+                    custom_id="roas_currency_admin_refresh_stats",
+                    callback=self.refresh_stats_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="導出報告",
+                    style="secondary",
+                    emoji="📄",
+                    custom_id="roas_currency_admin_export_stats",
+                    callback=self.export_stats_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="返回主控台",
+                    style="secondary",
+                    emoji="🏠",
+                    custom_id="roas_currency_admin_back_main_stats",
+                    callback=self.back_to_main_callback,
+                )
+            )
 
         elif self.current_page == "audit":
             # 審計記錄頁面組件
-            self.add_item(self.create_standard_button(
-                label="篩選記錄",
-                style="primary",
-                emoji="🔍",
-                custom_id="roas_currency_admin_filter_audit",
-                callback=self.filter_audit_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="上一頁",
-                style="secondary",
-                emoji="⬅️",
-                disabled=self.current_audit_page <= 0,
-                custom_id="roas_currency_admin_audit_prev",
-                callback=self.audit_prev_page_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="下一頁",
-                style="secondary",
-                emoji="➡️",
-                custom_id="roas_currency_admin_audit_next",
-                callback=self.audit_next_page_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="導出記錄",
-                style="danger",
-                emoji="📥",
-                custom_id="roas_currency_admin_export_audit",
-                callback=self.export_audit_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="返回主控台",
-                style="secondary",
-                emoji="🏠",
-                custom_id="roas_currency_admin_back_main_audit",
-                callback=self.back_to_main_callback
-            ))
+            self.add_item(
+                self.create_standard_button(
+                    label="篩選記錄",
+                    style="primary",
+                    emoji="🔍",
+                    custom_id="roas_currency_admin_filter_audit",
+                    callback=self.filter_audit_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="上一頁",
+                    style="secondary",
+                    emoji="⬅️",
+                    disabled=self.current_audit_page <= 0,
+                    custom_id="roas_currency_admin_audit_prev",
+                    callback=self.audit_prev_page_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="下一頁",
+                    style="secondary",
+                    emoji="➡️",
+                    custom_id="roas_currency_admin_audit_next",
+                    callback=self.audit_next_page_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="導出記錄",
+                    style="danger",
+                    emoji="📥",
+                    custom_id="roas_currency_admin_export_audit",
+                    callback=self.export_audit_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="返回主控台",
+                    style="secondary",
+                    emoji="🏠",
+                    custom_id="roas_currency_admin_back_main_audit",
+                    callback=self.back_to_main_callback,
+                )
+            )
 
         # 所有頁面都有的通用組件
-        self.add_item(RefreshButton(
-            style=discord.ButtonStyle.secondary,
-            custom_id="roas_currency_admin_refresh"
-        ))
-        self.add_item(CloseButton(
-            style=discord.ButtonStyle.danger,
-            custom_id="roas_currency_admin_close"
-        ))
+        self.add_item(
+            RefreshButton(
+                style=discord.ButtonStyle.secondary,
+                custom_id="roas_currency_admin_refresh",
+            )
+        )
+        self.add_item(
+            CloseButton(
+                style=discord.ButtonStyle.danger, custom_id="roas_currency_admin_close"
+            )
+        )
 
     async def start(self, interaction: discord.Interaction, page: str = "main"):
         """啟動面板並載入初始數據"""
@@ -318,7 +356,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 total_users=self.total_users_count,
                 total_transactions=self.total_audit_count,
                 admin_id=self.author_id,
-                guild_id=self.guild_id
+                guild_id=self.guild_id,
             )
             return await renderer.render()
 
@@ -334,14 +372,12 @@ class CurrencyAdminPanelView(StandardPanelView):
             embed = discord.Embed(
                 title="👥 用戶餘額管理",
                 description=f"第 {self.current_users_page + 1} 頁 • 共 {self.total_users_count} 位用戶",
-                color=discord.Color.blue()
+                color=discord.Color.blue(),
             )
 
             if not self.users_list:
                 embed.add_field(
-                    name="📝 用戶列表",
-                    value="沒有找到用戶資料",
-                    inline=False
+                    name="📝 用戶列表", value="沒有找到用戶資料", inline=False
                 )
             else:
                 user_lines = []
@@ -350,14 +386,10 @@ class CurrencyAdminPanelView(StandardPanelView):
                     balance = user.get("balance", 0)
                     rank = user.get("rank", 0)
 
-                    user_lines.append(
-                        f"**{rank}.** 用戶 {user_id}: {balance:,} 貨幣"
-                    )
+                    user_lines.append(f"**{rank}.** 用戶 {user_id}: {balance:,} 貨幣")
 
                 embed.add_field(
-                    name="📊 用戶列表",
-                    value="\n".join(user_lines),
-                    inline=False
+                    name="📊 用戶列表", value="\n".join(user_lines), inline=False
                 )
 
             embed.add_field(
@@ -367,7 +399,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                     "🔍 **搜尋用戶** - 按ID或名稱搜尋\n"
                     "📄 **分頁瀏覽** - 瀏覽所有用戶"
                 ),
-                inline=False
+                inline=False,
             )
 
             return embed
@@ -382,8 +414,7 @@ class CurrencyAdminPanelView(StandardPanelView):
         """構建經濟統計嵌入"""
         try:
             renderer = StatsEmbedRenderer(
-                guild_stats=self.guild_stats,
-                guild_id=self.guild_id
+                guild_stats=self.guild_stats, guild_id=self.guild_id
             )
             return await renderer.render()
 
@@ -399,14 +430,12 @@ class CurrencyAdminPanelView(StandardPanelView):
             embed = discord.Embed(
                 title="📋 交易記錄審計",
                 description=f"第 {self.current_audit_page + 1} 頁 • 共 {self.total_audit_count} 筆記錄",
-                color=discord.Color.purple()
+                color=discord.Color.purple(),
             )
 
             if not self.audit_records:
                 embed.add_field(
-                    name="📝 交易記錄",
-                    value="暫無交易記錄或功能開發中",
-                    inline=False
+                    name="📝 交易記錄", value="暫無交易記錄或功能開發中", inline=False
                 )
             else:
                 # 顯示交易記錄
@@ -416,9 +445,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                     record_lines.append("交易記錄格式化中...")
 
                 embed.add_field(
-                    name="📊 交易記錄",
-                    value="\n".join(record_lines),
-                    inline=False
+                    name="📊 交易記錄", value="\n".join(record_lines), inline=False
                 )
 
             embed.add_field(
@@ -428,7 +455,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                     "📥 **導出記錄** - 導出為CSV格式\n"
                     "📄 **分頁瀏覽** - 瀏覽所有記錄"
                 ),
-                inline=False
+                inline=False,
             )
 
             return embed
@@ -475,7 +502,9 @@ class CurrencyAdminPanelView(StandardPanelView):
     async def users_next_page_callback(self, interaction: discord.Interaction):
         """用戶管理下一頁回調"""
         # 檢查是否還有下一頁
-        max_page = (self.total_users_count + self.users_per_page - 1) // self.users_per_page - 1
+        max_page = (
+            self.total_users_count + self.users_per_page - 1
+        ) // self.users_per_page - 1
         if self.current_users_page < max_page:
             self.current_users_page += 1
             await self._load_users_page()
@@ -521,7 +550,9 @@ class CurrencyAdminPanelView(StandardPanelView):
 
     async def audit_next_page_callback(self, interaction: discord.Interaction):
         """審計記錄下一頁回調"""
-        max_page = (self.total_audit_count + self.audit_per_page - 1) // self.audit_per_page - 1
+        max_page = (
+            self.total_audit_count + self.audit_per_page - 1
+        ) // self.audit_per_page - 1
         if self.current_audit_page < max_page:
             self.current_audit_page += 1
             await self._load_audit_page()

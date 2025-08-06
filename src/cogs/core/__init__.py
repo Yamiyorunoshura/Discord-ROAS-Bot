@@ -24,6 +24,7 @@ __all__ = [
     "setup_module_logger",
 ]
 
+
 async def setup(bot: commands.Bot):
     """
     設置核心模組
@@ -45,4 +46,4 @@ async def setup(bot: commands.Bot):
     startup_manager = create_startup_manager(bot)
     bot.startup_manager = startup_manager
 
-    print("✅ [核心] 核心模組已載入")
+    # 核心模組載入完成 - 使用日誌記錄而非 print

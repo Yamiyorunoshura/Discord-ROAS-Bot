@@ -2,9 +2,14 @@
 反惡意連結保護模組 - 白名單面板Embed生成器
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 
-from ...main.main import AntiLink
+if TYPE_CHECKING:
+    from ...main.main import AntiLink
 
 
 class WhitelistEmbed:

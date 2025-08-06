@@ -26,6 +26,7 @@ class MonitoringLevel(Enum):
     DETAILED = "detailed"
     COMPREHENSIVE = "comprehensive"
 
+
 @dataclass
 class SystemMetrics:
     """系統指標"""
@@ -40,6 +41,7 @@ class SystemMetrics:
     disk_used_gb: float
     uptime_seconds: float
 
+
 @dataclass
 class PerformanceAlert:
     """性能警報"""
@@ -50,6 +52,7 @@ class PerformanceAlert:
     metric_name: str
     current_value: float
     threshold: float
+
 
 class PerformanceMonitor:
     """性能監控器 - 整合自performance_dashboard"""
@@ -139,7 +142,9 @@ class PerformanceMonitor:
 
                 # 清理舊警報
                 if len(self.alerts_history) > self.MAX_ALERTS_HISTORY:
-                    self.alerts_history = self.alerts_history[-self.CLEANUP_ALERTS_COUNT:]
+                    self.alerts_history = self.alerts_history[
+                        -self.CLEANUP_ALERTS_COUNT :
+                    ]
 
                 await asyncio.sleep(self.monitoring_interval)
 
@@ -332,13 +337,11 @@ class PerformanceMonitor:
                 },
             },
             "uptime_hours": (current.uptime_seconds / 3600) if current else 0,
-            "recent_alerts": len(
-                [
-                    a
-                    for a in self.alerts_history
-                    if (datetime.utcnow() - a.timestamp).total_seconds() < minutes * 60
-                ]
-            ),
+            "recent_alerts": len([
+                a
+                for a in self.alerts_history
+                if (datetime.utcnow() - a.timestamp).total_seconds() < minutes * 60
+            ]),
         }
 
     def get_alerts_summary(self, hours: int = 24) -> dict[str, Any]:
@@ -385,6 +388,7 @@ class PerformanceMonitor:
         await self.stop_monitoring()
         self.logger.info("性能監控器已關閉")
 
+
 class _MonitorSingleton:
     """性能監控器單例類"""
 
@@ -403,21 +407,26 @@ class _MonitorSingleton:
             await self._monitor.shutdown()
             self._monitor = None
 
+
 # 全域監控器單例實例
 _monitor_singleton = _MonitorSingleton()
+
 
 def get_performance_monitor() -> PerformanceMonitor:
     """獲取全域性能監控器實例"""
     return _monitor_singleton.get_monitor()
+
 
 async def start_global_monitoring() -> None:
     """啟動全域性能監控"""
     monitor = get_performance_monitor()
     await monitor.start_monitoring()
 
+
 async def stop_global_monitoring() -> None:
     """停止全域性能監控"""
     await _monitor_singleton.shutdown_monitor()
+
 
 __all__ = [
     "MonitoringLevel",

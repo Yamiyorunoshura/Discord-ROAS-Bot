@@ -32,6 +32,7 @@ MAX_FONT_SIZE = 100
 MIN_AVATAR_SIZE = 30
 MAX_AVATAR_SIZE = 200
 
+
 class TemplateStyle(Enum):
     """歡迎模板風格枚舉"""
 
@@ -40,6 +41,7 @@ class TemplateStyle(Enum):
     NEON = "neon"
     ELEGANT = "elegant"
     GAMING = "gaming"
+
 
 @dataclass
 class LayoutConfig:
@@ -54,6 +56,7 @@ class LayoutConfig:
     description_font_size: int
     decorative_elements: list[dict[str, Any]]
 
+
 @dataclass
 class WelcomeTemplate:
     """歡迎模板基類"""
@@ -66,6 +69,7 @@ class WelcomeTemplate:
     def get_layout(self) -> LayoutConfig:
         """獲取佈局配置"""
         raise NotImplementedError
+
 
 class DefaultTemplate(WelcomeTemplate):
     """默認歡迎模板 - Discord 風格"""
@@ -105,6 +109,7 @@ class DefaultTemplate(WelcomeTemplate):
             ],
         )
 
+
 class MinimalTemplate(WelcomeTemplate):
     """簡約歡迎模板"""
 
@@ -127,6 +132,7 @@ class MinimalTemplate(WelcomeTemplate):
             description_font_size=18,
             decorative_elements=[],
         )
+
 
 class NeonTemplate(WelcomeTemplate):
     """霓虹歡迎模板"""
@@ -159,6 +165,7 @@ class NeonTemplate(WelcomeTemplate):
                 }
             ],
         )
+
 
 class AvatarDownloader:
     """智能頭像下載器"""
@@ -341,6 +348,7 @@ class AvatarDownloader:
         if self.session and not self.session.closed:
             await self.session.close()
 
+
 class LayoutCalculator:
     """佈局計算器"""
 
@@ -387,6 +395,7 @@ class LayoutCalculator:
             )
 
         return base_layout
+
 
 class FontManager:
     """字體管理器"""
@@ -441,6 +450,7 @@ class FontManager:
         logger.warning("所有字體加載失敗,使用默認字體")
         return ImageFont.load_default()
 
+
 class TemplateManager:
     """模板管理器"""
 
@@ -462,6 +472,7 @@ class TemplateManager:
             WelcomeTemplate: 歡迎模板
         """
         return self.templates.get(style, self.templates[TemplateStyle.DEFAULT])
+
 
 class WelcomeRenderer:
     """歡迎圖片渲染器,負責生成歡迎圖片"""

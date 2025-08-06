@@ -24,6 +24,7 @@ from .audit_logger import AuditContext, AuditEventType, AuditSeverity
 
 logger = logging.getLogger(__name__)
 
+
 class PermissionLevel(Enum):
     """權限等級枚舉."""
 
@@ -31,6 +32,7 @@ class PermissionLevel(Enum):
     ELEVATED = "elevated"  # 提升權限
     ADMIN = "admin"  # 管理員權限
     SUPER_ADMIN = "super_admin"  # 超級管理員權限
+
 
 class OperationRisk(Enum):
     """操作風險等級."""
@@ -40,6 +42,7 @@ class OperationRisk(Enum):
     HIGH = "high"
     CRITICAL = "critical"
 
+
 class AuthenticationMethod(Enum):
     """認證方法."""
 
@@ -47,6 +50,7 @@ class AuthenticationMethod(Enum):
     TOKEN = "token"
     BIOMETRIC = "biometric"
     TWO_FACTOR = "two_factor"
+
 
 @dataclass
 class SecurityToken:
@@ -63,6 +67,7 @@ class SecurityToken:
     created_at: datetime = field(default_factory=datetime.utcnow)
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class PermissionGrant:
     """權限授予記錄."""
@@ -78,6 +83,7 @@ class PermissionGrant:
     revoked_by: int | None = None
     scope: set[str] = field(default_factory=set)  # 權限範圍
     conditions: dict[str, Any] = field(default_factory=dict)  # 授權條件
+
 
 @dataclass
 class SecurityChallenge:
@@ -97,6 +103,7 @@ class SecurityChallenge:
         default_factory=lambda: datetime.utcnow() + timedelta(minutes=10)
     )
     risk_level: OperationRisk = OperationRisk.MEDIUM
+
 
 @dataclass
 class OperationApproval:
@@ -125,6 +132,7 @@ class OperationApproval:
     required_approvers: int = 1
     current_approvers: set[int] = field(default_factory=set)
     approval_notes: list[str] = field(default_factory=list)
+
 
 class SecurityValidator:
     """安全權限驗證器.
@@ -707,7 +715,7 @@ class SecurityValidator:
 
         return approval
 
-    async def approve_operation(  # noqa: PLR0911
+    async def approve_operation(
         self, approval_id: str, approver_id: int, notes: str | None = None
     ) -> dict[str, Any]:
         """審批操作.
@@ -803,7 +811,7 @@ class SecurityValidator:
             }
 
     async def _check_existing_approval(
-        self, user_id: int, operation_type: str, context: dict[str, Any]  # noqa: ARG002
+        self, user_id: int, operation_type: str, context: dict[str, Any]
     ) -> OperationApproval | None:
         """檢查是否有現有的有效審批.
 
@@ -924,35 +932,29 @@ class SecurityValidator:
 
         return {
             **self._stats,
-            "active_tokens": len(
-                [
-                    t
-                    for t in self._security_tokens.values()
-                    if not t.used and t.expires_at > datetime.utcnow()
-                ]
-            ),
-            "pending_approvals": len(
-                [a for a in self._operation_approvals.values() if a.status == "pending"]
-            ),
-            "active_challenges": len(
-                [
-                    c
-                    for c in self._security_challenges.values()
-                    if not c.solved and c.expires_at > datetime.utcnow()
-                ]
-            ),
+            "active_tokens": len([
+                t
+                for t in self._security_tokens.values()
+                if not t.used and t.expires_at > datetime.utcnow()
+            ]),
+            "pending_approvals": len([
+                a for a in self._operation_approvals.values() if a.status == "pending"
+            ]),
+            "active_challenges": len([
+                c
+                for c in self._security_challenges.values()
+                if not c.solved and c.expires_at > datetime.utcnow()
+            ]),
             "total_permission_grants": sum(
                 len(grants) for grants in self._permission_grants.values()
             ),
             "active_permission_grants": sum(
-                len(
-                    [
-                        g
-                        for g in grants
-                        if not g.revoked
-                        and (g.expires_at is None or g.expires_at > datetime.utcnow())
-                    ]
-                )
+                len([
+                    g
+                    for g in grants
+                    if not g.revoked
+                    and (g.expires_at is None or g.expires_at > datetime.utcnow())
+                ])
                 for grants in self._permission_grants.values()
             ),
         }

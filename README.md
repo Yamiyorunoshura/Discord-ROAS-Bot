@@ -61,106 +61,230 @@
 
 ## 📋 系統需求
 
-- Python 3.12+
-- Discord.py 2.5.2+
-- 現代化 Python 工具鏈 (uv, ruff, etc.)
-- 其他依賴見 `pyproject.toml`
+- **Python**: 3.12+ (必須)
+- **Discord.py**: 2.5.2+
+- **現代化工具鏈**: uv, ruff, mypy, pytest 等
+- **構建工具**: Make (建議)
+- **資料庫**: PostgreSQL (生產環境) / SQLite (開發環境)
+- **容器化**: Docker + Docker Compose (可選)
+- **其他依賴**: 詳見 `pyproject.toml`
 
 ## 🛠️ 安裝指南
 
-### 📦 快速安裝
+### 📚 依賴說明
 
-#### Linux/macOS 自動安裝
-```bash
-# 下載並執行安裝腳本
-curl -sSL https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.sh | bash
+本專案使用現代化的 Python 工具鏈，主要依賴包括：
 
-# 或手動下載後執行
-wget https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.sh
-chmod +x install.sh
-./install.sh
-```
+#### 核心依賴
+- **discord.py** (2.5.2+): Discord API 整合
+- **SQLAlchemy** (2.0+): 資料庫 ORM
+- **alembic** (1.13+): 資料庫版本控制
+- **Pydantic** (2.5+): 配置管理和資料驗證
+- **numpy** (2.3.2+): 數值運算和效能優化
+- **Pillow** (11.2+): 圖片處理
+- **aiosqlite** (0.21+): 異步 SQLite 支援
 
-#### Windows PowerShell 自動安裝
-```powershell
-# 下載並執行安裝腳本
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.ps1" -OutFile "install.ps1"
-.\install.ps1
+#### 開發和品質工具
+- **pytest** (7.0+): 測試框架
+- **ruff** (0.1+): 靜態分析和格式化
+- **mypy** (1.7+): 型別檢查
+- **black** (24.0+): 程式碼格式化
+- **uv**: 現代化包管理器
 
-# 或一行執行
-powershell -c "irm https://raw.githubusercontent.com/Yamiyorunoshura/Discord-ROAS-Bot/main/scripts/install.ps1 | iex"
-```
+### 📦 推薦安裝方式
 
-### 🔧 手動安裝
-
-#### 1. 環境準備
+#### 使用 Makefile (推薦)
 ```bash
 # 克隆專案
 git clone <repository-url>
 cd "Discord ROAS Bot"
 
-# 安裝 uv (推薦的現代化包管理器)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# 或在 Windows 上
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+# 完整開發環境設置（一鍵安裝）
+make dev-setup
+
+# 這個指令會自動執行：
+# - 安裝 uv 包管理器
+# - 安裝所有依賴
+# - 設置開發環境
+# - 安裝 pre-commit hooks
+# - 初始化資料庫目錄
 ```
 
-#### 2. 安裝依賴
+### 🔧 手動安裝
+
+#### 1. 安裝 Make (如果尚未安裝)
 ```bash
-# 使用 uv 安裝 (推薦)
-uv sync
+# Ubuntu/Debian
+sudo apt install make
 
-# 或使用傳統 pip
-pip install -e .
+# macOS (使用 Homebrew)
+brew install make
+
+# Windows (使用 Chocolatey)
+choco install make
+
+# Windows (使用 winget)
+winget install GnuWin32.Make
 ```
 
-#### 3. 設定環境變數
+##### 2. 環境準備
+```bash
+# 克隆專案
+git clone <repository-url>
+cd "Discord ROAS Bot"
+
+# 使用 Make 安裝所有依賴
+make install
+
+# 或手動安裝 uv (現代化包管理器)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# Windows 上：powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+##### 3. 安裝項目依賴
+```bash
+# 方法 1：使用 Makefile (推薦)
+make dev
+
+# 方法 2：使用 uv 直接安裝
+uv sync --all-extras
+
+# 方法 3：使用傳統 pip
+pip install -e ".[dev]"
+```
+
+##### 4. 設定環境變數
 建立 `.env` 檔案：
 ```env
 DISCORD_TOKEN=your_discord_bot_token
 DISCORD_GUILD_ID=your_guild_id
 ENVIRONMENT=development
 LOG_LEVEL=INFO
+DATABASE_URL=sqlite:///data/bot.db
 ```
 
-#### 4. 設定配置
-使用新的配置系統（基於 Pydantic）：
-```python
-# config.yaml 或環境變數
-database:
-  url: "sqlite:///data/bot.db"
-discord:
-  token: "${DISCORD_TOKEN}"
-  guild_id: ${DISCORD_GUILD_ID}
-```
-
-#### 5. 啟動機器人
+##### 5. 初始化資料庫
 ```bash
-# 使用 CLI 命令
-adr-bot run
+# 使用 Makefile
+make db-init
 
-# 或直接執行
+# 或手動建立
+mkdir -p dbs data logs
+```
+
+##### 6. 驗證安裝
+```bash
+# 檢查程式碼品質
+make check
+
+# 執行測試
+make test
+
+# 驗證配置
+make validate-config
+```
+
+##### 7. 啟動機器人
+```bash
+# 開發模式啟動
+make run-dev
+
+# 或使用傳統方式
 python -m src.main
+```
+
+### 🎯 完整依賴安裝清單
+
+#### 核心運行時依賴
+```bash
+# 自動安裝 (通過 uv sync 或 pip install)
+discord.py>=2.5.2,<3.0.0          # Discord API 整合
+SQLAlchemy>=2.0.0,<3.0.0           # 資料庫 ORM
+alembic>=1.13.0,<2.0.0             # 資料庫遷移
+pydantic>=2.5.0,<3.0.0             # 配置管理
+pydantic-settings>=2.1.0,<3.0.0    # 設定管理
+PyYAML>=6.0.0,<7.0.0               # YAML 配置
+aiosqlite>=0.21.0,<1.0.0           # 異步 SQLite
+Pillow>=11.2.1,<12.0.0             # 圖片處理
+numpy>=2.3.2                       # 數值運算
+structlog>=23.2.0,<24.0.0          # 結構化日誌
+cachetools>=5.3.2,<6.0.0           # 快取工具
+typer>=0.12.0,<1.0.0               # CLI 介面
+rich>=13.7.0,<14.0.0               # 美化輸出
+```
+
+#### 開發和測試依賴
+```bash
+# 開發環境自動安裝 (通過 make dev)
+pytest>=7.0.0                      # 測試框架
+pytest-asyncio>=0.21.0             # 異步測試
+pytest-cov                         # 覆蓋率測試
+ruff>=0.1.0                        # 靜態分析
+mypy>=1.7.0                        # 型別檢查
+black>=24.0.0                      # 程式碼格式化
+pre-commit                         # Git hooks
+dpytest                            # Discord.py 測試
+```
+
+### 🔧 常用 Makefile 指令
+
+```bash
+# 🚀 環境管理
+make dev-setup        # 完整開發環境設置
+make install          # 安裝基本依賴
+make dev              # 安裝開發依賴
+make upgrade          # 升級所有依賴
+
+# 🧪 測試和品質檢查
+make test             # 執行測試
+make test-cov         # 執行測試並生成覆蓋率報告
+make lint             # 執行靜態分析
+make lint-strict      # 執行嚴格型別檢查
+make quality-check    # 綜合品質檢查
+make check            # 執行所有品質檢查
+
+# 🎯 代碼格式化
+make format           # 格式化程式碼
+make clean            # 清理暫存檔案
+
+# 🚀 運行和部署
+make run              # 啟動機器人
+make run-dev          # 開發模式啟動
+make docker-build     # 建構 Docker 映像
+make docker-run       # 在 Docker 中運行
+
+# 🗄️ 資料庫管理
+make db-init          # 初始化資料庫
+make db-migrate       # 執行資料庫遷移
+make db-backup        # 備份資料庫
+
+# 📊 監控和日誌
+make logs             # 查看日誌
+make status           # 查看狀態
 ```
 
 ### ⚡ 升級與維護
 
-#### 升級到新版本
+#### 升級依賴
 ```bash
-# Linux/macOS
-./scripts/upgrade.sh
+# 使用 Makefile (推薦)
+make upgrade
 
-# Windows
-.\scripts\upgrade.ps1
+# 手動升級
+uv lock --upgrade
+uv sync
 ```
 
-#### 回滾到舊版本
+#### 更新到新版本
 ```bash
-# Linux/macOS
-./scripts/upgrade.sh --rollback
+# 拉取最新程式碼
+git pull origin main
 
-# Windows
-.\scripts\upgrade.ps1 -Rollback
+# 重新安裝依賴
+make dev-setup
+
+# 執行資料庫遷移
+make db-migrate
 ```
 
 ### 📋 系統需求
@@ -175,14 +299,56 @@ python -m src.main
 
 安裝完成後，使用以下命令驗證：
 ```bash
-# 檢查版本
-discord-adr-bot --version
+# 檢查 Python 版本
+python --version  # 應該是 3.12+
+
+# 驗證 uv 安裝
+uv --version
+
+# 檢查專案依賴
+make check
 
 # 驗證配置
-discord-adr-bot validate-config
+make validate-config
 
-# 測試啟動
-discord-adr-bot run --dry-run
+# 執行測試確保一切正常
+make test
+
+# 檢查程式碼品質
+make quality-check
+```
+
+### 🐛 常見安裝問題
+
+#### Python 版本問題
+```bash
+# 如果 Python 版本過舊
+# Ubuntu/Debian
+sudo apt update
+sudo apt install python3.12 python3.12-venv
+
+# macOS
+brew install python@3.12
+
+# Windows
+# 從 python.org 下載 Python 3.12+
+```
+
+#### uv 安裝問題
+```bash
+# 如果 uv 安裝失敗，使用 pip 作為備用
+pip install uv
+
+# 或使用 pipx
+pipx install uv
+```
+
+#### Make 不可用
+```bash
+# 如果沒有 Make，可以手動執行指令
+uv sync --all-extras  # 代替 make dev
+uv run pytest         # 代替 make test
+uv run ruff check src  # 代替 make lint
 ```
 
 ### 📚 詳細文檔
@@ -194,16 +360,20 @@ discord-adr-bot run --dry-run
 
 ### CLI 命令
 ```bash
-# 啟動機器人
-adr-bot run
+# 機器人運行
+make run              # 生產模式啟動
+make run-dev          # 開發模式啟動
 
-# 查看狀態
-adr-bot status
+# 開發工具
+make test             # 執行測試
+make lint             # 代碼檢查
+make format           # 代碼格式化
+make quality-check    # 全面品質檢查
 
-# 開發模式
-adr-dev test          # 執行測試
-adr-dev lint          # 代碼檢查
-adr-dev format        # 代碼格式化
+# 監控和維護
+make logs             # 查看日誌
+make status           # 查看狀態
+make clean            # 清理暫存檔案
 ```
 
 ### Discord 命令
@@ -323,7 +493,7 @@ LOG_LEVEL = logging.INFO           # 日誌等級
 
 ---
 
-**版本**: v2.0.0  
-**最後更新**: 2025-07-28  
+**版本**: v2.3.0  
+**最後更新**: 2025-08-06  
 
 **維護者**: 愛琴海民主共和國科技部

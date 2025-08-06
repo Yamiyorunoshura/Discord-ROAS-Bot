@@ -1,0 +1,119 @@
+{
+  "auto_rollback_enabled": true,
+  "rollback_timeout": 300,
+  "health_check_retries": 3,
+  "health_check_interval": 30,
+  "environments": {
+    "development": {
+      "auto_rollback": false,
+      "require_confirmation": false,
+      "description": "開發環境 - 停用自動回滾",
+      "rollback_timeout": 120,
+      "notification_channels": ["#dev-alerts"]
+    },
+    "testing": {
+      "auto_rollback": true,
+      "require_confirmation": false,
+      "description": "測試環境 - 啟用自動回滾",
+      "rollback_timeout": 180,
+      "notification_channels": ["#testing-alerts", "#qa-team"]
+    },
+    "production": {
+      "auto_rollback": true,
+      "require_confirmation": false,
+      "description": "生產環境 - 快速自動回滾",
+      "rollback_timeout": 300,
+      "notification_channels": ["#prod-alerts", "#on-call"],
+      "escalation_enabled": true,
+      "escalation_delay": 300
+    }
+  },
+  "rollback_triggers": {
+    "quality_gate_failure": {
+      "enabled": true,
+      "priority": "high",
+      "description": "品質門檻檢查失敗時觸發"
+    },
+    "health_check_failure": {
+      "enabled": true,
+      "priority": "critical",
+      "description": "健康檢查失敗時觸發",
+      "consecutive_failures": 3
+    },
+    "performance_degradation": {
+      "enabled": true,
+      "priority": "medium",
+      "description": "效能下降時觸發",
+      "response_time_threshold": "2s",
+      "error_rate_threshold": "5%"
+    },
+    "manual_trigger": {
+      "enabled": true,
+      "priority": "high",
+      "description": "手動觸發回滾",
+      "require_reason": true
+    }
+  },
+  "rollback_strategies": {
+    "immediate": {
+      "description": "立即回滾到上一個版本",
+      "execution_time": "< 30s",
+      "use_cases": ["critical_failures", "security_issues"]
+    },
+    "gradual": {
+      "description": "漸進式回滾，逐步減少新版本流量",
+      "execution_time": "2-5 minutes",
+      "use_cases": ["performance_issues", "quality_degradation"]
+    },
+    "blue_green": {
+      "description": "藍綠部署回滾，切換到備用環境",
+      "execution_time": "1-2 minutes",
+      "use_cases": ["production_deployments"]
+    }
+  },
+  "backup_policies": {
+    "database": {
+      "create_backup_before_rollback": true,
+      "backup_retention": "7d",
+      "backup_compression": true
+    },
+    "configuration": {
+      "backup_config_files": true,
+      "backup_location": "backups/config",
+      "retention_policy": "30d"
+    },
+    "application_state": {
+      "backup_application_data": false,
+      "backup_user_sessions": false
+    }
+  },
+  "post_rollback_actions": {
+    "health_verification": {
+      "enabled": true,
+      "timeout": 120,
+      "endpoints_to_check": ["/health", "/health/ready"]
+    },
+    "smoke_tests": {
+      "enabled": true,
+      "test_suite": "smoke_tests",
+      "timeout": 180
+    },
+    "notification": {
+      "notify_team": true,
+      "create_incident": true,
+      "update_status_page": false
+    },
+    "documentation": {
+      "log_rollback_reason": true,
+      "create_post_mortem": false,
+      "update_runbook": false
+    }
+  },
+  "monitoring": {
+    "track_rollback_frequency": true,
+    "track_rollback_success_rate": true,
+    "alert_on_frequent_rollbacks": true,
+    "frequent_rollback_threshold": 3,
+    "frequent_rollback_timeframe": "24h"
+  }
+}

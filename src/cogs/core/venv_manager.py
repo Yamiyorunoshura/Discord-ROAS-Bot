@@ -28,6 +28,7 @@ error_handler = create_error_handler("venv_manager", logger)
 # 常數定義
 PYTHON_VERSION_3_12 = 12
 
+
 class VirtualEnvironmentManager:
     """
     智能虛擬環境管理器 (Python 3.12 兼容版)
@@ -200,7 +201,11 @@ class VirtualEnvironmentManager:
             # 尋找 lib/pythonX.Y 目錄
             lib_dir = venv_path / "lib"
             if lib_dir.exists():
-                py_dirs = [d.name for d in lib_dir.iterdir() if d.is_dir() and d.name.startswith("python")]
+                py_dirs = [
+                    d.name
+                    for d in lib_dir.iterdir()
+                    if d.is_dir() and d.name.startswith("python")
+                ]
                 if py_dirs and (lib_dir / py_dirs[0] / "site-packages").exists():
                     return True
 
@@ -309,9 +314,7 @@ class VirtualEnvironmentManager:
                 )
             except (AttributeError, TypeError) as e:
                 # Python 3.12 兼容性處理
-                logger.warning(
-                    f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法"
-                )
+                logger.warning(f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法")
                 # 使用傳統方法
                 process = await asyncio.create_subprocess_exec(
                     *cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -354,9 +357,7 @@ class VirtualEnvironmentManager:
                 )
             except (AttributeError, TypeError) as e:
                 # Python 3.12 兼容性處理
-                logger.warning(
-                    f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法"
-                )
+                logger.warning(f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法")
                 # 使用傳統方法
                 process = await asyncio.create_subprocess_exec(
                     *cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -472,9 +473,7 @@ class VirtualEnvironmentManager:
                 )
             except (AttributeError, TypeError) as e:
                 # Python 3.12 兼容性處理
-                logger.warning(
-                    f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法"
-                )
+                logger.warning(f"[虛擬環境]使用新的 asyncio API 失敗: {e},嘗試備選方法")
                 # 使用傳統方法
                 process = await asyncio.create_subprocess_exec(
                     *cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -561,7 +560,7 @@ class VirtualEnvironmentManager:
             if sys.version_info.minor >= PYTHON_VERSION_3_12:
                 # 檢查 asyncio 相關依賴
                 try:
-                    import aiohttp  # noqa: PLC0415
+                    import aiohttp
 
                     result["info"]["aiohttp_version"] = aiohttp.__version__
                 except (ImportError, AttributeError):
@@ -570,7 +569,7 @@ class VirtualEnvironmentManager:
 
                 # 檢查 discord.py
                 try:
-                    import discord  # noqa: PLC0415
+                    import discord
 
                     result["info"]["discord_version"] = discord.__version__
                 except (ImportError, AttributeError):
@@ -604,19 +603,21 @@ class VirtualEnvironmentManager:
         for package in critical_packages:
             try:
                 if package == "sqlite3":
-                    import sqlite3  # noqa: F401, PLC0415
+                    import sqlite3  # noqa: F401
                 elif package == "discord.py":
-                    import discord  # noqa: F401, PLC0415
+                    import discord  # noqa: F401
                 elif package == "aiohttp":
-                    import aiohttp  # noqa: F401, PLC0415
+                    import aiohttp  # noqa: F401
                 elif package == "asyncio":
-                    import asyncio  # noqa: F401, PLC0415
+                    import asyncio  # noqa: F401
             except ImportError:
                 missing_packages.append(package)
 
         return missing_packages
 
-    async def _handle_existing_venv(self, existing_venv: str, result: dict[str, Any]) -> bool:
+    async def _handle_existing_venv(
+        self, existing_venv: str, result: dict[str, Any]
+    ) -> bool:
         """處理現有虛擬環境"""
         result["steps"].append(f"檢測到現有虛擬環境: {existing_venv}")
 
@@ -644,7 +645,9 @@ class VirtualEnvironmentManager:
                 return False
         return False
 
-    async def _activate_current_venv(self, result: dict[str, Any], env_type: str = "") -> bool:
+    async def _activate_current_venv(
+        self, result: dict[str, Any], env_type: str = ""
+    ) -> bool:
         """激活當前虛擬環境"""
         success, message = self.activate_virtual_env(self.current_venv)
         if success:
@@ -727,7 +730,7 @@ class VirtualEnvironmentManager:
 
             # 記錄詳細診斷信息
             try:
-                import traceback  # noqa: PLC0415
+                import traceback
 
                 logger.error(f"[虛擬環境]異常詳情: {traceback.format_exc()}")
             except Exception:

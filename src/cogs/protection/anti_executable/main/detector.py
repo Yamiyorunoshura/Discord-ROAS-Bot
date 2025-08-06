@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("anti_executable")
 
+
 class ExecutableDetector:
     """可執行檔案檢測器"""
 

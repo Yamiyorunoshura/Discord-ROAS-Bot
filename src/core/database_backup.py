@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # 常數定義
 URL_PARTS_COUNT = 2
 
+
 class DatabaseBackupManager:
     """資料庫備份管理器."""
 
@@ -132,7 +133,10 @@ class DatabaseBackupManager:
             # 壓縮備份文件
             if self.compression:
                 compressed_file = backup_file.with_suffix(".sql.gz")
-                with backup_file.open("rb") as f_in, gzip.open(compressed_file, "wb") as f_out:
+                with (
+                    backup_file.open("rb") as f_in,
+                    gzip.open(compressed_file, "wb") as f_out,
+                ):
                     f_out.writelines(f_in)
 
                 backup_file.unlink()  # 刪除未壓縮的文件
@@ -252,6 +256,7 @@ class DatabaseBackupManager:
 
         return deleted_count
 
+
 class DataIntegrityValidator:
     """資料完整性驗證器."""
 
@@ -264,12 +269,12 @@ class DataIntegrityValidator:
         self.database_url = database_url
         self.engine: AsyncEngine | None = None
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> DataIntegrityValidator:
         """異步上下文管理器進入."""
         self.engine = create_async_engine(self.database_url)
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """異步上下文管理器退出."""
         if self.engine:
             await self.engine.dispose()
@@ -447,6 +452,7 @@ class DataIntegrityValidator:
             "table_checksums": await self.get_table_checksums(),
         }
 
+
 async def backup_and_validate_migration(
     database_url: str, backup_dir: str = "backups", retention_days: int = 30
 ) -> tuple[Path, dict[str, Any]]:
@@ -484,6 +490,7 @@ async def backup_and_validate_migration(
         logger.info(f"建立資料快照: {len(snapshot['table_counts'])} 個表格")
 
     return backup_file, snapshot
+
 
 async def validate_migration_success(
     database_url: str,
@@ -539,9 +546,10 @@ async def validate_migration_success(
         logger.info("遷移驗證成功")
         return True
 
+
 if __name__ == "__main__":
     # 測試腳本
-    async def main():
+    async def main() -> None:
         database_url = "postgresql+asyncpg://postgres:@localhost/discord_roas_bot"
 
         try:

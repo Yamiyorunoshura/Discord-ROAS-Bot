@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class PageSelector(discord.ui.Select):
     """頁面選擇器組件.
 
@@ -70,6 +71,7 @@ class PageSelector(discord.ui.Select):
             logger.error(f"[頁面選擇器]頁面切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class NavigationButton(discord.ui.Button):
     """導航按鈕組件.
 
@@ -107,6 +109,7 @@ class NavigationButton(discord.ui.Button):
             logger.error(f"[導航按鈕]頁面切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class RefreshButton(discord.ui.Button):
     """重新整理按鈕組件."""
 
@@ -130,6 +133,7 @@ class RefreshButton(discord.ui.Button):
             logger.error(f"[重新整理按鈕]重新整理失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class CloseButton(discord.ui.Button):
     """關閉按鈕組件."""
 
@@ -150,6 +154,7 @@ class CloseButton(discord.ui.Button):
         except Exception as e:
             logger.error(f"[關閉按鈕]關閉失敗: {e}")
             await self.panel.on_error(interaction, e, self)
+
 
 class BrowserCategorySelector(discord.ui.Select):
     """成就瀏覽頁面分類選擇器組件.
@@ -206,6 +211,7 @@ class BrowserCategorySelector(discord.ui.Select):
         except Exception as e:
             logger.error(f"[瀏覽分類選擇器]分類切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
+
 
 class BrowserPaginationButton(discord.ui.Button):
     """成就瀏覽頁面分頁按鈕組件.
@@ -266,6 +272,7 @@ class BrowserPaginationButton(discord.ui.Button):
             logger.error(f"[瀏覽分頁按鈕]分頁導航失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class AchievementBrowserDetailButton(discord.ui.Button):
     """成就詳情按鈕組件.
 
@@ -300,6 +307,7 @@ class AchievementBrowserDetailButton(discord.ui.Button):
         except Exception as e:
             logger.error(f"[成就詳情按鈕]顯示詳情失敗: {e}")
             await self.panel.on_error(interaction, e, self)
+
 
 class AchievementProgressIndicatorView:
     """成就進度指示器視圖組件.
@@ -367,6 +375,7 @@ class AchievementProgressIndicatorView:
 
         return f"[{filled}{empty}]"
 
+
 class AchievementCategorySelector(discord.ui.Select):
     """成就分類選擇器組件.
 
@@ -418,6 +427,7 @@ class AchievementCategorySelector(discord.ui.Select):
             logger.error(f"[分類選擇器]分類切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class AchievementStatusButton(discord.ui.Button):
     """成就狀態篩選按鈕組件.
 
@@ -459,6 +469,7 @@ class AchievementStatusButton(discord.ui.Button):
         except Exception as e:
             logger.error(f"[狀態篩選按鈕]狀態切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
+
 
 class PaginationButton(discord.ui.Button):
     """分頁導航按鈕組件.
@@ -519,6 +530,7 @@ class PaginationButton(discord.ui.Button):
             logger.error(f"[分頁按鈕]分頁導航失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class PersonalCategorySelector(discord.ui.Select):
     """個人成就分類選擇器組件.
 
@@ -578,6 +590,7 @@ class PersonalCategorySelector(discord.ui.Select):
             logger.error(f"[個人分類選擇器]分類切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class AchievementDetailModal(discord.ui.Modal):
     """成就詳情模態框組件.
 
@@ -625,6 +638,7 @@ class AchievementDetailModal(discord.ui.Modal):
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """模態框提交處理(關閉)."""
         await interaction.response.defer()
+
 
 class AchievementProgressIndicator:
     """成就進度指示器組件.
@@ -697,6 +711,7 @@ class AchievementProgressIndicator:
         empty = "░" * (length - filled_length)
 
         return f"{filled}{empty}"
+
 
 class ComponentFactory:
     """UI 組件工廠類.
@@ -977,6 +992,7 @@ class ComponentFactory:
             ),
         ]
 
+
 class LeaderboardTypeSelector(discord.ui.Select):
     """排行榜類型選擇器組件.
 
@@ -1045,6 +1061,7 @@ class LeaderboardTypeSelector(discord.ui.Select):
             logger.error(f"[排行榜類型選擇器]類型切換失敗: {e}")
             await self.panel.on_error(interaction, e, self)
 
+
 class LeaderboardPaginationButton(discord.ui.Button):
     """排行榜分頁按鈕組件.
 
@@ -1103,6 +1120,7 @@ class LeaderboardPaginationButton(discord.ui.Button):
         except Exception as e:
             logger.error(f"[排行榜分頁按鈕]分頁導航失敗: {e}")
             await self.panel.on_error(interaction, e, self)
+
 
 class ComponentManager:
     """組件管理器.

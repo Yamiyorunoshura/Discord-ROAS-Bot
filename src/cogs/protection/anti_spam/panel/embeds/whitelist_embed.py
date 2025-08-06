@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 # 常數定義
 MAX_DISPLAY_ITEMS = 10
 
+
 async def create_whitelist_embed(
     cog: "AntiSpam", guild: discord.Guild, whitelist_type: str = "user"
 ) -> discord.Embed:
@@ -36,6 +37,7 @@ async def create_whitelist_embed(
         return await _create_role_whitelist_embed(cog, guild)
     else:
         return await _create_overview_embed(cog, guild)
+
 
 async def _create_overview_embed(
     cog: "AntiSpam", guild: discord.Guild
@@ -77,6 +79,7 @@ async def _create_overview_embed(
 
     embed.set_footer(text="選擇要管理的白名單類型")
     return embed
+
 
 async def _create_user_whitelist_embed(
     cog: "AntiSpam", guild: discord.Guild
@@ -134,6 +137,7 @@ async def _create_user_whitelist_embed(
 
     embed.set_footer(text="白名單用戶可以無限制發送訊息")
     return embed
+
 
 async def _create_role_whitelist_embed(
     cog: "AntiSpam", guild: discord.Guild
@@ -202,6 +206,7 @@ async def _create_role_whitelist_embed(
     embed.set_footer(text="擁有白名單角色的用戶可以無限制發送訊息")
     return embed
 
+
 async def _get_user_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
     """
     獲取用戶白名單
@@ -222,6 +227,7 @@ async def _get_user_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
         return []
     except Exception:
         return []
+
 
 async def _get_role_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
     """
@@ -244,8 +250,9 @@ async def _get_role_whitelist(cog: "AntiSpam", guild_id: int) -> list[str]:
     except Exception:
         return []
 
+
 async def create_whitelist_management_embed(
-    cog: "AntiSpam",  # noqa: ARG001
+    cog: "AntiSpam",
     guild: discord.Guild,
     action: str,
     target_type: str,

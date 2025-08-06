@@ -12,6 +12,7 @@ from .services import register_welcome_services
 
 logger = setup_module_logger("welcome")
 
+
 async def setup(bot):
     """
     設置 Cog - 使用依賴注入架構

@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class EventTriggerContext:
     """事件觸發上下文.
@@ -64,6 +65,7 @@ class EventTriggerContext:
     batch_key: str | None = None
     """批量處理鍵(相同鍵的事件會被批量處理)"""
 
+
 @dataclass
 class TriggerResult:
     """觸發結果.
@@ -88,6 +90,7 @@ class TriggerResult:
 
     error: str | None = None
     """錯誤訊息"""
+
 
 class EventTriggerProcessor:
     """事件驅動觸發處理器.
@@ -341,15 +344,13 @@ class EventTriggerProcessor:
         processed_data = context.event_data.copy()
 
         # 添加標準化欄位
-        processed_data.update(
-            {
-                "event_type": context.event_type,
-                "timestamp": context.timestamp.isoformat(),
-                "user_id": context.user_id,
-                "guild_id": context.guild_id,
-                "channel_id": context.channel_id,
-            }
-        )
+        processed_data.update({
+            "event_type": context.event_type,
+            "timestamp": context.timestamp.isoformat(),
+            "user_id": context.user_id,
+            "guild_id": context.guild_id,
+            "channel_id": context.channel_id,
+        })
 
         # 根據事件類型進行特殊處理
         if context.event_type == "message_sent":
@@ -705,6 +706,7 @@ class EventTriggerProcessor:
             "last_reset": datetime.now(),
         }
         logger.info("處理統計已重置")
+
 
 __all__ = [
     "EventTriggerContext",

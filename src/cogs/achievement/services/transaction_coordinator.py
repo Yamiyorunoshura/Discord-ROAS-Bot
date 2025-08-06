@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class CoordinatorStatus(Enum):
     """協調器狀態枚舉."""
 
@@ -44,6 +45,7 @@ class CoordinatorStatus(Enum):
     BUSY = "busy"
     ERROR = "error"
     SHUTDOWN = "shutdown"
+
 
 @dataclass
 class CoordinatedOperation:
@@ -61,6 +63,7 @@ class CoordinatedOperation:
     completed_at: datetime | None = None
     success: bool = False
     error_message: str | None = None
+
 
 class TransactionCoordinator:
     """事務協調器.
@@ -578,9 +581,11 @@ class TransactionCoordinator:
 
                 except Exception as e:
                     logger.error(f"[事務協調器]批量操作失敗 用戶 {user_id}: {e}")
-                    results.append(
-                        {"user_id": user_id, "success": False, "error": str(e)}
-                    )
+                    results.append({
+                        "user_id": user_id,
+                        "success": False,
+                        "error": str(e),
+                    })
                     failed_operations += 1
 
             # 添加批量快取失效

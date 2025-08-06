@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # 常數定義
 MAX_RATE_LIMIT_SECONDS = 3600  # 最大頻率限制時間(1小時)
 
+
 class AchievementType(str, Enum):
     """成就類型列舉.
 
@@ -41,6 +42,7 @@ class AchievementType(str, Enum):
     MILESTONE = "milestone"
     TIME_BASED = "time_based"
     CONDITIONAL = "conditional"
+
 
 class AchievementCategory(BaseModel):
     """成就分類資料模型.
@@ -113,13 +115,20 @@ class AchievementCategory(BaseModel):
     def get_indent_display_name(self) -> str:
         """取得帶縮排的顯示名稱."""
         indent = "　" * self.level  # 使用全形空格縮排
-        return f"{indent}{self.icon_emoji} {self.name}" if self.icon_emoji else f"{indent}{self.name}"
+        return (
+            f"{indent}{self.icon_emoji} {self.name}"
+            if self.icon_emoji
+            else f"{indent}{self.name}"
+        )
 
     class Config:
         """Pydantic 模型配置."""
 
         from_attributes = True
-        json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat() if v else None}
+        json_encoders: ClassVar[dict[type, Any]] = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 
 class Achievement(BaseModel):
     """成就定義資料模型.
@@ -240,6 +249,7 @@ class Achievement(BaseModel):
             AchievementType: lambda v: v.value,
         }
 
+
 class UserAchievement(BaseModel):
     """用戶成就獲得記錄資料模型.
 
@@ -271,7 +281,10 @@ class UserAchievement(BaseModel):
         """Pydantic 模型配置."""
 
         from_attributes = True
-        json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat() if v else None}
+        json_encoders: ClassVar[dict[type, Any]] = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 
 class AchievementProgress(BaseModel):
     """成就進度追蹤資料模型.
@@ -350,7 +363,10 @@ class AchievementProgress(BaseModel):
         """Pydantic 模型配置."""
 
         from_attributes = True
-        json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat() if v else None}
+        json_encoders: ClassVar[dict[type, Any]] = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 
 class AchievementEventData(BaseModel):
     """成就事件資料模型.
@@ -468,7 +484,10 @@ class AchievementEventData(BaseModel):
         """Pydantic 模型配置."""
 
         from_attributes = True
-        json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat() if v else None}
+        json_encoders: ClassVar[dict[type, Any]] = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 
 # 用於快速建立測試資料的工廠函數
 def create_sample_achievement_category() -> AchievementCategory:
@@ -476,6 +495,7 @@ def create_sample_achievement_category() -> AchievementCategory:
     return AchievementCategory(
         name="social", description="社交互動相關成就", display_order=1, icon_emoji="👥"
     )
+
 
 def create_sample_achievement() -> Achievement:
     """建立範例成就資料."""
@@ -490,11 +510,13 @@ def create_sample_achievement() -> Achievement:
         is_hidden=False,
     )
 
+
 def create_sample_user_achievement(user_id: int = 123456789) -> UserAchievement:
     """建立範例用戶成就記錄."""
     return UserAchievement(
         user_id=user_id, achievement_id=1, earned_at=datetime.now(), notified=False
     )
+
 
 def create_sample_achievement_progress(user_id: int = 123456789) -> AchievementProgress:
     """建立範例成就進度記錄."""
@@ -505,6 +527,7 @@ def create_sample_achievement_progress(user_id: int = 123456789) -> AchievementP
         target_value=100.0,
         progress_data={"daily_interactions": [5, 8, 12, 10, 7], "streak_days": 5},
     )
+
 
 class NotificationPreference(BaseModel):
     """用戶通知偏好資料模型.
@@ -569,7 +592,10 @@ class NotificationPreference(BaseModel):
         """Pydantic 模型配置."""
 
         from_attributes = True
-        json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat() if v else None}
+        json_encoders: ClassVar[dict[type, Any]] = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 
 class GlobalNotificationSettings(BaseModel):
     """全域通知設定資料模型.
@@ -622,7 +648,10 @@ class GlobalNotificationSettings(BaseModel):
         """Pydantic 模型配置."""
 
         from_attributes = True
-        json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat() if v else None}
+        json_encoders: ClassVar[dict[type, Any]] = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 
 class NotificationEvent(BaseModel):
     """通知事件資料模型.
@@ -681,7 +710,10 @@ class NotificationEvent(BaseModel):
         """Pydantic 模型配置."""
 
         from_attributes = True
-        json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat() if v else None}
+        json_encoders: ClassVar[dict[type, Any]] = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 
 def create_sample_notification_preference(
     user_id: int = 123456789, guild_id: int = 987654321
@@ -695,6 +727,7 @@ def create_sample_notification_preference(
         notification_types=["milestone", "rare"],
     )
 
+
 def create_sample_global_notification_settings(
     guild_id: int = 987654321,
 ) -> GlobalNotificationSettings:
@@ -706,6 +739,7 @@ def create_sample_global_notification_settings(
         rate_limit_seconds=300,
         important_achievements_only=True,
     )
+
 
 __all__ = [
     "Achievement",

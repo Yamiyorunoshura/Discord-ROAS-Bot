@@ -49,6 +49,7 @@ except ImportError as e:
 
 __all__ = ["AntiExecutable", "AntiLink", "AntiSpam", "ProtectionCog"]
 
+
 # Discord.py 擴充功能載入入口點
 async def setup(bot):
     """

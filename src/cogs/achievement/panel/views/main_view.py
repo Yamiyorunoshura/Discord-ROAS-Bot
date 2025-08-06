@@ -31,6 +31,7 @@ MAX_LOAD_TIME_MS = 250  # 最大載入時間(毫秒)
 MAX_DROPDOWN_OPTIONS = 25  # Discord 下拉選單最大選項數
 MAX_INTERACTION_TIME_MS = 400  # 最大互動回應時間(毫秒)
 
+
 class MainAchievementPanelView(ui.View):
     """主成就面板視圖.
 
@@ -152,12 +153,12 @@ class MainAchievementPanelView(ui.View):
                         "user_id": self.user_id,
                         "guild_id": self.guild_id,
                         "load_time_ms": load_time,
-                    }
+                    },
                 )
             else:
                 logger.debug(
                     f"主面板載入完成:{load_time:.1f}ms",
-                    extra={"load_time_ms": load_time}
+                    extra={"load_time_ms": load_time},
                 )
 
         except Exception as e:
@@ -177,8 +178,7 @@ class MainAchievementPanelView(ui.View):
         try:
             self._category_tree = await self.achievement_service.get_category_tree()
             logger.debug(
-                "分類樹載入完成",
-                extra={"tree_size": len(self._category_tree)}
+                "分類樹載入完成", extra={"tree_size": len(self._category_tree)}
             )
         except Exception as e:
             logger.error(f"載入分類樹失敗: {e}")
@@ -187,11 +187,15 @@ class MainAchievementPanelView(ui.View):
     async def _load_initial_achievements(self) -> None:
         """載入初始成就資料."""
         try:
-            achievements = await self.achievement_service.list_achievements(active_only=True)
+            achievements = await self.achievement_service.list_achievements(
+                active_only=True
+            )
             self._achievements_cache["all"] = achievements
 
             # 載入用戶統計
-            user_stats = await self.achievement_service.get_user_achievement_stats(self.user_id)
+            user_stats = await self.achievement_service.get_user_achievement_stats(
+                self.user_id
+            )
             self._achievements_cache["user_stats"] = user_stats
 
             logger.debug(
@@ -199,7 +203,7 @@ class MainAchievementPanelView(ui.View):
                 extra={
                     "total_achievements": len(achievements),
                     "user_achievements": user_stats.get("total_achievements", 0),
-                }
+                },
             )
         except Exception as e:
             logger.error(f"載入初始成就資料失敗: {e}")
@@ -218,7 +222,9 @@ class MainAchievementPanelView(ui.View):
             ]
 
             # 遞歸添加分類選項
-            def add_category_options(tree_nodes: list[dict[str, Any]], level: int = 0) -> None:
+            def add_category_options(
+                tree_nodes: list[dict[str, Any]], level: int = 0
+            ) -> None:
                 for node in tree_nodes:
                     category: AchievementCategory = node["category"]
 
@@ -228,11 +234,15 @@ class MainAchievementPanelView(ui.View):
 
                     # 建立縮排顯示
                     indent = "　" * level  # 全形空格縮排
-                    display_name = f"{indent}{category.icon_emoji or '📁'} {category.name}"
+                    display_name = (
+                        f"{indent}{category.icon_emoji or '📁'} {category.name}"
+                    )
 
                     # 添加成就數量
                     achievement_count = node.get("achievement_count", 0)
-                    description = f"{category.description[:50]}... ({achievement_count} 個成就)"
+                    description = (
+                        f"{category.description[:50]}... ({achievement_count} 個成就)"
+                    )
 
                     options.append(
                         discord.SelectOption(
@@ -244,7 +254,9 @@ class MainAchievementPanelView(ui.View):
                     )
 
                     # 如果分類已展開,添加子分類
-                    if category.id in self._expanded_categories and node.get("children"):
+                    if category.id in self._expanded_categories and node.get(
+                        "children"
+                    ):
                         add_category_options(node["children"], level + 1)
 
             add_category_options(self._category_tree)
@@ -266,16 +278,14 @@ class MainAchievementPanelView(ui.View):
         try:
             # 基礎 Embed
             embed = StandardEmbedBuilder.create_info_embed(
-                "🏆 成就系統",
-                "瀏覽和追蹤您的成就進度"
+                "🏆 成就系統", "瀏覽和追蹤您的成就進度"
             )
 
             # 添加用戶資訊
             try:
                 user = self.interaction.user
                 embed.set_author(
-                    name=f"{user.display_name} 的成就",
-                    icon_url=user.display_avatar.url
+                    name=f"{user.display_name} 的成就", icon_url=user.display_avatar.url
                 )
             except Exception:
                 embed.set_author(name="成就面板")
@@ -286,30 +296,36 @@ class MainAchievementPanelView(ui.View):
             user_achievements = user_stats.get("total_achievements", 0)
             user_points = user_stats.get("total_points", 0)
 
-            completion_rate = (user_achievements / total_achievements * 100) if total_achievements > 0 else 0
+            completion_rate = (
+                (user_achievements / total_achievements * 100)
+                if total_achievements > 0
+                else 0
+            )
 
             embed.add_field(
                 name="📊 成就統計",
                 value=f"**已獲得**: {user_achievements}/{total_achievements}\n"
-                      f"**完成率**: {completion_rate:.1f}%\n"
-                      f"**總點數**: {user_points:,}",
-                inline=True
+                f"**完成率**: {completion_rate:.1f}%\n"
+                f"**總點數**: {user_points:,}",
+                inline=True,
             )
 
             # 添加分類資訊
             if self._current_category_id:
-                category = await self.achievement_service.get_category_by_id(self._current_category_id)
+                category = await self.achievement_service.get_category_by_id(
+                    self._current_category_id
+                )
                 if category:
                     embed.add_field(
                         name="📁 當前分類",
                         value=f"{category.icon_emoji} {category.name}\n{category.description}",
-                        inline=True
+                        inline=True,
                     )
             else:
                 embed.add_field(
                     name="📁 瀏覽模式",
                     value="📊 顯示所有成就\n選擇分類進行篩選",
-                    inline=True
+                    inline=True,
                 )
 
             recent_achievements = await self._get_recent_user_achievements(limit=3)
@@ -317,19 +333,15 @@ class MainAchievementPanelView(ui.View):
                 recent_text = "\n".join([
                     f"🏅 {ach.name}" for _, ach in recent_achievements
                 ])
-                embed.add_field(
-                    name="🏆 最近獲得",
-                    value=recent_text,
-                    inline=False
-                )
+                embed.add_field(name="🏆 最近獲得", value=recent_text, inline=False)
 
             # 添加操作指南
             embed.add_field(
                 name="💡 操作指南",
                 value="• 使用下拉選單選擇分類\n"
-                      "• 點擊 🔄 重新整理資料\n"
-                      "• 使用 ◀️ ▶️ 翻頁瀏覽",
-                inline=False
+                "• 點擊 🔄 重新整理資料\n"
+                "• 使用 ◀️ ▶️ 翻頁瀏覽",
+                inline=False,
             )
 
             # 設置 footer
@@ -342,11 +354,12 @@ class MainAchievementPanelView(ui.View):
         except Exception as e:
             logger.error(f"建立主面板 Embed 失敗: {e}")
             return StandardEmbedBuilder.create_error_embed(
-                "載入失敗",
-                "無法載入成就面板,請稍後再試"
+                "載入失敗", "無法載入成就面板,請稍後再試"
             )
 
-    async def _get_recent_user_achievements(self, limit: int = 3) -> list[tuple[Any, Achievement]]:
+    async def _get_recent_user_achievements(
+        self, limit: int = 3
+    ) -> list[tuple[Any, Achievement]]:
         """取得用戶最近獲得的成就.
 
         Args:
@@ -357,8 +370,7 @@ class MainAchievementPanelView(ui.View):
         """
         try:
             return await self.achievement_service.get_user_achievements(
-                user_id=self.user_id,
-                limit=limit
+                user_id=self.user_id, limit=limit
             )
         except Exception as e:
             logger.error(f"取得最近成就失敗: {e}")
@@ -378,7 +390,9 @@ class MainAchievementPanelView(ui.View):
         try:
             await interaction.response.defer()
 
-            selected_value = self.category_select.values[0] if self.category_select.values else "all"
+            selected_value = (
+                self.category_select.values[0] if self.category_select.values else "all"
+            )
 
             if selected_value == "all":
                 self._current_category_id = None
@@ -391,9 +405,7 @@ class MainAchievementPanelView(ui.View):
             # 更新顯示
             embed = await self.create_embed()
             await interaction.followup.edit_message(
-                interaction.message.id,
-                embed=embed,
-                view=self
+                interaction.message.id, embed=embed, view=self
             )
 
             # 效能監控
@@ -407,7 +419,7 @@ class MainAchievementPanelView(ui.View):
                         "user_id": self.user_id,
                         "category_id": self._current_category_id,
                         "interaction_time_ms": interaction_time,
-                    }
+                    },
                 )
 
             logger.debug(
@@ -415,7 +427,7 @@ class MainAchievementPanelView(ui.View):
                 extra={
                     "category_id": self._current_category_id,
                     "interaction_time_ms": interaction_time,
-                }
+                },
             )
 
         except Exception as e:
@@ -423,14 +435,15 @@ class MainAchievementPanelView(ui.View):
                 "處理分類選擇失敗",
                 extra={
                     "user_id": self.user_id,
-                    "selected_value": selected_value if 'selected_value' in locals() else "unknown",
+                    "selected_value": selected_value
+                    if "selected_value" in locals()
+                    else "unknown",
                     "error": str(e),
                 },
                 exc_info=True,
             )
             await interaction.followup.send(
-                "❌ 處理分類選擇時發生錯誤,請稍後再試",
-                ephemeral=True
+                "❌ 處理分類選擇時發生錯誤,請稍後再試", ephemeral=True
             )
 
     async def _load_category_achievements(self, category_id: int | None) -> None:
@@ -444,8 +457,7 @@ class MainAchievementPanelView(ui.View):
 
             if cache_key not in self._achievements_cache:
                 achievements = await self.achievement_service.list_achievements(
-                    category_id=category_id,
-                    active_only=True
+                    category_id=category_id, active_only=True
                 )
                 self._achievements_cache[cache_key] = achievements
 
@@ -454,7 +466,7 @@ class MainAchievementPanelView(ui.View):
                 extra={
                     "category_id": category_id,
                     "achievement_count": len(self._achievements_cache[cache_key]),
-                }
+                },
             )
 
         except Exception as e:
@@ -483,29 +495,22 @@ class MainAchievementPanelView(ui.View):
             # 更新顯示
             embed = await self.create_embed()
             await interaction.followup.edit_message(
-                interaction.message.id,
-                embed=embed,
-                view=self
+                interaction.message.id, embed=embed, view=self
             )
 
-            logger.info(
-                "成就面板重新整理完成",
-                extra={"user_id": self.user_id}
-            )
+            logger.info("成就面板重新整理完成", extra={"user_id": self.user_id})
 
         except Exception as e:
             logger.error(f"重新整理失敗: {e}")
             await interaction.followup.send(
-                "❌ 重新整理時發生錯誤,請稍後再試",
-                ephemeral=True
+                "❌ 重新整理時發生錯誤,請稍後再試", ephemeral=True
             )
 
     async def on_close(self, interaction: discord.Interaction) -> None:
         """處理關閉事件."""
         try:
             embed = StandardEmbedBuilder.create_info_embed(
-                "面板已關閉",
-                "✅ 成就面板已關閉,感謝使用!"
+                "面板已關閉", "✅ 成就面板已關閉,感謝使用!"
             )
 
             # 停用所有組件
@@ -517,7 +522,8 @@ class MainAchievementPanelView(ui.View):
             # 記錄使用統計
             avg_interaction_time = (
                 sum(self._interaction_times) / len(self._interaction_times)
-                if self._interaction_times else 0
+                if self._interaction_times
+                else 0
             )
 
             logger.info(
@@ -527,7 +533,7 @@ class MainAchievementPanelView(ui.View):
                     "session_duration": time.time() - self._load_start_time,
                     "interactions_count": len(self._interaction_times),
                     "avg_interaction_time_ms": avg_interaction_time,
-                }
+                },
             )
 
         except Exception as e:
@@ -541,17 +547,13 @@ class MainAchievementPanelView(ui.View):
                 item.disabled = True
 
             embed = StandardEmbedBuilder.create_warning_embed(
-                "面板已過期",
-                "⏰ 成就面板已過期,請重新開啟"
+                "面板已過期", "⏰ 成就面板已過期,請重新開啟"
             )
 
-            if self.interaction and hasattr(self.interaction, 'edit_original_response'):
+            if self.interaction and hasattr(self.interaction, "edit_original_response"):
                 await self.interaction.edit_original_response(embed=embed, view=self)
 
-            logger.debug(
-                "成就面板已超時",
-                extra={"user_id": self.user_id}
-            )
+            logger.debug("成就面板已超時", extra={"user_id": self.user_id})
 
         except Exception as e:
             logger.error(f"處理超時失敗: {e}")
@@ -568,16 +570,20 @@ class MainAchievementPanelView(ui.View):
         """
         avg_interaction_time = (
             sum(self._interaction_times) / len(self._interaction_times)
-            if self._interaction_times else 0
+            if self._interaction_times
+            else 0
         )
 
         return {
-            "load_time_ms": (time.time() - self._load_start_time) * 1000 if self._load_start_time else 0,
+            "load_time_ms": (time.time() - self._load_start_time) * 1000
+            if self._load_start_time
+            else 0,
             "interactions_count": len(self._interaction_times),
             "avg_interaction_time_ms": avg_interaction_time,
             "cache_size": len(self._achievements_cache),
             "expanded_categories": len(self._expanded_categories),
         }
+
 
 # 輔助函數
 async def create_main_achievement_panel(
@@ -615,11 +621,11 @@ async def create_main_achievement_panel(
 
         # 返回錯誤 Embed
         error_embed = StandardEmbedBuilder.create_error_embed(
-            "載入失敗",
-            "❌ 無法載入成就面板,請稍後再試"
+            "載入失敗", "❌ 無法載入成就面板,請稍後再試"
         )
 
         return error_embed, None
+
 
 __all__ = [
     "MainAchievementPanelView",
