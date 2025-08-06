@@ -21,6 +21,7 @@ from ...core.logger import setup_module_logger
 logger = setup_module_logger("sync_data.database")
 error_handler = create_error_handler("sync_data.database", logger)
 
+
 # ────────────────────────────
 # 服務接口定義
 # ────────────────────────────
@@ -90,8 +91,10 @@ class ISyncDataDatabase(Protocol):
         """獲取最後一次同步記錄"""
         ...
 
+
 # 獲取配置實例
 _settings = get_settings()
+
 
 class SyncDataDatabaseService:
     """
@@ -570,6 +573,7 @@ class SyncDataDatabaseService:
                 exc, f"獲取伺服器 {guild_id} 最後同步記錄", "DATABASE_ERROR"
             )
             return None
+
 
 # ────────────────────────────
 # 向後相容性支援

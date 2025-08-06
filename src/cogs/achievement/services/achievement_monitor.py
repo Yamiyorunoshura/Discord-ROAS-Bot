@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class MetricType(str, Enum):
     """指標類型."""
 
@@ -36,9 +37,10 @@ class MetricType(str, Enum):
     DATABASE_CONNECTIONS = "database_connections"
     ERROR_RATE = "error_rate"
 
+
 # 效能監控常數
 CRITICAL_CONNECTION_USAGE_THRESHOLD = 0.9  # 90%
-WARNING_CONNECTION_USAGE_THRESHOLD = 0.7   # 70%
+WARNING_CONNECTION_USAGE_THRESHOLD = 0.7  # 70%
 CRITICAL_RESPONSE_TIME_MS = 500
 WARNING_RESPONSE_TIME_MS = 200
 CRITICAL_SLOW_QUERY_RATE = 0.3
@@ -51,6 +53,7 @@ EXCELLENT_HEALTH_SCORE = 90
 GOOD_HEALTH_SCORE = 75
 FAIR_HEALTH_SCORE = 60
 POOR_HEALTH_SCORE = 40
+
 
 @dataclass
 class AchievementMetric:
@@ -74,6 +77,7 @@ class AchievementMetric:
     user_id: int | None = None
     """相關用戶 ID"""
 
+
 @dataclass
 class QueryMetrics:
     """查詢指標統計."""
@@ -85,6 +89,7 @@ class QueryMetrics:
     max_response_time: float = 0.0
     min_response_time: float = float("inf")
     last_reset: datetime = field(default_factory=datetime.now)
+
 
 class AchievementPerformanceMonitor(PerformanceMonitor):
     """成就系統效能監控器.
@@ -400,9 +405,9 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
                     "avg_ms": sum(values) / len(values),
                     "max_ms": max(values),
                     "min_ms": min(values),
-                    "slow_queries": len(
-                        [v for v in values if v >= self._slow_query_threshold]
-                    ),
+                    "slow_queries": len([
+                        v for v in values if v >= self._slow_query_threshold
+                    ]),
                 }
             elif metric_type == MetricType.CACHE_HIT_RATE:
                 hit_rate = sum(values) / len(values) if values else 0
@@ -665,6 +670,7 @@ class AchievementPerformanceMonitor(PerformanceMonitor):
     def get_metrics_count(self) -> int:
         """取得指標記錄數量."""
         return len(self._metrics_history)
+
 
 __all__ = [
     "AchievementMetric",

@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AdminControls:
     """管理員控制工廠類別."""
 
@@ -26,7 +27,7 @@ class AdminControls:
             label="⚙️ 管理",
             style=discord.ButtonStyle.danger,
             custom_id="roas_gov_manage",
-            row=3
+            row=3,
         )
 
     @staticmethod
@@ -36,17 +37,15 @@ class AdminControls:
             label="🔄 同步角色",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_sync_roles",
-            row=3
+            row=3,
         )
+
 
 class AdminManageModal(discord.ui.Modal):
     """管理員管理模態框."""
 
     def __init__(
-        self,
-        government_service: GovernmentService,
-        guild_id: int,
-        admin_id: int
+        self, government_service: GovernmentService, guild_id: int, admin_id: int
     ):
         """初始化管理模態框.
 
@@ -69,7 +68,7 @@ class AdminManageModal(discord.ui.Modal):
             min_length=4,
             max_length=10,
             style=discord.TextStyle.short,
-            required=True
+            required=True,
         )
         self.add_item(self.action_input)
 
@@ -80,7 +79,7 @@ class AdminManageModal(discord.ui.Modal):
             min_length=1,
             max_length=50,
             style=discord.TextStyle.short,
-            required=True
+            required=True,
         )
         self.add_item(self.department_input)
 
@@ -91,7 +90,7 @@ class AdminManageModal(discord.ui.Modal):
             min_length=0,
             max_length=20,
             style=discord.TextStyle.short,
-            required=False
+            required=False,
         )
         self.add_item(self.user_input)
 
@@ -100,7 +99,7 @@ class AdminManageModal(discord.ui.Modal):
             label="附加參數(可選)",
             placeholder="JSON 格式的附加參數,如描述等",
             style=discord.TextStyle.paragraph,
-            required=False
+            required=False,
         )
         self.add_item(self.params_input)
 
@@ -121,8 +120,7 @@ class AdminManageModal(discord.ui.Modal):
                     params = json.loads(params_str)
                 except json.JSONDecodeError:
                     await interaction.followup.send(
-                        "❌ 附加參數格式錯誤,請使用有效的 JSON 格式",
-                        ephemeral=True
+                        "❌ 附加參數格式錯誤,請使用有效的 JSON 格式", ephemeral=True
                     )
                     return
 
@@ -133,8 +131,7 @@ class AdminManageModal(discord.ui.Modal):
                     user_id = int(user_id_str)
                 except ValueError:
                     await interaction.followup.send(
-                        "❌ 使用者 ID 格式錯誤",
-                        ephemeral=True
+                        "❌ 使用者 ID 格式錯誤", ephemeral=True
                     )
                     return
 
@@ -147,7 +144,7 @@ class AdminManageModal(discord.ui.Modal):
                 embed = discord.Embed(
                     title="✅ 操作成功",
                     description=f"成功執行 `{action}` 操作",
-                    color=discord.Color.green()
+                    color=discord.Color.green(),
                 )
 
                 if isinstance(result, dict):
@@ -158,9 +155,7 @@ class AdminManageModal(discord.ui.Modal):
 
         except Exception as e:
             self.logger.error(f"管理操作失敗: {e}")
-            await interaction.followup.send(
-                f"❌ 操作失敗: {e!s}", ephemeral=True
-            )
+            await interaction.followup.send(f"❌ 操作失敗: {e!s}", ephemeral=True)
 
     async def _execute_action(
         self,
@@ -168,7 +163,7 @@ class AdminManageModal(discord.ui.Modal):
         department_name: str,
         user_id: int | None,
         params: dict[str, Any],
-        interaction: discord.Interaction
+        interaction: discord.Interaction,
     ) -> Any:
         """執行管理操作.
 
@@ -183,29 +178,18 @@ class AdminManageModal(discord.ui.Modal):
             操作結果
         """
         if action == "create":
-            return await self._create_department(
-                department_name, params, interaction
-            )
+            return await self._create_department(department_name, params, interaction)
         elif action == "update":
-            return await self._update_department(
-                department_name, params, interaction
-            )
+            return await self._update_department(department_name, params, interaction)
         elif action == "delete":
-            return await self._delete_department(
-                department_name, params, interaction
-            )
+            return await self._delete_department(department_name, params, interaction)
         elif action == "assign":
-            return await self._assign_role(
-                department_name, user_id, interaction
-            )
+            return await self._assign_role(department_name, user_id, interaction)
         else:
             raise ValueError(f"不支援的操作類型: {action}")
 
     async def _create_department(
-        self,
-        name: str,
-        params: dict[str, Any],
-        interaction: discord.Interaction  # noqa: ARG002
+        self, name: str, params: dict[str, Any], interaction: discord.Interaction
     ) -> dict[str, Any]:
         """創建部門."""
         description = params.get("description", "")
@@ -231,20 +215,17 @@ class AdminManageModal(discord.ui.Modal):
             description=description,
             parent_id=parent_id,
             actor_id=self.admin_id,
-            auto_create_role=auto_create_role
+            auto_create_role=auto_create_role,
         )
 
         return {
             "部門 ID": str(department.id)[:8],
             "部門名稱": department.name,
-            "角色 ID": department.role_id or "無"
+            "角色 ID": department.role_id or "無",
         }
 
     async def _update_department(
-        self,
-        name: str,
-        params: dict[str, Any],  # noqa: ARG002
-        interaction: discord.Interaction  # noqa: ARG002
+        self, name: str, params: dict[str, Any], interaction: discord.Interaction
     ) -> dict[str, Any]:
         """更新部門."""
         # 查找部門
@@ -260,16 +241,10 @@ class AdminManageModal(discord.ui.Modal):
 
         # 更新部門(這裡需要實作 update_department 方法)
         # 暫時返回基本資訊
-        return {
-            "部門 ID": str(department.id)[:8],
-            "狀態": "已更新(功能開發中)"
-        }
+        return {"部門 ID": str(department.id)[:8], "狀態": "已更新(功能開發中)"}
 
     async def _delete_department(
-        self,
-        name: str,
-        params: dict[str, Any],
-        interaction: discord.Interaction  # noqa: ARG002
+        self, name: str, params: dict[str, Any], interaction: discord.Interaction
     ) -> dict[str, Any]:
         """刪除部門."""
         # 查找部門
@@ -288,22 +263,16 @@ class AdminManageModal(discord.ui.Modal):
 
         # 刪除部門
         success = await self.service.delete_department(
-            department.id,
-            actor_id=self.admin_id,
-            force=force,
-            delete_role=delete_role
+            department.id, actor_id=self.admin_id, force=force, delete_role=delete_role
         )
 
-        return {
-            "部門名稱": name,
-            "刪除結果": "成功" if success else "失敗"
-        }
+        return {"部門名稱": name, "刪除結果": "成功" if success else "失敗"}
 
     async def _assign_role(
         self,
         department_name: str,
         user_id: int | None,
-        interaction: discord.Interaction
+        interaction: discord.Interaction,
     ) -> dict[str, Any]:
         """指派角色."""
         if not user_id:
@@ -337,11 +306,13 @@ class AdminManageModal(discord.ui.Modal):
             raise ValueError(f"找不到角色 ID: {department.role_id}")
 
         # 指派角色
-        await member.add_roles(role, reason=f"管理員 {interaction.user} 透過政府面板指派")
+        await member.add_roles(
+            role, reason=f"管理員 {interaction.user} 透過政府面板指派"
+        )
 
         return {
             "使用者": member.display_name,
             "部門": department_name,
             "角色": role.name,
-            "狀態": "已指派"
+            "狀態": "已指派",
         }

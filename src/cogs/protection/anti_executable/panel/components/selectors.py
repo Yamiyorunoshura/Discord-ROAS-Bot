@@ -2,10 +2,15 @@
 反可執行檔案保護模組 - 選擇器元件
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 from discord import ui
 
-from ..main_view import AntiExecutableMainView
+if TYPE_CHECKING:
+    from ..main_view import AntiExecutableMainView
 
 
 class PanelSelector(ui.Select):

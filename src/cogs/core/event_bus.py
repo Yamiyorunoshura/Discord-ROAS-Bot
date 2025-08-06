@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 EventHandler = Callable[["Event"], Awaitable[None]]
 
+
 class EventPriority(Enum):
     """事件優先級枚舉"""
 
@@ -47,6 +48,7 @@ class EventPriority(Enum):
     NORMAL = 2  # 普通優先級事件
     LOW = 3  # 低優先級事件
     BACKGROUND = 4  # 背景事件,最低優先級
+
 
 class EventStatus(Enum):
     """事件狀態枚舉"""
@@ -58,6 +60,7 @@ class EventStatus(Enum):
     CANCELLED = "cancelled"  # 已取消
     BATCHED = "batched"  # 已批處理
 
+
 class EventProcessingMode(Enum):
     """事件處理模式枚舉"""
 
@@ -65,6 +68,7 @@ class EventProcessingMode(Enum):
     BATCHED = "batched"  # 批處理
     SCHEDULED = "scheduled"  # 定時處理
     ADAPTIVE = "adaptive"  # 自適應處理
+
 
 @dataclass
 class Event:
@@ -153,6 +157,7 @@ class Event:
         except Exception:
             return len(str(self.data).encode("utf-8"))
 
+
 @dataclass
 class EventBatch:
     """事件批次"""
@@ -182,6 +187,7 @@ class EventBatch:
     def get_total_size(self) -> int:
         """獲取批次總大小"""
         return sum(event.get_size() for event in self.events)
+
 
 @dataclass
 class EventSubscription:
@@ -215,6 +221,7 @@ class EventSubscription:
                 return False
 
         return True
+
 
 class EventMetrics:
     """事件指標收集器"""
@@ -300,6 +307,7 @@ class EventMetrics:
                 else 0.0,
             }
 
+
 class EventRouter:
     """智能事件路由器"""
 
@@ -351,6 +359,7 @@ class EventRouter:
             else:
                 self.performance_cache[subscriber_id] = processing_time
 
+
 class EventCompressor:
     """事件壓縮器"""
 
@@ -389,6 +398,7 @@ class EventCompressor:
 
         return compressed_events
 
+
 class EventFilter:
     """事件過濾器工具類別"""
 
@@ -425,6 +435,7 @@ class EventFilter:
         """按關聯ID過濾"""
         return lambda event: event.correlation_id == correlation_id
 
+
 class EventPersistence(ABC):
     """事件持久化抽象基類"""
 
@@ -453,6 +464,7 @@ class EventPersistence(ABC):
     async def save_batch(self, batch: EventBatch) -> bool:
         """保存事件批次"""
         pass
+
 
 class MemoryEventPersistence(EventPersistence):
     """內存事件持久化實現"""
@@ -523,6 +535,7 @@ class MemoryEventPersistence(EventPersistence):
                 or (deleted_count := deleted_count + 1, False)[1]
             ]
             return deleted_count
+
 
 class EventBus:
     """高性能事件總線"""
@@ -1007,6 +1020,7 @@ class EventBus:
         finally:
             self.unsubscribe(subscription_id)
 
+
 class EventBusManager:
     """全域事件總線管理器"""
 
@@ -1029,16 +1043,20 @@ class EventBusManager:
                 await self._event_bus.shutdown()
                 self._event_bus = None
 
+
 # 全域管理器實例
 _event_bus_manager = EventBusManager()
+
 
 async def get_global_event_bus() -> EventBus:
     """獲取全域事件總線"""
     return await _event_bus_manager.get_event_bus()
 
+
 async def dispose_global_event_bus():
     """釋放全域事件總線"""
     await _event_bus_manager.dispose_event_bus()
+
 
 # 便捷函數
 async def publish_event(
@@ -1062,12 +1080,14 @@ async def publish_event(
     bus = await get_global_event_bus()
     return await bus.publish(event)
 
+
 async def publish_batch_events(events_data: list[dict[str, Any]]) -> bool:
     """批量發布事件的便捷函數"""
     events = [Event.from_dict(event_data) for event_data in events_data]
 
     bus = await get_global_event_bus()
     return await bus.publish_batch(events)
+
 
 def event_handler(
     event_types: list[str],
@@ -1091,7 +1111,7 @@ def event_handler(
         # 自動註冊處理器
         task = asyncio.create_task(wrapper())
         # 儲存task引用以避免被垃圾回收
-        if not hasattr(func, '_event_tasks'):
+        if not hasattr(func, "_event_tasks"):
             func._event_tasks = []
         func._event_tasks.append(task)
         return func

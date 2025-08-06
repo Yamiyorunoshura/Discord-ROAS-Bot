@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class BulkOperationResult:
     """批量操作結果."""
@@ -66,6 +67,7 @@ class BulkOperationResult:
             return 0.0
         return (self.success_count / self.total_count) * 100
 
+
 @dataclass
 class ValidationResult:
     """驗證結果."""
@@ -82,6 +84,7 @@ class ValidationResult:
     def add_warning(self, warning: str):
         """添加警告."""
         self.warnings.append(warning)
+
 
 class AchievementAdminService:
     """成就管理服務.
@@ -570,13 +573,17 @@ class AchievementAdminService:
         if not description:
             validation.add_error("成就描述不能為空")
         elif len(description) > ACHIEVEMENT_DESCRIPTION_MAX_LENGTH:
-            validation.add_error(f"成就描述不能超過 {ACHIEVEMENT_DESCRIPTION_MAX_LENGTH} 字元")
+            validation.add_error(
+                f"成就描述不能超過 {ACHIEVEMENT_DESCRIPTION_MAX_LENGTH} 字元"
+            )
 
         # 點數驗證
         points = data.get("points")
         if points is None:
             validation.add_error("成就點數不能為空")
-        elif not isinstance(points, int) or points < 0 or points > ACHIEVEMENT_POINTS_MAX:
+        elif (
+            not isinstance(points, int) or points < 0 or points > ACHIEVEMENT_POINTS_MAX
+        ):
             validation.add_error(f"成就點數必須為 0-{ACHIEVEMENT_POINTS_MAX} 的整數")
 
         # 類型驗證
@@ -599,8 +606,11 @@ class AchievementAdminService:
 
         # 徽章 URL 驗證(可選)
         badge_url = data.get("badge_url")
-        if (badge_url is not None and badge_url.strip() and
-            not badge_url.startswith(("http://", "https://"))):
+        if (
+            badge_url is not None
+            and badge_url.strip()
+            and not badge_url.startswith(("http://", "https://"))
+        ):
             validation.add_error("徽章 URL 格式無效")
 
         # ========== 獎勵身分組驗證(可選) ==========
@@ -609,7 +619,9 @@ class AchievementAdminService:
             if not isinstance(role_reward, str):
                 validation.add_error("獎勵身分組必須為字串格式")
             elif len(role_reward.strip()) > ACHIEVEMENT_ROLE_REWARD_MAX_LENGTH:
-                validation.add_error(f"獎勵身分組名稱不能超過 {ACHIEVEMENT_ROLE_REWARD_MAX_LENGTH} 字元")
+                validation.add_error(
+                    f"獎勵身分組名稱不能超過 {ACHIEVEMENT_ROLE_REWARD_MAX_LENGTH} 字元"
+                )
 
         # ========== 隱藏成就驗證(可選) ==========
         is_hidden = data.get("is_hidden")
@@ -1154,12 +1166,15 @@ class AchievementAdminService:
         if not description:
             validation.add_error("分類描述不能為空")
         elif len(description) > CATEGORY_DESCRIPTION_MAX_LENGTH:
-            validation.add_error(f"分類描述不能超過 {CATEGORY_DESCRIPTION_MAX_LENGTH} 字元")
+            validation.add_error(
+                f"分類描述不能超過 {CATEGORY_DESCRIPTION_MAX_LENGTH} 字元"
+            )
 
         # 顯示順序驗證
         display_order = data.get("display_order")
-        if (display_order is not None and
-            (not isinstance(display_order, int) or display_order < 0)):
+        if display_order is not None and (
+            not isinstance(display_order, int) or display_order < 0
+        ):
             validation.add_error("顯示順序必須為非負整數")
 
         # Validate icon emoji if provided

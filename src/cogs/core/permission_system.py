@@ -15,6 +15,7 @@ from typing import Any
 
 logger = logging.getLogger("permission_system")
 
+
 class UserRole(Enum):
     """用戶角色枚舉"""
 
@@ -22,6 +23,7 @@ class UserRole(Enum):
     DEVELOPER = "developer"  # 開發者
     TESTER = "tester"  # 測試者
     USER = "user"  # 普通用戶
+
 
 class ActionType(Enum):
     """操作類型枚舉"""
@@ -33,6 +35,7 @@ class ActionType(Enum):
     DELETE = "delete"  # 刪除操作
     CONFIGURE = "configure"  # 配置操作
 
+
 @dataclass
 class Permission:
     """權限數據結構"""
@@ -42,6 +45,7 @@ class Permission:
     resource: str | None = None
     conditions: dict[str, Any | None] = None
 
+
 @dataclass
 class PermissionCheck:
     """權限檢查結果"""
@@ -50,6 +54,7 @@ class PermissionCheck:
     reason: str = ""
     required_role: UserRole | None = None
     audit_log: dict[str, Any | None] = None
+
 
 class PermissionSystem:
     """

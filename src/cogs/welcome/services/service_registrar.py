@@ -21,6 +21,7 @@ from ..main.renderer import WelcomeRenderer
 
 logger = setup_module_logger("welcome.services")
 
+
 class WelcomeServiceRegistrar:
     """歡迎系統服務註冊器"""
 
@@ -87,6 +88,7 @@ class WelcomeServiceRegistrar:
         self.container.register_instance(IWelcomeRenderer, renderer_instance)
 
         logger.debug("渲染器服務已註冊")
+
 
 async def register_welcome_services(container: DependencyContainer) -> None:
     """

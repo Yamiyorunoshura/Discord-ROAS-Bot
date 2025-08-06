@@ -18,7 +18,7 @@ class PanelButtons:
             label="🔄 重新整理",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_refresh",
-            row=0
+            row=0,
         )
 
     @staticmethod
@@ -28,7 +28,7 @@ class PanelButtons:
             label="🔍 搜尋",
             style=discord.ButtonStyle.primary,
             custom_id="roas_gov_search",
-            row=0
+            row=0,
         )
 
     @staticmethod
@@ -38,7 +38,7 @@ class PanelButtons:
             label="📋 篩選",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_filter",
-            row=0
+            row=0,
         )
 
     @staticmethod
@@ -48,7 +48,7 @@ class PanelButtons:
             label="◀️ 上一頁",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_prev",
-            row=1
+            row=1,
         )
 
     @staticmethod
@@ -58,15 +58,17 @@ class PanelButtons:
             label="下一頁 ▶️",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_next",
-            row=1
+            row=1,
         )
 
     @staticmethod
-    def create_department_select_button(department_id: str, department_name: str) -> discord.ui.Button:
+    def create_department_select_button(
+        department_id: str, department_name: str
+    ) -> discord.ui.Button:
         """創建部門選擇按鈕."""
         return discord.ui.Button(
             label=f"📁 {department_name}",
             style=discord.ButtonStyle.secondary,
             custom_id=f"roas_gov_select_{department_id}",
-            row=2
+            row=2,
         )

@@ -37,6 +37,7 @@ from .embeds.settings_embed import build_settings_embed
 logger = setup_module_logger("welcome.panel")
 error_handler = create_error_handler("welcome.panel", logger)
 
+
 # 定義UI組件接口
 class IUIComponentFactory(Protocol):
     """UI組件工廠接口"""
@@ -47,6 +48,7 @@ class IUIComponentFactory(Protocol):
         cog: "WelcomeCog",
         panel_msg: discord.Message | None = None,
     ) -> discord.ui.Modal: ...
+
 
 class UIComponentFactory:
     """UI組件工廠實現"""
@@ -87,6 +89,7 @@ class UIComponentFactory:
             raise ValueError(f"未知的對話框類型: {modal_type}")
 
         return modal_map[modal_type](cog, panel_msg)
+
 
 class SettingsView(discord.ui.View):
     """歡迎系統設定面板視圖 - 重構版本"""

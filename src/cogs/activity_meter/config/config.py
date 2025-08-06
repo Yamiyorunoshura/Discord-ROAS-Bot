@@ -44,8 +44,9 @@ WELCOME_DEFAULT_FONT = _settings.get_font_path("NotoSansCJKtc-Regular.otf")
 DAY_FMT = "%Y%m%d"  # 日期格式(用於資料庫)
 MONTH_FMT = "%Y%m"  # 月份格式(用於資料庫)
 
+
 # 權限檢查函數
-def is_allowed(inter, command_name):  # noqa: ARG001
+def is_allowed(inter, command_name):
     """檢查用戶是否有權限執行指定指令"""
     if not inter.guild:
         return False

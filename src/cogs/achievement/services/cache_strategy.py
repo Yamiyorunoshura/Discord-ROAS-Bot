@@ -179,14 +179,12 @@ class AchievementCacheStrategy:
                 "update_achievement",
                 "delete_achievement",
             ]:
-                patterns.extend(
-                    [
-                        "achievement:",
-                        "achievements:",
-                        "global_stats",
-                        "popular_achievements",
-                    ]
-                )
+                patterns.extend([
+                    "achievement:",
+                    "achievements:",
+                    "global_stats",
+                    "popular_achievements",
+                ])
 
                 # 如果有分類 ID,也無效化分類相關快取
                 if "category_id" in kwargs:
@@ -202,15 +200,13 @@ class AchievementCacheStrategy:
             elif operation_type in ["award_achievement", "update_progress"]:
                 user_id = kwargs.get("user_id")
                 if user_id:
-                    patterns.extend(
-                        [
-                            f"user_achievements:{user_id}",
-                            f"user_progress:{user_id}",
-                            f"user_stats:{user_id}",
-                            "global_stats",
-                            "leaderboard",
-                        ]
-                    )
+                    patterns.extend([
+                        f"user_achievements:{user_id}",
+                        f"user_progress:{user_id}",
+                        f"user_stats:{user_id}",
+                        "global_stats",
+                        "leaderboard",
+                    ])
 
             return patterns
 
@@ -253,14 +249,12 @@ class CacheInvalidationManager:
 
         # 記錄無效化歷史
         if removed_count > 0:
-            self._invalidation_history.append(
-                {
-                    "timestamp": logger.name,  # 使用 logger 名稱作為時間戳
-                    "patterns": patterns,
-                    "removed_count": removed_count,
-                    "removed_keys": keys_to_remove,
-                }
-            )
+            self._invalidation_history.append({
+                "timestamp": logger.name,  # 使用 logger 名稱作為時間戳
+                "patterns": patterns,
+                "removed_count": removed_count,
+                "removed_keys": keys_to_remove,
+            })
 
             logger.debug(
                 "快取無效化完成",
@@ -358,27 +352,29 @@ class PerformanceOptimizer:
             hit_rate = stat["hit_rate"]
             total_requests = stat["total_requests"]
 
-            if hit_rate < FAIR_HIT_RATE and total_requests > MIN_REQUEST_COUNT_FOR_ADJUSTMENT:
-                suggestions.append(
-                    {
-                        "cache_type": cache_type,
-                        "issue": "low_hit_rate",
-                        "current_hit_rate": hit_rate,
-                        "suggestion": f"考慮增加 {cache_type} 快取的 TTL 或調整快取策略",
-                        "priority": "high" if hit_rate < POOR_HIT_RATE else "medium",
-                    }
-                )
+            if (
+                hit_rate < FAIR_HIT_RATE
+                and total_requests > MIN_REQUEST_COUNT_FOR_ADJUSTMENT
+            ):
+                suggestions.append({
+                    "cache_type": cache_type,
+                    "issue": "low_hit_rate",
+                    "current_hit_rate": hit_rate,
+                    "suggestion": f"考慮增加 {cache_type} 快取的 TTL 或調整快取策略",
+                    "priority": "high" if hit_rate < POOR_HIT_RATE else "medium",
+                })
 
-            if total_requests > HIGH_REQUEST_COUNT_THRESHOLD and hit_rate > EXCELLENT_HIT_RATE:
-                suggestions.append(
-                    {
-                        "cache_type": cache_type,
-                        "issue": "over_caching",
-                        "current_hit_rate": hit_rate,
-                        "suggestion": f"{cache_type} 快取效率很高,可以考慮增加快取大小以支援更多資料",
-                        "priority": "low",
-                    }
-                )
+            if (
+                total_requests > HIGH_REQUEST_COUNT_THRESHOLD
+                and hit_rate > EXCELLENT_HIT_RATE
+            ):
+                suggestions.append({
+                    "cache_type": cache_type,
+                    "issue": "over_caching",
+                    "current_hit_rate": hit_rate,
+                    "suggestion": f"{cache_type} 快取效率很高,可以考慮增加快取大小以支援更多資料",
+                    "priority": "low",
+                })
 
         return suggestions
 

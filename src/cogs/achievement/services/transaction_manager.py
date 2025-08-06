@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class TransactionStatus(Enum):
     """事務狀態枚舉."""
 
@@ -37,6 +38,7 @@ class TransactionStatus(Enum):
     ROLLED_BACK = "rolled_back"
     FAILED = "failed"
 
+
 class OperationType(Enum):
     """操作類型枚舉."""
 
@@ -47,6 +49,7 @@ class OperationType(Enum):
     BULK_GRANT = "bulk_grant"
     BULK_REVOKE = "bulk_revoke"
     BULK_RESET = "bulk_reset"
+
 
 @dataclass
 class TransactionOperation:
@@ -62,6 +65,7 @@ class TransactionOperation:
     executed_at: datetime | None = None
     rollback_executed: bool = False
 
+
 @dataclass
 class CacheInvalidation:
     """快取失效記錄."""
@@ -69,6 +73,7 @@ class CacheInvalidation:
     cache_type: str
     cache_keys: set[str] = field(default_factory=set)
     invalidated: bool = False
+
 
 @dataclass
 class DataIntegrityCheck:
@@ -81,6 +86,7 @@ class DataIntegrityCheck:
     actual_state: dict[str, Any] = field(default_factory=dict)
     passed: bool = False
     error_message: str | None = None
+
 
 @dataclass
 class Transaction:
@@ -96,6 +102,7 @@ class Transaction:
     completed_at: datetime | None = None
     error_message: str | None = None
     rollback_reason: str | None = None
+
 
 class TransactionManager:
     """事務管理器.
@@ -464,10 +471,12 @@ class TransactionManager:
                         operation.user_id, operation.achievement_id, operation.old_value
                     )
 
-            elif operation.operation_type == OperationType.RESET_USER_DATA and operation.old_value and isinstance(operation.old_value, dict):
-                await self._restore_user_data(
-                    operation.user_id, operation.old_value
-                )
+            elif (
+                operation.operation_type == OperationType.RESET_USER_DATA
+                and operation.old_value
+                and isinstance(operation.old_value, dict)
+            ):
+                await self._restore_user_data(operation.user_id, operation.old_value)
 
             logger.debug(
                 "[事務管理器]操作回滾成功",
@@ -506,9 +515,7 @@ class TransactionManager:
                 invalidation.invalidated = True
 
             except Exception as e:
-                logger.error(
-                    f"[事務管理器]快取失效失敗 {invalidation.cache_type}: {e}"
-                )
+                logger.error(f"[事務管理器]快取失效失敗 {invalidation.cache_type}: {e}")
                 raise
 
         self._stats["cache_invalidations"] += invalidation_count
@@ -662,13 +669,11 @@ class TransactionManager:
             logger.info(f"[事務管理器]用戶資料恢復完成: {user_id}")
 
         except Exception as e:
-            logger.error(
-                f"[事務管理器]用戶資料恢復失敗 {user_id}: {e}", exc_info=True
-            )
+            logger.error(f"[事務管理器]用戶資料恢復失敗 {user_id}: {e}", exc_info=True)
             raise
 
     async def _trigger_stats_update(
-        self, stat_type: str, transaction: Transaction  # noqa: ARG002
+        self, stat_type: str, transaction: Transaction
     ) -> None:
         """觸發統計更新.
 
@@ -713,21 +718,19 @@ class TransactionManager:
         """
         transactions = []
         for transaction in self._active_transactions.values():
-            transactions.append(
-                {
-                    "transaction_id": transaction.transaction_id,
-                    "status": transaction.status.value,
-                    "operations_count": len(transaction.operations),
-                    "created_at": transaction.created_at.isoformat(),
-                    "started_at": transaction.started_at.isoformat()
-                    if transaction.started_at
-                    else None,
-                    "duration_seconds": (
-                        datetime.utcnow() - transaction.started_at
-                    ).total_seconds()
-                    if transaction.started_at
-                    else 0,
-                }
-            )
+            transactions.append({
+                "transaction_id": transaction.transaction_id,
+                "status": transaction.status.value,
+                "operations_count": len(transaction.operations),
+                "created_at": transaction.created_at.isoformat(),
+                "started_at": transaction.started_at.isoformat()
+                if transaction.started_at
+                else None,
+                "duration_seconds": (
+                    datetime.utcnow() - transaction.started_at
+                ).total_seconds()
+                if transaction.started_at
+                else 0,
+            })
 
         return transactions

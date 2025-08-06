@@ -18,6 +18,7 @@ from src.cogs.core.base_cog import StandardEmbedBuilder
 
 logger = logging.getLogger(__name__)
 
+
 class AdminHelpSystem:
     """管理面板幫助系統."""
 
@@ -92,6 +93,7 @@ class AdminHelpSystem:
         embed.set_footer(text="💡 提示:點擊下方按鈕查看詳細說明")
         return embed
 
+
 class HelpOverviewView(ui.View):
     """幫助概覽視圖."""
 
@@ -117,7 +119,9 @@ class HelpOverviewView(ui.View):
         await interaction.response.edit_message(embed=embed, view=view)
 
     @ui.button(label="💡 最佳實踐", style=discord.ButtonStyle.secondary, emoji="💡")
-    async def best_practices(self, interaction: discord.Interaction, _button: ui.Button):
+    async def best_practices(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """顯示最佳實踐."""
         embed = await self._create_best_practices_embed()
         view = BestPracticesView(self.help_system)
@@ -131,7 +135,9 @@ class HelpOverviewView(ui.View):
         await interaction.response.edit_message(embed=embed, view=view)
 
     @ui.button(label="🔒 安全須知", style=discord.ButtonStyle.danger, emoji="🔒")
-    async def security_guide(self, interaction: discord.Interaction, _button: ui.Button):
+    async def security_guide(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """顯示安全須知."""
         embed = await self._create_security_guide_embed()
         view = SecurityGuideView(self.help_system)
@@ -351,6 +357,7 @@ class HelpOverviewView(ui.View):
 
         return embed
 
+
 class QuickStartView(ui.View):
     """快速開始視圖."""
 
@@ -366,6 +373,7 @@ class QuickStartView(ui.View):
         embed = await self.help_system._create_help_overview_embed()
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
+
 
 class FeatureGuideView(ui.View):
     """功能詳解視圖."""
@@ -515,6 +523,7 @@ class FeatureGuideView(ui.View):
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
+
 class BestPracticesView(ui.View):
     """最佳實踐視圖."""
 
@@ -531,6 +540,7 @@ class BestPracticesView(ui.View):
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
+
 class FAQView(ui.View):
     """常見問題視圖."""
 
@@ -546,6 +556,7 @@ class FAQView(ui.View):
         embed = await self.help_system._create_help_overview_embed()
         view = HelpOverviewView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
+
 
 class SecurityGuideView(ui.View):
     """安全須知視圖."""

@@ -24,20 +24,24 @@ from src.core.database.postgresql import BaseRepository
 
 logger = logging.getLogger(__name__)
 
+
 class CurrencyTransferError(Exception):
     """轉帳錯誤基礎類別."""
 
     pass
+
 
 class InsufficientFundsError(CurrencyTransferError):
     """餘額不足錯誤."""
 
     pass
 
+
 class ConcurrencyError(CurrencyTransferError):
     """並發衝突錯誤."""
 
     pass
+
 
 class CurrencyRepository(BaseRepository):
     """貨幣 Repository 擴展實作.
@@ -227,28 +231,24 @@ class CurrencyRepository(BaseRepository):
                 }
 
                 from_wallet.extra_data.setdefault("recent_transactions", [])
-                from_wallet.extra_data["recent_transactions"].append(
-                    {
-                        **transaction_data,
-                        "type": "transfer_out",
-                        "amount": -amount,
-                        "to_user_id": to_user_id,
-                    }
-                )
+                from_wallet.extra_data["recent_transactions"].append({
+                    **transaction_data,
+                    "type": "transfer_out",
+                    "amount": -amount,
+                    "to_user_id": to_user_id,
+                })
                 # 保留最近 10 筆交易
                 from_wallet.extra_data["recent_transactions"] = from_wallet.extra_data[
                     "recent_transactions"
                 ][-10:]
 
                 to_wallet.extra_data.setdefault("recent_transactions", [])
-                to_wallet.extra_data["recent_transactions"].append(
-                    {
-                        **transaction_data,
-                        "type": "transfer_in",
-                        "amount": amount,
-                        "from_user_id": from_user_id,
-                    }
-                )
+                to_wallet.extra_data["recent_transactions"].append({
+                    **transaction_data,
+                    "type": "transfer_in",
+                    "amount": amount,
+                    "from_user_id": from_user_id,
+                })
                 to_wallet.extra_data["recent_transactions"] = to_wallet.extra_data[
                     "recent_transactions"
                 ][-10:]
@@ -485,6 +485,7 @@ class CurrencyRepository(BaseRepository):
                 f"檢查交易 ID 失敗: transaction_id={transaction_id}, error={e}"
             )
             return False
+
 
 __all__ = [
     "ConcurrencyError",

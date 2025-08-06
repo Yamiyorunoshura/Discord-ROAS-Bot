@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class NotificationPreferencesView(discord.ui.View):
     """通知偏好設定面板視圖."""
 
@@ -305,6 +306,7 @@ class NotificationPreferencesView(discord.ui.View):
 
         return embed
 
+
 class NotificationTypeSelectView(discord.ui.View):
     """通知類型選擇視圖."""
 
@@ -348,6 +350,7 @@ class NotificationTypeSelectView(discord.ui.View):
         except Exception as e:
             logger.error(f"儲存通知類型偏好失敗: {e}")
             raise
+
 
 class NotificationTypeSelect(discord.ui.Select):
     """通知類型選擇選單."""
@@ -467,6 +470,7 @@ class NotificationTypeSelect(discord.ui.Select):
                 "❌ 設定更新失敗,請稍後再試.", ephemeral=True
             )
 
+
 async def create_notification_preferences_panel(
     user_id: int, guild_id: int, repository: AchievementRepository
 ) -> tuple[discord.Embed, NotificationPreferencesView]:
@@ -507,6 +511,7 @@ async def create_notification_preferences_panel(
         )
 
         return error_embed, None
+
 
 __all__ = [
     "NotificationPreferencesView",

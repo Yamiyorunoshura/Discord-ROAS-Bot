@@ -41,6 +41,7 @@ GOOD_SLOW_QUERY_RATIO = 0.2  # 良好慢查詢比例
 FAIR_SLOW_QUERY_RATIO = 0.3  # 一般慢查詢比例
 POOR_SLOW_QUERY_RATIO = 0.5  # 差勁慢查詢比例
 
+
 class QueryType(str, Enum):
     """查詢類型列舉."""
 
@@ -49,6 +50,7 @@ class QueryType(str, Enum):
     USER_PROGRESS = "user_progress"
     STATS_QUERY = "stats_query"
     LEADERBOARD = "leaderboard"
+
 
 @dataclass
 class QueryPerformanceMetric:
@@ -78,6 +80,7 @@ class QueryPerformanceMetric:
     timestamp: datetime = field(default_factory=datetime.now)
     """測試時間"""
 
+
 @dataclass
 class PerformanceBottleneck:
     """效能瓶頸."""
@@ -100,6 +103,7 @@ class PerformanceBottleneck:
     performance_impact: float
     """效能影響(百分比)"""
 
+
 @dataclass
 class PerformanceBenchmark:
     """效能基準."""
@@ -109,6 +113,7 @@ class PerformanceBenchmark:
     target_time_ms: float
     current_time_ms: float
     improvement_percentage: float
+
 
 class PerformanceAnalyzer:
     """效能分析器.
@@ -561,7 +566,11 @@ class PerformanceAnalyzer:
             return bottlenecks
 
         # 分析查詢時間瓶頸
-        slow_queries = [m for m in self._metrics_history if m.execution_time_ms > SLOW_QUERY_THRESHOLD_MS]
+        slow_queries = [
+            m
+            for m in self._metrics_history
+            if m.execution_time_ms > SLOW_QUERY_THRESHOLD_MS
+        ]
         if slow_queries:
             affected_types = list({q.query_type for q in slow_queries})
             avg_slow_time = sum(q.execution_time_ms for q in slow_queries) / len(
@@ -593,14 +602,18 @@ class PerformanceAnalyzer:
 
         # 分析記憶體使用瓶頸
         high_memory_queries = [
-            m for m in self._metrics_history if m.memory_usage_mb > HIGH_MEMORY_THRESHOLD_MB
+            m
+            for m in self._metrics_history
+            if m.memory_usage_mb > HIGH_MEMORY_THRESHOLD_MB
         ]
         if high_memory_queries:
             total_memory = sum(q.memory_usage_mb for q in high_memory_queries)
 
             bottleneck = PerformanceBottleneck(
                 type="high_memory_usage",
-                severity="medium" if total_memory < MEMORY_WARNING_THRESHOLD_MB else "high",
+                severity="medium"
+                if total_memory < MEMORY_WARNING_THRESHOLD_MB
+                else "high",
                 description=f"高記憶體使用查詢總計 {total_memory:.1f}MB",
                 affected_queries=list({q.query_type for q in high_memory_queries}),
                 recommendations=[
@@ -657,36 +670,34 @@ class PerformanceAnalyzer:
         if critical_bottlenecks:
             recommendations.append("🚨 緊急優化建議:")
             for bottleneck in critical_bottlenecks:
-                recommendations.extend(
-                    [f"  - {rec}" for rec in bottleneck.recommendations]
-                )
+                recommendations.extend([
+                    f"  - {rec}" for rec in bottleneck.recommendations
+                ])
 
         if high_bottlenecks:
             recommendations.append("⚠️ 高優先級優化建議:")
             for bottleneck in high_bottlenecks:
-                recommendations.extend(
-                    [f"  - {rec}" for rec in bottleneck.recommendations]
-                )
+                recommendations.extend([
+                    f"  - {rec}" for rec in bottleneck.recommendations
+                ])
 
         if medium_bottlenecks:
             recommendations.append("💡 中優先級優化建議:")
             for bottleneck in medium_bottlenecks:
-                recommendations.extend(
-                    [f"  - {rec}" for rec in bottleneck.recommendations]
-                )
+                recommendations.extend([
+                    f"  - {rec}" for rec in bottleneck.recommendations
+                ])
 
         # 添加通用建議
-        recommendations.extend(
-            [
-                "",
-                "🔧 通用優化建議:",
-                "  - 定期更新資料庫統計資訊",
-                "  - 監控查詢執行計畫",
-                "  - 實施適當的快取策略",
-                "  - 考慮讀寫分離架構",
-                "  - 定期清理歷史資料",
-            ]
-        )
+        recommendations.extend([
+            "",
+            "🔧 通用優化建議:",
+            "  - 定期更新資料庫統計資訊",
+            "  - 監控查詢執行計畫",
+            "  - 實施適當的快取策略",
+            "  - 考慮讀寫分離架構",
+            "  - 定期清理歷史資料",
+        ])
 
         return recommendations
 
@@ -699,18 +710,32 @@ class PerformanceAnalyzer:
         avg_time = sum(m.execution_time_ms for m in self._metrics_history) / len(
             self._metrics_history
         )
-        slow_query_ratio = len(
-            [m for m in self._metrics_history if m.execution_time_ms > SLOW_QUERY_THRESHOLD_MS]
-        ) / len(self._metrics_history)
+        slow_query_ratio = len([
+            m
+            for m in self._metrics_history
+            if m.execution_time_ms > SLOW_QUERY_THRESHOLD_MS
+        ]) / len(self._metrics_history)
 
         # 根據指標評估健康度
-        if avg_time <= EXCELLENT_RESPONSE_TIME_MS and slow_query_ratio <= EXCELLENT_SLOW_QUERY_RATIO:
+        if (
+            avg_time <= EXCELLENT_RESPONSE_TIME_MS
+            and slow_query_ratio <= EXCELLENT_SLOW_QUERY_RATIO
+        ):
             return "excellent"
-        elif avg_time <= GOOD_RESPONSE_TIME_MS and slow_query_ratio <= GOOD_SLOW_QUERY_RATIO:
+        elif (
+            avg_time <= GOOD_RESPONSE_TIME_MS
+            and slow_query_ratio <= GOOD_SLOW_QUERY_RATIO
+        ):
             return "good"
-        elif avg_time <= FAIR_RESPONSE_TIME_MS and slow_query_ratio <= FAIR_SLOW_QUERY_RATIO:
+        elif (
+            avg_time <= FAIR_RESPONSE_TIME_MS
+            and slow_query_ratio <= FAIR_SLOW_QUERY_RATIO
+        ):
             return "fair"
-        elif avg_time <= POOR_RESPONSE_TIME_MS and slow_query_ratio <= POOR_SLOW_QUERY_RATIO:
+        elif (
+            avg_time <= POOR_RESPONSE_TIME_MS
+            and slow_query_ratio <= POOR_SLOW_QUERY_RATIO
+        ):
             return "poor"
         else:
             return "critical"
@@ -748,6 +773,7 @@ class PerformanceAnalyzer:
         """清空效能指標歷史."""
         self._metrics_history.clear()
         logger.info("效能指標歷史已清空")
+
 
 __all__ = [
     "PerformanceAnalyzer",

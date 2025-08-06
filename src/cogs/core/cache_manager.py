@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type
 
+
 class CacheStrategy(Enum):
     """緩存策略枚舉"""
 
@@ -53,12 +54,14 @@ class CacheStrategy(Enum):
     HYBRID = "hybrid"  # 混合策略
     ADAPTIVE = "adaptive"  # 自適應策略
 
+
 class CacheLevel(Enum):
     """緩存級別枚舉"""
 
     L1 = 1  # 內存緩存
     L2 = 2  # 持久化緩存
     BOTH = 3  # 兩級緩存
+
 
 class CacheOperation(Enum):
     """緩存操作枚舉"""
@@ -70,6 +73,7 @@ class CacheOperation(Enum):
     EXPIRE = "expire"
     PRELOAD = "preload"
 
+
 class CachePattern(Enum):
     """緩存模式枚舉"""
 
@@ -77,6 +81,7 @@ class CachePattern(Enum):
     WRITE_THROUGH = "write_through"  # 寫穿透
     WRITE_BEHIND = "write_behind"  # 寫回
     CACHE_ASIDE = "cache_aside"  # 旁路緩存
+
 
 @dataclass
 class CacheEntry:
@@ -130,6 +135,7 @@ class CacheEntry:
         age = self.get_age()
         return self.access_count / (age + 1)  # 避免除零
 
+
 @dataclass
 class CacheStats:
     """緩存統計"""
@@ -167,6 +173,7 @@ class CacheStats:
         """重置統計"""
         self.__dict__.update(CacheStats().__dict__)
 
+
 class CacheAnalyzer:
     """緩存分析器"""
 
@@ -184,14 +191,12 @@ class CacheAnalyzer:
         """記錄訪問"""
         async with self._lock:
             access_time = time.time()
-            self.access_history.append(
-                {
-                    "key": key,
-                    "operation": operation.value,
-                    "hit": hit,
-                    "timestamp": access_time,
-                }
-            )
+            self.access_history.append({
+                "key": key,
+                "operation": operation.value,
+                "hit": hit,
+                "timestamp": access_time,
+            })
 
             # 更新熱點鍵統計
             if hit:
@@ -247,6 +252,7 @@ class CacheAnalyzer:
 
             return suggestions[:20]  # 限制建議數量
 
+
 class SmartCacheStrategy:
     """智能緩存策略"""
 
@@ -301,6 +307,7 @@ class SmartCacheStrategy:
         evict_count = len(entries) - max_size + 1  # 至少淘汰一個
 
         return [key for key, _ in sorted_entries[:evict_count]]
+
 
 class CachePreloader:
     """緩存預載入器"""
@@ -360,6 +367,7 @@ class CachePreloader:
         except Exception as e:
             logger.error(f"預載入失敗 {key}: {e}")
 
+
 class CacheBackend(ABC):
     """緩存後端抽象基類"""
 
@@ -392,6 +400,7 @@ class CacheBackend(ABC):
     async def size(self) -> int:
         """獲取緩存大小"""
         pass
+
 
 class MemoryCacheBackend(CacheBackend):
     """內存緩存後端(L1)"""
@@ -547,6 +556,7 @@ class MemoryCacheBackend(CacheBackend):
             base_stats.update(patterns)
 
             return base_stats
+
 
 class PersistentCacheBackend(CacheBackend):
     """持久化緩存後端(L2)"""
@@ -815,6 +825,7 @@ class PersistentCacheBackend(CacheBackend):
         conn.commit()
         self.stats.evictions += conn.total_changes
 
+
 class MultiLevelCache:
     """多級緩存管理器"""
 
@@ -1023,6 +1034,7 @@ class MultiLevelCache:
                 conn.close()
             self.l2_backend._connection_pool.clear()
 
+
 class GlobalCacheManager:
     """全域緩存管理器單例"""
 
@@ -1047,13 +1059,16 @@ class GlobalCacheManager:
                     await cls._instance.shutdown()
                     cls._instance = None
 
+
 async def get_global_cache_manager() -> MultiLevelCache:
     """獲取全域緩存管理器(兼容性函數)"""
     return await GlobalCacheManager.get_instance()
 
+
 async def dispose_global_cache_manager():
     """釋放全域緩存管理器(兼容性函數)"""
     await GlobalCacheManager.dispose()
+
 
 # 便捷函數
 async def cache_get(key: str) -> Any | None:
@@ -1061,15 +1076,18 @@ async def cache_get(key: str) -> Any | None:
     cache = await get_global_cache_manager()
     return await cache.get(key)
 
+
 async def cache_set(key: str, value: Any, ttl: float | None = None) -> bool:
     """設置緩存值"""
     cache = await get_global_cache_manager()
     return await cache.set(key, value, ttl)
 
+
 async def cache_delete(key: str) -> bool:
     """刪除緩存值"""
     cache = await get_global_cache_manager()
     return await cache.delete(key)
+
 
 def cache_key(*args, **kwargs) -> str:
     """生成緩存鍵"""
@@ -1090,6 +1108,7 @@ def cache_key(*args, **kwargs) -> str:
     # 生成哈希
     key_string = ":".join(key_parts)
     return hashlib.sha256(key_string.encode()).hexdigest()
+
 
 def cached(ttl: float | None = None, key_func: Callable | None = None):
     """緩存裝飾器"""

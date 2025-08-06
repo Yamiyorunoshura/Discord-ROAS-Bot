@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class ResetDataView(ui.View):
     """資料重置視圖."""
 
@@ -224,6 +225,7 @@ class ResetDataView(ui.View):
             logger.error(f"返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
 
+
 class CategoryResetView(ui.View):
     """分類重置視圖."""
 
@@ -411,6 +413,7 @@ class CategoryResetView(ui.View):
         except Exception as e:
             logger.error(f"返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class ResetConfirmationView(ui.View):
     """重置確認視圖."""
@@ -603,6 +606,7 @@ class ResetConfirmationView(ui.View):
             except Exception:
                 pass
 
+
 class ResetConfirmationModal(ui.Modal):
     """重置確認模態框."""
 
@@ -662,6 +666,7 @@ class ResetConfirmationModal(ui.Modal):
             await interaction.response.send_message(
                 "❌ 處理確認時發生錯誤", ephemeral=True
             )
+
 
 class ResetResultView(ui.View):
     """重置結果視圖."""

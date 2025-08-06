@@ -24,22 +24,30 @@ from ..services.service_container import AchievementServiceContainer
 
 # 延遲導入以避免循環依賴
 def _import_notification_integration():
-    from .notification_integration import (  # noqa: PLC0415
+    from .notification_integration import (
         initialize_notification_integration,
     )
+
     return initialize_notification_integration
 
+
 def _import_achievement_panel():
-    from ..panel.achievement_panel import AchievementPanel  # noqa: PLC0415
+    from ..panel.achievement_panel import AchievementPanel
+
     return AchievementPanel
 
+
 def _import_admin_panel():
-    from ..panel.admin_panel import AdminPanel  # noqa: PLC0415
+    from ..panel.admin_panel import AdminPanel
+
     return AdminPanel
 
+
 def _import_notification_manager():
-    from .notification_integration import get_notification_manager  # noqa: PLC0415
+    from .notification_integration import get_notification_manager
+
     return get_notification_manager
+
 
 if TYPE_CHECKING:
     from discord.ext import commands
@@ -48,6 +56,7 @@ if TYPE_CHECKING:
     from ..services.admin_permission_service import AdminPermissionService
 
 logger = logging.getLogger(__name__)
+
 
 class AchievementCog(BaseCog):
     """成就系統主 Cog 類別.
@@ -331,6 +340,7 @@ class AchievementCog(BaseCog):
 
         except Exception as e:
             logger.error(f"[通知系統]整合清理失敗: {e}")
+
 
 async def setup(bot: commands.Bot) -> None:
     """載入成就系統 Cog.

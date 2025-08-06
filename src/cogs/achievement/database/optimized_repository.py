@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # 效能監控常數
 SLOW_QUERY_THRESHOLD_MS = 200  # 慢查詢閾值(毫秒)
 
+
 class OptimizedAchievementRepository(AchievementRepository):
     """優化的成就資料存取庫.
 
@@ -699,6 +700,7 @@ class OptimizedAchievementRepository(AchievementRepository):
             "last_reset": datetime.now(),
         }
         logger.info("查詢統計已重置")
+
 
 __all__ = [
     "OptimizedAchievementRepository",

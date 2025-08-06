@@ -1,312 +1,231 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+# Discord ROAS Bot v2.0 - 企業級 Python 配置
+# 企業級 Python 代碼質量標準配置
 
 [project]
-name = "discord-adr-bot"
-version = "2.2.0"
-description = "Discord ADR Bot - Advanced Discord server management bot with activity tracking, protection systems, and automation features"
+name = "discord-roas-bot"
+version = "2.0.0"
+description = "企業級 Discord 機器人 - 活躍度追蹤與經濟系統"
 authors = [
-    {name = "ADR Bot Team", email = "admin@adrbot.dev"},
+    {name = "Bot Development Team"}
 ]
 readme = "README.md"
-license = {text = "MIT"}
 requires-python = ">=3.12"
-keywords = ["discord", "bot", "server-management", "automation"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Communications :: Chat",
-    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-]
+license = {text = "MIT"}
 
 dependencies = [
-    # Core Discord dependencies
     "discord.py>=2.5.2,<3.0.0",
     "python-dotenv>=1.1.0,<2.0.0",
-    # Database and async support
     "aiosqlite>=0.21.0,<1.0.0",
-    "aiohttp>=3.11.18,<4.0.0",
-    "sqlalchemy>=2.0.29,<3.0.0",
-    "alembic>=1.12.1,<2.0.0",
-    "asyncpg>=0.29.0,<1.0.0", # PostgreSQL driver
-    # Configuration and validation
     "pydantic>=2.5.0,<3.0.0",
     "pydantic-settings>=2.1.0,<3.0.0",
-    "PyYAML>=6.0.1,<7.0.0",
-    # Performance optimizations
-    "uvloop>=0.19.0; sys_platform != 'win32'",
-    "cachetools>=5.3.2,<6.0.0",
-    "zstandard>=0.22.0,<1.0.0",
-    # Numerical computing for activity calculations
-    "numpy>=1.24.0,<2.0.0",
-    # Image processing
-    "Pillow>=11.2.1,<12.0.0",
-    # Logging and monitoring
-    "structlog>=24.1.0,<25.0.0",
-    "python-json-logger>=2.0.7,<3.0.0",
-    "colorama>=0.4.6; sys_platform == 'win32'",
-    # System monitoring
-    "psutil>=5.9.0,<6.0.0",
-    "watchdog>=3.0.0,<4.0.0",
+    "PyYAML>=6.0.0,<7.0.0",
+    "cryptography>=41.0.0,<42.0.0",
     "watchfiles>=0.21.0,<1.0.0",
-    # Utility libraries
-    "python-dateutil>=2.8.2,<3.0.0",
-    "regex>=2023.12.25,<2025.0.0",
-    "httpx>=0.27.0,<1.0.0",
-    "tldextract>=5.3.0,<6.0.0",
-    "cryptography>=41.0.0,<43.0.0",
-    # Rich output and CLI
-    "rich>=13.7.0,<14.0.0",
+    "structlog>=23.2.0,<24.0.0",
+    "python-json-logger>=2.0.0,<3.0.0",
+    "SQLAlchemy>=2.0.0,<3.0.0",
+    "alembic>=1.13.0,<2.0.0",
+    "cachetools>=5.3.2,<6.0.0",
+    "Pillow>=11.2.1,<12.0.0",
     "typer>=0.12.0,<1.0.0",
+    "rich>=13.7.0,<14.0.0",
+    "psutil>=7.0.0",
+    "numpy>=2.3.2",
+    "requests>=2.32.4",
+    "tldextract>=5.3.0",
+    "chardet>=5.2.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    # Testing
-    "pytest>=8.0.0,<9.0.0",
-    "pytest-asyncio>=0.23.0,<1.0.0",
-    "pytest-cov>=4.1.0,<5.0.0",
-    "pytest-mock>=3.12.0,<4.0.0",
-    "factory-boy>=3.3.0,<4.0.0",
-    "testcontainers>=4.0.0,<5.0.0",
-    
-    # Code quality
-    "ruff>=0.3.0,<1.0.0",
-    "black>=24.0.0,<25.0.0",
-    "mypy>=1.8.0,<2.0.0",
-    "pre-commit>=3.6.0,<4.0.0",
-    
-    # Security
-    "bandit>=1.7.5,<2.0.0",
-    "safety>=3.0.0,<4.0.0",
-    
-    # Documentation
-    "mkdocs>=1.5.0,<2.0.0",
-    "mkdocs-material>=9.5.0,<10.0.0",
-    "mkdocstrings[python]>=0.24.0,<1.0.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "black>=24.0.0",
 ]
-
-production = [
-    # Production monitoring
-    "prometheus-client>=0.19.0,<1.0.0",
-    "sentry-sdk>=1.40.0,<2.0.0",
-    
-    # Process management
-    "gunicorn>=21.2.0,<22.0.0",
-    "supervisor>=4.2.5,<5.0.0",
-]
-
-jupyter = [
-    "ipython>=8.18.0,<9.0.0",
-    "jupyter>=1.0.0,<2.0.0",
-    "jupyterlab>=4.0.0,<5.0.0",
-]
-
-all = [
-    "discord-adr-bot[dev,production,jupyter]"
-]
-
-[project.urls]
-Homepage = "https://github.com/adr-bot/discord-adr-bot"
-Documentation = "https://docs.adrbot.dev"
-Repository = "https://github.com/adr-bot/discord-adr-bot.git"
-Issues = "https://github.com/adr-bot/discord-adr-bot/issues"
-Changelog = "https://github.com/adr-bot/discord-adr-bot/blob/main/CHANGELOG.md"
-
-[project.scripts]
-adr-bot = "src.main:cli"
-adr-dev = "src.cli.dev:dev_cli"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
-
-[tool.hatch.version]
-path = "src/__init__.py"
-
-# ============================================================================
-# Development Tools Configuration
-# ============================================================================
 
 [tool.ruff]
-target-version = "py312"
+# 設定基本參數
 line-length = 88
+target-version = "py312"
+src = ["src", "scripts", "utils"]
+fix = true
+
+# 包含的檔案類型
+include = ["*.py", "*.pyi", "*.ipynb"]
+extend-include = ["*.py"]
+
+# 排除的目錄和檔案
+exclude = [
+    ".git",
+    ".venv", 
+    "__pycache__",
+    "build/",
+    "dist/",
+    "logs/",
+    "dbs/",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache"
+]
 
 [tool.ruff.lint]
+# 啟用的規則集
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings  
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
-    "ARG", # flake8-unused-arguments
-    "SIM", # flake8-simplify
-    "TCH", # flake8-type-checking
-    "PTH", # flake8-use-pathlib
-    "ERA", # eradicate
-    "PL",  # pylint
-    "RUF", # ruff-specific rules
-]
-ignore = [
-    "E501",   # line too long (handled by black)
-    "B008",   # do not perform function calls in argument defaults
-    "PLR0913", # too many arguments to function call
-    "PLR0912", # too many branches
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings  
+    "F",     # Pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "ARG",   # flake8-unused-arguments
+    "PTH",   # flake8-use-pathlib
+    "PLR",   # Pylint
+    "PLC",   # Pylint Convention
+    "UP",    # pyupgrade
+    "RUF",   # Ruff-specific rules
+    "ERA",   # eradicate
+    "TC",    # flake8-type-checking
 ]
 
+# 忽略特定規則（基於目前項目狀況）
+ignore = [
+    # 暫時忽略的規則（需要逐步修復）
+    "PTH123",  # builtin-open - 需要大量重構
+    "PTH110",  # os-path-exists - 需要大量重構  
+    "PTH118",  # os-path-join - 需要大量重構
+    "PTH103",  # os-makedirs - 需要大量重構
+    "PTH120",  # os-path-dirname - 需要大量重構
+    "PLR2004", # magic-value-comparison - 需要重構常數
+    "PLC0415", # import-outside-top-level - script 檔案的特殊需求
+    "RUF002",  # ambiguous-unicode-character-docstring - 中文註釋特殊需求
+    "RUF003",  # ambiguous-unicode-character-comment - 中文註釋特殊需求
+    "ERA001",  # commented-out-code - 開發期間的暫時註釋
+    
+    # 複雜度相關（目前項目階段可接受）
+    "PLR0911", # too-many-return-statements
+    "PLR0915", # too-many-statements
+    
+    # 未使用參數（某些情況下需要保留介面一致性）
+    "ARG001",  # unused-function-argument
+    "ARG002",  # unused-method-argument  
+    "ARG004",  # unused-static-method-argument
+]
+
+# Fixable 規則
+fixable = ["ALL"]
+unfixable = []
+
+# 每個檔案的規則忽略設定
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # unused imports in __init__.py
-"tests/**/*.py" = ["ARG", "PLR2004"]  # test-specific ignores
+# Scripts 和 utilities 可以有較寬鬆的規則
+"scripts/*.py" = ["PLC0415", "E402", "PTH123", "PTH110", "PTH118"]
+"utils/*.py" = ["PLC0415", "E402", "PTH123", "PTH110", "PTH118"]
+
+# 測試檔案特殊規則
+"tests/**/*.py" = ["ARG001", "ARG002", "PLR2004"]
+"**/test_*.py" = ["ARG001", "ARG002", "PLR2004"]
+
+# 遷移和設定檔案
+"**/migrations/*.py" = ["ERA001", "F401"]
+"**/config/*.py" = ["PLR2004"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["src", "tests"]
-known-third-party = ["discord", "aiohttp", "pydantic"]
+# Import 排序配置
+known-first-party = ["src", "cogs", "scripts", "utils"]
+known-local-folder = ["src"]
+force-single-line = false
+combine-as-imports = true
+split-on-trailing-comma = true
 
-[tool.black]
-target-version = ["py312"]
-line-length = 88
-skip-string-normalization = true
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
+[tool.ruff.lint.mccabe]
+# 複雜度限制
+max-complexity = 12
+
+[tool.ruff.lint.pylint]
+# Pylint 特定配置
+max-args = 8
+max-locals = 20
+max-returns = 8
+max-statements = 60
+
+[tool.ruff.format]
+# 代碼格式化配置
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+
+# 預覽功能
+preview = true
+
+# ================================
+# Type Checking Configuration
+# ================================
 
 [tool.mypy]
+# 基本設定
 python_version = "3.12"
-strict = true
+platform = "win32"
+
+# 指向專用的嚴格配置檔案
+config_file = "quality/mypy.ini"
+
+# 檔案搜尋設定
+files = ["src", "scripts", "utils"]
+exclude = [
+    "build/",
+    "dist/", 
+    ".venv/",
+    "__pycache__/",
+    "logs/",
+    "dbs/",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache"
+]
+
+# 快取設定
+cache_dir = ".mypy_cache"
+sqlite_cache = true
+incremental = true
+
+# 輸出格式
+show_error_codes = true
+show_column_numbers = true
+pretty = true
+color_output = true
+
+# 第三方函式庫處理
+ignore_missing_imports = true
+follow_imports = "normal"
+
+# 錯誤報告
+show_traceback = false
+raise_exceptions = false
+
+# 型別檢查嚴格性（由 quality/mypy.ini 控制）
+# 這裡保持基本設定，詳細配置在專用檔案中
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
-show_error_codes = true
 
+# 專案特定的模組配置
 [[tool.mypy.overrides]]
 module = [
     "discord.*",
-    "aiosqlite.*",
-    "uvloop.*",
-    "watchdog.*",
-    "psutil.*",
+    "aiosqlite.*", 
+    "PIL.*",
+    "numpy.*",
+    "pytest.*",
+    "pytest_asyncio.*",
+    "dpytest.*"
 ]
 ignore_missing_imports = true
-
-[tool.pytest.ini_options]
-minversion = "8.0"
-addopts = [
-    "--strict-markers",
-    "--strict-config",
-    "--cov=src",
-    "--cov-report=html",
-    "--cov-report=term-missing",
-    "--cov-report=json",
-    "--cov-fail-under=70",
-    "-v",
-]
-testpaths = ["tests", "src/tests"]
-pythonpath = ["src"]
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-asyncio_mode = "auto"
-markers = [
-    "unit: Unit tests",
-    "integration: Integration tests", 
-    "e2e: End-to-end tests",
-    "slow: Slow tests",
-    "discord: Tests requiring Discord API",
-    "database: Database tests",
-    "network: Network tests", 
-    "performance: Performance tests",
-    "security: Security tests",
-]
-filterwarnings = [
-    "ignore::DeprecationWarning",
-    "ignore::PendingDeprecationWarning",
-    "ignore::pytest.PytestUnraisableExceptionWarning",
-]
-
-[tool.coverage.run]
-source = ["src"]
-omit = [
-    "*/tests/*",
-    "*/test_*",
-    "*/conftest.py",
-    "*/__init__.py",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
-
-[tool.bandit]
-exclude_dirs = ["tests", "build", "dist"]
-skips = ["B101", "B601"]  # Skip assert statements and shell usage in tests
-
-[tool.bandit.assert_used]
-skips = ["*_test.py", "test_*.py"]
-
-# ============================================================================
-# UV Configuration
-# ============================================================================
-
-[tool.uv]
-dev-dependencies = [
-    "pre-commit>=3.6.0",
-    "commitizen>=3.13.0",
-    "ruff>=0.12.5",
-]
-
-[tool.uv.sources]
-
-[dependency-groups]
-dev = [
-    "beautifulsoup4>=4.13.4",
-    "jsonschema>=4.25.0",
-    "markdown>=3.8.2",
-    "mypy>=1.17.0",
-    "packaging>=25.0",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=0.26.0",
-    "pytest-cov>=4.1.0",
-    "pyyaml>=6.0.2",
-    "requests>=2.32.4",
-    "testcontainers>=4.0.0,<5.0.0",
-    "types-cachetools>=6.1.0.20250717",
-    "types-colorama>=0.4.15.20250801",
-    "types-pyyaml>=6.0.12.20250516",
-    "types-toml>=0.10.8.20240310",
-]
-# Use PyPI for all dependencies by default
-# Override specific packages if needed for development

@@ -18,6 +18,7 @@ from src.core.config import get_settings
 logger = setup_module_logger("anti_executable.database")
 error_handler = create_error_handler("anti_executable.database", logger)
 
+
 class AntiExecutableDatabase:
     """反可執行檔案保護資料庫管理器"""
 
@@ -124,10 +125,14 @@ class AntiExecutableDatabase:
             str: 配置值
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
-                "SELECT value FROM config WHERE guild_id = ? AND key = ?",
-                (guild_id, key),
-            ) as cursor:
+            async with (
+                self._lock,
+                aiosqlite.connect(self.db_path) as db,
+                db.execute(
+                    "SELECT value FROM config WHERE guild_id = ? AND key = ?",
+                    (guild_id, key),
+                ) as cursor,
+            ):
                 row = await cursor.fetchone()
                 return row[0] if row else default
 
@@ -173,9 +178,13 @@ class AntiExecutableDatabase:
             Dict[str, str]: 配置字典
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
-                "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
-            ) as cursor:
+            async with (
+                self._lock,
+                aiosqlite.connect(self.db_path) as db,
+                db.execute(
+                    "SELECT key, value FROM config WHERE guild_id = ?", (guild_id,)
+                ) as cursor,
+            ):
                 rows = await cursor.fetchall()
                 return {row[0]: row[1] for row in rows}
 
@@ -229,10 +238,14 @@ class AntiExecutableDatabase:
             Dict[str, int]: 統計資料
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
-                "SELECT stat_type, count FROM stats WHERE guild_id = ?",
-                (guild_id,),
-            ) as cursor:
+            async with (
+                self._lock,
+                aiosqlite.connect(self.db_path) as db,
+                db.execute(
+                    "SELECT stat_type, count FROM stats WHERE guild_id = ?",
+                    (guild_id,),
+                ) as cursor,
+            ):
                 rows = await cursor.fetchall()
                 return {row[0]: row[1] for row in rows}
 
@@ -298,16 +311,20 @@ class AntiExecutableDatabase:
             List[Dict[str, Any]]: 操作日誌列表
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
-                """
+            async with (
+                self._lock,
+                aiosqlite.connect(self.db_path) as db,
+                db.execute(
+                    """
                     SELECT user_id, action, details, timestamp
                     FROM action_logs
                     WHERE guild_id = ?
                     ORDER BY timestamp DESC
                     LIMIT ?
                 """,
-                (guild_id, limit),
-            ) as cursor:
+                    (guild_id, limit),
+                ) as cursor,
+            ):
                 rows = await cursor.fetchall()
                 return [
                     {
@@ -316,8 +333,8 @@ class AntiExecutableDatabase:
                         "details": row[2],
                         "timestamp": row[3],
                     }
-                        for row in rows
-                    ]
+                    for row in rows
+                ]
 
         except Exception as exc:
             error_handler.log_error(
@@ -418,28 +435,32 @@ class AntiExecutableDatabase:
             List[Dict[str, Any]]: 檔案檢測記錄列表
         """
         try:
-            async with self._lock, aiosqlite.connect(self.db_path) as db, db.execute(
-                """
+            async with (
+                self._lock,
+                aiosqlite.connect(self.db_path) as db,
+                db.execute(
+                    """
                 SELECT user_id, filename, file_extension, risk_level, action_taken, timestamp
                 FROM file_detections
                 WHERE guild_id = ?
                 ORDER BY timestamp DESC
                 LIMIT ?
             """,
-                (guild_id, limit),
-            ) as cursor:
+                    (guild_id, limit),
+                ) as cursor,
+            ):
                 rows = await cursor.fetchall()
                 return [
-                            {
-                                "user_id": row[0],
-                                "filename": row[1],
-                                "file_extension": row[2],
-                                "risk_level": row[3],
-                                "action_taken": row[4],
-                                "timestamp": row[5],
-                            }
-                            for row in rows
-                        ]
+                    {
+                        "user_id": row[0],
+                        "filename": row[1],
+                        "file_extension": row[2],
+                        "risk_level": row[3],
+                        "action_taken": row[4],
+                        "timestamp": row[5],
+                    }
+                    for row in rows
+                ]
 
         except Exception as exc:
             error_handler.log_error(

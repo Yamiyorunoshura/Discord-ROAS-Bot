@@ -9,4 +9,5 @@ async def setup(bot):
     """設置 Cog"""
     await bot.add_cog(AntiLink(bot))
 
+
 __all__ = ["AntiLink", "setup"]

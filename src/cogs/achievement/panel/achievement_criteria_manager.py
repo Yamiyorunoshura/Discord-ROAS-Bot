@@ -18,6 +18,7 @@ from src.cogs.core.base_cog import StandardEmbedBuilder
 
 logger = logging.getLogger(__name__)
 
+
 class AchievementCriteriaManager:
     """成就條件管理器."""
 
@@ -127,6 +128,7 @@ class AchievementCriteriaManager:
             logger.error(f"保存成就條件失敗: {e}")
             return False
 
+
 class CriteriaEditorView(ui.View):
     """條件編輯器視圖."""
 
@@ -233,6 +235,7 @@ class CriteriaEditorView(ui.View):
 
         return embed
 
+
 class MessageCountCriteriaModal(ui.Modal):
     """訊息數量條件設置模態框."""
 
@@ -293,6 +296,7 @@ class MessageCountCriteriaModal(ui.Modal):
         except Exception as e:
             logger.error(f"設置訊息數量條件失敗: {e}")
             await interaction.response.send_message("❌ 設置失敗", ephemeral=True)
+
 
 class KeywordCriteriaModal(ui.Modal):
     """關鍵字條件設置模態框."""
@@ -361,6 +365,7 @@ class KeywordCriteriaModal(ui.Modal):
             logger.error(f"設置關鍵字條件失敗: {e}")
             await interaction.response.send_message("❌ 設置失敗", ephemeral=True)
 
+
 class TimeCriteriaModal(ui.Modal):
     """時間條件設置模態框."""
 
@@ -427,6 +432,7 @@ class TimeCriteriaModal(ui.Modal):
             logger.error(f"設置時間條件失敗: {e}")
             await interaction.response.send_message("❌ 設置失敗", ephemeral=True)
 
+
 class ComplexCriteriaView(ui.View):
     """複合條件設置視圖."""
 
@@ -445,6 +451,7 @@ class ComplexCriteriaView(ui.View):
         """設置 OR 邏輯條件."""
         modal = ComplexCriteriaModal(self.criteria_manager, "OR")
         await interaction.response.send_modal(modal)
+
 
 class ComplexCriteriaModal(ui.Modal):
     """複合條件設置模態框."""
@@ -482,6 +489,7 @@ class ComplexCriteriaModal(ui.Modal):
         except Exception as e:
             logger.error(f"設置複合條件失敗: {e}")
             await interaction.response.send_message("❌ 設置失敗", ephemeral=True)
+
 
 class SaveConfirmationView(ui.View):
     """保存確認視圖."""

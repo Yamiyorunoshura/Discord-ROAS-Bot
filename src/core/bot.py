@@ -41,6 +41,7 @@ except ImportError:
     ErrorSeverity = None
     create_error_handler = None
 
+
 class ModuleLoadResult:
     """Result of module loading operation."""
 
@@ -59,6 +60,7 @@ class ModuleLoadResult:
         self.success = success
         self.load_time = load_time
         self.error = error
+
 
 class StartupManager:
     """Modern startup manager for bot modules."""
@@ -339,6 +341,7 @@ class StartupManager:
                 load_time=load_time,
                 error=e,
             )
+
 
 class ADRBot(commands.Bot):
     """Modern Discord ADR Bot with Python 3.12 features."""
@@ -693,6 +696,7 @@ class ADRBot(commands.Bot):
 
         self.logger.info("Bot shutdown completed")
 
+
 async def create_and_run_bot(settings: Settings | None = None) -> None:
     """Create and run the bot.
 
@@ -705,7 +709,7 @@ async def create_and_run_bot(settings: Settings | None = None) -> None:
 
     # Validate token
     if not settings.token:
-        print("❌ Discord bot token not found!")
+        print("Discord bot token not found!")
         print("Please set TOKEN in your .env file or environment variables.")
         sys.exit(1)
 
@@ -716,13 +720,14 @@ async def create_and_run_bot(settings: Settings | None = None) -> None:
         # Run bot
         await bot.start(settings.token)
     except discord.LoginFailure:
-        print("❌ Invalid Discord bot token!")
+        print("Invalid Discord bot token!")
         print("Please check your token and try again.")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Failed to start bot: {e}")
+        print(f"Failed to start bot: {e}")
         sys.exit(1)
     finally:
         await bot.close()
+
 
 __all__ = ["ADRBot", "ModuleLoadResult", "StartupManager", "create_and_run_bot"]

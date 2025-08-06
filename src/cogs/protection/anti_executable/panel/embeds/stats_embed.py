@@ -2,14 +2,19 @@
 反可執行檔案保護模組 - 統計面板 Embed 生成器
 """
 
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import discord
 
-from ...main.main import AntiExecutable
+if TYPE_CHECKING:
+    from ...main.main import AntiExecutable
 
 # 常數定義
 MIN_TREND_DATA_POINTS = 2
+
 
 class StatsEmbed:
     """統計面板 Embed 生成器"""
@@ -100,12 +105,10 @@ class StatsEmbed:
         """添加最常攔截格式"""
         top_formats = stats.get("top_formats", [])
         if top_formats:
-            format_text = "\n".join(
-                [
-                    f"{i + 1}. {fmt['format']} ({fmt['count']}次)"
-                    for i, fmt in enumerate(top_formats[:5])
-                ]
-            )
+            format_text = "\n".join([
+                f"{i + 1}. {fmt['format']} ({fmt['count']}次)"
+                for i, fmt in enumerate(top_formats[:5])
+            ])
             embed.add_field(name="🔝 最常攔截格式", value=format_text, inline=True)
         else:
             embed.add_field(name="🔝 最常攔截格式", value="暫無資料", inline=True)
@@ -118,9 +121,7 @@ class StatsEmbed:
             for block in recent_blocks[:3]:
                 timestamp = datetime.fromisoformat(block["timestamp"])
                 time_str = timestamp.strftime("%m/%d %H:%M")
-                recent_text += (
-                    f"• {time_str} - {block['type']}: {block['filename']}\n"
-                )
+                recent_text += f"• {time_str} - {block['type']}: {block['filename']}\n"
             embed.add_field(name="🕐 最近攔截", value=recent_text, inline=True)
         else:
             embed.add_field(name="🕐 最近攔截", value="暫無記錄", inline=True)
@@ -133,15 +134,9 @@ class StatsEmbed:
             previous_week = trend_data[-2]
 
             if previous_week > 0:
-                trend_percent = (
-                    (current_week - previous_week) / previous_week
-                ) * 100
+                trend_percent = ((current_week - previous_week) / previous_week) * 100
                 trend_icon = (
-                    "📈"
-                    if trend_percent > 0
-                    else "📉"
-                    if trend_percent < 0
-                    else "➡️"
+                    "📈" if trend_percent > 0 else "📉" if trend_percent < 0 else "➡️"
                 )
                 trend_text = f"{trend_icon} {abs(trend_percent):.1f}%"
             else:

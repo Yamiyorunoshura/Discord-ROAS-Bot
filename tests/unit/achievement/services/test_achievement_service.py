@@ -39,13 +39,12 @@ class TestAchievementService:
         """測試服務初始化."""
         # Arrange & Act
         service = AchievementService(
-            repository=mock_repository, cache_ttl=300, cache_maxsize=1000
+            repository=mock_repository
         )
 
         # Assert
         assert service._repository == mock_repository
-        assert service._cache.ttl == 300
-        assert service._cache.maxsize == 1000
+        assert service._cache_service is not None
 
     @pytest.mark.asyncio
     async def test_service_context_manager(self, mock_repository):

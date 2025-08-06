@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class TransferModal(Modal):
     """用戶轉帳 Modal"""
 
@@ -45,9 +46,7 @@ class TransferModal(Modal):
             from_user_id: 轉出用戶ID
         """
         super().__init__(
-            title="💸 貨幣轉帳",
-            timeout=300.0,
-            custom_id="roas_currency_transfer_modal"
+            title="💸 貨幣轉帳", timeout=300.0, custom_id="roas_currency_transfer_modal"
         )
 
         self.currency_service = currency_service
@@ -64,7 +63,7 @@ class TransferModal(Modal):
             min_length=1,
             max_length=100,
             required=True,
-            custom_id="roas_currency_recipient"
+            custom_id="roas_currency_recipient",
         )
 
         self.amount_input = TextInput(
@@ -74,7 +73,7 @@ class TransferModal(Modal):
             min_length=1,
             max_length=20,
             required=True,
-            custom_id="roas_currency_amount"
+            custom_id="roas_currency_amount",
         )
 
         self.reason_input = TextInput(
@@ -84,7 +83,7 @@ class TransferModal(Modal):
             min_length=0,
             max_length=200,
             required=False,
-            custom_id="roas_currency_reason"
+            custom_id="roas_currency_reason",
         )
 
         # 添加欄位到 Modal
@@ -128,46 +127,33 @@ class TransferModal(Modal):
                 from_user_id=self.from_user_id,
                 to_user_id=recipient_id,
                 amount=amount,
-                reason=reason
+                reason=reason,
             )
 
             # 創建成功嵌入
-            embed = discord.Embed(
-                title="✅ 轉帳成功",
-                color=discord.Color.green()
-            )
+            embed = discord.Embed(title="✅ 轉帳成功", color=discord.Color.green())
 
             # 添加轉帳詳情
-            embed.add_field(
-                name="轉帳金額",
-                value=f"{amount:,} 貨幣",
-                inline=True
-            )
+            embed.add_field(name="轉帳金額", value=f"{amount:,} 貨幣", inline=True)
 
             try:
                 recipient = interaction.guild.get_member(recipient_id)
-                recipient_display = recipient.display_name if recipient else f"用戶 {recipient_id}"
+                recipient_display = (
+                    recipient.display_name if recipient else f"用戶 {recipient_id}"
+                )
             except Exception:
                 recipient_display = f"用戶 {recipient_id}"
 
-            embed.add_field(
-                name="收款人",
-                value=recipient_display,
-                inline=True
-            )
+            embed.add_field(name="收款人", value=recipient_display, inline=True)
 
             embed.add_field(
                 name="你的餘額",
                 value=f"{result['from_balance_after']:,} 貨幣",
-                inline=True
+                inline=True,
             )
 
             if reason and reason != "用戶轉帳":
-                embed.add_field(
-                    name="轉帳原因",
-                    value=reason,
-                    inline=False
-                )
+                embed.add_field(name="轉帳原因", value=reason, inline=False)
 
             embed.set_footer(text=f"交易 ID: {result['transaction_id'][:8]}...")
 
@@ -190,7 +176,9 @@ class TransferModal(Modal):
 
         except Exception as e:
             self.logger.error(f"轉帳處理失敗: {e}")
-            await self._send_error_response(interaction, "轉帳處理時發生錯誤,請稍後再試")
+            await self._send_error_response(
+                interaction, "轉帳處理時發生錯誤,請稍後再試"
+            )
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         """Modal 錯誤處理"""
@@ -215,15 +203,13 @@ class TransferModal(Modal):
 
             # 如果都不是,返回錯誤
             await self._send_error_response(
-                interaction,
-                "收款人格式錯誤,請輸入用戶ID或使用@提及用戶"
+                interaction, "收款人格式錯誤,請輸入用戶ID或使用@提及用戶"
             )
             return None
 
         except (ValueError, TypeError):
             await self._send_error_response(
-                interaction,
-                "收款人格式錯誤,請輸入有效的用戶ID"
+                interaction, "收款人格式錯誤,請輸入有效的用戶ID"
             )
             return None
 
@@ -250,21 +236,16 @@ class TransferModal(Modal):
 
         except (ValueError, TypeError):
             await self._send_error_response(
-                interaction,
-                "金額格式錯誤,請輸入有效的正整數"
+                interaction, "金額格式錯誤,請輸入有效的正整數"
             )
             return None
 
     async def _send_error_response(
-        self,
-        interaction: discord.Interaction,
-        message: str
+        self, interaction: discord.Interaction, message: str
     ):
         """發送錯誤回應"""
         embed = discord.Embed(
-            title="❌ 轉帳錯誤",
-            description=message,
-            color=discord.Color.red()
+            title="❌ 轉帳錯誤", description=message, color=discord.Color.red()
         )
 
         try:

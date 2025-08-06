@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AdminActionType(Enum):
     """管理操作類型枚舉."""
 
@@ -35,6 +36,7 @@ class AdminActionType(Enum):
     RESET = "reset"  # 重置操作
     EXPORT = "export"  # 導出操作
     IMPORT = "import"  # 導入操作
+
 
 class ConfirmationView(ui.View):
     """通用確認對話框視圖.
@@ -110,6 +112,7 @@ class ConfirmationView(ui.View):
         self.result = None
         self.stop()
         logger.debug(f"[確認對話框]'{self.title}' 對話框超時")
+
 
 class AdminStatsView(ui.View):
     """管理統計視圖.
@@ -268,6 +271,7 @@ class AdminStatsView(ui.View):
         embed.set_footer(text="數據每5分鐘更新 | 所有時間均為UTC")
 
         return embed
+
 
 class AdminMaintenanceView(ui.View):
     """管理維護視圖.
@@ -446,6 +450,7 @@ class AdminMaintenanceView(ui.View):
         embed.set_footer(text="建議定期執行系統檢查以確保最佳性能")
 
         return embed
+
 
 # 導出主要組件
 __all__ = [

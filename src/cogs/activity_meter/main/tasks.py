@@ -1,6 +1,6 @@
 """
-活躍度系統背景任務
-- 處理定期排行榜更新和播報
+æ´»èºåº¦ç³»çµ±èæ¯ä»»å
+- èçå®ææè¡æ¦æ´æ°åæ­å ±
 """
 
 import asyncio
@@ -17,102 +17,103 @@ from ..service.batch_service import BatchCalculationService
 
 logger = logging.getLogger("activity_meter")
 
+
 class ActivityTasks:
     """
-    活躍度系統背景任務處理類別
+    æ´»èºåº¦ç³»çµ±èæ¯ä»»åèçé¡å¥
 
-    功能:
-    - 定期排行榜更新
-    - 自動播報排行榜
-    - 排行榜嵌入生成
+    åè½:
+    - å®ææè¡æ¦æ´æ°
+    - èªåæ­å ±æè¡æ¦
+    - æè¡æ¦åµå¥çæ
     """
 
     def __init__(self, bot: discord.Client, db: ActivityDatabase):
         """
-        初始化背景任務處理器
+        åå§åèæ¯ä»»åèçå¨
 
         Args:
-            bot: Discord 機器人實例
-            db: 活躍度資料庫實例
+            bot: Discord æ©å¨äººå¯¦ä¾
+            db: æ´»èºåº¦è³æåº«å¯¦ä¾
         """
         self.bot = bot
         self.db = db
         self.auto_report_task = None
 
-        # 初始化批量計算服務
+        # åå§åæ¹éè¨ç®æå
         self.batch_service = BatchCalculationService(db)
 
     def start(self):
-        """啟動所有背景任務"""
+        """ååææèæ¯ä»»å"""
         self.auto_report_task = self.auto_report.start()
 
     def stop(self):
-        """停止所有背景任務"""
+        """åæ­¢ææèæ¯ä»»å"""
         if self.auto_report_task and self.auto_report.is_running():
             self.auto_report.cancel()
 
-        # 關閉批量計算服務
+        # ééæ¹éè¨ç®æå
         shutdown_task = asyncio.create_task(self.batch_service.shutdown())
-        # 確保異常不會被忽略
+        # ç¢ºä¿ç°å¸¸ä¸æè¢«å¿½ç¥
         shutdown_task.add_done_callback(lambda t: t.exception())
 
     @tasks.loop(minutes=1)
     async def auto_report(self):
         """
-        自動播報排行榜任務 - 使用批量計算優化
-        每日在指定時間自動發送排行榜到設定的頻道
+        èªåæ­å ±æè¡æ¦ä»»å - ä½¿ç¨æ¹éè¨ç®åªå
+        æ¯æ¥å¨æå®æéèªåç¼éæè¡æ¦å°è¨­å®çé »é
         """
         try:
-            # 檢查是否為指定播報時間
+            # æª¢æ¥æ¯å¦çºæå®æ­å ±æé
             now = datetime.now(config.TW_TZ)
             if now.hour != config.ACT_REPORT_HOUR or now.minute != 0:
                 return
 
-            # 獲取日期字串
+            # ç²åæ¥æå­ä¸²
             ymd = now.strftime(config.DAY_FMT)
             ym = now.strftime(config.MONTH_FMT)
             days = int(now.strftime("%d"))
 
-            # 獲取所有設定了播報頻道的伺服器
+            # ç²åææè¨­å®äºæ­å ±é »éçä¼ºæå¨
             report_channels = await self.db.get_report_channels()
 
-            # 批量處理所有伺服器的背景衰減計算
+            # æ¹éèçææä¼ºæå¨çèæ¯è¡°æ¸è¨ç®
             for guild_id, channel_id in report_channels:
-                # 執行批量衰減計算以確保排行榜數據準確
+                # å·è¡æ¹éè¡°æ¸è¨ç®ä»¥ç¢ºä¿æè¡æ¦æ¸ææºç¢º
                 await self.batch_service.bulk_decay_all_users(guild_id)
 
-                # 更新排行榜計算
+                # æ´æ°æè¡æ¦è¨ç®
                 await self.batch_service.bulk_update_rankings(guild_id, ymd)
 
-                # 處理排行榜播報
+                # èçæè¡æ¦æ­å ±
                 await self._process_guild_report(guild_id, channel_id, ymd, ym, days)
 
-            # 執行背景計算優化檢查
+            # å·è¡èæ¯è¨ç®åªåæª¢æ¥
             await self.batch_service.optimize_background_calculations()
 
         except Exception as e:
-            logger.error(f"[活躍度]自動播報任務執行失敗: {e}")
+            logger.error(f"[æ´»èºåº¦]èªåæ­å ±ä»»åå·è¡å¤±æ: {e}")
 
     @auto_report.before_loop
     async def _wait_ready(self):
-        """等待機器人就緒"""
+        """ç­å¾æ©å¨äººå°±ç·"""
         await self.bot.wait_until_ready()
 
     async def _process_guild_report(
         self, guild_id: int, channel_id: int, ymd: str, ym: str, days: int
     ):
         """
-        處理單一伺服器的排行榜播報
+        èçå®ä¸ä¼ºæå¨çæè¡æ¦æ­å ±
 
         Args:
-            guild_id: 伺服器 ID
-            channel_id: 頻道 ID
-            ymd: 日期字串 (YYYYMMDD)
-            ym: 月份字串 (YYYYMM)
-            days: 當月天數
+            guild_id: ä¼ºæå¨ ID
+            channel_id: é »é ID
+            ymd: æ¥æå­ä¸² (YYYYMMDD)
+            ym: æä»½å­ä¸² (YYYYMM)
+            days: ç¶æå¤©æ¸
         """
         try:
-            # 獲取伺服器和頻道
+            # ç²åä¼ºæå¨åé »é
             guild = self.bot.get_guild(guild_id)
             if not guild:
                 return
@@ -121,22 +122,22 @@ class ActivityTasks:
             if not channel or not isinstance(channel, discord.TextChannel):
                 return
 
-            # 獲取排行榜資料
+            # ç²åæè¡æ¦è³æ
             rankings = await self.db.get_daily_rankings(ymd, guild_id, limit=5)
             if not rankings:
                 return
 
-            # 獲取月度統計
+            # ç²åæåº¦çµ±è¨
             monthly_stats = await self.db.get_monthly_stats(ym, guild_id)
 
-            # 生成排行榜嵌入
+            # çææè¡æ¦åµå¥
             embed = self._create_ranking_embed(guild, rankings, monthly_stats, days)
 
-            # 發送排行榜
+            # ç¼éæè¡æ¦
             await channel.send(embed=embed)
 
         except Exception as e:
-            logger.error(f"[活躍度]處理伺服器 {guild_id} 的排行榜播報失敗: {e}")
+            logger.error(f"[æ´»èºåº¦]èçä¼ºæå¨ {guild_id} çæè¡æ¦æ­å ±å¤±æ: {e}")
 
     def _create_ranking_embed(
         self,
@@ -146,16 +147,16 @@ class ActivityTasks:
         days: int,
     ) -> discord.Embed:
         """
-        創建排行榜嵌入
+        åµå»ºæè¡æ¦åµå¥
 
         Args:
-            guild: Discord 伺服器
-            rankings: 排行榜資料
-            monthly_stats: 月度統計資料
-            days: 當月天數
+            guild: Discord ä¼ºæå¨
+            rankings: æè¡æ¦è³æ
+            monthly_stats: æåº¦çµ±è¨è³æ
+            days: ç¶æå¤©æ¸
 
         Returns:
-            discord.Embed: 排行榜嵌入
+            discord.Embed: æè¡æ¦åµå¥
         """
         lines = []
 
@@ -163,21 +164,21 @@ class ActivityTasks:
             user_id = data["user_id"]
             msg_cnt = data["msg_cnt"]
 
-            # 計算月平均
+            # è¨ç®æå¹³å
             mavg = monthly_stats.get(user_id, 0) / days if days else 0
 
-            # 獲取成員名稱
+            # ç²åæå¡åç¨±
             member = guild.get_member(user_id)
             name = member.display_name if member else f"<@{user_id}>"
 
-            # 添加排行榜項目
+            # æ·»å æè¡æ¦é ç®
             lines.append(
-                f"`#{rank:2}` {name:<20} ‧ 今日 {msg_cnt} 則 ‧ 月均 {mavg:.1f}"
+                f"`#{rank:2}` {name:<20} â§ ä»æ¥ {msg_cnt} å â§ æå {mavg:.1f}"
             )
 
-        # 創建嵌入
+        # åµå»ºåµå¥
         embed = discord.Embed(
-            title=f"📈 今日活躍排行榜 - {guild.name}",
+            title=f" ä»æ¥æ´»èºæè¡æ¦ - {guild.name}",
             description="\n".join(lines),
             colour=discord.Colour.green(),
         )

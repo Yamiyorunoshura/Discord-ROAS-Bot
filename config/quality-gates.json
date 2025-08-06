@@ -1,0 +1,103 @@
+{
+  "thresholds": {
+    "test_coverage": 70,
+    "code_quality_score": 8.0,
+    "security_issues": 0,
+    "performance_score": 7.0
+  },
+  "checks": {
+    "ruff": {
+      "enabled": true,
+      "max_violations": 0,
+      "description": "代碼風格和品質檢查",
+      "severity": "high"
+    },
+    "mypy": {
+      "enabled": true,
+      "max_errors": 0,
+      "description": "靜態類型檢查",
+      "severity": "high"
+    },
+    "pytest": {
+      "enabled": true,
+      "min_coverage": 70,
+      "description": "單元測試和覆蓋率檢查",
+      "severity": "critical"
+    },
+    "bandit": {
+      "enabled": true,
+      "max_high_severity": 0,
+      "max_medium_severity": 2,
+      "description": "安全漏洞檢查",
+      "severity": "high"
+    },
+    "safety": {
+      "enabled": true,
+      "max_vulnerabilities": 0,
+      "description": "依賴安全檢查",
+      "severity": "medium"
+    }
+  },
+  "environments": {
+    "development": {
+      "strict": false,
+      "allow_warnings": true,
+      "description": "開發環境 - 寬鬆的品質要求",
+      "overrides": {
+        "pytest": {"min_coverage": 50},
+        "bandit": {"max_high_severity": 1, "max_medium_severity": 5},
+        "safety": {"max_vulnerabilities": 2}
+      }
+    },
+    "testing": {
+      "strict": true,
+      "allow_warnings": false,
+      "description": "測試環境 - 中等品質要求",
+      "overrides": {
+        "pytest": {"min_coverage": 65},
+        "bandit": {"max_medium_severity": 1}
+      }
+    },
+    "production": {
+      "strict": true,
+      "allow_warnings": false,
+      "description": "生產環境 - 最嚴格的品質要求",
+      "overrides": {}
+    }
+  },
+  "failure_policies": {
+    "development": {
+      "block_deployment": false,
+      "notify_team": true,
+      "create_issue": false
+    },
+    "testing": {
+      "block_deployment": true,
+      "notify_team": true,
+      "create_issue": true
+    },
+    "production": {
+      "block_deployment": true,
+      "notify_team": true,
+      "create_issue": true,
+      "require_manual_approval": true
+    }
+  },
+  "notifications": {
+    "quality_failure": {
+      "channels": ["#quality-alerts"],
+      "severity_threshold": "medium",
+      "include_details": true
+    },
+    "quality_success": {
+      "channels": ["#deployments"],
+      "include_metrics": true
+    }
+  },
+  "reporting": {
+    "generate_reports": true,
+    "report_formats": ["json", "html"],
+    "include_trends": true,
+    "retention_days": 90
+  }
+}

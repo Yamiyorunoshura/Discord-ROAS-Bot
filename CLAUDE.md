@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 專案概述
 
-Discord ADR Bot v2.0 是一個功能完整的 Discord 機器人管理平台，提供活躍度追蹤、訊息監聽、伺服器保護、歡迎系統和資料同步等功能。該專案已從 v1.7.2 全面重構至 v2.0，採用現代化 Python 3.12 架構。
+本專案旨在打造一個功能全面、高度模組化的 Discord 機器人，其核心圍繞著一個複雜的社會經濟模擬系統。系統主要由以下幾個核心模組構成，並透過先進的軟體架構（如服務導向架構、依賴注入、事件驅動）實現模組間的高內聚與低耦合。
 
 ## 開發環境與依賴管理
 
@@ -461,86 +461,278 @@ find . -name "config.py" -exec python -m py_compile {} \;
 
 ## MCP Server 整合指南
 
-Claude Code 支援 Model Context Protocol (MCP) 伺服器整合，提供額外的工具和功能。
+Claude Code 支援 Model Context Protocol (MCP) 伺服器整合，提供額外的工具和功能。本專案整合了多個 MCP 伺服器以提升開發效率。
 
-### 已整合的 MCP Servers
+### 已整合的 MCP 伺服器
 
-#### 1. Upstash Context-7 MCP Server
-- **功能**: 即時程式庫文檔查詢
-- **用途**: 獲取最新的開源庫文檔和程式碼範例
-- **工具**:
-  - `resolve-library-id`: 解析程式庫名稱為 Context7 相容 ID
-  - `get-library-docs`: 取得指定程式庫的最新文檔
+#### Desktop Commander (mcp__desktop-commander__)
+全功能檔案系統和進程管理工具，是 Claude Code 的主要檔案操作工具。
 
+**核心功能**:
+- **檔案操作**: `read_file`, `write_file`, `edit_block` 進行檔案讀寫和編輯
+- **目錄管理**: `list_directory`, `create_directory`, `move_file` 進行目錄操作
+- **搜尋功能**: `search_files`, `search_code` 進行檔案和程式碼搜尋
+- **進程管理**: `start_process`, `interact_with_process` 管理終端進程
+- **本地分析**: 專為本地檔案分析設計，支援 CSV、JSON 等資料處理
+
+**最佳實踐**:
 ```python
-# 查詢 Discord.py 最新文檔
-resolve_library_id("discord.py")
-get_library_docs("/discord.py/discord.py", topic="slash commands", tokens=15000)
+# 1. 檔案讀取和編輯
+content = mcp__desktop-commander__read_file(path="D:\\coding\\Discord ROAS Bot\\src\\core\\bot.py")
+mcp__desktop-commander__edit_block(
+    file_path="D:\\coding\\Discord ROAS Bot\\src\\core\\bot.py",
+    old_string="舊程式碼",
+    new_string="新程式碼"
+)
 
-# 查詢 FastAPI 文檔
-resolve_library_id("fastapi")
-get_library_docs("/tiangolo/fastapi", topic="dependency injection")
+# 2. 程式碼搜尋
+results = mcp__desktop-commander__search_code(
+    path="D:\\coding\\Discord ROAS Bot\\src",
+    pattern="class.*Cog",
+    filePattern="*.py"
+)
+
+# 3. 資料分析進程
+pid = mcp__desktop-commander__start_process(command="python3 -i", timeout_ms=30000)
+mcp__desktop-commander__interact_with_process(
+    pid=pid,
+    input="import pandas as pd; df = pd.read_csv('data.csv')"
+)
+
+# 4. 檔案寫入（分塊）
+mcp__desktop-commander__write_file(
+    path="D:\\coding\\Discord ROAS Bot\\new_file.py",
+    content="第一塊內容（25-30行）",
+    mode="rewrite"
+)
+mcp__desktop-commander__write_file(
+    path="D:\\coding\\Discord ROAS Bot\\new_file.py", 
+    content="第二塊內容",
+    mode="append"
+)
 ```
 
-#### 2. Sequential Thinking MCP Server
-- **功能**: 結構化思維鏈推理
-- **用途**: 處理複雜問題分析和多步驟規劃
-- **適用場景**:
-  - 複雜架構設計決策
-  - 多步驟重構規劃
-  - 問題診斷和解決方案設計
+#### Context7 (mcp__context7__)
+專業程式庫文檔查詢工具，提供最新的 API 文檔和程式碼範例。
 
+**核心功能**:
+- **程式庫解析**: `resolve-library-id` 解析程式庫名稱為 Context7 ID
+- **文檔查詢**: `get-library-docs` 獲取詳細的 API 文檔
+- **主題搜尋**: 支援特定主題的精確文檔搜尋
+- **程式碼範例**: 提供實際可用的程式碼範例
+
+**最佳實踐**:
 ```python
-# 使用思維鏈分析複雜重構任務
-sequentialthinking(
-    thought="分析當前 Discord.py 模組架構問題",
+# 1. 解析程式庫 ID
+library_info = mcp__context7__resolve-library-id(libraryName="discord.py")
+
+# 2. 獲取文檔
+docs = mcp__context7__get-library-docs(
+    context7CompatibleLibraryID="/rapptz/discord.py",
+    topic="cogs",
+    tokens=10000
+)
+
+# 3. 查詢特定功能
+component_docs = mcp__context7__get-library-docs(
+    context7CompatibleLibraryID="/rapptz/discord.py",
+    topic="ui components buttons",
+    tokens=5000
+)
+```
+
+#### Sequential Thinking (mcp__sequential-thinking__)
+結構化思考工具，用於複雜問題分析和多步驟解決方案設計。
+
+**核心功能**:
+- **結構化思考**: 分步驟分析複雜問題
+- **思考分支**: 探索不同的解決方案路徑
+- **思考修正**: 修正和改進之前的分析
+- **邏輯驗證**: 驗證解決方案的正確性
+
+**最佳實踐**:
+```python
+# 1. 開始結構化思考
+mcp__sequential-thinking__sequentialthinking(
+    thought="分析 Discord 機器人架構重構的第一步：識別目前的問題點",
     thoughtNumber=1,
     totalThoughts=5,
-    nextThoughtNeeded=true
+    nextThoughtNeeded=True
+)
+
+# 2. 繼續思考並修正
+mcp__sequential-thinking__sequentialthinking(
+    thought="重新考慮之前的分析，應該先處理導入路徑問題",
+    thoughtNumber=2,
+    totalThoughts=6,  # 調整總思考數
+    nextThoughtNeeded=True,
+    isRevision=True,
+    revisesThought=1
+)
+
+# 3. 分支思考
+mcp__sequential-thinking__sequentialthinking(
+    thought="探索另一種重構方案：逐步遷移 vs 一次性重構",
+    thoughtNumber=3,
+    totalThoughts=6,
+    nextThoughtNeeded=True,
+    branchFromThought=1,
+    branchId="alternative_approach"
+)
+
+# 4. 完成思考
+mcp__sequential-thinking__sequentialthinking(
+    thought="綜合分析，確定最佳重構方案並提供實施步驟",
+    thoughtNumber=6,
+    totalThoughts=6,
+    nextThoughtNeeded=False
 )
 ```
 
-### MCP Server 最佳實踐
+### MCP 工具使用策略
 
-#### 文檔查詢優化
-```python
-# ✅ 高效：先解析 ID 再查詢文檔
-library_id = resolve_library_id("discord.py")
-docs = get_library_docs(library_id, topic="cogs", tokens=10000)
-
-# ❌ 低效：直接猜測 library ID
+#### 1. 程式碼分析工作流程
+```
+分析需求 → 結構化思考 → 文檔查詢 → 檔案搜尋 → 編輯修改 → 驗證結果
+     ↓           ↓           ↓           ↓           ↓           ↓
+Sequential   Sequential    Context7    Desktop     Desktop    標準工具
+Thinking     Thinking      Docs        Commander   Commander   (Bash/Test)
 ```
 
-#### 思維鏈應用場景
-1. **架構重構**: 分析現有問題 → 設計解決方案 → 實施步驟規劃
-2. **錯誤診斷**: 問題識別 → 根因分析 → 修復策略制定
-3. **功能設計**: 需求分析 → 技術選型 → 實現方案設計
-
-### 與專案整合示例
-
-#### Discord.py 文檔查詢
+#### 2. 大規模重構工作流程
 ```python
-# 查詢最新 Discord.py Cog 最佳實踐
-resolve_library_id("discord.py")
-get_library_docs("/discord.py/discord.py", topic="cogs application commands", tokens=12000)
-```
-
-#### 複雜重構規劃
-```python
-# 使用思維鏈規劃模組重構
-sequentialthinking(
-    thought="當前專案從 cogs.core.* 遷移到 src.core.* 的最佳策略是什麼？",
+# 第一步：結構化分析問題
+mcp__sequential-thinking__sequentialthinking(
+    thought="分析重構需求和影響範圍",
     thoughtNumber=1,
-    totalThoughts=8,
-    nextThoughtNeeded=true
+    totalThoughts=4,
+    nextThoughtNeeded=True
+)
+
+# 第二步：搜尋需要修改的檔案
+files = mcp__desktop-commander__search_code(
+    path="D:\\coding\\Discord ROAS Bot\\src",
+    pattern="from cogs\\.core",
+    filePattern="*.py"
+)
+
+# 第三步：批量修改
+for file_path in affected_files:
+    mcp__desktop-commander__edit_block(
+        file_path=file_path,
+        old_string="from cogs.core",
+        new_string="from src.core"
+    )
+
+# 第四步：查詢相關文檔確認最佳實踐
+docs = mcp__context7__get-library-docs(
+    context7CompatibleLibraryID="/rapptz/discord.py",
+    topic="extensions cogs"
 )
 ```
 
-### MCP Server 使用建議
+#### 3. 效能優化原則
+- **思考優先**: 使用 Sequential Thinking 分析複雜問題
+- **檔案級操作**: 使用 Desktop Commander 進行精確檔案操作
+- **文檔輔助**: 使用 Context7 獲取最新的程式庫文檔
+- **分塊處理**: 大檔案寫入採用分塊策略
 
-1. **文檔查詢優先**: 在處理新技術或 API 時，優先使用 MCP 伺服器獲取最新文檔
-2. **複雜問題分解**: 對於多步驟任務，使用 Sequential Thinking 進行結構化分析
-3. **實時更新**: MCP 伺服器提供的信息比訓練數據更新，特別適用於快速變化的技術領域
-4. **性能考量**: 合理設置 tokens 參數以平衡信息詳細度和查詢效率
+### 專案特定 MCP 整合
 
-這些 MCP 工具大幅增強了 Claude Code 在處理現代開發任務時的能力，特別是在文檔查詢和複雜問題解決方面。
+#### Discord.py 開發優化
+```python
+# 1. 查詢 Discord.py 最新文檔
+library_id = mcp__context7__resolve-library-id(libraryName="discord.py")
+cog_docs = mcp__context7__get-library-docs(
+    context7CompatibleLibraryID=library_id,
+    topic="cogs extensions",
+    tokens=8000
+)
+
+# 2. 搜尋所有 Cog 類別
+cogs = mcp__desktop-commander__search_code(
+    path="D:\\coding\\Discord ROAS Bot\\src\\cogs",
+    pattern="class.*Cog.*:",
+    filePattern="*.py"
+)
+
+# 3. 分析 Discord 事件處理器
+events = mcp__desktop-commander__search_code(
+    path="D:\\coding\\Discord ROAS Bot\\src",
+    pattern="async def on_.*\\(",
+    filePattern="*.py"
+)
+```
+
+#### 配置系統管理
+```python
+# 1. 結構化分析配置需求
+mcp__sequential-thinking__sequentialthinking(
+    thought="分析配置系統的架構和依賴關係",
+    thoughtNumber=1,
+    totalThoughts=3,
+    nextThoughtNeeded=True
+)
+
+# 2. 搜尋配置相關檔案
+config_files = mcp__desktop-commander__search_files(
+    path="D:\\coding\\Discord ROAS Bot\\src",
+    pattern="config"
+)
+
+# 3. 讀取和分析配置檔案
+for config_file in config_files:
+    content = mcp__desktop-commander__read_file(path=config_file)
+    # 分析配置結構...
+```
+
+### 最佳實踐與注意事項
+
+#### 1. Desktop Commander 使用指南
+- **絕對路徑**: 始終使用完整的絕對路徑
+- **分塊寫入**: 大檔案必須分成 25-30 行的塊
+- **搜尋優化**: 使用適當的檔案模式和正則表達式
+- **進程管理**: 善用進程工具進行資料分析
+
+#### 2. Context7 最佳實踐
+- **先解析後查詢**: 總是先使用 resolve-library-id
+- **主題聚焦**: 使用具體的 topic 參數獲得精確結果
+- **控制輸出**: 適當設定 tokens 參數控制文檔大小
+- **版本特定**: 查詢特定版本的文檔時包含版本資訊
+
+#### 3. Sequential Thinking 策略
+- **估算思考數**: 從小的 totalThoughts 開始，需要時調整
+- **善用修正**: 使用 isRevision 修正之前的分析
+- **分支探索**: 使用 branchFromThought 探索不同方案
+- **明確結束**: 確保設定 nextThoughtNeeded=False 完成思考
+
+#### 4. 整合工作流程
+```python
+# 複雜問題的標準流程
+# 1. 思考分析
+mcp__sequential-thinking__sequentialthinking(...)
+
+# 2. 文檔查詢（如需要）
+docs = mcp__context7__get-library-docs(...)
+
+# 3. 檔案操作
+files = mcp__desktop-commander__search_files(...)
+content = mcp__desktop-commander__read_file(...)
+mcp__desktop-commander__edit_block(...)
+
+# 4. 驗證結果
+Bash("make lint")  # 或其他驗證命令
+```
+
+### 整合檢查清單
+
+使用 MCP 工具前請確認：
+- [ ] Desktop Commander 可以訪問專案目錄
+- [ ] 使用絕對路徑進行所有檔案操作
+- [ ] Context7 查詢前先解析程式庫 ID
+- [ ] Sequential Thinking 適用於複雜問題分析
+- [ ] 檔案寫入採用分塊策略
+- [ ] 錯誤處理和降級方案已就位
+
+透過有效整合這三個 MCP 伺服器，可以建立一個完整的開發工作流程：Strategic Thinking 負責分析，Context7 提供文檔支援，Desktop Commander 執行具體操作。這種組合特別適合 Discord 機器人專案的複雜開發需求。
+

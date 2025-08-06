@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 # 效能監控常數
 MAX_EVENT_PROCESSING_TIME_MS = 100  # 事件處理時間閾值(毫秒)
 
+
 class AchievementEventListener(commands.Cog):
     """成就事件監聽器.
 
@@ -769,9 +770,7 @@ class AchievementEventListener(commands.Cog):
                 except Exception as e:
                     logger.error(f"[成就進度更新]用戶 {user_id} 進度更新失敗: {e}")
 
-            logger.debug(
-                f"[成就進度更新]完成處理 {len(user_events)} 個用戶的進度更新"
-            )
+            logger.debug(f"[成就進度更新]完成處理 {len(user_events)} 個用戶的進度更新")
 
         except Exception as e:
             logger.error(f"[成就進度更新]觸發進度更新失敗: {e}", exc_info=True)

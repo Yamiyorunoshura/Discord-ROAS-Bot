@@ -401,6 +401,7 @@ class MigrationManager:
 
         return "\n".join(report_lines)
 
+
 def _create_argument_parser() -> argparse.ArgumentParser:
     """創建命令行參數解析器"""
     parser = argparse.ArgumentParser(description="Discord ROAS Bot 數據遷移管理器")
@@ -427,6 +428,7 @@ def _create_argument_parser() -> argparse.ArgumentParser:
 
     return parser
 
+
 def _save_output(
     data: str | dict[str, Any], output_path: str | None, success_msg: str
 ) -> None:
@@ -444,6 +446,7 @@ def _save_output(
     else:
         print(json.dumps(data, ensure_ascii=False, indent=2, default=str))
 
+
 async def _handle_migrate_action(
     manager: MigrationManager, args: argparse.Namespace
 ) -> None:
@@ -460,6 +463,7 @@ async def _handle_migrate_action(
     report = await manager.generate_migration_report(result)
     _save_output(report, args.output, f"報告已保存至: {args.output}")
 
+
 async def _handle_validate_action(
     manager: MigrationManager, args: argparse.Namespace
 ) -> None:
@@ -467,6 +471,7 @@ async def _handle_validate_action(
     print("執行遷移驗證...")
     result = await manager.validate_migration_only()
     _save_output(result, args.output, f"驗證結果已保存至: {args.output}")
+
 
 async def _handle_rollback_action(
     manager: MigrationManager, args: argparse.Namespace
@@ -479,6 +484,7 @@ async def _handle_rollback_action(
     print(f"執行遷移回滾 - ID: {args.migration_id}")
     result = await manager.rollback_migration(args.migration_id)
     _save_output(result, args.output, f"回滾結果已保存至: {args.output}")
+
 
 def _handle_plan_action(args: argparse.Namespace) -> None:
     """處理計劃顯示操作"""
@@ -496,6 +502,7 @@ def _handle_plan_action(args: argparse.Namespace) -> None:
     print(f"  - 創建備份: {not args.no_backup}")
     print(f"  - 執行驗證: {not args.no_validate}")
     print(f"  - 自動回滾: {args.auto_rollback}")
+
 
 async def main() -> None:
     """主函數 - 命令行界面"""
@@ -520,6 +527,7 @@ async def main() -> None:
     except Exception as e:
         print(f"執行失敗: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

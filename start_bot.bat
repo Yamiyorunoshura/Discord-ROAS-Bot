@@ -1,5 +1,5 @@
 @echo off
-REM Discord ADR Bot v2.0 - Windows 批次啟動腳本
+REM Discord ADR Bot - Windows 批次啟動腳本
 REM 自動檢測並創建虛擬環境，兼容 Windows 系統
 
 setlocal enabledelayedexpansion
@@ -18,9 +18,9 @@ set "WHITE=97"
 :: 顯示橫幅
 echo.
 echo [%CYAN%m╔══════════════════════════════════════════════════════════════╗[0m
-echo [%CYAN%m║              Discord ADR Bot v2.0 - Windows                 ║[0m
-echo [%CYAN%m║                智能啟動腳本 (批次版本)                       ║[0m
-echo [%CYAN%m║             支援自動虛擬環境檢測與創建                       ║[0m
+echo [%CYAN%m║              Discord ADR Bot - Windows                       ║[0m
+echo [%CYAN%m║                智能啟動腳本 (批次版本)                        ║[0m
+echo [%CYAN%m║             支援自動虛擬環境檢測與創建 (Windows)              ║[0m
 echo [%CYAN%m╚══════════════════════════════════════════════════════════════╝[0m
 echo.
 

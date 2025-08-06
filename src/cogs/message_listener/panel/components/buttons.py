@@ -78,6 +78,7 @@ class SmartBatchConfigButton(Button):
                 f"❌ 獲取統計失敗:{e!s}", ephemeral=True
             )
 
+
 class RenderQualityButton(Button):
     """渲染品質設定按鈕"""
 
@@ -92,6 +93,7 @@ class RenderQualityButton(Button):
         modal = RenderQualityModal(self.cog)
         await interaction.response.send_modal(modal)
 
+
 class FontSettingsButton(Button):
     """字體設定按鈕"""
 
@@ -105,6 +107,7 @@ class FontSettingsButton(Button):
         """字體設定回調"""
         modal = FontSettingsModal(self.cog)
         await interaction.response.send_modal(modal)
+
 
 class ColorThemeButton(Button):
     """顏色主題按鈕"""
@@ -124,6 +127,7 @@ class ColorThemeButton(Button):
             color=discord.Color.purple(),
         )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
 
 class RenderPreviewButton(Button):
     """渲染預覽按鈕"""
@@ -175,7 +179,9 @@ class RenderPreviewButton(Button):
                 "color_theme": "Discord 預設",
             }
 
+
 # 模態框組件
+
 
 class RenderQualityModal(Modal):
     """渲染品質設定模態框"""
@@ -235,7 +241,8 @@ class RenderQualityModal(Modal):
                 MAX_IMAGE_SIZE = 1200
                 if size < MIN_IMAGE_SIZE or size > MAX_IMAGE_SIZE:
                     await interaction.response.send_message(
-                        f"❌ 尺寸設定無效,請輸入 {MIN_IMAGE_SIZE}-{MAX_IMAGE_SIZE} 之間的數值", ephemeral=True
+                        f"❌ 尺寸設定無效,請輸入 {MIN_IMAGE_SIZE}-{MAX_IMAGE_SIZE} 之間的數值",
+                        ephemeral=True,
                     )
                     return
             except ValueError:
@@ -274,6 +281,7 @@ class RenderQualityModal(Modal):
             await interaction.response.send_message(
                 f"❌ 設定失敗:{e!s}", ephemeral=True
             )
+
 
 class FontSettingsModal(Modal):
     """字體設定模態框"""
@@ -316,7 +324,8 @@ class FontSettingsModal(Modal):
                 MAX_FONT_SIZE = 24
                 if size < MIN_FONT_SIZE or size > MAX_FONT_SIZE:
                     await interaction.response.send_message(
-                        f"❌ 字體大小無效,請輸入 {MIN_FONT_SIZE}-{MAX_FONT_SIZE} 之間的數值", ephemeral=True
+                        f"❌ 字體大小無效,請輸入 {MIN_FONT_SIZE}-{MAX_FONT_SIZE} 之間的數值",
+                        ephemeral=True,
                     )
                     return
             except ValueError:
@@ -332,7 +341,8 @@ class FontSettingsModal(Modal):
                 MAX_LINE_HEIGHT = 2.0
                 if line_height < MIN_LINE_HEIGHT or line_height > MAX_LINE_HEIGHT:
                     await interaction.response.send_message(
-                        f"❌ 行高無效,請輸入 {MIN_LINE_HEIGHT}-{MAX_LINE_HEIGHT} 之間的數值", ephemeral=True
+                        f"❌ 行高無效,請輸入 {MIN_LINE_HEIGHT}-{MAX_LINE_HEIGHT} 之間的數值",
+                        ephemeral=True,
                     )
                     return
             except ValueError:
@@ -375,6 +385,7 @@ class FontSettingsModal(Modal):
                 f"❌ 設定失敗:{e!s}", ephemeral=True
             )
 
+
 class ColorThemeView(discord.ui.View):
     """顏色主題視圖"""
 
@@ -382,6 +393,7 @@ class ColorThemeView(discord.ui.View):
         super().__init__(timeout=300)
         self.cog = cog
         self.add_item(ColorThemeSelect(cog))
+
 
 class ColorThemeSelect(Select):
     """顏色主題選擇器"""
@@ -476,9 +488,10 @@ class ColorThemeSelect(Select):
 
             # 更新配置
             if hasattr(self.cog, "config"):
-                self.cog.config.update(
-                    {"color_theme": selected_theme, "theme_config": theme_config}
-                )
+                self.cog.config.update({
+                    "color_theme": selected_theme,
+                    "theme_config": theme_config,
+                })
 
             embed = discord.Embed(
                 title="✅ 顏色主題已更新",
@@ -503,6 +516,7 @@ class ColorThemeSelect(Select):
             await interaction.response.send_message(
                 f"❌ 主題設定失敗:{e!s}", ephemeral=True
             )
+
 
 class HelpButton(Button):
     """幫助按鈕"""
@@ -542,6 +556,7 @@ class HelpButton(Button):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+
 class AdjustBatchSize(Button):
     """調整批量大小按鈕"""
 
@@ -559,6 +574,7 @@ class AdjustBatchSize(Button):
             color=discord.Color.orange(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class AdjustBatchTime(Button):
     """調整批量時間按鈕"""
@@ -578,6 +594,7 @@ class AdjustBatchTime(Button):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+
 class LogChannelSelect(ChannelSelect):
     """日誌頻道選擇器"""
 
@@ -593,6 +610,7 @@ class LogChannelSelect(ChannelSelect):
         await interaction.response.send_message(
             f"已選擇日誌頻道:{selected_channel.mention}", ephemeral=True
         )
+
 
 class MonitoredChannelsSelect(ChannelSelect):
     """監控頻道選擇器"""
@@ -613,6 +631,7 @@ class MonitoredChannelsSelect(ChannelSelect):
         await interaction.response.send_message(
             f"已選擇監控頻道:{', '.join(channel_names)}", ephemeral=True
         )
+
 
 class ToggleEdits(Button):
     """切換編輯監控按鈕"""
@@ -650,6 +669,7 @@ class ToggleEdits(Button):
         if hasattr(self.view, "refresh"):
             await self.view.refresh(interaction)
 
+
 class ToggleDeletes(Button):
     """切換刪除監控按鈕"""
 
@@ -686,6 +706,7 @@ class ToggleDeletes(Button):
         if hasattr(self.view, "refresh"):
             await self.view.refresh(interaction)
 
+
 class CloseButton(Button):
     """關閉按鈕"""
 
@@ -708,6 +729,7 @@ class CloseButton(Button):
         else:
             await interaction.response.edit_message(embed=embed, view=None)
 
+
 class PageButton(Button):
     """翻頁按鈕"""
 
@@ -722,7 +744,9 @@ class PageButton(Button):
         """翻頁回調"""
         await self.view_parent.update(interaction)
 
+
 # 預覽功能組件
+
 
 class PreviewSelectView(discord.ui.View):
     """預覽選擇視圖"""
@@ -736,6 +760,7 @@ class PreviewSelectView(discord.ui.View):
         self.add_item(QuickPreviewButton(cog))
         self.add_item(PreviewSettingsButton(cog))
         self.add_item(ClosePreviewButton())
+
 
 class FullPreviewButton(Button):
     """完整預覽按鈕"""
@@ -751,6 +776,7 @@ class FullPreviewButton(Button):
         # 創建簡化的預覽模態框
         modal = SimplePreviewModal(self.cog, "完整預覽")
         await interaction.response.send_modal(modal)
+
 
 class QuickPreviewButton(Button):
     """快速預覽按鈕"""
@@ -789,6 +815,7 @@ class QuickPreviewButton(Button):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+
 class PreviewSettingsButton(Button):
     """預覽設定按鈕"""
 
@@ -803,6 +830,7 @@ class PreviewSettingsButton(Button):
         # 創建簡化的設定模態框
         modal = SimplePreviewModal(self.cog, "預覽設定")
         await interaction.response.send_modal(modal)
+
 
 class ClosePreviewButton(Button):
     """關閉預覽按鈕"""
@@ -821,6 +849,7 @@ class ClosePreviewButton(Button):
         )
 
         await interaction.response.edit_message(embed=embed, view=None)
+
 
 class SimplePreviewModal(Modal):
     """簡化的預覽模態框"""

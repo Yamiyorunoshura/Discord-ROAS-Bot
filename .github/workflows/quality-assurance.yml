@@ -1,0 +1,148 @@
+name: Quality Assurance
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  type-safety-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.12]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+
+    - name: Create virtual environment
+      run: uv venv
+
+    - name: Install dependencies
+      run: |
+        uv sync --extra dev
+        uv pip install types-psutil
+
+    - name: Run strict mypy type checking
+      run: |
+        uv run mypy --config-file=quality/mypy.ini src/core --show-error-codes
+      continue-on-error: false
+
+    - name: Run comprehensive quality check
+      run: |
+        uv run python scripts/quality_check_tool.py src/core
+      continue-on-error: true
+
+    - name: Generate quality reports
+      run: |
+        mkdir -p quality_reports
+        uv run mypy --config-file=quality/mypy.ini src --html-report quality_reports/mypy-report || true
+        uv run ruff check src --output-format=json > quality_reports/ruff-report.json || true
+
+    - name: Upload quality reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: quality-reports-${{ matrix.python-version }}
+        path: quality_reports/
+        retention-days: 30
+
+    - name: Check type coverage
+      run: |
+        echo "Checking type coverage requirements..."
+        # 使用我們的品質系統檢查覆蓋率
+        uv run python -c "
+        import asyncio
+        from src.core.quality import QualityAssuranceService
+        from src.core.quality.enforcement import QualityGateEnforcer, QualityGatePolicy
+        
+        async def check_coverage():
+            service = QualityAssuranceService()
+            enforcer = QualityGateEnforcer()
+            
+            result = await service.run_quality_checks('src/core')
+            gate_result = enforcer.evaluate_quality_gate(result, QualityGatePolicy.STANDARD)
+            
+            print(f'Type coverage: {result.type_coverage:.1f}%')
+            print(f'Quality gate passed: {gate_result.passed}')
+            
+            if not gate_result.passed:
+                print('Quality gate failed!')
+                for violation in gate_result.violations:
+                    print(f'  - {violation}')
+                exit(1)
+            
+        asyncio.run(check_coverage())
+        "
+
+  full-quality-audit:
+    runs-on: ubuntu-latest
+    needs: type-safety-check
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v4
+
+    - name: Set up Python 3.12
+      run: uv python install 3.12
+
+    - name: Install dependencies
+      run: |
+        uv sync --extra dev
+        uv pip install types-psutil
+
+    - name: Full codebase quality check
+      run: |
+        echo "Running full codebase quality audit..."
+        uv run python scripts/quality_check_tool.py src
+      continue-on-error: true
+
+    - name: Quality metrics collection
+      run: |
+        echo "Collecting quality metrics..."
+        uv run python -c "
+        import asyncio
+        from pathlib import Path
+        from src.core.quality.metrics import QualityMetricsCollector
+        from src.core.quality import QualityAssuranceService
+        
+        async def collect_metrics():
+            collector = QualityMetricsCollector(Path('quality_metrics.db'))
+            service = QualityAssuranceService()
+            
+            # Core modules
+            result = await service.run_quality_checks('src/core')
+            metrics = collector.collect_metrics(
+                project_path='src/core',
+                type_coverage=result.type_coverage,
+                mypy_error_count=len(result.mypy_errors),
+                ruff_error_count=len(result.ruff_errors),
+                total_files=result.total_files,
+                checked_files=result.checked_files,
+                execution_time=result.execution_time
+            )
+            
+            print(f'Metrics collected: {metrics.timestamp}')
+            print(f'Core type coverage: {metrics.type_coverage:.1f}%')
+            
+        asyncio.run(collect_metrics())
+        "
+
+    - name: Upload metrics database
+      uses: actions/upload-artifact@v4
+      with:
+        name: quality-metrics
+        path: quality_metrics.db
+        retention-days: 90

@@ -2,12 +2,16 @@
 反可執行檔案保護模組 - 按鈕元件
 """
 
+from __future__ import annotations
+
 import contextlib
+from typing import TYPE_CHECKING
 
 import discord
 from discord import ui
 
-from ..main_view import AntiExecutableMainView
+if TYPE_CHECKING:
+    from ..main_view import AntiExecutableMainView
 
 # Modal imports (避免循環導入)
 with contextlib.suppress(ImportError):
@@ -21,6 +25,7 @@ with contextlib.suppress(ImportError):
         SettingsModal,
     )
 
+
 # 基礎按鈕類
 class BaseButton(ui.Button):
     """基礎按鈕類"""
@@ -28,6 +33,7 @@ class BaseButton(ui.Button):
     def __init__(self, view: AntiExecutableMainView, **kwargs):
         super().__init__(**kwargs)
         self.main_view = view
+
 
 # 主要面板按鈕
 class EnableButton(BaseButton):
@@ -46,6 +52,7 @@ class EnableButton(BaseButton):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"啟用保護失敗:{exc}")
 
+
 class DisableButton(BaseButton):
     """停用模組按鈕"""
 
@@ -62,6 +69,7 @@ class DisableButton(BaseButton):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"停用保護失敗:{exc}")
 
+
 class SettingsButton(BaseButton):
     """設定按鈕"""
 
@@ -74,6 +82,7 @@ class SettingsButton(BaseButton):
         """打開設定對話框"""
         modal = SettingsModal(self.main_view)
         await interaction.response.send_modal(modal)
+
 
 class HelpButton(BaseButton):
     """說明按鈕"""
@@ -111,6 +120,7 @@ class HelpButton(BaseButton):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+
 # 白名單管理按鈕
 class AddWhitelistButton(BaseButton):
     """新增白名單按鈕"""
@@ -125,6 +135,7 @@ class AddWhitelistButton(BaseButton):
         modal = AddWhitelistModal(self.main_view)
         await interaction.response.send_modal(modal)
 
+
 class RemoveWhitelistButton(BaseButton):
     """移除白名單按鈕"""
 
@@ -137,6 +148,7 @@ class RemoveWhitelistButton(BaseButton):
         """移除白名單項目"""
         modal = RemoveWhitelistModal(self.main_view)
         await interaction.response.send_modal(modal)
+
 
 class ClearWhitelistButton(BaseButton):
     """清空白名單按鈕"""
@@ -154,6 +166,7 @@ class ClearWhitelistButton(BaseButton):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"清空白名單失敗:{exc}")
 
+
 # 黑名單管理按鈕
 class AddBlacklistButton(BaseButton):
     """新增黑名單按鈕"""
@@ -168,6 +181,7 @@ class AddBlacklistButton(BaseButton):
         modal = AddBlacklistModal(self.main_view)
         await interaction.response.send_modal(modal)
 
+
 class RemoveBlacklistButton(BaseButton):
     """移除黑名單按鈕"""
 
@@ -180,6 +194,7 @@ class RemoveBlacklistButton(BaseButton):
         """移除黑名單項目"""
         modal = RemoveBlacklistModal(self.main_view)
         await interaction.response.send_modal(modal)
+
 
 class RefreshBlacklistButton(BaseButton):
     """重新整理黑名單按鈕"""
@@ -196,6 +211,7 @@ class RefreshBlacklistButton(BaseButton):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"重新整理失敗:{exc}")
 
+
 # 格式管理按鈕
 class AddFormatButton(BaseButton):
     """新增格式按鈕"""
@@ -210,6 +226,7 @@ class AddFormatButton(BaseButton):
         modal = AddFormatModal(self.main_view)
         await interaction.response.send_modal(modal)
 
+
 class RemoveFormatButton(BaseButton):
     """移除格式按鈕"""
 
@@ -222,6 +239,7 @@ class RemoveFormatButton(BaseButton):
         """移除檔案格式"""
         modal = RemoveFormatModal(self.main_view)
         await interaction.response.send_modal(modal)
+
 
 class ResetFormatsButton(BaseButton):
     """重置格式按鈕"""
@@ -239,6 +257,7 @@ class ResetFormatsButton(BaseButton):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"重置格式失敗:{exc}")
 
+
 # 統計面板按鈕
 class ClearStatsButton(BaseButton):
     """清空統計按鈕"""
@@ -255,6 +274,7 @@ class ClearStatsButton(BaseButton):
             await self.main_view.update_panel(interaction)
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"清空統計失敗:{exc}")
+
 
 class ExportStatsButton(BaseButton):
     """匯出統計按鈕"""
@@ -275,6 +295,7 @@ class ExportStatsButton(BaseButton):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"匯出統計失敗:{exc}")
 
+
 class RefreshStatsButton(BaseButton):
     """重新整理統計按鈕"""
 
@@ -290,6 +311,7 @@ class RefreshStatsButton(BaseButton):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"重新整理失敗:{exc}")
 
+
 # 分頁按鈕
 class PrevPageButton(BaseButton):
     """上一頁按鈕"""
@@ -303,6 +325,7 @@ class PrevPageButton(BaseButton):
         """上一頁"""
         await self.main_view.change_page(-1, interaction)
 
+
 class NextPageButton(BaseButton):
     """下一頁按鈕"""
 
@@ -314,6 +337,7 @@ class NextPageButton(BaseButton):
     async def callback(self, interaction: discord.Interaction):
         """下一頁"""
         await self.main_view.change_page(1, interaction)
+
 
 # 通用按鈕
 class CloseButton(BaseButton):

@@ -55,8 +55,8 @@ def verify_achievement_system():
 
         # 檢查主要模組導入
         try:
-            from src.cogs.achievement import setup
-            from src.cogs.achievement.main.main import AchievementCog
+            from src.cogs.achievement import setup  # noqa: F401
+            from src.cogs.achievement.main.main import AchievementCog  # noqa: F401
 
             print("✅ 成就系統模組可正常導入")
         except ImportError as e:

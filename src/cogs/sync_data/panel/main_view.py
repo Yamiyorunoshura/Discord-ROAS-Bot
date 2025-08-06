@@ -19,6 +19,7 @@ from .embeds.status_embed import create_status_embed
 
 logger = logging.getLogger("sync_data")
 
+
 class SyncDataMainView(StandardPanelView):
     """
     資料同步主面板視圖
@@ -281,9 +282,9 @@ class SyncDataMainView(StandardPanelView):
                     self.guild, limit=10
                 )
                 total_syncs = len(history)
-                success_count = len(
-                    [h for h in history if h.get("status") == "success"]
-                )
+                success_count = len([
+                    h for h in history if h.get("status") == "success"
+                ])
                 success_rate = (
                     (success_count / total_syncs * 100) if total_syncs > 0 else 0
                 )
@@ -478,6 +479,7 @@ class SyncDataMainView(StandardPanelView):
         """構建主頁面嵌入 (覆寫基類方法)"""
         return await self.build_status_embed()
 
+
 class ConfirmClearLogsView(discord.ui.View):
     """確認清除記錄的視圖"""
 
@@ -487,7 +489,7 @@ class ConfirmClearLogsView(discord.ui.View):
 
     @discord.ui.button(label="確認清除", style=discord.ButtonStyle.danger, emoji="⚠️")
     async def confirm_clear(
-        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         """確認清除記錄"""
         try:
@@ -519,7 +521,7 @@ class ConfirmClearLogsView(discord.ui.View):
 
     @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary, emoji="❌")
     async def cancel_clear(
-        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         """取消清除"""
         # 禁用按鈕

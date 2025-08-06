@@ -22,6 +22,7 @@ from ..constants import DEFAULT_BATCH_SIZE, MIN_BATCH_SIZE
 
 logger = logging.getLogger(__name__)
 
+
 class CacheEventType(Enum):
     """快取事件類型枚舉."""
 
@@ -32,6 +33,7 @@ class CacheEventType(Enum):
     BULK_OPERATION = "bulk_operation"
     ACHIEVEMENT_UPDATED = "achievement_updated"
     CATEGORY_UPDATED = "category_updated"
+
 
 @dataclass
 class CacheEvent:
@@ -45,6 +47,7 @@ class CacheEvent:
     metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.utcnow)
 
+
 @dataclass
 class CacheInvalidationPlan:
     """快取失效計劃."""
@@ -54,6 +57,7 @@ class CacheInvalidationPlan:
     estimated_impact: int = 0
     priority: int = 1  # 1=highest, 5=lowest
     batch_size: int = 100
+
 
 class CacheSyncManager:
     """快取同步管理器.

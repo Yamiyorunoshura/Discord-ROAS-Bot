@@ -19,13 +19,14 @@ logger = logging.getLogger(__name__)
 
 # 經濟健康度常數
 GINI_EXCELLENT_THRESHOLD = 0.3  # 極佳經濟健康度門檻
-GINI_GOOD_THRESHOLD = 0.5       # 良好經濟健康度門檻
-GINI_AVERAGE_THRESHOLD = 0.7    # 一般經濟健康度門檻
+GINI_GOOD_THRESHOLD = 0.5  # 良好經濟健康度門檻
+GINI_AVERAGE_THRESHOLD = 0.7  # 一般經濟健康度門檻
 
 # 財富等級常數
-WEALTH_LEVEL_RICH = 100000      # 富豪等級
-WEALTH_LEVEL_WEALTHY = 10000    # 富有等級
-WEALTH_LEVEL_AVERAGE = 1000     # 一般等級
+WEALTH_LEVEL_RICH = 100000  # 富豪等級
+WEALTH_LEVEL_WEALTHY = 10000  # 富有等級
+WEALTH_LEVEL_AVERAGE = 1000  # 一般等級
+
 
 class StatsEmbedRenderer:
     """經濟統計 Embed 渲染器"""
@@ -59,7 +60,7 @@ class StatsEmbedRenderer:
                 title="📊 伺服器經濟統計分析",
                 description="詳細的經濟數據與趨勢分析",
                 color=discord.Color.blue(),
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             # 添加基礎統計
@@ -80,7 +81,7 @@ class StatsEmbedRenderer:
             # 設置頁腳
             embed.set_footer(
                 text=f"統計數據更新於 {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC",
-                icon_url="https://cdn.discordapp.com/emojis/📊.png"
+                icon_url="https://cdn.discordapp.com/emojis/📊.png",
             )
 
             return embed
@@ -92,7 +93,7 @@ class StatsEmbedRenderer:
             error_embed = discord.Embed(
                 title="❌ 載入錯誤",
                 description="無法載入經濟統計,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             return error_embed
 
@@ -118,19 +119,11 @@ class StatsEmbedRenderer:
                 f"📈 **活躍度**: {activity_rate:.1f}%"
             )
 
-            embed.add_field(
-                name="📈 基礎統計",
-                value=basic_stats,
-                inline=True
-            )
+            embed.add_field(name="📈 基礎統計", value=basic_stats, inline=True)
 
         except Exception as e:
             self.logger.warning(f"添加基礎統計失敗: {e}")
-            embed.add_field(
-                name="📈 基礎統計",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="📈 基礎統計", value="載入中...", inline=True)
 
     def _add_user_distribution(self, embed: discord.Embed):
         """添加用戶分布分析"""
@@ -149,19 +142,11 @@ class StatsEmbedRenderer:
                 f"📊 **餘額範圍**: {min_balance:,} - {max_balance:,}"
             )
 
-            embed.add_field(
-                name="👥 用戶分布",
-                value=distribution,
-                inline=True
-            )
+            embed.add_field(name="👥 用戶分布", value=distribution, inline=True)
 
         except Exception as e:
             self.logger.warning(f"添加用戶分布分析失敗: {e}")
-            embed.add_field(
-                name="👥 用戶分布",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="👥 用戶分布", value="載入中...", inline=True)
 
     def _add_wealth_distribution(self, embed: discord.Embed):
         """添加財富分布分析"""
@@ -186,19 +171,11 @@ class StatsEmbedRenderer:
                 f"📊 **經濟健康度**: {self._get_economy_health(gini_estimate)}"
             )
 
-            embed.add_field(
-                name="💰 財富分析",
-                value=wealth_analysis,
-                inline=False
-            )
+            embed.add_field(name="💰 財富分析", value=wealth_analysis, inline=False)
 
         except Exception as e:
             self.logger.warning(f"添加財富分布分析失敗: {e}")
-            embed.add_field(
-                name="💰 財富分析",
-                value="載入中...",
-                inline=False
-            )
+            embed.add_field(name="💰 財富分析", value="載入中...", inline=False)
 
     def _add_transaction_stats(self, embed: discord.Embed):
         """添加交易統計"""
@@ -220,19 +197,11 @@ class StatsEmbedRenderer:
                 f"💹 **市場流動性**: 良好"
             )
 
-            embed.add_field(
-                name="🔄 交易統計",
-                value=transaction_stats,
-                inline=True
-            )
+            embed.add_field(name="🔄 交易統計", value=transaction_stats, inline=True)
 
         except Exception as e:
             self.logger.warning(f"添加交易統計失敗: {e}")
-            embed.add_field(
-                name="🔄 交易統計",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="🔄 交易統計", value="載入中...", inline=True)
 
     def _add_trend_analysis(self, embed: discord.Embed):
         """添加趨勢分析"""
@@ -246,19 +215,11 @@ class StatsEmbedRenderer:
                 "🔮 **前景**: 樂觀"
             )
 
-            embed.add_field(
-                name="🔮 趨勢分析",
-                value=trend_analysis,
-                inline=True
-            )
+            embed.add_field(name="🔮 趨勢分析", value=trend_analysis, inline=True)
 
         except Exception as e:
             self.logger.warning(f"添加趨勢分析失敗: {e}")
-            embed.add_field(
-                name="🔮 趨勢分析",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="🔮 趨勢分析", value="載入中...", inline=True)
 
     def _calculate_wealth_distribution(self, max_balance: int) -> dict[str, int]:
         """計算財富分布(簡化版本)"""

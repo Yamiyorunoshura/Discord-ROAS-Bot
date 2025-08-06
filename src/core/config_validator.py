@@ -48,6 +48,7 @@ MAX_PAYMENT_INTERVAL = 168  # 一周
 MIN_BASE_SALARY = 0
 MAX_BASE_SALARY = 10000
 
+
 class DatabasePoolConfig(BaseModel):
     """資料庫連接池配置."""
 
@@ -60,14 +61,19 @@ class DatabasePoolConfig(BaseModel):
     @validator("size")
     def validate_size(cls, v: int) -> int:
         if v < MIN_POOL_SIZE or v > MAX_POOL_SIZE:
-            raise ValueError(f"Pool size must be between {MIN_POOL_SIZE} and {MAX_POOL_SIZE}")
+            raise ValueError(
+                f"Pool size must be between {MIN_POOL_SIZE} and {MAX_POOL_SIZE}"
+            )
         return v
 
     @validator("max_overflow")
     def validate_max_overflow(cls, v: int) -> int:
         if v < MIN_MAX_OVERFLOW or v > MAX_MAX_OVERFLOW:
-            raise ValueError(f"Max overflow must be between {MIN_MAX_OVERFLOW} and {MAX_MAX_OVERFLOW}")
+            raise ValueError(
+                f"Max overflow must be between {MIN_MAX_OVERFLOW} and {MAX_MAX_OVERFLOW}"
+            )
         return v
+
 
 class DatabaseQueryConfig(BaseModel):
     """資料庫查詢配置."""
@@ -78,8 +84,11 @@ class DatabaseQueryConfig(BaseModel):
     @validator("timeout")
     def validate_timeout(cls, v: int) -> int:
         if v < MIN_TIMEOUT or v > MAX_QUERY_TIMEOUT:
-            raise ValueError(f"Query timeout must be between {MIN_TIMEOUT} and {MAX_QUERY_TIMEOUT} seconds")
+            raise ValueError(
+                f"Query timeout must be between {MIN_TIMEOUT} and {MAX_QUERY_TIMEOUT} seconds"
+            )
         return v
+
 
 class PostgreSQLConfig(BaseModel):
     """PostgreSQL 配置."""
@@ -101,8 +110,11 @@ class PostgreSQLConfig(BaseModel):
     @validator("database")
     def validate_database_name(cls, v: str) -> str:
         if not v or len(v) > MAX_DATABASE_NAME_LENGTH:
-            raise ValueError(f"Database name must be 1-{MAX_DATABASE_NAME_LENGTH} characters")
+            raise ValueError(
+                f"Database name must be 1-{MAX_DATABASE_NAME_LENGTH} characters"
+            )
         return v
+
 
 class DatabaseConfig(BaseModel):
     """資料庫配置."""
@@ -116,6 +128,7 @@ class DatabaseConfig(BaseModel):
             raise ValueError("Database type must be postgresql or sqlite")
         return v
 
+
 class CurrencyModuleConfig(BaseModel):
     """貨幣模組配置."""
 
@@ -126,14 +139,19 @@ class CurrencyModuleConfig(BaseModel):
     @validator("cache_duration")
     def validate_cache_duration(cls, v: int) -> int:
         if v < MIN_CACHE_DURATION or v > MAX_CACHE_DURATION:
-            raise ValueError(f"Cache duration must be between {MIN_CACHE_DURATION} and {MAX_CACHE_DURATION} seconds")
+            raise ValueError(
+                f"Cache duration must be between {MIN_CACHE_DURATION} and {MAX_CACHE_DURATION} seconds"
+            )
         return v
 
     @validator("batch_update_size")
     def validate_batch_size(cls, v: int) -> int:
         if v < MIN_BATCH_SIZE or v > MAX_BATCH_SIZE:
-            raise ValueError(f"Batch update size must be between {MIN_BATCH_SIZE} and {MAX_BATCH_SIZE}")
+            raise ValueError(
+                f"Batch update size must be between {MIN_BATCH_SIZE} and {MAX_BATCH_SIZE}"
+            )
         return v
+
 
 class DepartmentModuleConfig(BaseModel):
     """部門模組配置."""
@@ -145,20 +163,26 @@ class DepartmentModuleConfig(BaseModel):
     @validator("cache_duration")
     def validate_cache_duration(cls, v: int) -> int:
         if v < MIN_GOVERNMENT_CACHE_DURATION or v > MAX_CACHE_DURATION:
-            raise ValueError(f"Cache duration must be between {MIN_GOVERNMENT_CACHE_DURATION} and {MAX_CACHE_DURATION} seconds")
+            raise ValueError(
+                f"Cache duration must be between {MIN_GOVERNMENT_CACHE_DURATION} and {MAX_CACHE_DURATION} seconds"
+            )
         return v
 
     @validator("max_departments_per_guild")
     def validate_max_departments(cls, v: int) -> int:
         if v < MIN_POOL_SIZE or v > MAX_DEPARTMENTS_PER_GUILD:
-            raise ValueError(f"Max departments per guild must be between {MIN_POOL_SIZE} and {MAX_DEPARTMENTS_PER_GUILD}")
+            raise ValueError(
+                f"Max departments per guild must be between {MIN_POOL_SIZE} and {MAX_DEPARTMENTS_PER_GUILD}"
+            )
         return v
+
 
 class ModulesConfig(BaseModel):
     """模組配置."""
 
     currency: CurrencyModuleConfig = CurrencyModuleConfig()
     department: DepartmentModuleConfig = DepartmentModuleConfig()
+
 
 class GovernmentRoleConfig(BaseModel):
     """政府角色配置."""
@@ -176,8 +200,11 @@ class GovernmentRoleConfig(BaseModel):
     @validator("max_members")
     def validate_max_members(cls, v: int) -> int:
         if v < MIN_POOL_SIZE or v > MAX_MEMBERS_PER_ROLE:
-            raise ValueError(f"Max members must be between {MIN_POOL_SIZE} and {MAX_MEMBERS_PER_ROLE}")
+            raise ValueError(
+                f"Max members must be between {MIN_POOL_SIZE} and {MAX_MEMBERS_PER_ROLE}"
+            )
         return v
+
 
 class GovernmentDepartmentConfig(BaseModel):
     """政府部門配置."""
@@ -189,14 +216,19 @@ class GovernmentDepartmentConfig(BaseModel):
     @validator("name")
     def validate_name(cls, v: str) -> str:
         if not v or len(v) > MAX_DEPARTMENT_NAME_LENGTH:
-            raise ValueError(f"Department name must be 1-{MAX_DEPARTMENT_NAME_LENGTH} characters")
+            raise ValueError(
+                f"Department name must be 1-{MAX_DEPARTMENT_NAME_LENGTH} characters"
+            )
         return v
 
     @validator("description")
     def validate_description(cls, v: str) -> str:
         if len(v) > MAX_DESCRIPTION_LENGTH:
-            raise ValueError(f"Department description must be max {MAX_DESCRIPTION_LENGTH} characters")
+            raise ValueError(
+                f"Department description must be max {MAX_DESCRIPTION_LENGTH} characters"
+            )
         return v
+
 
 class GovernmentSalaryConfig(BaseModel):
     """政府薪資配置."""
@@ -209,14 +241,19 @@ class GovernmentSalaryConfig(BaseModel):
     @validator("payment_interval_hours")
     def validate_payment_interval(cls, v: int) -> int:
         if v < MIN_PAYMENT_INTERVAL or v > MAX_PAYMENT_INTERVAL:  # 最多一周
-            raise ValueError(f"Payment interval must be between {MIN_PAYMENT_INTERVAL} and {MAX_PAYMENT_INTERVAL} hours")
+            raise ValueError(
+                f"Payment interval must be between {MIN_PAYMENT_INTERVAL} and {MAX_PAYMENT_INTERVAL} hours"
+            )
         return v
 
     @validator("base_salary")
     def validate_base_salary(cls, v: int) -> int:
         if v < MIN_BASE_SALARY or v > MAX_BASE_SALARY:
-            raise ValueError(f"Base salary must be between {MIN_BASE_SALARY} and {MAX_BASE_SALARY}")
+            raise ValueError(
+                f"Base salary must be between {MIN_BASE_SALARY} and {MAX_BASE_SALARY}"
+            )
         return v
+
 
 class GovernmentConfig(BaseModel):
     """政府系統配置."""
@@ -230,14 +267,19 @@ class GovernmentConfig(BaseModel):
     @validator("max_departments_per_guild")
     def validate_max_departments(cls, v: int) -> int:
         if v < MIN_POOL_SIZE or v > MAX_DEPARTMENTS_PER_GUILD:
-            raise ValueError(f"Max departments per guild must be between {MIN_POOL_SIZE} and {MAX_DEPARTMENTS_PER_GUILD}")
+            raise ValueError(
+                f"Max departments per guild must be between {MIN_POOL_SIZE} and {MAX_DEPARTMENTS_PER_GUILD}"
+            )
         return v
 
     @validator("max_members_per_department")
     def validate_max_members(cls, v: int) -> int:
         if v < MIN_POOL_SIZE or v > MAX_MEMBERS_PER_DEPARTMENT:
-            raise ValueError(f"Max members per department must be between {MIN_POOL_SIZE} and {MAX_MEMBERS_PER_DEPARTMENT}")
+            raise ValueError(
+                f"Max members per department must be between {MIN_POOL_SIZE} and {MAX_MEMBERS_PER_DEPARTMENT}"
+            )
         return v
+
 
 class ConfigValidator:
     """配置驗證器."""
@@ -301,7 +343,9 @@ class ConfigValidator:
             self.logger.error(f"Database configuration validation failed: {e}")
             raise
         except Exception as e:
-            raise ValidationError(f"Unexpected error validating database config: {e}") from e
+            raise ValidationError(
+                f"Unexpected error validating database config: {e}"
+            ) from e
 
     def validate_government_config(
         self, config_path: str | Path | None = None
@@ -347,7 +391,9 @@ class ConfigValidator:
             self.logger.error(f"Government configuration validation failed: {e}")
             raise
         except Exception as e:
-            raise ValidationError(f"Unexpected error validating government config: {e}") from e
+            raise ValidationError(
+                f"Unexpected error validating government config: {e}"
+            ) from e
 
     def validate_all_configs(self) -> tuple[DatabaseConfig, GovernmentConfig]:
         """驗證所有配置文件.
@@ -394,6 +440,7 @@ class ConfigValidator:
                     f"government={gov_max_depts}"
                 )
 
+
 def validate_config_files(
     config_dir: str = "config",
 ) -> tuple[DatabaseConfig, GovernmentConfig]:
@@ -410,6 +457,7 @@ def validate_config_files(
     """
     validator = ConfigValidator(config_dir)
     return validator.validate_all_configs()
+
 
 if __name__ == "__main__":
     # 測試驗證器

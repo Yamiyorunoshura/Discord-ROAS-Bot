@@ -29,12 +29,13 @@ from ..constants import (
 
 logger = logging.getLogger("activity_meter")
 
+
 class ActivityLevel(Enum):
     """活躍度等級系統"""
 
     NEWCOMER = (0, 25, "新手", "🌱", "#9CA3AF")
-    ACTIVE = (26, 50, "活躍", "🔥", "#3B82F6")
-    VETERAN = (51, 75, "資深", "⭐", "#10B981")
+    ACTIVE = (26, 50, "活躍", "⚡", "#3B82F6")
+    VETERAN = (51, 75, "資深", "🏆", "#10B981")
     EXPERT = (76, 90, "專家", "💎", "#F59E0B")
     LEGEND = (91, 100, "傳奇", "👑", "#EF4444")
 
@@ -55,6 +56,7 @@ class ActivityLevel(Enum):
                 return level
         return cls.NEWCOMER
 
+
 class ThemeStyle(Enum):
     """主題風格"""
 
@@ -63,6 +65,7 @@ class ThemeStyle(Enum):
     NEON = "neon"
     MINIMAL = "minimal"
     GRADIENT = "gradient"
+
 
 class ActivityRenderer:
     """
@@ -323,26 +326,46 @@ class ActivityRenderer:
         level = ActivityLevel.get_level(score)
 
         # 創建基礎圖片
-        main_img = self._create_base_image(dimensions, theme_config, score, theme, show_effects)
+        main_img = self._create_base_image(
+            dimensions, theme_config, score, theme, show_effects
+        )
 
         # 渲染文字
-        main_img = self._render_text_on_image(main_img, member_name, score, level,
-                                            show_level, theme_config, show_effects, dimensions)
+        main_img = self._render_text_on_image(
+            main_img,
+            member_name,
+            score,
+            level,
+            show_level,
+            theme_config,
+            show_effects,
+            dimensions,
+        )
 
         # 應用特效並組合最終圖片
-        final_img = self._apply_effects_and_compose(main_img, level, score, show_effects, dimensions)
+        final_img = self._apply_effects_and_compose(
+            main_img, level, score, show_effects, dimensions
+        )
 
         # 轉換為 Discord 檔案
         return self._convert_to_discord_file(final_img, level, theme)
 
-    def _initialize_dimensions(self, custom_width: int | None, custom_height: int | None) -> dict:
+    def _initialize_dimensions(
+        self, custom_width: int | None, custom_height: int | None
+    ) -> dict:
         """初始化圖片尺寸"""
         w = custom_width if custom_width is not None else config.ACT_BAR_WIDTH
         h = custom_height if custom_height is not None else config.ACT_BAR_HEIGHT
         return {"w": w, "h": h, "canvas_w": w + 20, "canvas_h": h + 20}
 
-    def _create_base_image(self, dimensions: dict, theme_config: dict, score: float,
-                          theme: ThemeStyle, show_effects: bool) -> Image.Image:
+    def _create_base_image(
+        self,
+        dimensions: dict,
+        theme_config: dict,
+        score: float,
+        theme: ThemeStyle,
+        show_effects: bool,
+    ) -> Image.Image:
         """創建基礎進度條圖片"""
         w, h = dimensions["w"], dimensions["h"]
         main_img = Image.new("RGBA", (w, h), theme_config["bg_color"])
@@ -358,12 +381,21 @@ class ActivityRenderer:
         )
 
         # 繪製進度填充
-        self._draw_progress_fill(main_img, score, theme, show_effects, corner_radius, dimensions)
+        self._draw_progress_fill(
+            main_img, score, theme, show_effects, corner_radius, dimensions
+        )
 
         return main_img
 
-    def _draw_progress_fill(self, main_img: Image.Image, score: float, theme: ThemeStyle,
-                           show_effects: bool, corner_radius: int, dimensions: dict):
+    def _draw_progress_fill(
+        self,
+        main_img: Image.Image,
+        score: float,
+        theme: ThemeStyle,
+        show_effects: bool,
+        corner_radius: int,
+        dimensions: dict,
+    ):
         """繪製進度條填充"""
         w, h = dimensions["w"], dimensions["h"]
         fill_w = int((w - 8) * score / config.ACTIVITY_MAX_SCORE)
@@ -374,12 +406,21 @@ class ActivityRenderer:
         start_color, end_color = self._get_progress_colors(score)
 
         if theme == ThemeStyle.GRADIENT or show_effects:
-            self._apply_gradient_fill(main_img, fill_w, h, corner_radius, start_color, end_color)
+            self._apply_gradient_fill(
+                main_img, fill_w, h, corner_radius, start_color, end_color
+            )
         else:
             self._apply_simple_fill(main_img, fill_w, h, corner_radius, start_color)
 
-    def _apply_gradient_fill(self, main_img: Image.Image, fill_w: int, h: int,
-                           corner_radius: int, start_color: tuple, end_color: tuple):
+    def _apply_gradient_fill(
+        self,
+        main_img: Image.Image,
+        fill_w: int,
+        h: int,
+        corner_radius: int,
+        start_color: tuple,
+        end_color: tuple,
+    ):
         """應用漸層填充"""
         gradient = self._create_gradient(fill_w, h - 8, [start_color, end_color])
 
@@ -392,8 +433,14 @@ class ActivityRenderer:
         gradient.putalpha(mask)
         main_img.paste(gradient, (4, 4), gradient)
 
-    def _apply_simple_fill(self, main_img: Image.Image, fill_w: int, h: int,
-                          corner_radius: int, start_color: tuple):
+    def _apply_simple_fill(
+        self,
+        main_img: Image.Image,
+        fill_w: int,
+        h: int,
+        corner_radius: int,
+        start_color: tuple,
+    ):
         """應用簡單填充"""
         draw = ImageDraw.Draw(main_img)
         draw.rounded_rectangle(
@@ -402,9 +449,17 @@ class ActivityRenderer:
             fill=start_color,
         )
 
-    def _render_text_on_image(self, main_img: Image.Image, member_name: str, score: float,
-                             level, show_level: bool, theme_config: dict,
-                             show_effects: bool, dimensions: dict) -> Image.Image:
+    def _render_text_on_image(
+        self,
+        main_img: Image.Image,
+        member_name: str,
+        score: float,
+        level,
+        show_level: bool,
+        theme_config: dict,
+        show_effects: bool,
+        dimensions: dict,
+    ) -> Image.Image:
         """在圖片上渲染文字"""
         w, h = dimensions["w"], dimensions["h"]
         draw = ImageDraw.Draw(main_img)
@@ -443,8 +498,14 @@ class ActivityRenderer:
         text_y = (h - th) // 2
         return text_x, text_y
 
-    def _apply_effects_and_compose(self, main_img: Image.Image, level, score: float,
-                                  show_effects: bool, dimensions: dict) -> Image.Image:
+    def _apply_effects_and_compose(
+        self,
+        main_img: Image.Image,
+        level,
+        score: float,
+        show_effects: bool,
+        dimensions: dict,
+    ) -> Image.Image:
         """應用特效並組合最終圖片"""
         # 基礎特效
         if show_effects:
@@ -464,7 +525,9 @@ class ActivityRenderer:
 
     def _apply_basic_effects(self, main_img: Image.Image) -> Image.Image:
         """應用基礎特效"""
-        theme_config = self.themes.get(ThemeStyle.MODERN, self.themes[ThemeStyle.MODERN])
+        theme_config = self.themes.get(
+            ThemeStyle.MODERN, self.themes[ThemeStyle.MODERN]
+        )
 
         if theme_config["glow"]:
             main_img = self._add_glow_effect(main_img)
@@ -474,7 +537,9 @@ class ActivityRenderer:
 
         return main_img
 
-    def _convert_to_discord_file(self, img: Image.Image, level, theme: ThemeStyle) -> discord.File:
+    def _convert_to_discord_file(
+        self, img: Image.Image, level, theme: ThemeStyle
+    ) -> discord.File:
         """轉換為 Discord 檔案"""
         buf = io.BytesIO()
         img.save(buf, "PNG")

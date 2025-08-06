@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 # 常數定義
 MAX_CHANGES_DISPLAY = 3  # 顯示變更的最大欄位數量
 
+
 class HistoryAction(Enum):
     """歷史操作動作枚舉."""
 
@@ -36,6 +37,7 @@ class HistoryAction(Enum):
     APPROVE = "approve"
     REJECT = "reject"
 
+
 class HistoryCategory(Enum):
     """歷史分類枚舉."""
 
@@ -46,6 +48,7 @@ class HistoryCategory(Enum):
     PERMISSION = "permission"
     SYSTEM = "system"
     SECURITY = "security"
+
 
 @dataclass
 class HistoryRecord:
@@ -97,6 +100,7 @@ class HistoryRecord:
     risk_level: str = "low"
     requires_attention: bool = False
 
+
 @dataclass
 class HistoryQuery:
     """歷史查詢參數."""
@@ -134,6 +138,7 @@ class HistoryQuery:
     # 聚合選項
     group_by: str | None = None  # action, category, executor_id, etc.
     include_statistics: bool = False
+
 
 @dataclass
 class HistoryAnalysis:
@@ -177,6 +182,7 @@ class HistoryAnalysis:
     # 效能分析
     average_operation_duration: float = 0.0
     slowest_operations: list[dict[str, Any]] = field(default_factory=list)
+
 
 class HistoryManager:
     """操作歷史管理器.
@@ -481,7 +487,7 @@ class HistoryManager:
 
         return results
 
-    async def _query_database(self, query: HistoryQuery) -> list[HistoryRecord]:  # noqa: ARG002
+    async def _query_database(self, query: HistoryQuery) -> list[HistoryRecord]:
         """從資料庫查詢記錄.
 
         Args:
@@ -532,19 +538,16 @@ class HistoryManager:
 
         # 檢查搜尋關鍵字
         if query.search_keywords:
-            searchable_text = " ".join(
-                [
-                    record.operation_name,
-                    record.target_name,
-                    record.changes_summary,
-                    record.error_message or "",
-                    " ".join(record.tags),
-                ]
-            ).lower()
+            searchable_text = " ".join([
+                record.operation_name,
+                record.target_name,
+                record.changes_summary,
+                record.error_message or "",
+                " ".join(record.tags),
+            ]).lower()
 
             return all(
-                keyword.lower() in searchable_text
-                for keyword in query.search_keywords
+                keyword.lower() in searchable_text for keyword in query.search_keywords
             )
 
         return True
@@ -712,13 +715,11 @@ class HistoryManager:
         )[:5]
 
         for op_name, count in top_operations:
-            analysis.trending_operations.append(
-                {
-                    "operation": op_name,
-                    "count": count,
-                    "percentage": (count / len(records)) * 100,
-                }
-            )
+            analysis.trending_operations.append({
+                "operation": op_name,
+                "count": count,
+                "percentage": (count / len(records)) * 100,
+            })
 
         # 找出活動高峰期
         hourly_activity = analysis.operations_by_hour
@@ -727,13 +728,11 @@ class HistoryManager:
 
             for hour, count in hourly_activity.items():
                 if count > avg_activity * 1.5:  # 超過平均值1.5倍
-                    analysis.peak_activity_periods.append(
-                        {
-                            "hour": hour,
-                            "count": count,
-                            "above_average": count - avg_activity,
-                        }
-                    )
+                    analysis.peak_activity_periods.append({
+                        "hour": hour,
+                        "count": count,
+                        "above_average": count - avg_activity,
+                    })
 
     def _analyze_user_activity(
         self, records: list[HistoryRecord], analysis: HistoryAnalysis
@@ -751,13 +750,11 @@ class HistoryManager:
         )[:10]
 
         for executor_id, count in top_executors:
-            analysis.most_active_executors.append(
-                {
-                    "executor_id": executor_id,
-                    "operations_count": count,
-                    "percentage": (count / len(records)) * 100,
-                }
-            )
+            analysis.most_active_executors.append({
+                "executor_id": executor_id,
+                "operations_count": count,
+                "percentage": (count / len(records)) * 100,
+            })
 
         # 最受影響的用戶
         affected_users_count: dict[int, int] = {}
@@ -770,9 +767,10 @@ class HistoryManager:
         )[:10]
 
         for user_id, count in top_affected:
-            analysis.most_affected_users.append(
-                {"user_id": user_id, "affected_operations": count}
-            )
+            analysis.most_affected_users.append({
+                "user_id": user_id,
+                "affected_operations": count,
+            })
 
     def _analyze_risks(
         self, records: list[HistoryRecord], analysis: HistoryAnalysis
@@ -793,16 +791,14 @@ class HistoryManager:
         # 檢查失敗的高風險操作
         for record in high_risk_records:
             if not record.success:
-                security_incidents.append(
-                    {
-                        "type": "high_risk_failure",
-                        "record_id": record.record_id,
-                        "timestamp": record.timestamp.isoformat(),
-                        "operation": record.operation_name,
-                        "executor_id": record.executor_id,
-                        "error": record.error_message,
-                    }
-                )
+                security_incidents.append({
+                    "type": "high_risk_failure",
+                    "record_id": record.record_id,
+                    "timestamp": record.timestamp.isoformat(),
+                    "operation": record.operation_name,
+                    "executor_id": record.executor_id,
+                    "error": record.error_message,
+                })
 
         # 檢查異常活動模式
         executor_activity = analysis.operations_by_executor
@@ -814,15 +810,13 @@ class HistoryManager:
 
         for executor_id, activity_count in executor_activity.items():
             if activity_count > avg_activity * 3:  # 超過平均值3倍
-                security_incidents.append(
-                    {
-                        "type": "unusual_activity",
-                        "executor_id": executor_id,
-                        "activity_count": activity_count,
-                        "above_average": activity_count - avg_activity,
-                        "description": "用戶活動異常頻繁",
-                    }
-                )
+                security_incidents.append({
+                    "type": "unusual_activity",
+                    "executor_id": executor_id,
+                    "activity_count": activity_count,
+                    "above_average": activity_count - avg_activity,
+                    "description": "用戶活動異常頻繁",
+                })
 
         analysis.security_incidents = security_incidents
 
@@ -851,15 +845,13 @@ class HistoryManager:
         )[:10]
 
         for record in slowest_records:
-            analysis.slowest_operations.append(
-                {
-                    "record_id": record.record_id,
-                    "operation": record.operation_name,
-                    "duration_ms": record.duration_ms,
-                    "timestamp": record.timestamp.isoformat(),
-                    "executor_id": record.executor_id,
-                }
-            )
+            analysis.slowest_operations.append({
+                "record_id": record.record_id,
+                "operation": record.operation_name,
+                "duration_ms": record.duration_ms,
+                "timestamp": record.timestamp.isoformat(),
+                "executor_id": record.executor_id,
+            })
 
     async def export_history(
         self, query: HistoryQuery, format: str = "json", include_analysis: bool = False

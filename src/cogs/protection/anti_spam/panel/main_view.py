@@ -19,6 +19,7 @@ from .embeds.settings_embed import create_settings_embed
 
 logger = logging.getLogger("anti_spam")
 
+
 class AntiSpamMainView(StandardPanelView):
     """
     反垃圾訊息主面板視圖
@@ -423,6 +424,7 @@ class AntiSpamMainView(StandardPanelView):
         """構建主頁面嵌入 (覆寫基類方法)"""
         return await self.build_settings_embed()
 
+
 class ConfirmResetView(discord.ui.View):
     """確認重置設定的視圖"""
 
@@ -432,7 +434,7 @@ class ConfirmResetView(discord.ui.View):
 
     @discord.ui.button(label="確認重置", style=discord.ButtonStyle.danger, emoji="⚠️")
     async def confirm_reset(
-        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         """確認重置設定"""
         try:
@@ -457,7 +459,7 @@ class ConfirmResetView(discord.ui.View):
 
     @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary, emoji="❌")
     async def cancel_reset(
-        self, interaction: discord.Interaction, button: discord.ui.Button  # noqa: ARG002
+        self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         """取消重置"""
         # 禁用按鈕
@@ -478,6 +480,7 @@ class ConfirmResetView(discord.ui.View):
         """超時處理"""
         self._disable_all_items()
 
+
 # 保留原有的其他類別以保持兼容性
 class ToggleButton(ui.Button):
     """切換按鈕類別"""
@@ -492,6 +495,7 @@ class ToggleButton(ui.Button):
         await interaction.response.send_message(
             "切換功能將在後續版本中實現", ephemeral=True
         )
+
 
 class SettingsModal(ui.Modal):
     """設定模態框"""

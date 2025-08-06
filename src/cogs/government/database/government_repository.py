@@ -27,21 +27,30 @@ from src.core.database.postgresql import BaseRepository
 
 logger = logging.getLogger(__name__)
 
+
 class GovernmentRepositoryError(Exception):
     """政府系統 Repository 錯誤基礎類別."""
+
     pass
+
 
 class DepartmentNotFoundError(GovernmentRepositoryError):
     """部門不存在錯誤."""
+
     pass
+
 
 class CircularReferenceError(GovernmentRepositoryError):
     """循環引用錯誤."""
+
     pass
+
 
 class DuplicateDepartmentError(GovernmentRepositoryError):
     """重複部門名稱錯誤."""
+
     pass
+
 
 class GovernmentRepository(BaseRepository):
     """政府系統 Repository 實作.
@@ -323,7 +332,11 @@ class GovernmentRepository(BaseRepository):
                     raise DuplicateDepartmentError(f"部門名稱 '{name}' 已存在")
                 department.name = name
 
-            if parent_id is not None and parent_id != department.parent_id and parent_id:
+            if (
+                parent_id is not None
+                and parent_id != department.parent_id
+                and parent_id
+            ):
                 if await self._would_create_cycle(department_id, parent_id):
                     raise CircularReferenceError("會造成循環引用")
                 department.parent_id = parent_id
@@ -346,7 +359,11 @@ class GovernmentRepository(BaseRepository):
             logger.info(f"部門更新成功: department_id={department_id}")
             return department
 
-        except (DepartmentNotFoundError, DuplicateDepartmentError, CircularReferenceError):
+        except (
+            DepartmentNotFoundError,
+            DuplicateDepartmentError,
+            CircularReferenceError,
+        ):
             await self.rollback()
             raise
         except Exception as e:
@@ -396,7 +413,9 @@ class GovernmentRepository(BaseRepository):
 
             # 檢查是否有子部門
             if not force and department.children:
-                active_children = [child for child in department.children if child.is_active]
+                active_children = [
+                    child for child in department.children if child.is_active
+                ]
                 if active_children:
                     raise ValueError("部門有子部門,無法刪除")
 
@@ -533,7 +552,7 @@ class GovernmentRepository(BaseRepository):
                     SELECT COALESCE(MAX(depth), 0) as max_depth
                     FROM dept_depth
                 """),
-                {"guild_id": guild_id}
+                {"guild_id": guild_id},
             )
             return result.scalar() or 0
 
@@ -572,6 +591,7 @@ class GovernmentRepository(BaseRepository):
             await self.rollback()
             logger.error(f"批量更新顯示順序失敗: {e}")
             raise
+
 
 __all__ = [
     "CircularReferenceError",

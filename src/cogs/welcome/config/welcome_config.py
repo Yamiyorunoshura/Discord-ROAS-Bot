@@ -12,6 +12,7 @@ from src.core.config import get_settings
 
 logger = setup_module_logger("welcome.config")
 
+
 @dataclass
 class WelcomeConfig:
     """歡迎系統配置實現"""

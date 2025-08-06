@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class NotificationIntegrationService:
     """通知系統整合服務.
 
@@ -170,6 +171,7 @@ class NotificationIntegrationService:
             logger.error(f"通知系統健康檢查失敗: {e}")
 
         return health_status
+
 
 class NotificationServiceManager:
     """通知服務管理器.
@@ -357,8 +359,10 @@ class NotificationServiceManager:
 
         return results
 
+
 # 全域通知服務管理器實例
 _notification_manager: NotificationServiceManager | None = None
+
 
 async def get_notification_manager() -> NotificationServiceManager:
     """取得全域通知服務管理器.
@@ -366,12 +370,13 @@ async def get_notification_manager() -> NotificationServiceManager:
     Returns:
         NotificationServiceManager 實例
     """
-    global _notification_manager  # noqa: PLW0603
+    global _notification_manager
 
     if _notification_manager is None:
         _notification_manager = NotificationServiceManager()
 
     return _notification_manager
+
 
 async def initialize_notification_integration(
     guild_id: int,
@@ -393,6 +398,7 @@ async def initialize_notification_integration(
     manager = await get_notification_manager()
     return await manager.create_service(guild_id, bot, repository, achievement_awarder)
 
+
 async def shutdown_notification_integration(guild_id: int) -> bool:
     """關閉指定伺服器的通知系統整合.
 
@@ -404,6 +410,7 @@ async def shutdown_notification_integration(guild_id: int) -> bool:
     """
     manager = await get_notification_manager()
     return await manager.remove_service(guild_id)
+
 
 async def get_notification_service(
     guild_id: int,
@@ -418,6 +425,7 @@ async def get_notification_service(
     """
     manager = await get_notification_manager()
     return await manager.get_service(guild_id)
+
 
 __all__ = [
     "NotificationIntegrationService",

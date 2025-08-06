@@ -29,6 +29,7 @@ MAX_RESPONSE_TIME_MS = 400  # 最大回應時間(毫秒)
 MAX_ACHIEVEMENTS_DISPLAY = 10  # 最多顯示成就數量
 MAX_BUTTON_COUNT = 20  # 最多按鈕數量(保留位置給操作按鈕)
 
+
 class CategoryTreeButton(ui.Button):
     """分類樹展開/收合按鈕.
 
@@ -61,7 +62,11 @@ class CategoryTreeButton(ui.Button):
         # 確定按鈕樣式和標籤
         if has_children:
             emoji = "📂" if is_expanded else "📁"
-            style = discord.ButtonStyle.primary if is_expanded else discord.ButtonStyle.secondary
+            style = (
+                discord.ButtonStyle.primary
+                if is_expanded
+                else discord.ButtonStyle.secondary
+            )
         else:
             emoji = category.icon_emoji or "📄"
             style = discord.ButtonStyle.secondary
@@ -94,17 +99,18 @@ class CategoryTreeButton(ui.Button):
 
             # 從 view 中獲取服務
             view = self.view
-            if not hasattr(view, 'achievement_service'):
+            if not hasattr(view, "achievement_service"):
                 await interaction.followup.send(
-                    "❌ 服務不可用,請重新整理面板",
-                    ephemeral=True
+                    "❌ 服務不可用,請重新整理面板", ephemeral=True
                 )
                 return
 
             achievement_service: AchievementService = view.achievement_service
 
             # 切換展開狀態
-            new_state = await achievement_service.toggle_category_expansion(self.category.id)
+            new_state = await achievement_service.toggle_category_expansion(
+                self.category.id
+            )
             self.is_expanded = new_state
 
             # 更新按鈕外觀
@@ -122,7 +128,7 @@ class CategoryTreeButton(ui.Button):
                         "category_id": self.category.id,
                         "category_name": self.category.name,
                         "interaction_time_ms": interaction_time,
-                    }
+                    },
                 )
 
             logger.debug(
@@ -131,7 +137,7 @@ class CategoryTreeButton(ui.Button):
                     "category_id": self.category.id,
                     "new_state": new_state,
                     "interaction_time_ms": interaction_time,
-                }
+                },
             )
 
         except Exception as e:
@@ -144,15 +150,18 @@ class CategoryTreeButton(ui.Button):
                 exc_info=True,
             )
             await interaction.followup.send(
-                "❌ 處理分類操作時發生錯誤,請稍後再試",
-                ephemeral=True
+                "❌ 處理分類操作時發生錯誤,請稍後再試", ephemeral=True
             )
 
     def _update_button_appearance(self) -> None:
         """更新按鈕外觀."""
         if self.has_children:
             emoji = "📂" if self.is_expanded else "📁"
-            self.style = discord.ButtonStyle.primary if self.is_expanded else discord.ButtonStyle.secondary
+            self.style = (
+                discord.ButtonStyle.primary
+                if self.is_expanded
+                else discord.ButtonStyle.secondary
+            )
         else:
             emoji = self.category.icon_emoji or "📄"
 
@@ -164,17 +173,18 @@ class CategoryTreeButton(ui.Button):
 
         self.label = label[:80]
 
-    async def _show_category_achievements(self, interaction: discord.Interaction) -> None:
+    async def _show_category_achievements(
+        self, interaction: discord.Interaction
+    ) -> None:
         """顯示分類下的成就."""
         try:
             await interaction.response.defer(ephemeral=True)
 
             # 從 view 中獲取服務
             view = self.view
-            if not hasattr(view, 'achievement_service'):
+            if not hasattr(view, "achievement_service"):
                 await interaction.followup.send(
-                    "❌ 服務不可用,請重新整理面板",
-                    ephemeral=True
+                    "❌ 服務不可用,請重新整理面板", ephemeral=True
                 )
                 return
 
@@ -183,50 +193,49 @@ class CategoryTreeButton(ui.Button):
             # 獲取分類下的成就
             achievements = await achievement_service.get_achievements_by_category(
                 guild_id=None,  # 目前未使用
-                category=self.category.id
+                category=self.category.id,
             )
 
             if not achievements:
                 await interaction.followup.send(
-                    f"📂 分類「{self.category.name}」目前沒有成就",
-                    ephemeral=True
+                    f"📂 分類「{self.category.name}」目前沒有成就", ephemeral=True
                 )
                 return
 
             # 建立成就列表 Embed
             embed = StandardEmbedBuilder.create_info_embed(
                 f"{self.category.icon_emoji} {self.category.name}",
-                self.category.description
+                self.category.description,
             )
 
             # 添加成就列表
             achievement_text = ""
             for i, achievement in enumerate(achievements[:10], 1):  # 最多顯示 10 個
-                achievement_text += f"{i}. **{achievement.name}** ({achievement.points} 點)\n"
+                achievement_text += (
+                    f"{i}. **{achievement.name}** ({achievement.points} 點)\n"
+                )
                 achievement_text += f"   _{achievement.description[:50]}..._\n\n"
 
             if achievement_text:
                 embed.add_field(
                     name=f"📋 成就列表 ({len(achievements)} 個)",
                     value=achievement_text[:1024],  # Discord 限制
-                    inline=False
+                    inline=False,
                 )
 
             if len(achievements) > MAX_ACHIEVEMENTS_DISPLAY:
                 embed.add_field(
                     name="📄 更多成就",
                     value=f"還有 {len(achievements) - MAX_ACHIEVEMENTS_DISPLAY} 個成就,請使用主面板查看",
-                    inline=False
+                    inline=False,
                 )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
             logger.error(f"顯示分類成就失敗: {e}")
-            await interaction.followup.send(
-                "❌ 載入分類成就時發生錯誤",
-                ephemeral=True
-            )
+            await interaction.followup.send("❌ 載入分類成就時發生錯誤", ephemeral=True)
+
 
 class CategoryTreeView(ui.View):
     """分類樹狀視圖.
@@ -277,7 +286,7 @@ class CategoryTreeView(ui.View):
                 extra={
                     "tree_size": len(self._category_tree),
                     "expanded_count": len(self._expanded_categories),
-                }
+                },
             )
 
         except Exception as e:
@@ -317,9 +326,7 @@ class CategoryTreeView(ui.View):
             logger.error(f"建構分類樹按鈕失敗: {e}")
 
     def _add_tree_buttons(
-        self,
-        tree_nodes: list[dict[str, Any]],
-        button_count: int
+        self, tree_nodes: list[dict[str, Any]], button_count: int
     ) -> int:
         """遞歸添加分類樹按鈕.
 
@@ -349,9 +356,11 @@ class CategoryTreeView(ui.View):
             button_count += 1
 
             # 如果分類已展開且有子分類,遞歸添加子按鈕
-            if (category.id in self._expanded_categories and
-                node.get("children") and
-                button_count < MAX_BUTTON_COUNT):
+            if (
+                category.id in self._expanded_categories
+                and node.get("children")
+                and button_count < MAX_BUTTON_COUNT
+            ):
                 button_count = self._add_tree_buttons(node["children"], button_count)
 
         return button_count
@@ -395,22 +404,18 @@ class CategoryTreeView(ui.View):
                 if node.get("has_children", False):
                     category: AchievementCategory = node["category"]
                     self._expanded_categories.add(category.id)
-                    await self.achievement_service.toggle_category_expansion(category.id)
+                    await self.achievement_service.toggle_category_expansion(
+                        category.id
+                    )
 
             # 重建視圖
             await self.rebuild_category_tree(interaction)
 
-            logger.info(
-                "所有分類已展開",
-                extra={"user_id": self.user_id}
-            )
+            logger.info("所有分類已展開", extra={"user_id": self.user_id})
 
         except Exception as e:
             logger.error(f"展開所有分類失敗: {e}")
-            await interaction.followup.send(
-                "❌ 展開分類時發生錯誤",
-                ephemeral=True
-            )
+            await interaction.followup.send("❌ 展開分類時發生錯誤", ephemeral=True)
 
     async def collapse_all_categories(self, interaction: discord.Interaction) -> None:
         """收合所有分類."""
@@ -426,17 +431,11 @@ class CategoryTreeView(ui.View):
             # 重建視圖
             await self.rebuild_category_tree(interaction)
 
-            logger.info(
-                "所有分類已收合",
-                extra={"user_id": self.user_id}
-            )
+            logger.info("所有分類已收合", extra={"user_id": self.user_id})
 
         except Exception as e:
             logger.error(f"收合所有分類失敗: {e}")
-            await interaction.followup.send(
-                "❌ 收合分類時發生錯誤",
-                ephemeral=True
-            )
+            await interaction.followup.send("❌ 收合分類時發生錯誤", ephemeral=True)
 
     async def refresh_tree(self, interaction: discord.Interaction) -> None:
         """重新整理分類樹."""
@@ -449,17 +448,11 @@ class CategoryTreeView(ui.View):
             # 重建視圖
             await self.rebuild_category_tree(interaction)
 
-            logger.info(
-                "分類樹重新整理完成",
-                extra={"user_id": self.user_id}
-            )
+            logger.info("分類樹重新整理完成", extra={"user_id": self.user_id})
 
         except Exception as e:
             logger.error(f"重新整理分類樹失敗: {e}")
-            await interaction.followup.send(
-                "❌ 重新整理時發生錯誤",
-                ephemeral=True
-            )
+            await interaction.followup.send("❌ 重新整理時發生錯誤", ephemeral=True)
 
     async def rebuild_category_tree(self, interaction: discord.Interaction) -> None:
         """重建分類樹視圖."""
@@ -472,9 +465,7 @@ class CategoryTreeView(ui.View):
 
             # 更新訊息
             await interaction.followup.edit_message(
-                interaction.message.id,
-                embed=embed,
-                view=self
+                interaction.message.id, embed=embed, view=self
             )
 
         except Exception as e:
@@ -484,8 +475,7 @@ class CategoryTreeView(ui.View):
         """建立分類樹 Embed."""
         try:
             embed = StandardEmbedBuilder.create_info_embed(
-                "🌳 成就分類樹",
-                "點擊分類來展開/收合或查看成就"
+                "🌳 成就分類樹", "點擊分類來展開/收合或查看成就"
             )
 
             # 統計資訊
@@ -495,28 +485,23 @@ class CategoryTreeView(ui.View):
             embed.add_field(
                 name="📊 統計資訊",
                 value=f"**總分類數**: {total_categories}\n"
-                      f"**已展開**: {expanded_count}\n"
-                      f"**樹層級**: {self._get_max_level()}",
-                inline=True
+                f"**已展開**: {expanded_count}\n"
+                f"**樹層級**: {self._get_max_level()}",
+                inline=True,
             )
 
             # 操作說明
             embed.add_field(
                 name="💡 操作說明",
-                value="• 點擊 📁 展開分類\n"
-                      "• 點擊 📂 收合分類\n"
-                      "• 點擊 📄 查看成就",
-                inline=True
+                value="• 點擊 📁 展開分類\n• 點擊 📂 收合分類\n• 點擊 📄 查看成就",
+                inline=True,
             )
 
             return embed
 
         except Exception as e:
             logger.error(f"建立分類樹 Embed 失敗: {e}")
-            return StandardEmbedBuilder.create_error_embed(
-                "載入失敗",
-                "無法載入分類樹"
-            )
+            return StandardEmbedBuilder.create_error_embed("載入失敗", "無法載入分類樹")
 
     def _get_max_level(self) -> int:
         """取得樹的最大層級."""
@@ -525,6 +510,7 @@ class CategoryTreeView(ui.View):
             category: AchievementCategory = node["category"]
             max_level = max(max_level, category.level)
         return max_level + 1  # 層級從 0 開始
+
 
 # 輔助函數
 async def create_category_tree_panel(
@@ -564,11 +550,11 @@ async def create_category_tree_panel(
 
         # 返回錯誤 Embed
         error_embed = StandardEmbedBuilder.create_error_embed(
-            "載入失敗",
-            "❌ 無法載入分類樹面板,請稍後再試"
+            "載入失敗", "❌ 無法載入分類樹面板,請稍後再試"
         )
 
         return error_embed, None
+
 
 __all__ = [
     "CategoryTreeButton",

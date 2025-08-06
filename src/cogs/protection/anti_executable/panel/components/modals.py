@@ -2,10 +2,15 @@
 反可執行檔案保護模組 - 對話框元件
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 from discord import ui
 
-from ..main_view import AntiExecutableMainView
+if TYPE_CHECKING:
+    from ..main_view import AntiExecutableMainView
 
 
 # 基礎對話框類
@@ -15,6 +20,7 @@ class BaseModal(ui.Modal):
     def __init__(self, view: AntiExecutableMainView, **kwargs):
         super().__init__(**kwargs)
         self.main_view = view
+
 
 # 設定對話框
 class SettingsModal(BaseModal):
@@ -95,6 +101,7 @@ class SettingsModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"更新設定失敗:{exc}")
 
+
 # 白名單對話框
 class AddWhitelistModal(BaseModal):
     """新增白名單對話框"""
@@ -144,6 +151,7 @@ class AddWhitelistModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"新增白名單失敗:{exc}")
 
+
 class RemoveWhitelistModal(BaseModal):
     """移除白名單對話框"""
 
@@ -188,6 +196,7 @@ class RemoveWhitelistModal(BaseModal):
 
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"移除白名單失敗:{exc}")
+
 
 # 黑名單對話框
 class AddBlacklistModal(BaseModal):
@@ -238,6 +247,7 @@ class AddBlacklistModal(BaseModal):
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"新增黑名單失敗:{exc}")
 
+
 class RemoveBlacklistModal(BaseModal):
     """移除黑名單對話框"""
 
@@ -282,6 +292,7 @@ class RemoveBlacklistModal(BaseModal):
 
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"移除黑名單失敗:{exc}")
+
 
 # 格式管理對話框
 class AddFormatModal(BaseModal):
@@ -338,6 +349,7 @@ class AddFormatModal(BaseModal):
 
         except Exception as exc:
             await self.main_view._handle_error(interaction, f"新增格式失敗:{exc}")
+
 
 class RemoveFormatModal(BaseModal):
     """移除格式對話框"""

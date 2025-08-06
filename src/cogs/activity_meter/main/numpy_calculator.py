@@ -16,11 +16,13 @@ logger = logging.getLogger("activity_meter")
 # NumPy 依賴檢查
 try:
     import numpy as np
+
     NUMPY_AVAILABLE = True
     logger.info("NumPy 已載入, 版本: %s", np.__version__)
 except ImportError:
     NUMPY_AVAILABLE = False
     logger.warning("NumPy 不可用, 將使用標準計算方法")
+
 
 class OptimizedActivityCalculator:
     """
@@ -50,9 +52,9 @@ class OptimizedActivityCalculator:
 
     def bulk_decay_calculation(
         self,
-        scores: Union[list[float], 'np.ndarray'],
-        deltas: Union[list[int], 'np.ndarray']
-    ) -> Union[list[float], 'np.ndarray']:
+        scores: Union[list[float], "np.ndarray"],
+        deltas: Union[list[int], "np.ndarray"],
+    ) -> Union[list[float], "np.ndarray"]:
         """
         批量計算活躍度衰減
 
@@ -71,7 +73,6 @@ class OptimizedActivityCalculator:
             scores_arr = np.asarray(scores, dtype=np.float32)
             deltas_arr = np.asarray(deltas, dtype=np.int32)
 
-
             decay_threshold = np.int32(config.ACTIVITY_DECAY_AFTER)
             decay_rate = np.float32(config.ACTIVITY_DECAY_PER_H / 3600.0)
 
@@ -80,7 +81,7 @@ class OptimizedActivityCalculator:
             decay_amount = np.where(
                 deltas_arr > decay_threshold,
                 (deltas_arr - decay_threshold) * decay_rate,
-                0.0
+                0.0,
             )
 
             # 直接返回結果, 確保不低於 0
@@ -92,10 +93,10 @@ class OptimizedActivityCalculator:
 
     def bulk_score_update(
         self,
-        current_scores: Union[list[float], 'np.ndarray'],
-        last_msg_times: Union[list[int], 'np.ndarray'],
-        now_times: Union[list[int], 'np.ndarray']
-    ) -> Union[list[float], 'np.ndarray']:
+        current_scores: Union[list[float], "np.ndarray"],
+        last_msg_times: Union[list[int], "np.ndarray"],
+        now_times: Union[list[int], "np.ndarray"],
+    ) -> Union[list[float], "np.ndarray"]:
         """
         批量更新活躍度分數
 
@@ -127,19 +128,12 @@ class OptimizedActivityCalculator:
             gain = np.float32(config.ACTIVITY_GAIN)
             max_score = np.float32(config.ACTIVITY_MAX_SCORE)
 
-
             decay_amount = np.where(
-                deltas > decay_threshold,
-                (deltas - decay_threshold) * decay_rate,
-                0.0
+                deltas > decay_threshold, (deltas - decay_threshold) * decay_rate, 0.0
             )
 
             # 計算最終分數: (原分數 - 衰減) + 增益, 限制在 [0, max_score]
-            final_scores = np.clip(
-                scores_arr - decay_amount + gain,
-                0.0,
-                max_score
-            )
+            final_scores = np.clip(scores_arr - decay_amount + gain, 0.0, max_score)
 
             return final_scores
 
@@ -151,9 +145,9 @@ class OptimizedActivityCalculator:
 
     def bulk_should_update(
         self,
-        last_msg_times: Union[list[int], 'np.ndarray'],
-        now_times: Union[list[int], 'np.ndarray']
-    ) -> Union[list[bool], 'np.ndarray']:
+        last_msg_times: Union[list[int], "np.ndarray"],
+        now_times: Union[list[int], "np.ndarray"],
+    ) -> Union[list[bool], "np.ndarray"]:
         """
         批量判斷是否應該更新活躍度
 
@@ -183,9 +177,7 @@ class OptimizedActivityCalculator:
             return self._fallback_bulk_should_update(last_msg_times, now_times)
 
     def _fallback_bulk_decay(
-        self,
-        scores: list[float],
-        deltas: list[int]
+        self, scores: list[float], deltas: list[int]
     ) -> list[float]:
         """回退方式的批量衰減計算"""
         if not self.fallback_calculator:
@@ -204,26 +196,26 @@ class OptimizedActivityCalculator:
         self,
         current_scores: list[float],
         last_msg_times: list[int],
-        now_times: list[int]
+        now_times: list[int],
     ) -> list[float]:
         """回退方式的批量分數更新"""
         if not self.fallback_calculator:
             return [
                 self._simple_score_update(score, last_time, now_time)
-                for score, last_time, now_time
-                in zip(current_scores, last_msg_times, now_times, strict=False)
+                for score, last_time, now_time in zip(
+                    current_scores, last_msg_times, now_times, strict=False
+                )
             ]
 
         return [
             self.fallback_calculator.calculate_new_score(score, last_time, now_time)
-            for score, last_time, now_time
-            in zip(current_scores, last_msg_times, now_times, strict=False)
+            for score, last_time, now_time in zip(
+                current_scores, last_msg_times, now_times, strict=False
+            )
         ]
 
     def _fallback_bulk_should_update(
-        self,
-        last_msg_times: list[int],
-        now_times: list[int]
+        self, last_msg_times: list[int], now_times: list[int]
     ) -> list[bool]:
         """回退方式的批量冷卻檢查"""
         if not self.fallback_calculator:
@@ -312,5 +304,5 @@ class OptimizedActivityCalculator:
             "numpy_available": self.numpy_available,
             "use_numpy": self.use_numpy,
             "performance_threshold": self.performance_threshold,
-            "fallback_available": self.fallback_calculator is not None
+            "fallback_available": self.fallback_calculator is not None,
         }

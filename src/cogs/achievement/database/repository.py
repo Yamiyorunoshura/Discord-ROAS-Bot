@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 # 業務邏輯常數
 MAX_CATEGORY_LEVEL = 9  # 最大分類層級 (0-9, 共10層)
 
+
 class AchievementRepository(BaseRepository):
     """成就系統資料存取庫.
 
@@ -117,17 +118,15 @@ class AchievementRepository(BaseRepository):
 
             category.level = parent_category.level + 1
 
-        query = QueryBuilder("achievement_categories").insert(
-            {
-                "name": category.name,
-                "description": category.description,
-                "parent_id": category.parent_id,
-                "level": category.level,
-                "display_order": category.display_order,
-                "icon_emoji": category.icon_emoji,
-                "is_expanded": category.is_expanded,
-            }
-        )
+        query = QueryBuilder("achievement_categories").insert({
+            "name": category.name,
+            "description": category.description,
+            "parent_id": category.parent_id,
+            "level": category.level,
+            "display_order": category.display_order,
+            "icon_emoji": category.icon_emoji,
+            "is_expanded": category.is_expanded,
+        })
 
         sql, params = query.to_insert_sql()
 
@@ -318,7 +317,9 @@ class AchievementRepository(BaseRepository):
 
         return categories
 
-    async def get_category_tree(self, root_id: int | None = None) -> list[dict[str, Any]]:
+    async def get_category_tree(
+        self, root_id: int | None = None
+    ) -> list[dict[str, Any]]:
         """取得分類樹結構.
 
         Args:
@@ -339,7 +340,9 @@ class AchievementRepository(BaseRepository):
                 "category": category,
                 "children": await self.get_category_tree(category.id),
                 "has_children": len(await self.get_child_categories(category.id)) > 0,
-                "achievement_count": await self._get_category_achievement_count(category.id),
+                "achievement_count": await self._get_category_achievement_count(
+                    category.id
+                ),
             }
             tree.append(category_dict)
 
@@ -355,7 +358,9 @@ class AchievementRepository(BaseRepository):
             成就數量
         """
         # 獲取直接在此分類下的成就
-        query = QueryBuilder("achievements").count().where("category_id", "=", category_id)
+        query = (
+            QueryBuilder("achievements").count().where("category_id", "=", category_id)
+        )
         sql, params = query.to_select_sql()
         row = await self.execute_query(sql, params, fetch_one=True)
         direct_count = row[0] if row else 0
@@ -390,7 +395,9 @@ class AchievementRepository(BaseRepository):
 
         return path
 
-    async def update_category_expansion(self, category_id: int, is_expanded: bool) -> bool:
+    async def update_category_expansion(
+        self, category_id: int, is_expanded: bool
+    ) -> bool:
         """更新分類的展開狀態.
 
         Args:
@@ -469,20 +476,18 @@ class AchievementRepository(BaseRepository):
         Returns:
             建立後的成就(包含 ID)
         """
-        query = QueryBuilder("achievements").insert(
-            {
-                "name": achievement.name,
-                "description": achievement.description,
-                "category_id": achievement.category_id,
-                "type": achievement.type.value,
-                "criteria": achievement.get_criteria_json(),
-                "points": achievement.points,
-                "badge_url": achievement.badge_url,
-                "role_reward": achievement.role_reward,
-                "is_hidden": achievement.is_hidden,
-                "is_active": achievement.is_active,
-            }
-        )
+        query = QueryBuilder("achievements").insert({
+            "name": achievement.name,
+            "description": achievement.description,
+            "category_id": achievement.category_id,
+            "type": achievement.type.value,
+            "criteria": achievement.get_criteria_json(),
+            "points": achievement.points,
+            "badge_url": achievement.badge_url,
+            "role_reward": achievement.role_reward,
+            "is_hidden": achievement.is_hidden,
+            "is_active": achievement.is_active,
+        })
 
         sql, params = query.to_insert_sql()
 
@@ -670,14 +675,12 @@ class AchievementRepository(BaseRepository):
         if await self.has_user_achievement(user_id, achievement_id):
             raise ValueError(f"用戶 {user_id} 已經獲得成就 {achievement_id}")
 
-        query = QueryBuilder("user_achievements").insert(
-            {
-                "user_id": user_id,
-                "achievement_id": achievement_id,
-                "earned_at": datetime.now(),
-                "notified": False,
-            }
-        )
+        query = QueryBuilder("user_achievements").insert({
+            "user_id": user_id,
+            "achievement_id": achievement_id,
+            "earned_at": datetime.now(),
+            "notified": False,
+        })
 
         sql, params = query.to_insert_sql()
 
@@ -984,7 +987,9 @@ class AchievementRepository(BaseRepository):
                 await conn.commit()
 
         # 檢查是否完成成就並自動頒發
-        if current_value >= target_value and not await self.has_user_achievement(user_id, achievement_id):
+        if current_value >= target_value and not await self.has_user_achievement(
+            user_id, achievement_id
+        ):
             await self.award_achievement(user_id, achievement_id)
 
         return await self.get_user_progress(user_id, achievement_id)
@@ -1296,15 +1301,13 @@ class AchievementRepository(BaseRepository):
         Returns:
             建立後的通知偏好
         """
-        query = QueryBuilder("notification_preferences").insert(
-            {
-                "user_id": preferences.user_id,
-                "guild_id": preferences.guild_id,
-                "dm_notifications": preferences.dm_notifications,
-                "server_announcements": preferences.server_announcements,
-                "notification_types": json.dumps(preferences.notification_types),
-            }
-        )
+        query = QueryBuilder("notification_preferences").insert({
+            "user_id": preferences.user_id,
+            "guild_id": preferences.guild_id,
+            "dm_notifications": preferences.dm_notifications,
+            "server_announcements": preferences.server_announcements,
+            "notification_types": json.dumps(preferences.notification_types),
+        })
 
         sql, params = query.to_insert_sql()
 
@@ -1372,14 +1375,12 @@ class AchievementRepository(BaseRepository):
         """
         query = (
             QueryBuilder("notification_preferences")
-            .update(
-                {
-                    "dm_notifications": preferences.dm_notifications,
-                    "server_announcements": preferences.server_announcements,
-                    "notification_types": json.dumps(preferences.notification_types),
-                    "updated_at": datetime.now(),
-                }
-            )
+            .update({
+                "dm_notifications": preferences.dm_notifications,
+                "server_announcements": preferences.server_announcements,
+                "notification_types": json.dumps(preferences.notification_types),
+                "updated_at": datetime.now(),
+            })
             .where("user_id", "=", preferences.user_id)
             .where("guild_id", "=", preferences.guild_id)
         )
@@ -1437,15 +1438,13 @@ class AchievementRepository(BaseRepository):
         Returns:
             建立後的全域通知設定
         """
-        query = QueryBuilder("global_notification_settings").insert(
-            {
-                "guild_id": settings.guild_id,
-                "announcement_channel_id": settings.announcement_channel_id,
-                "announcement_enabled": settings.announcement_enabled,
-                "rate_limit_seconds": settings.rate_limit_seconds,
-                "important_achievements_only": settings.important_achievements_only,
-            }
-        )
+        query = QueryBuilder("global_notification_settings").insert({
+            "guild_id": settings.guild_id,
+            "announcement_channel_id": settings.announcement_channel_id,
+            "announcement_enabled": settings.announcement_enabled,
+            "rate_limit_seconds": settings.rate_limit_seconds,
+            "important_achievements_only": settings.important_achievements_only,
+        })
 
         sql, params = query.to_insert_sql()
 
@@ -1504,15 +1503,13 @@ class AchievementRepository(BaseRepository):
         """
         query = (
             QueryBuilder("global_notification_settings")
-            .update(
-                {
-                    "announcement_channel_id": settings.announcement_channel_id,
-                    "announcement_enabled": settings.announcement_enabled,
-                    "rate_limit_seconds": settings.rate_limit_seconds,
-                    "important_achievements_only": settings.important_achievements_only,
-                    "updated_at": datetime.now(),
-                }
-            )
+            .update({
+                "announcement_channel_id": settings.announcement_channel_id,
+                "announcement_enabled": settings.announcement_enabled,
+                "rate_limit_seconds": settings.rate_limit_seconds,
+                "important_achievements_only": settings.important_achievements_only,
+                "updated_at": datetime.now(),
+            })
             .where("guild_id", "=", settings.guild_id)
         )
 
@@ -1534,18 +1531,16 @@ class AchievementRepository(BaseRepository):
         Returns:
             建立後的通知事件
         """
-        query = QueryBuilder("notification_events").insert(
-            {
-                "user_id": event.user_id,
-                "guild_id": event.guild_id,
-                "achievement_id": event.achievement_id,
-                "notification_type": event.notification_type,
-                "sent_at": event.sent_at,
-                "delivery_status": event.delivery_status,
-                "error_message": event.error_message,
-                "retry_count": event.retry_count,
-            }
-        )
+        query = QueryBuilder("notification_events").insert({
+            "user_id": event.user_id,
+            "guild_id": event.guild_id,
+            "achievement_id": event.achievement_id,
+            "notification_type": event.notification_type,
+            "sent_at": event.sent_at,
+            "delivery_status": event.delivery_status,
+            "error_message": event.error_message,
+            "retry_count": event.retry_count,
+        })
 
         sql, params = query.to_insert_sql()
 
@@ -1634,6 +1629,7 @@ class AchievementRepository(BaseRepository):
             events.append(NotificationEvent(**row_dict))
 
         return events
+
 
 class AchievementEventRepository(BaseRepository):
     """成就事件資料存取庫.
@@ -2192,14 +2188,12 @@ class AchievementEventRepository(BaseRepository):
         Returns:
             已儲存的用戶成就記錄
         """
-        query = QueryBuilder("user_achievements").insert(
-            {
-                "user_id": user_achievement.user_id,
-                "achievement_id": user_achievement.achievement_id,
-                "earned_at": user_achievement.earned_at.isoformat(),
-                "notified": user_achievement.notified,
-            }
-        )
+        query = QueryBuilder("user_achievements").insert({
+            "user_id": user_achievement.user_id,
+            "achievement_id": user_achievement.achievement_id,
+            "earned_at": user_achievement.earned_at.isoformat(),
+            "notified": user_achievement.notified,
+        })
 
         sql, params = query.to_insert_sql()
         result = await self.execute_query(sql, params, return_id=True)
@@ -2293,16 +2287,14 @@ class AchievementEventRepository(BaseRepository):
         Returns:
             已儲存的進度記錄
         """
-        query = QueryBuilder("achievement_progress").insert(
-            {
-                "user_id": progress.user_id,
-                "achievement_id": progress.achievement_id,
-                "current_value": progress.current_value,
-                "target_value": progress.target_value,
-                "progress_data": json.dumps(progress.progress_data),
-                "last_updated": progress.last_updated.isoformat(),
-            }
-        )
+        query = QueryBuilder("achievement_progress").insert({
+            "user_id": progress.user_id,
+            "achievement_id": progress.achievement_id,
+            "current_value": progress.current_value,
+            "target_value": progress.target_value,
+            "progress_data": json.dumps(progress.progress_data),
+            "last_updated": progress.last_updated.isoformat(),
+        })
 
         sql, params = query.to_insert_sql()
         result = await self.execute_query(sql, params, return_id=True)
@@ -2324,14 +2316,12 @@ class AchievementEventRepository(BaseRepository):
         query = (
             QueryBuilder("achievement_progress")
             .where("id", progress.id)
-            .update(
-                {
-                    "current_value": progress.current_value,
-                    "target_value": progress.target_value,
-                    "progress_data": json.dumps(progress.progress_data),
-                    "last_updated": progress.last_updated.isoformat(),
-                }
-            )
+            .update({
+                "current_value": progress.current_value,
+                "target_value": progress.target_value,
+                "progress_data": json.dumps(progress.progress_data),
+                "last_updated": progress.last_updated.isoformat(),
+            })
         )
 
         sql, params = query.to_update_sql()
@@ -2638,6 +2628,7 @@ class AchievementEventRepository(BaseRepository):
             if isinstance(row_dict["last_updated"], str)
             else row_dict["last_updated"],
         )
+
 
 __all__ = [
     "AchievementEventRepository",

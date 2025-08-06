@@ -23,6 +23,7 @@ WEALTH_LEVEL_WEALTHY = 10000  # 富有
 WEALTH_LEVEL_AVERAGE = 1000  # 一般
 RANK_TOP_THREE = 3  # 前三名
 
+
 class MainEmbedRenderer:
     """主面板 Embed 渲染器"""
 
@@ -64,7 +65,7 @@ class MainEmbedRenderer:
                 title="💰 貨幣面板",
                 description="你的個人貨幣資訊與快速操作",
                 color=discord.Color.gold(),
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             # 添加用戶餘額資訊
@@ -82,7 +83,7 @@ class MainEmbedRenderer:
             # 設置頁腳
             embed.set_footer(
                 text=f"用戶 ID: {self.user_id} • 點擊下方按鈕進行操作",
-                icon_url="https://cdn.discordapp.com/emojis/749358574832967832.png"
+                icon_url="https://cdn.discordapp.com/emojis/749358574832967832.png",
             )
 
             return embed
@@ -94,7 +95,7 @@ class MainEmbedRenderer:
             error_embed = discord.Embed(
                 title="❌ 載入錯誤",
                 description="無法載入貨幣面板資訊,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             return error_embed
 
@@ -110,23 +111,17 @@ class MainEmbedRenderer:
             elif self.user_balance >= WEALTH_LEVEL_WEALTHY:
                 balance_emoji = "💰"  # 富有
             elif self.user_balance >= WEALTH_LEVEL_AVERAGE:
-                balance_emoji = "💵"   # 一般
+                balance_emoji = "💵"  # 一般
             else:
                 balance_emoji = "💸"  # 貧窮
 
             embed.add_field(
-                name=f"{balance_emoji} 目前餘額",
-                value=balance_display,
-                inline=True
+                name=f"{balance_emoji} 目前餘額", value=balance_display, inline=True
             )
 
         except Exception as e:
             self.logger.warning(f"添加餘額資訊失敗: {e}")
-            embed.add_field(
-                name="💰 目前餘額",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="💰 目前餘額", value="載入中...", inline=True)
 
     def _add_rank_info(self, embed: discord.Embed):
         """添加排名資訊"""
@@ -145,24 +140,20 @@ class MainEmbedRenderer:
 
                 embed.add_field(
                     name="🏆 排名資訊",
-                    value=f"{rank_display}\n" +
-                          f"前 **{percentile:.1f}%** • 共 {total_users:,} 位用戶",
-                    inline=True
+                    value=f"{rank_display}\n"
+                    + f"前 **{percentile:.1f}%** • 共 {total_users:,} 位用戶",
+                    inline=True,
                 )
             else:
                 embed.add_field(
                     name="🏆 排名資訊",
                     value="尚未進入排行榜\n開始賺取貨幣吧!",
-                    inline=True
+                    inline=True,
                 )
 
         except Exception as e:
             self.logger.warning(f"添加排名資訊失敗: {e}")
-            embed.add_field(
-                name="🏆 排名資訊",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="🏆 排名資訊", value="載入中...", inline=True)
 
     def _add_guild_stats(self, embed: discord.Embed):
         """添加伺服器統計"""
@@ -180,19 +171,11 @@ class MainEmbedRenderer:
             else:
                 stats_text = "伺服器經濟系統正在啟動中..."
 
-            embed.add_field(
-                name="📈 伺服器經濟概況",
-                value=stats_text,
-                inline=False
-            )
+            embed.add_field(name="📈 伺服器經濟概況", value=stats_text, inline=False)
 
         except Exception as e:
             self.logger.warning(f"添加伺服器統計失敗: {e}")
-            embed.add_field(
-                name="📈 伺服器經濟概況",
-                value="載入中...",
-                inline=False
-            )
+            embed.add_field(name="📈 伺服器經濟概況", value="載入中...", inline=False)
 
     def _add_operation_guide(self, embed: discord.Embed):
         """添加操作指引"""
@@ -204,11 +187,7 @@ class MainEmbedRenderer:
                 "❌ **關閉** - 關閉此面板"
             )
 
-            embed.add_field(
-                name="🎮 快速操作",
-                value=guide_text,
-                inline=False
-            )
+            embed.add_field(name="🎮 快速操作", value=guide_text, inline=False)
 
         except Exception as e:
             self.logger.warning(f"添加操作指引失敗: {e}")

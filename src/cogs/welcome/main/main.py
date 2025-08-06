@@ -29,6 +29,7 @@ from ..panel.main_view import SettingsView
 logger = setup_module_logger("welcome")
 error_handler = create_error_handler("welcome", logger)
 
+
 # 定義服務接口
 class IWelcomeDatabase(Protocol):
     """歡迎系統資料庫服務接口"""
@@ -38,6 +39,7 @@ class IWelcomeDatabase(Protocol):
     async def get_background_path(self, guild_id: int) -> str | None: ...
     async def update_welcome_background(self, guild_id: int, path: str) -> None: ...
     async def exists(self, guild_id: int) -> bool: ...
+
 
 class IWelcomeRenderer(Protocol):
     """歡迎系統渲染器服務接口"""
@@ -56,12 +58,14 @@ class IWelcomeRenderer(Protocol):
         template: str,
     ) -> str: ...
 
+
 class IWelcomeCache(Protocol):
     """歡迎系統快取服務接口"""
 
     def get(self, guild_id: int) -> io.BytesIO | None: ...
     def set(self, guild_id: int, image: io.BytesIO) -> None: ...
     def clear(self, guild_id: int | None = None) -> None: ...
+
 
 class IWelcomeConfig(Protocol):
     """歡迎系統配置服務接口"""
@@ -72,6 +76,7 @@ class IWelcomeConfig(Protocol):
     def cache_timeout(self) -> int: ...
     @property
     def max_cache_size(self) -> int: ...
+
 
 class WelcomeCog(commands.Cog):
     """歡迎系統 Cog - 採用依賴注入架構"""
@@ -343,9 +348,10 @@ class WelcomeCog(commands.Cog):
 
         try:
             # 檢查檔案類型
-            if not attachment.content_type or not attachment.content_type.startswith(
-                ("image/png", "image/jpeg")
-            ):
+            if not attachment.content_type or not attachment.content_type.startswith((
+                "image/png",
+                "image/jpeg",
+            )):
                 await interaction.response.send_message(
                     "❌ 只接受 PNG 或 JPG 格式的圖片", ephemeral=True
                 )

@@ -233,7 +233,7 @@ class AutoPromptGenerator:
             risk_matches = re.findall(
                 r"\|(.+?)\|(.+?)\|(.+?)\|(.+?)\|", section_content
             )
-            for risk_type, risk_desc, impact, measure in risk_matches:
+            for risk_type, risk_desc, _impact, _measure in risk_matches:
                 if risk_type.strip() and risk_desc.strip():
                     risks.append(f"{risk_type.strip()}: {risk_desc.strip()}")
 

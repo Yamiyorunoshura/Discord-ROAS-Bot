@@ -46,6 +46,7 @@ MAX_OPERATIONS_DISPLAY = 10
 
 logger = logging.getLogger(__name__)
 
+
 class SecurityPanelState(Enum):
     """安全管理面板狀態."""
 
@@ -64,6 +65,7 @@ class SecurityPanelState(Enum):
     OPERATION_HISTORY = "operation_history"
     SECURITY_SETTINGS = "security_settings"
     PERMISSION_MANAGEMENT = "permission_management"
+
 
 class SecurityPanelMixin:
     """安全管理面板混入類.
@@ -114,6 +116,7 @@ class SecurityPanelMixin:
 
         except Exception as e:
             logger.error(f"[安全管理]初始化安全服務失敗: {e}")
+
 
 class SecureAdminPanel(SecurityPanelMixin, AdminPanel):
     """整合安全功能的管理面板."""
@@ -319,6 +322,7 @@ class SecureAdminPanel(SecurityPanelMixin, AdminPanel):
             logger.error(f"[安全管理]創建操作歷史視圖失敗: {e}")
             return await self._create_error_embed("創建操作歷史視圖失敗", str(e))
 
+
 class SecurityOverviewView(ui.View):
     """安全概覽視圖."""
 
@@ -368,6 +372,7 @@ class SecurityOverviewView(ui.View):
     ):
         """返回主面板按鈕."""
         await self.admin_panel.handle_navigation(interaction, AdminPanelState.OVERVIEW)
+
 
 class AuditLogsView(ui.View):
     """審計日誌視圖."""
@@ -422,7 +427,9 @@ class AuditLogsView(ui.View):
             embed.description = event_text
 
             if len(events) > MAX_EVENTS_DISPLAY:
-                embed.set_footer(text=f"還有 {len(events) - MAX_EVENTS_DISPLAY} 個事件未顯示")
+                embed.set_footer(
+                    text=f"還有 {len(events) - MAX_EVENTS_DISPLAY} 個事件未顯示"
+                )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -478,7 +485,9 @@ class AuditLogsView(ui.View):
             embed.description = event_text
 
             if len(events) > MAX_HIGH_RISK_EVENTS_DISPLAY:
-                embed.set_footer(text=f"還有 {len(events) - MAX_HIGH_RISK_EVENTS_DISPLAY} 個高風險事件")
+                embed.set_footer(
+                    text=f"還有 {len(events) - MAX_HIGH_RISK_EVENTS_DISPLAY} 個高風險事件"
+                )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -531,16 +540,14 @@ class AuditLogsView(ui.View):
             )
 
             if report.events_by_type:
-                type_stats = "\n".join(
-                    [
-                        f"• {type_name}: {count}"
-                        for type_name, count in sorted(
-                            report.events_by_type.items(),
-                            key=lambda x: x[1],
-                            reverse=True,
-                        )[:5]
-                    ]
-                )
+                type_stats = "\n".join([
+                    f"• {type_name}: {count}"
+                    for type_name, count in sorted(
+                        report.events_by_type.items(),
+                        key=lambda x: x[1],
+                        reverse=True,
+                    )[:5]
+                ])
                 embed.add_field(name="🔍 主要事件類型", value=type_stats, inline=True)
 
             if report.security_issues:
@@ -568,6 +575,7 @@ class AuditLogsView(ui.View):
         await self.admin_panel.handle_navigation(
             interaction, SecurityPanelState.SECURITY_OVERVIEW
         )
+
 
 class OperationHistoryView(ui.View):
     """操作歷史視圖."""
@@ -624,7 +632,9 @@ class OperationHistoryView(ui.View):
             embed.description = record_text
 
             if len(records) > MAX_OPERATIONS_DISPLAY:
-                embed.set_footer(text=f"還有 {len(records) - MAX_OPERATIONS_DISPLAY} 個操作記錄")
+                embed.set_footer(
+                    text=f"還有 {len(records) - MAX_OPERATIONS_DISPLAY} 個操作記錄"
+                )
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -671,16 +681,14 @@ class OperationHistoryView(ui.View):
             )
 
             if analysis.operations_by_action:
-                action_stats = "\n".join(
-                    [
-                        f"• {action}: {count}"
-                        for action, count in sorted(
-                            analysis.operations_by_action.items(),
-                            key=lambda x: x[1],
-                            reverse=True,
-                        )[:5]
-                    ]
-                )
+                action_stats = "\n".join([
+                    f"• {action}: {count}"
+                    for action, count in sorted(
+                        analysis.operations_by_action.items(),
+                        key=lambda x: x[1],
+                        reverse=True,
+                    )[:5]
+                ])
                 embed.add_field(name="🎯 主要操作類型", value=action_stats, inline=True)
 
             if analysis.most_active_executors:

@@ -1,0 +1,250 @@
+# Discord ROAS Bot - 部署配置文件
+# 定義不同環境的部署參數和設定
+
+# 全域設定
+global:
+  app_name: "discord-roas-bot"
+  version: "2.0.0"
+  docker_registry: ""
+  health_check_timeout: 120
+  deployment_timeout: 600
+
+# 環境配置
+environments:
+  development:
+    description: "開發環境 - 用於本地開發和測試"
+    docker_target: "development"
+    compose_profile: "dev"
+    replicas: 1
+    resources:
+      memory_limit: "512M"
+      cpu_limit: "0.5"
+    environment_variables:
+      DEBUG: "true"
+      LOG_LEVEL: "DEBUG"
+      ENVIRONMENT: "development"
+    health_check:
+      enabled: true
+      interval: "30s"
+      timeout: "10s"
+      retries: 3
+    monitoring:
+      enabled: false
+    backup:
+      enabled: false
+
+  testing:
+    description: "測試環境 - 用於集成測試和 QA"
+    docker_target: "testing"
+    compose_profile: "test"
+    replicas: 1
+    resources:
+      memory_limit: "1G"
+      cpu_limit: "1.0"
+    environment_variables:
+      DEBUG: "false"
+      LOG_LEVEL: "INFO"
+      ENVIRONMENT: "testing"
+      QUALITY_CHECK_STRICT: "true"
+    health_check:
+      enabled: true
+      interval: "15s"
+      timeout: "5s"
+      retries: 5
+    monitoring:
+      enabled: true
+      metrics_port: 9090
+    backup:
+      enabled: true
+      schedule: "0 2 * * *"  # 每天凌晨 2 點
+
+  staging:
+    description: "預發布環境 - 生產環境的鏡像用於最終測試"
+    docker_target: "deployment-ready"
+    compose_profile: "staging"
+    replicas: 1
+    resources:
+      memory_limit: "2G"
+      cpu_limit: "1.5"
+    environment_variables:
+      DEBUG: "false"
+      LOG_LEVEL: "INFO"
+      ENVIRONMENT: "staging"
+      MONITORING_ENABLED: "true"
+    health_check:
+      enabled: true
+      interval: "15s"
+      timeout: "5s"
+      retries: 5
+    monitoring:
+      enabled: true
+      metrics_port: 9090
+      alerts_enabled: true
+    backup:
+      enabled: true
+      schedule: "0 1 * * *"  # 每天凌晨 1 點
+      retention_days: 7
+
+  production:
+    description: "生產環境 - 正式運行環境"
+    docker_target: "monitoring"
+    compose_profile: "production-full"
+    replicas: 2  # 高可用性
+    resources:
+      memory_limit: "4G"
+      cpu_limit: "2.0"
+      memory_reservation: "2G"
+      cpu_reservation: "1.0"
+    environment_variables:
+      DEBUG: "false"
+      LOG_LEVEL: "WARNING"
+      ENVIRONMENT: "production"
+      MONITORING_ENABLED: "true"
+      SECURITY_RATE_LIMIT_ENABLED: "true"
+    health_check:
+      enabled: true
+      interval: "10s"
+      timeout: "5s"
+      retries: 3
+      start_period: "120s"
+    monitoring:
+      enabled: true
+      metrics_port: 9090
+      alerts_enabled: true
+      retention_days: 30
+    backup:
+      enabled: true
+      schedule: "0 0 * * *"  # 每天午夜
+      retention_days: 30
+      remote_backup: true
+    security:
+      read_only_root: true
+      no_new_privileges: true
+      user: "1000:1000"
+
+# 部署策略
+deployment_strategies:
+  rolling_update:
+    description: "滾動更新 - 逐個替換實例"
+    max_unavailable: 1
+    max_surge: 1
+    
+  blue_green:
+    description: "藍綠部署 - 完整環境切換"
+    verification_time: 300  # 5 分鐘驗證期
+    
+  canary:
+    description: "金絲雀部署 - 部分流量測試"
+    canary_percentage: 10
+    verification_time: 600  # 10 分鐘驗證期
+
+# 監控和警報配置
+monitoring:
+  metrics:
+    - name: "cpu_usage"
+      threshold: 80
+      duration: "5m"
+    - name: "memory_usage"
+      threshold: 90
+      duration: "5m"
+    - name: "response_time"
+      threshold: 1000
+      duration: "1m"
+    - name: "error_rate"
+      threshold: 5
+      duration: "1m"
+
+  alerts:
+    channels:
+      - type: "discord"
+        webhook_url: "${ALERT_DISCORD_WEBHOOK}"
+      - type: "email"
+        recipients: ["admin@adrbot.dev"]
+    
+    severity_levels:
+      critical:
+        notification_delay: "0s"
+        escalation_time: "5m"
+      warning:
+        notification_delay: "1m"
+        escalation_time: "15m"
+      info:
+        notification_delay: "5m"
+
+# 備份配置
+backup:
+  targets:
+    - path: "/app/dbs"
+      type: "sqlite"
+      compression: true
+    - path: "/app/logs"
+      type: "logs"
+      compression: true
+      max_age_days: 7
+    - path: "/app/cache"
+      type: "cache"
+      exclude_patterns: ["*.tmp", "*.lock"]
+
+  destinations:
+    local:
+      path: "/app/backups"
+      retention_days: 7
+    s3:
+      bucket: "${S3_BACKUP_BUCKET}"
+      prefix: "discord-bot-backups/"
+      retention_days: 30
+      encryption: true
+
+# 安全配置
+security:
+  secrets_management:
+    provider: "environment"  # 或 "vault", "k8s-secrets"
+    required_secrets:
+      - "TOKEN"
+      - "DATABASE_URL"
+    optional_secrets:
+      - "REDIS_PASSWORD"
+      - "S3_ACCESS_KEY"
+      - "S3_SECRET_KEY"
+
+  network:
+    ingress_rules:
+      - port: 8080
+        protocol: "HTTP"
+        source: "internal"
+      - port: 9090
+        protocol: "HTTP"
+        source: "monitoring"
+    
+    egress_rules:
+      - destination: "discord.com"
+        protocol: "HTTPS"
+      - destination: "internal"
+        protocol: "ALL"
+
+# 質量門檻
+quality_gates:
+  pre_deployment:
+    - name: "unit_tests"
+      required: true
+      timeout: 300
+    - name: "integration_tests"
+      required: true
+      timeout: 600
+    - name: "security_scan"
+      required: true
+      timeout: 300
+    - name: "quality_check"
+      required: true
+      min_score: 80
+
+  post_deployment:
+    - name: "health_check"
+      required: true
+      timeout: 120
+    - name: "smoke_tests"
+      required: true
+      timeout: 180
+    - name: "performance_test"
+      required: false
+      timeout: 300

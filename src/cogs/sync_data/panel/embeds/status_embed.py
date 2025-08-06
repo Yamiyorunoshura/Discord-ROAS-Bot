@@ -18,7 +18,8 @@ SECONDS_PER_HOUR = 3600
 SECONDS_PER_MINUTE = 60
 DAYS_THRESHOLD_FOR_OUTDATED = 7
 
-async def create_status_embed(  # noqa: PLR0915
+
+async def create_status_embed(
     cog: "SyncDataCog", guild: discord.Guild
 ) -> discord.Embed:
     """
@@ -162,15 +163,18 @@ async def create_status_embed(  # noqa: PLR0915
 
     return embed
 
+
 def _get_sync_type_name(sync_type: str) -> str:
     """獲取同步類型名稱"""
     type_names = {"full": "完整同步", "roles": "角色同步", "channels": "頻道同步"}
     return type_names.get(sync_type, "未知")
 
+
 def _get_status_name(status: str) -> str:
     """獲取狀態名稱"""
     status_names = {"success": "成功", "failed": "失敗", "running": "進行中"}
     return status_names.get(status, "未知")
+
 
 def _calculate_sync_rate(
     guild: discord.Guild, db_roles: list, db_channels: list

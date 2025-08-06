@@ -42,12 +42,14 @@ EXCELLENT_PERFORMANCE_TIME_MS = 100  # 優秀效能時間(毫秒)
 GOOD_PERFORMANCE_TIME_MS = 300  # 良好效能時間(毫秒)
 FAIR_PERFORMANCE_TIME_MS = 500  # 一般效能時間(毫秒)
 
+
 class DashboardTheme(str, Enum):
     """儀表板主題."""
 
     LIGHT = "light"
     DARK = "dark"
     AUTO = "auto"
+
 
 class ChartType(str, Enum):
     """圖表類型."""
@@ -57,6 +59,7 @@ class ChartType(str, Enum):
     PIE = "pie"
     GAUGE = "gauge"
     AREA = "area"
+
 
 @dataclass
 class DashboardWidget:
@@ -89,6 +92,7 @@ class DashboardWidget:
     last_updated: datetime = field(default_factory=datetime.now)
     """最後更新時間"""
 
+
 @dataclass
 class AlertRule:
     """警報規則."""
@@ -119,6 +123,7 @@ class AlertRule:
 
     last_triggered: datetime | None = None
     """最後觸發時間"""
+
 
 class PerformanceDashboard:
     """成就系統效能監控儀表板.
@@ -802,9 +807,9 @@ class PerformanceDashboard:
             },
             "summary": {
                 "total_widgets": len(self._widgets),
-                "active_alerts": len(
-                    [r for r in self._alert_rules.values() if r.enabled]
-                ),
+                "active_alerts": len([
+                    r for r in self._alert_rules.values() if r.enabled
+                ]),
                 "last_update": self._metrics_history[-1]["timestamp"]
                 if self._metrics_history
                 else None,
@@ -874,6 +879,7 @@ class PerformanceDashboard:
             return "\n".join(csv_lines)
         else:
             raise ValueError(f"不支援的匯出格式: {format}")
+
 
 __all__ = [
     "AlertRule",

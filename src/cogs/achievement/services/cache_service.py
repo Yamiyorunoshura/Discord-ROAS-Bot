@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+
 class AchievementCacheService:
     """成就系統快取服務.
 
@@ -361,15 +362,13 @@ class AchievementCacheService:
             usage_rate = stat.get("usage_rate", 0)
 
             if usage_rate > CRITICAL_USAGE_RATE:
-                suggestions.append(
-                    {
-                        "cache_type": cache_type,
-                        "issue": "high_usage_rate",
-                        "current_usage_rate": usage_rate,
-                        "suggestion": f"{cache_type} 快取使用率過高 ({usage_rate}%),建議增加快取大小",
-                        "priority": "medium",
-                    }
-                )
+                suggestions.append({
+                    "cache_type": cache_type,
+                    "issue": "high_usage_rate",
+                    "current_usage_rate": usage_rate,
+                    "suggestion": f"{cache_type} 快取使用率過高 ({usage_rate}%),建議增加快取大小",
+                    "priority": "medium",
+                })
 
         return suggestions
 
@@ -576,13 +575,11 @@ class AchievementCacheService:
         critical_issues = []
         for cache_type, health in shutdown_stats["health_status"].items():
             if health.get("status") in ["critical", "error"]:
-                critical_issues.append(
-                    {
-                        "cache_type": cache_type,
-                        "status": health.get("status"),
-                        "issues": health.get("issues", []),
-                    }
-                )
+                critical_issues.append({
+                    "cache_type": cache_type,
+                    "status": health.get("status"),
+                    "issues": health.get("issues", []),
+                })
 
         shutdown_stats["critical_issues"] = critical_issues
 
@@ -601,6 +598,7 @@ class AchievementCacheService:
             logger.error(f"快取服務關閉清理失敗: {e}", exc_info=True)
 
         return shutdown_stats
+
 
 __all__ = [
     "AchievementCacheService",

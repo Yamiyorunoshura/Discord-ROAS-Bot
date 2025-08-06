@@ -24,12 +24,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AdminCurrencyButton(Button):
     """管理員貨幣面板基礎按鈕類"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.logger = logger
+
 
 class BalanceManageButton(AdminCurrencyButton):
     """餘額管理按鈕"""
@@ -49,7 +51,7 @@ class BalanceManageButton(AdminCurrencyButton):
                 currency_service=view.currency_service,
                 admin_panel_view=view,
                 guild_id=view.guild_id,
-                admin_id=view.author_id
+                admin_id=view.author_id,
             )
 
             await interaction.response.send_modal(balance_modal)
@@ -59,9 +61,10 @@ class BalanceManageButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="開啟餘額管理視窗時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class UserSearchButton(AdminCurrencyButton):
     """用戶搜尋按鈕"""
@@ -84,9 +87,10 @@ class UserSearchButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="載入用戶管理頁面時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class EconomicStatsButton(AdminCurrencyButton):
     """經濟統計按鈕"""
@@ -109,9 +113,10 @@ class EconomicStatsButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="載入經濟統計頁面時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class AuditRecordsButton(AdminCurrencyButton):
     """審計記錄按鈕"""
@@ -134,9 +139,10 @@ class AuditRecordsButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="載入審計記錄頁面時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class BatchOperationButton(AdminCurrencyButton):
     """批量操作按鈕"""
@@ -153,7 +159,7 @@ class BatchOperationButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="⚡ 批量操作",
                 description="批量操作功能開發中,敬請期待!",
-                color=discord.Color.orange()
+                color=discord.Color.orange(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -162,9 +168,10 @@ class BatchOperationButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="開啟批量操作時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class RefreshButton(AdminCurrencyButton):
     """重新整理按鈕"""
@@ -187,9 +194,10 @@ class RefreshButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="❌ 錯誤",
                 description="重新整理面板時發生錯誤,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class CloseButton(AdminCurrencyButton):
     """關閉按鈕"""
@@ -209,7 +217,7 @@ class CloseButton(AdminCurrencyButton):
                 embed = discord.Embed(
                     title="❌ 權限不足",
                     description="只有面板擁有者可以關閉面板",
-                    color=discord.Color.red()
+                    color=discord.Color.red(),
                 )
                 await interaction.response.send_message(embed=embed, ephemeral=True)
                 return
@@ -218,7 +226,7 @@ class CloseButton(AdminCurrencyButton):
             embed = discord.Embed(
                 title="🔒 管理員面板已關閉",
                 description="感謝使用貨幣管理系統!",
-                color=discord.Color.blue()
+                color=discord.Color.blue(),
             )
 
             # 禁用所有組件

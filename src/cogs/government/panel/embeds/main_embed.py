@@ -17,7 +17,7 @@ def create_main_panel_embed(
     current_page: int = 0,
     total_pages: int = 1,
     search_query: str = "",
-    filter_type: str = "all"
+    filter_type: str = "all",
 ) -> discord.Embed:
     """創建政府面板主要 Embed.
 
@@ -37,7 +37,7 @@ def create_main_panel_embed(
     embed = discord.Embed(
         title="🏛️ 政府系統面板",
         color=discord.Color.blue(),
-        timestamp=discord.utils.utcnow()
+        timestamp=discord.utils.utcnow(),
     )
 
     description_parts = []
@@ -50,9 +50,11 @@ def create_main_panel_embed(
             "active": "啟用",
             "inactive": "停用",
             "departments": "部門",
-            "members": "成員"
+            "members": "成員",
         }
-        description_parts.append(f"📋 篩選: {filter_names.get(filter_type, filter_type)}")
+        description_parts.append(
+            f"📋 篩選: {filter_names.get(filter_type, filter_type)}"
+        )
 
     if description_parts:
         embed.description = " | ".join(description_parts)
@@ -67,17 +69,13 @@ def create_main_panel_embed(
                 f"**關聯角色:** {stats.get('departments_with_roles', 0)} 個\n"
                 f"**總成員數:** {stats.get('total_members', 0)} 人"
             ),
-            inline=True
+            inline=True,
         )
 
     # 階層結構簡要展示
     if hierarchy:
         hierarchy_text = _format_hierarchy_preview(hierarchy)
-        embed.add_field(
-            name="🗂️ 部門結構",
-            value=hierarchy_text,
-            inline=True
-        )
+        embed.add_field(name="🗂️ 部門結構", value=hierarchy_text, inline=True)
 
     # 當前頁面部門列表
     if departments:
@@ -85,25 +83,22 @@ def create_main_panel_embed(
         embed.add_field(
             name=f"📋 部門列表 (第 {current_page + 1}/{total_pages} 頁)",
             value=departments_text,
-            inline=False
+            inline=False,
         )
     else:
-        embed.add_field(
-            name="📋 部門列表",
-            value="無符合條件的部門資料",
-            inline=False
-        )
+        embed.add_field(name="📋 部門列表", value="無符合條件的部門資料", inline=False)
 
     # 分頁資訊
     if total_pages > 1:
         embed.set_footer(
             text=f"第 {current_page + 1} 頁,共 {total_pages} 頁 | "
-                 f"顯示 {len(departments)} 個部門"
+            f"顯示 {len(departments)} 個部門"
         )
     else:
         embed.set_footer(text=f"顯示 {len(departments)} 個部門")
 
     return embed
+
 
 def _format_hierarchy_preview(hierarchy: list[dict[str, Any]]) -> str:
     """格式化部門階層預覽.
@@ -135,7 +130,11 @@ def _format_hierarchy_preview(hierarchy: list[dict[str, Any]]) -> str:
         count += 1
 
         # 遞迴處理子部門
-        if level < MAX_HIERARCHY_LEVELS and dept.get("children") and count < MAX_DISPLAY_LINES:
+        if (
+            level < MAX_HIERARCHY_LEVELS
+            and dept.get("children")
+            and count < MAX_DISPLAY_LINES
+        ):
             for child in dept["children"][:MAX_CHILDREN_DISPLAY]:
                 count = format_dept(child, level + 1, count)
                 if count >= MAX_DISPLAY_LINES:
@@ -154,6 +153,7 @@ def _format_hierarchy_preview(hierarchy: list[dict[str, Any]]) -> str:
         lines.append("...")
 
     return "\n".join(lines) if lines else "無部門資料"
+
 
 def _format_departments_list(departments: list[dict[str, Any]]) -> str:
     """格式化部門列表.

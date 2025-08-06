@@ -1,8 +1,8 @@
 """
-🧪 Discord ADR Bot v1.6 測試配置文件
+🧪 Discord ADR Bot v2.0 測試配置文件
 - 提供測試所需的 fixtures
 - 配置測試環境
-- 模擬 Discord 物件
+- 整合 dpytest 框架用於 Discord 機器人測試
 - 支援效能測試和錯誤處理測試
 """
 
@@ -16,9 +16,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiosqlite
 import discord
+# import dpytest  # Temporarily commented out due to installation issues
 import pytest
 import pytest_asyncio
 from discord.ext import commands
+
+# 導入測試基礎設施
+# from src.core.testing import DpytestConfig, cleanup_test_environment  # Temporarily commented out
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🎯 測試環境配置
@@ -52,7 +56,19 @@ def setup_test_environment(monkeypatch):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-# 🎮 Discord 物件模擬 Fixtures
+# 🤖 dpytest 整合 - Discord 機器人測試框架 (暫時註解，待 dpytest 安裝問題解決)
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+"""
+@pytest_asyncio.fixture
+async def dpytest_bot() -> AsyncGenerator[commands.Bot, None]:
+    # dpytest fixture implementation
+    pass
+"""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# 🎮 傳統 Mock Discord 物件 Fixtures（向後相容）
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
 
@@ -317,7 +333,69 @@ def mock_bot() -> commands.Bot:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-# 🗄️ 資料庫測試 Fixtures
+# 🗄️ 測試資料庫 Fixtures（增強版）
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+from src.core.testing.database import TestDatabaseManager
+
+
+@pytest_asyncio.fixture
+async def isolated_test_db() -> AsyncGenerator[TestDatabaseManager, None]:
+    """
+    🗄️ 提供完全隔離的測試資料庫管理器
+    
+    這個 fixture 創建完全獨立的測試資料庫環境，包括：
+    - 活躍度資料庫
+    - 訊息資料庫
+    - 歡迎系統資料庫
+    - 保護系統資料庫
+    - 同步資料庫
+    
+    Returns:
+        測試資料庫管理器實例
+    """
+    manager = TestDatabaseManager()
+    
+    try:
+        await manager.setup_test_databases()
+        yield manager
+    finally:
+        await manager.cleanup()
+
+
+@pytest_asyncio.fixture
+async def activity_test_db_isolated(isolated_test_db: TestDatabaseManager) -> aiosqlite.Connection:
+    """📊 提供隔離的活躍度測試資料庫"""
+    return await isolated_test_db.get_connection("activity")
+
+
+@pytest_asyncio.fixture
+async def message_test_db_isolated(isolated_test_db: TestDatabaseManager) -> aiosqlite.Connection:
+    """💬 提供隔離的訊息測試資料庫"""
+    return await isolated_test_db.get_connection("message")
+
+
+@pytest_asyncio.fixture
+async def welcome_test_db_isolated(isolated_test_db: TestDatabaseManager) -> aiosqlite.Connection:
+    """👋 提供隔離的歡迎系統測試資料庫"""
+    return await isolated_test_db.get_connection("welcome")
+
+
+@pytest_asyncio.fixture
+async def protection_test_db_isolated(isolated_test_db: TestDatabaseManager) -> aiosqlite.Connection:
+    """🛡️ 提供隔離的保護系統測試資料庫"""
+    return await isolated_test_db.get_connection("protection")
+
+
+@pytest_asyncio.fixture
+async def sync_test_db_isolated(isolated_test_db: TestDatabaseManager) -> aiosqlite.Connection:
+    """🔄 提供隔離的同步系統測試資料庫"""
+    return await isolated_test_db.get_connection("sync")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# 🗄️ 傳統資料庫測試 Fixtures（向後相容）
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
 

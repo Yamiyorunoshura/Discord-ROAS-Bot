@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class RealAdminService:
     """真實的管理服務實現."""
 
@@ -220,7 +221,7 @@ class RealAdminService:
             logger.error(f"獲取系統統計失敗: {e}")
             return {}
 
-    async def search_users(self, query: str, limit: int = 10) -> list[dict[str, Any]]:  # noqa: ARG002
+    async def search_users(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
         """搜尋用戶."""
         try:
             # 這裡需要與 Discord 用戶資料整合

@@ -16,3 +16,18 @@ from .modals import (
     SetTitleModal,
     SetTitleYModal,
 )
+
+__all__ = [
+    "BaseModal",
+    "SetAvatarSizeModal",
+    "SetAvatarXModal",
+    "SetAvatarYModal",
+    "SetChannelModal",
+    "SetDescFontSizeModal",
+    "SetDescModal",
+    "SetDescYModal",
+    "SetMsgModal",
+    "SetTitleFontSizeModal",
+    "SetTitleModal",
+    "SetTitleYModal",
+]

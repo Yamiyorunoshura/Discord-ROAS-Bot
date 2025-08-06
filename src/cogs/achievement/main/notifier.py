@@ -49,6 +49,7 @@ MAX_NOTIFICATIONS_PER_MINUTE = 5  # 每分鐘最大通知數
 # 通知處理器橋接函數
 # =============================================================================
 
+
 async def create_notification_handler(notifier: AchievementNotifier) -> callable:
     """建立通知處理器函數,用於與 AchievementAwarder 整合.
 
@@ -92,12 +93,14 @@ async def create_notification_handler(notifier: AchievementNotifier) -> callable
 
     return notification_handler
 
+
 class NotificationType(str, Enum):
     """通知類型列舉."""
 
     DIRECT_MESSAGE = "dm"
     SERVER_ANNOUNCEMENT = "announcement"
     BOTH = "both"
+
 
 class NotificationStatus(str, Enum):
     """通知狀態列舉."""
@@ -106,6 +109,7 @@ class NotificationStatus(str, Enum):
     SENT = "sent"
     FAILED = "failed"
     RETRY = "retry"
+
 
 @dataclass
 class NotificationData:
@@ -141,6 +145,7 @@ class NotificationData:
     retry_count: int = 0
     """重試次數"""
 
+
 @dataclass
 class NotificationResult:
     """通知發送結果.
@@ -168,6 +173,7 @@ class NotificationResult:
 
     sent_at: datetime = field(default_factory=datetime.now)
     """發送時間"""
+
 
 class AchievementNotifier:
     """成就通知系統核心類別.
@@ -915,22 +921,17 @@ class AchievementNotifier:
             "批次通知處理完成",
             extra={
                 "total_notifications": len(notifications),
-                "successful": len(
-                    [
-                        r
-                        for r in notification_results
-                        if NotificationStatus.SENT
-                        in (r.dm_status, r.announcement_status)
-                    ]
-                ),
-                "failed": len(
-                    [
-                        r
-                        for r in notification_results
-                        if r.dm_status == NotificationStatus.FAILED
-                        and r.announcement_status == NotificationStatus.FAILED
-                    ]
-                ),
+                "successful": len([
+                    r
+                    for r in notification_results
+                    if NotificationStatus.SENT in (r.dm_status, r.announcement_status)
+                ]),
+                "failed": len([
+                    r
+                    for r in notification_results
+                    if r.dm_status == NotificationStatus.FAILED
+                    and r.announcement_status == NotificationStatus.FAILED
+                ]),
             },
         )
 
@@ -1001,6 +1002,7 @@ class AchievementNotifier:
             "last_reset": datetime.now(),
         }
         logger.info("通知統計已重置")
+
 
 __all__ = [
     "AchievementNotifier",

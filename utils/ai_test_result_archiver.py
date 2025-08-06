@@ -6,6 +6,7 @@ AI Agent 測試結果自動存檔器
 import json
 import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 
@@ -45,7 +46,7 @@ class AITestResultArchiver:
         """檢查並移除舊的測試結果文檔"""
         if os.path.exists(self.result_file_path):
             print(f"📝 發現舊的測試結果文檔,正在覆蓋: {self.result_file_path}")
-            os.remove(self.result_file_path)
+            Path(self.result_file_path).unlink()
 
     def _generate_result_content(self, comprehensive_report: dict[str, Any]) -> str:
         """AI Agent 生成測試結果內容"""
@@ -164,7 +165,7 @@ class AITestResultArchiver:
             try:
                 with open(self.test_history_path, encoding="utf-8") as f:
                     existing_history = json.load(f)
-            except:
+            except (FileNotFoundError, json.JSONDecodeError):
                 existing_history = []
 
         # 添加新的測試記錄

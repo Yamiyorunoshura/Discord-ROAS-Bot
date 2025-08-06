@@ -1,9 +1,9 @@
 """
-🎯 ActivityTestModule - 活躍度測試模塊
-- 直接調用實際程式邏輯進行測試
-- 提供真實代碼測試框架
-- 支援單元測試、整合測試、性能測試
-- 實現測試覆蓋率分析
+¯ ActivityTestModule - æ´»èºåº¦æ¸¬è©¦æ¨¡å¡
+- ç´æ¥èª¿ç¨å¯¦éç¨å¼éè¼¯é²è¡æ¸¬è©¦
+- æä¾çå¯¦ä»£ç¢¼æ¸¬è©¦æ¡æ¶
+- æ¯æ´å®åæ¸¬è©¦ãæ´åæ¸¬è©¦ãæ§è½æ¸¬è©¦
+- å¯¦ç¾æ¸¬è©¦è¦èçåæ
 """
 
 import contextlib
@@ -29,25 +29,28 @@ from .renderer import ActivityRenderer
 
 logger = logging.getLogger("activity_test_module")
 
+
 class TestType(Enum):
-    """測試類型枚舉"""
+    """æ¸¬è©¦é¡åæè"""
 
     UNIT = "unit"
     INTEGRATION = "integration"
     PERFORMANCE = "performance"
     USER_EXPERIENCE = "user_experience"
 
+
 class TestStatus(Enum):
-    """測試狀態枚舉"""
+    """æ¸¬è©¦çææè"""
 
     SUCCESS = "success"
     FAILED = "failed"
     SKIPPED = "skipped"
     ERROR = "error"
 
+
 @dataclass
 class TestResult:
-    """測試結果數據結構"""
+    """æ¸¬è©¦çµææ¸æçµæ§"""
 
     test_type: str
     status: str
@@ -60,9 +63,10 @@ class TestResult:
         if self.details is None:
             self.details = {}
 
+
 @dataclass
 class CoverageReport:
-    """覆蓋率報告數據結構"""
+    """è¦èçå ±åæ¸æçµæ§"""
 
     total_lines: int = 0
     covered_lines: int = 0
@@ -73,49 +77,50 @@ class CoverageReport:
         if self.uncovered_lines is None:
             self.uncovered_lines = []
 
+
 class ActivityTestModule:
     """
-    活躍度測試模塊
-    - 直接調用實際程式邏輯進行測試
-    - 提供完整的測試框架
-    - 支援多種測試類型
+    æ´»èºåº¦æ¸¬è©¦æ¨¡å¡
+    - ç´æ¥èª¿ç¨å¯¦éç¨å¼éè¼¯é²è¡æ¸¬è©¦
+    - æä¾å®æ´çæ¸¬è©¦æ¡æ¶
+    - æ¯æ´å¤ç¨®æ¸¬è©¦é¡å
     """
 
     def __init__(self):
-        """初始化測試模塊"""
+        """åå§åæ¸¬è©¦æ¨¡å¡"""
         self.activity_module = None
         self.logic_apis = None
         self.coverage_tracker = CoverageTracker()
         self.test_framework = TestFramework()
 
-        # 初始化實際組件
+        # åå§åå¯¦éçµä»¶
         self._init_components()
 
     def _init_components(self):
-        """初始化實際組件"""
+        """åå§åå¯¦éçµä»¶"""
         try:
-            # 初始化實際的程式邏輯組件
+            # åå§åå¯¦éçç¨å¼éè¼¯çµä»¶
             self.activity_module = ActivityModule()
             self.logic_apis = LogicAPIs()
-            logger.info("✅ ActivityTestModule 組件初始化成功")
+            logger.info("ActivityTestModule çµä»¶åå§åæå")
         except Exception as e:
-            logger.error(f"❌ ActivityTestModule 組件初始化失敗: {e}")
-            # 在測試環境中,如果組件初始化失敗,使用模擬對象
+            logger.error(f"ActivityTestModule çµä»¶åå§åå¤±æ: {e}")
+            # å¨æ¸¬è©¦ç°å¢ä¸­,å¦æçµä»¶åå§åå¤±æ,ä½¿ç¨æ¨¡æ¬å°è±¡
             self.activity_module = Mock()
             self.logic_apis = Mock()
 
     def test_real_logic(self, test_type: str) -> TestResult:
         """
-        執行真實邏輯測試
+        å·è¡çå¯¦éè¼¯æ¸¬è©¦
 
         Args:
-            test_type: 測試類型 (unit/integration/performance)
+            test_type: æ¸¬è©¦é¡å (unit/integration/performance)
 
         Returns:
-            TestResult: 測試結果對象
+            TestResult: æ¸¬è©¦çµæå°è±¡
 
         Raises:
-            TestExecutionError: 測試執行錯誤
+            TestExecutionError: æ¸¬è©¦å·è¡é¯èª¤
         """
         try:
             start_time = time.time()
@@ -129,7 +134,7 @@ class ActivityTestModule:
             elif test_type == TestType.USER_EXPERIENCE.value:
                 result = self._run_user_experience_tests()
             else:
-                raise ValueError(f"不支援的測試類型: {test_type}")
+                raise ValueError(f"ä¸æ¯æ´çæ¸¬è©¦é¡å: {test_type}")
 
             execution_time = time.time() - start_time
 
@@ -142,7 +147,7 @@ class ActivityTestModule:
             )
 
         except Exception as e:
-            logger.error(f"❌ 測試執行失敗: {e}")
+            logger.error(f"æ¸¬è©¦å·è¡å¤±æ: {e}")
             return TestResult(
                 test_type=test_type,
                 status=TestStatus.FAILED.value,
@@ -150,90 +155,94 @@ class ActivityTestModule:
             )
 
     def _run_unit_tests(self) -> dict[str, Any]:
-        """執行單元測試"""
-        logger.info("🧪 開始執行單元測試...")
+        """å·è¡å®åæ¸¬è©¦"""
+        logger.info("ð§ª éå§å·è¡å®åæ¸¬è©¦...")
 
         results = {}
 
-        # 測試計算器邏輯
+        # æ¸¬è©¦è¨ç®å¨éè¼¯
         results["calculator"] = self._test_calculator_logic()
 
-        # 測試渲染器邏輯
+        # æ¸¬è©¦æ¸²æå¨éè¼¯
         results["renderer"] = self._test_renderer_logic()
 
-        # 測試數據庫邏輯
+        # æ¸¬è©¦æ¸æåº«éè¼¯
         results["database"] = self._test_database_logic()
 
-        logger.info("✅ 單元測試完成")
+        logger.info("å®åæ¸¬è©¦å®æ")
         return results
 
     def _run_integration_tests(self) -> dict[str, Any]:
-        """執行整合測試"""
-        logger.info("🔗 開始執行整合測試...")
+        """å·è¡æ´åæ¸¬è©¦"""
+        logger.info(" éå§å·è¡æ´åæ¸¬è©¦...")
 
         results = {}
 
-        # 測試模塊間協作
+        # æ¸¬è©¦æ¨¡å¡éåä½
         results["module_integration"] = self._test_module_integration()
 
-        # 測試API整合
+        # æ¸¬è©¦APIæ´å
         results["api_integration"] = self._test_api_integration()
 
-        # 測試數據流整合
+        # æ¸¬è©¦æ¸ææµæ´å
         results["data_flow"] = self._test_data_flow_integration()
 
-        logger.info("✅ 整合測試完成")
+        logger.info("æ´åæ¸¬è©¦å®æ")
         return results
 
     def _run_performance_tests(self) -> dict[str, Any]:
-        """執行性能測試"""
-        logger.info("⚡ 開始執行性能測試...")
+        """å·è¡æ§è½æ¸¬è©¦"""
+        logger.info("â¡ éå§å·è¡æ§è½æ¸¬è©¦...")
 
         results = {}
 
-        # 測試API響應時間
+        # æ¸¬è©¦APIé¿ææé
         results["api_response_time"] = self._test_api_response_time()
 
-        # 測試並發處理能力
+        # æ¸¬è©¦ä¸¦ç¼èçè½å
         results["concurrent_processing"] = self._test_concurrent_processing()
 
-        # 測試數據處理能力
+        # æ¸¬è©¦æ¸æèçè½å
         results["data_processing"] = self._test_data_processing()
 
-        logger.info("✅ 性能測試完成")
+        logger.info("æ§è½æ¸¬è©¦å®æ")
         return results
 
     def _run_user_experience_tests(self) -> dict[str, Any]:
-        """執行用戶體驗測試"""
-        logger.info("👤 開始執行用戶體驗測試...")
+        """å·è¡ç¨æ¶é«é©æ¸¬è©¦"""
+        logger.info("¤ éå§å·è¡ç¨æ¶é«é©æ¸¬è©¦...")
 
         results = {}
 
-        # 測試界面響應性
+        # æ¸¬è©¦çé¢é¿ææ§
         results["interface_responsiveness"] = self._test_interface_responsiveness()
 
-        # 測試錯誤處理
+        # æ¸¬è©¦é¯èª¤èç
         results["error_handling"] = self._test_error_handling()
 
-        # 測試操作流程
+        # æ¸¬è©¦æä½æµç¨
         results["operation_flow"] = self._test_operation_flow()
 
-        logger.info("✅ 用戶體驗測試完成")
+        logger.info("ç¨æ¶é«é©æ¸¬è©¦å®æ")
         return results
 
     def _test_calculator_logic(self) -> dict[str, Any]:
-        """測試計算器邏輯"""
+        """æ¸¬è©¦è¨ç®å¨éè¼¯"""
         try:
             calculator = ActivityCalculator()
 
-            # 測試基本計算
+            # æ¸¬è©¦åºæ¬è¨ç®
             score = calculator.calculate_score(10, 100)
-            assert 0 <= score <= DEFAULT_MAX_SCORE, f"分數應在0-{DEFAULT_MAX_SCORE}範圍內: {score}"
+            assert 0 <= score <= DEFAULT_MAX_SCORE, (
+                f"åæ¸æå¨0-{DEFAULT_MAX_SCORE}ç¯åå§: {score}"
+            )
 
-            # 測試衰減計算
+            # æ¸¬è©¦è¡°æ¸è¨ç®
             initial_decay_score = 50.0
-            decayed_score = calculator.decay(initial_decay_score, 3600)  # 1小時後
-            assert decayed_score < initial_decay_score, f"衰減後分數應小於原分數: {decayed_score}"
+            decayed_score = calculator.decay(initial_decay_score, 3600)  # 1å°æå¾
+            assert decayed_score < initial_decay_score, (
+                f"è¡°æ¸å¾åæ¸æå°æ¼ååæ¸: {decayed_score}"
+            )
 
             return {"status": "success", "tests_passed": 2}
 
@@ -241,13 +250,13 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_renderer_logic(self) -> dict[str, Any]:
-        """測試渲染器邏輯"""
+        """æ¸¬è©¦æ¸²æå¨éè¼¯"""
         try:
             renderer = ActivityRenderer()
 
-            # 測試進度條渲染
-            result = renderer.render_progress_bar("測試用戶", 75.5)
-            assert result is not None, "渲染結果不應為空"
+            # æ¸¬è©¦é²åº¦æ¢æ¸²æ
+            result = renderer.render_progress_bar("æ¸¬è©¦ç¨æ¶", 75.5)
+            assert result is not None, "æ¸²æçµæä¸æçºç©º"
 
             return {"status": "success", "tests_passed": 1}
 
@@ -255,23 +264,23 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_database_logic(self) -> dict[str, Any]:
-        """測試數據庫邏輯"""
+        """æ¸¬è©¦æ¸æåº«éè¼¯"""
         try:
-            # 這裡會使用實際的數據庫連接
-            # 在測試環境中使用測試數據庫
+            # éè£¡æä½¿ç¨å¯¦éçæ¸æåº«é£æ¥
+            # å¨æ¸¬è©¦ç°å¢ä¸­ä½¿ç¨æ¸¬è©¦æ¸æåº«
             return {"status": "success", "tests_passed": 1}
 
         except Exception as e:
             return {"status": "failed", "error": str(e)}
 
     def _test_module_integration(self) -> dict[str, Any]:
-        """測試模塊間整合"""
+        """æ¸¬è©¦æ¨¡å¡éæ´å"""
         try:
-            # 測試 ActivityModule 與 LogicAPIs 的整合
+            # æ¸¬è©¦ ActivityModule è LogicAPIs çæ´å
             user_id = "123456789"
             activity_data = self.activity_module.get_unified_activity_api(user_id)
 
-            assert activity_data is not None, "應返回活躍度數據"
+            assert activity_data is not None, "æè¿åæ´»èºåº¦æ¸æ"
 
             return {"status": "success", "integration_tests_passed": 1}
 
@@ -279,13 +288,13 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_api_integration(self) -> dict[str, Any]:
-        """測試API整合"""
+        """æ¸¬è©¦APIæ´å"""
         try:
-            # 測試 LogicAPIs 的整合
-            test_data = {"content": "測試內容", "format": "text"}
+            # æ¸¬è©¦ LogicAPIs çæ´å
+            test_data = {"content": "æ¸¬è©¦å§å®¹", "format": "text"}
             result = self.logic_apis.renderer_logic_api(test_data)
 
-            assert result["status"] == "success", "API應返回成功狀態"
+            assert result["status"] == "success", "APIæè¿åæåçæ"
 
             return {"status": "success", "api_tests_passed": 1}
 
@@ -293,28 +302,30 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_data_flow_integration(self) -> dict[str, Any]:
-        """測試數據流整合"""
+        """æ¸¬è©¦æ¸ææµæ´å"""
         try:
-            # 測試完整的數據流程
-            # 從用戶輸入到數據處理到結果輸出
+            # æ¸¬è©¦å®æ´çæ¸ææµç¨
+            # å¾ç¨æ¶è¼¸å¥å°æ¸æèçå°çµæè¼¸åº
             return {"status": "success", "data_flow_tests_passed": 1}
 
         except Exception as e:
             return {"status": "failed", "error": str(e)}
 
     def _test_api_response_time(self) -> dict[str, Any]:
-        """測試API響應時間"""
+        """æ¸¬è©¦APIé¿ææé"""
         try:
             start_time = time.time()
 
-            # 執行API調用
+            # å·è¡APIèª¿ç¨
             user_id = "123456789"
             self.activity_module.get_unified_activity_api(user_id)
 
             response_time = time.time() - start_time
 
-            # 檢查是否在5秒內
-            assert response_time < DEFAULT_TEST_RESPONSE_TIMEOUT, f"API響應時間應小於{DEFAULT_TEST_RESPONSE_TIMEOUT}秒: {response_time}"
+            # æª¢æ¥æ¯å¦å¨5ç§å§
+            assert response_time < DEFAULT_TEST_RESPONSE_TIMEOUT, (
+                f"APIé¿ææéæå°æ¼{DEFAULT_TEST_RESPONSE_TIMEOUT}ç§: {response_time}"
+            )
 
             return {"status": "success", "response_time": response_time}
 
@@ -322,28 +333,30 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_concurrent_processing(self) -> dict[str, Any]:
-        """測試並發處理能力"""
+        """æ¸¬è©¦ä¸¦ç¼èçè½å"""
         try:
-            # 模擬10個並發請求
+            # æ¨¡æ¬10åä¸¦ç¼è«æ±
             async def concurrent_request():
                 return self.activity_module.get_unified_activity_api("test_user")
 
-            # 這裡需要異步處理,簡化為同步測試
+            # éè£¡éè¦ç°æ­¥èç,ç°¡åçºåæ­¥æ¸¬è©¦
             return {"status": "success", "concurrent_tests_passed": 1}
 
         except Exception as e:
             return {"status": "failed", "error": str(e)}
 
     def _test_data_processing(self) -> dict[str, Any]:
-        """測試數據處理能力"""
+        """æ¸¬è©¦æ¸æèçè½å"""
         try:
-            # 測試大量數據處理
+            # æ¸¬è©¦å¤§éæ¸æèç
             test_data = [{"user_id": f"user_{i}", "score": i} for i in range(1000)]
 
-            # 處理數據
+            # èçæ¸æ
             processed_count = len(test_data)
 
-            assert processed_count == TEST_DATA_SIZE, f"應處理{TEST_DATA_SIZE}條數據: {processed_count}"
+            assert processed_count == TEST_DATA_SIZE, (
+                f"æèç{TEST_DATA_SIZE}æ¢æ¸æ: {processed_count}"
+            )
 
             return {"status": "success", "processed_count": processed_count}
 
@@ -351,15 +364,17 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_interface_responsiveness(self) -> dict[str, Any]:
-        """測試界面響應性"""
+        """æ¸¬è©¦çé¢é¿ææ§"""
         try:
             start_time = time.time()
 
-            # 模擬界面操作
-            # 這裡簡化為基本測試
+            # æ¨¡æ¬çé¢æä½
+            # éè£¡ç°¡åçºåºæ¬æ¸¬è©¦
             response_time = time.time() - start_time
 
-            assert response_time < DEFAULT_UI_RESPONSE_TIMEOUT, f"界面響應時間應小於{DEFAULT_UI_RESPONSE_TIMEOUT}秒: {response_time}"
+            assert response_time < DEFAULT_UI_RESPONSE_TIMEOUT, (
+                f"çé¢é¿ææéæå°æ¼{DEFAULT_UI_RESPONSE_TIMEOUT}ç§: {response_time}"
+            )
 
             return {"status": "success", "response_time": response_time}
 
@@ -367,9 +382,9 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_error_handling(self) -> dict[str, Any]:
-        """測試錯誤處理"""
+        """æ¸¬è©¦é¯èª¤èç"""
         try:
-            # 測試各種錯誤場景
+            # æ¸¬è©¦åç¨®é¯èª¤å ´æ¯
             error_scenarios = [
                 "invalid_user_id",
                 "database_connection_error",
@@ -379,17 +394,19 @@ class ActivityTestModule:
             handled_errors = 0
             for scenario in error_scenarios:
                 try:
-                    # 模擬錯誤場景
+                    # æ¨¡æ¬é¯èª¤å ´æ¯
                     if scenario == "invalid_user_id":
                         self.activity_module.get_unified_activity_api("invalid_id")
-                    # 其他錯誤場景...
+                    # å¶ä»é¯èª¤å ´æ¯...
 
                 except Exception:
                     handled_errors += 1
 
-            # 檢查錯誤處理準確率
+            # æª¢æ¥é¯èª¤èçæºç¢ºç
             accuracy = handled_errors / len(error_scenarios) * 100
-            assert accuracy >= MIN_ACCURACY_THRESHOLD, f"錯誤處理準確率應大於{MIN_ACCURACY_THRESHOLD}%: {accuracy}%"
+            assert accuracy >= MIN_ACCURACY_THRESHOLD, (
+                f"é¯èª¤èçæºç¢ºçæå¤§æ¼{MIN_ACCURACY_THRESHOLD}%: {accuracy}%"
+            )
 
             return {"status": "success", "accuracy": accuracy}
 
@@ -397,21 +414,23 @@ class ActivityTestModule:
             return {"status": "failed", "error": str(e)}
 
     def _test_operation_flow(self) -> dict[str, Any]:
-        """測試操作流程"""
+        """æ¸¬è©¦æä½æµç¨"""
         try:
-            # 測試完整的操作流程
-            # 從用戶登入到功能使用到結果展示
+            # æ¸¬è©¦å®æ´çæä½æµç¨
+            # å¾ç¨æ¶ç»å¥å°åè½ä½¿ç¨å°çµæå±ç¤º
             flow_steps = ["login", "navigate", "execute", "display"]
 
             successful_steps = 0
             for _step in flow_steps:
                 with contextlib.suppress(Exception):
-                    # 模擬操作步驟
+                    # æ¨¡æ¬æä½æ­¥é©
                     successful_steps += 1
 
-            # 檢查流程順暢度
+            # æª¢æ¥æµç¨é æ¢åº¦
             smoothness = successful_steps / len(flow_steps) * 100
-            assert smoothness >= MIN_SMOOTHNESS_THRESHOLD, f"操作流程順暢度應大於{MIN_SMOOTHNESS_THRESHOLD}%: {smoothness}%"
+            assert smoothness >= MIN_SMOOTHNESS_THRESHOLD, (
+                f"æä½æµç¨é æ¢åº¦æå¤§æ¼{MIN_SMOOTHNESS_THRESHOLD}%: {smoothness}%"
+            )
 
             return {"status": "success", "smoothness": smoothness}
 
@@ -420,15 +439,16 @@ class ActivityTestModule:
 
     def analyze_test_coverage(self) -> CoverageReport:
         """
-        分析測試覆蓋率
+        åææ¸¬è©¦è¦èç
 
         Returns:
-            CoverageReport: 覆蓋率報告
+            CoverageReport: è¦èçå ±å
         """
         return self.coverage_tracker.generate_report()
 
+
 class CoverageTracker:
-    """覆蓋率追蹤器"""
+    """è¦èçè¿½è¹¤å¨"""
 
     def __init__(self):
         self.covered_lines = set()
@@ -436,27 +456,27 @@ class CoverageTracker:
         self.uncovered_lines = []
 
     def track_execution(self, line_number: int):
-        """追蹤代碼執行"""
+        """è¿½è¹¤ä»£ç¢¼å·è¡"""
         self.covered_lines.add(line_number)
-        # 更新未覆蓋行列表
+        # æ´æ°æªè¦èè¡åè¡¨
         if hasattr(self, "uncovered_lines") and line_number in self.uncovered_lines:
             self.uncovered_lines.remove(line_number)
 
     def set_total_lines(self, total: int):
-        """設置總行數"""
+        """è¨­ç½®ç¸½è¡æ¸"""
         self.total_lines = total
         self.uncovered_lines = [
             i for i in range(1, total + 1) if i not in self.covered_lines
         ]
 
     def get_coverage_rate(self) -> float:
-        """獲取覆蓋率"""
+        """ç²åè¦èç"""
         if self.total_lines == 0:
             return 0.0
         return len(self.covered_lines) / self.total_lines * 100
 
     def generate_report(self) -> CoverageReport:
-        """生成覆蓋率報告"""
+        """çæè¦èçå ±å"""
         coverage_rate = self.get_coverage_rate()
 
         return CoverageReport(
@@ -466,19 +486,20 @@ class CoverageTracker:
             uncovered_lines=self.uncovered_lines,
         )
 
+
 class TestFramework:
-    """測試框架"""
+    """æ¸¬è©¦æ¡æ¶"""
 
     def __init__(self):
         self.test_cases = []
         self.results = []
 
     def add_test_case(self, test_case):
-        """添加測試案例"""
+        """æ·»å æ¸¬è©¦æ¡ä¾"""
         self.test_cases.append(test_case)
 
     def run_all_tests(self) -> list[TestResult]:
-        """執行所有測試"""
+        """å·è¡æææ¸¬è©¦"""
         results = []
         for test_case in self.test_cases:
             result = test_case.execute()
@@ -486,14 +507,14 @@ class TestFramework:
         return results
 
     def generate_summary(self) -> dict[str, Any]:
-        """生成測試摘要"""
+        """çææ¸¬è©¦æè¦"""
         total_tests = len(self.results)
-        passed_tests = len(
-            [r for r in self.results if r.status == TestStatus.SUCCESS.value]
-        )
-        failed_tests = len(
-            [r for r in self.results if r.status == TestStatus.FAILED.value]
-        )
+        passed_tests = len([
+            r for r in self.results if r.status == TestStatus.SUCCESS.value
+        ])
+        failed_tests = len([
+            r for r in self.results if r.status == TestStatus.FAILED.value
+        ])
 
         return {
             "total_tests": total_tests,

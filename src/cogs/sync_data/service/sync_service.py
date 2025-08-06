@@ -20,6 +20,7 @@ from ..database.database import ISyncDataDatabase
 logger = setup_module_logger("sync_data.service")
 error_handler = create_error_handler("sync_data.service", logger)
 
+
 # ────────────────────────────
 # 服務接口定義
 # ────────────────────────────
@@ -43,6 +44,7 @@ class ISyncDataService(Protocol):
     async def validate_sync_permissions(self, guild: discord.Guild) -> bool:
         """驗證同步權限"""
         ...
+
 
 class SyncDataService:
     """資料同步核心服務實現"""

@@ -14,7 +14,7 @@ import discord
 def create_department_embed(
     department: dict[str, Any],
     guild: discord.Guild | None = None,
-    show_details: bool = True
+    show_details: bool = True,
 ) -> discord.Embed:
     """創建部門詳細資訊 Embed.
 
@@ -35,7 +35,7 @@ def create_department_embed(
         title=f"🏛️ {name}",
         description=description,
         color=discord.Color.green() if is_active else discord.Color.red(),
-        timestamp=discord.utils.utcnow()
+        timestamp=discord.utils.utcnow(),
     )
 
     # 基本資訊
@@ -51,7 +51,7 @@ def create_department_embed(
             f"**狀態:** {'🟢 啟用' if is_active else '🔴 停用'}\n"
             f"**成員數:** {department.get('member_count', 0)} 人"
         ),
-        inline=True
+        inline=True,
     )
 
     # Discord 角色資訊
@@ -66,20 +66,14 @@ def create_department_embed(
                     f"**顏色:** {role.color!s}\n"
                     f"**成員:** {len(role.members)} 人"
                 ),
-                inline=True
+                inline=True,
             )
         else:
             embed.add_field(
-                name="Discord 角色",
-                value="⚠️ 角色不存在或已刪除",
-                inline=True
+                name="Discord 角色", value="⚠️ 角色不存在或已刪除", inline=True
             )
     else:
-        embed.add_field(
-            name="Discord 角色",
-            value="無關聯角色",
-            inline=True
-        )
+        embed.add_field(name="Discord 角色", value="無關聯角色", inline=True)
 
     # 詳細資訊
     if show_details:
@@ -87,26 +81,18 @@ def create_department_embed(
         parent_id = department.get("parent_id")
         if parent_id:
             embed.add_field(
-                name="上級部門",
-                value=f"ID: `{parent_id[:8]}...`",
-                inline=True
+                name="上級部門", value=f"ID: `{parent_id[:8]}...`", inline=True
             )
 
         # 時間資訊
         created_at = department.get("created_at")
         if created_at:
             try:
-                dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                 embed.add_field(
-                    name="創建時間",
-                    value=f"<t:{int(dt.timestamp())}:R>",
-                    inline=True
+                    name="創建時間", value=f"<t:{int(dt.timestamp())}:R>", inline=True
                 )
             except Exception:
-                embed.add_field(
-                    name="創建時間",
-                    value="無法解析",
-                    inline=True
-                )
+                embed.add_field(name="創建時間", value="無法解析", inline=True)
 
     return embed

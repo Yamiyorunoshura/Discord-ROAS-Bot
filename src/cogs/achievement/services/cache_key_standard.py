@@ -19,6 +19,7 @@ from ..constants import CACHE_KEY_MAX_LENGTH, MINIMUM_CACHE_PARTS
 
 logger = logging.getLogger(__name__)
 
+
 class CacheKeyType(Enum):
     """快取鍵值類型枚舉."""
 
@@ -33,6 +34,7 @@ class CacheKeyType(Enum):
     LEADERBOARD = "leaderboard"  # 排行榜
     POPULAR_ACHIEVEMENTS = "popular_achievements"  # 熱門成就
 
+
 @dataclass
 class CacheKeyPattern:
     """快取鍵值模式定義."""
@@ -43,6 +45,7 @@ class CacheKeyPattern:
     example: str
     required_args: list[str]
     optional_args: list[str]
+
 
 class CacheKeyStandard:
     """快取鍵值標準化管理器.
@@ -338,14 +341,12 @@ class CacheKeyStandard:
             "update_achievement",
             "delete_achievement",
         ]:
-            patterns.extend(
-                [
-                    f"{cls.KEY_PREFIX}:achievement:*",
-                    f"{cls.KEY_PREFIX}:achievements:*",
-                    f"{cls.KEY_PREFIX}:global_stats",
-                    f"{cls.KEY_PREFIX}:popular_achievements:*",
-                ]
-            )
+            patterns.extend([
+                f"{cls.KEY_PREFIX}:achievement:*",
+                f"{cls.KEY_PREFIX}:achievements:*",
+                f"{cls.KEY_PREFIX}:global_stats",
+                f"{cls.KEY_PREFIX}:popular_achievements:*",
+            ])
 
             # 如果有分類 ID,也無效化分類相關快取
             if "category_id" in kwargs:
@@ -356,24 +357,24 @@ class CacheKeyStandard:
             "update_category",
             "delete_category",
         ]:
-            patterns.extend(
-                [f"{cls.KEY_PREFIX}:category:*", f"{cls.KEY_PREFIX}:categories:*"]
-            )
+            patterns.extend([
+                f"{cls.KEY_PREFIX}:category:*",
+                f"{cls.KEY_PREFIX}:categories:*",
+            ])
 
         elif operation_type in ["award_achievement", "update_progress"]:
             user_id = kwargs.get("user_id")
             if user_id:
-                patterns.extend(
-                    [
-                        f"{cls.KEY_PREFIX}:user_achievements:{user_id}:*",
-                        f"{cls.KEY_PREFIX}:user_progress:{user_id}:*",
-                        f"{cls.KEY_PREFIX}:user_stats:{user_id}",
-                        f"{cls.KEY_PREFIX}:global_stats",
-                        f"{cls.KEY_PREFIX}:leaderboard:*",
-                    ]
-                )
+                patterns.extend([
+                    f"{cls.KEY_PREFIX}:user_achievements:{user_id}:*",
+                    f"{cls.KEY_PREFIX}:user_progress:{user_id}:*",
+                    f"{cls.KEY_PREFIX}:user_stats:{user_id}",
+                    f"{cls.KEY_PREFIX}:global_stats",
+                    f"{cls.KEY_PREFIX}:leaderboard:*",
+                ])
 
         return patterns
+
 
 __all__ = [
     "CacheKeyPattern",

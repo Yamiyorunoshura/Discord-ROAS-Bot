@@ -27,6 +27,7 @@ class ErrorSeverity(Enum):
     HIGH = "HIGH"  # 嚴重錯誤,主要功能受影響
     CRITICAL = "CRITICAL"  # 致命錯誤,系統無法正常運行
 
+
 # 錯誤分類常數
 class ErrorCodes:
     """錯誤代碼分類"""
@@ -40,6 +41,7 @@ class ErrorCodes:
     PANEL_ERROR = (601, 699)  # 面板錯誤
     API_ERROR = (701, 799)  # API 錯誤
     CACHE_ERROR = (801, 899)  # 快取錯誤
+
 
 # 錯誤恢復策略
 class RecoveryStrategy:
@@ -65,6 +67,7 @@ class RecoveryStrategy:
                 else:
                     raise last_error from None
 
+
 class ErrorStatistics:
     """錯誤統計"""
 
@@ -84,7 +87,7 @@ class ErrorStatistics:
 
         # 保持歷史記錄在合理範圍內
         if len(self.error_history) > self.MAX_ERROR_HISTORY:
-            self.error_history = self.error_history[-self.TRIM_ERROR_HISTORY:]
+            self.error_history = self.error_history[-self.TRIM_ERROR_HISTORY :]
 
     def get_error_rate(self, minutes: int = 60) -> dict[str, int]:
         """獲取指定時間內的錯誤率"""
@@ -102,6 +105,7 @@ class ErrorStatistics:
         self.error_counts.clear()
         self.error_history.clear()
         self.last_reset = datetime.utcnow()
+
 
 class ErrorHandler:
     """統一錯誤處理器"""
@@ -127,22 +131,16 @@ class ErrorHandler:
 
     def _setup_default_strategies(self):
         """設置預設恢復策略"""
-        self.recovery_strategies.update(
-            {
-                "database_retry": RecoveryStrategy(
-                    "資料庫重試", max_retries=3, retry_delay=1.0
-                ),
-                "network_retry": RecoveryStrategy(
-                    "網路重試", max_retries=2, retry_delay=2.0
-                ),
-                "cache_retry": RecoveryStrategy(
-                    "快取重試", max_retries=1, retry_delay=0.5
-                ),
-                "api_retry": RecoveryStrategy(
-                    "API重試", max_retries=2, retry_delay=1.5
-                ),
-            }
-        )
+        self.recovery_strategies.update({
+            "database_retry": RecoveryStrategy(
+                "資料庫重試", max_retries=3, retry_delay=1.0
+            ),
+            "network_retry": RecoveryStrategy(
+                "網路重試", max_retries=2, retry_delay=2.0
+            ),
+            "cache_retry": RecoveryStrategy("快取重試", max_retries=1, retry_delay=0.5),
+            "api_retry": RecoveryStrategy("API重試", max_retries=2, retry_delay=1.5),
+        })
 
     def add_recovery_strategy(self, name: str, strategy: RecoveryStrategy):
         """添加自定義恢復策略"""
@@ -177,12 +175,30 @@ class ErrorHandler:
         """
         # 使用字典映射減少 return 語句數量
         error_patterns = [
-            (lambda e: isinstance(e, discord.NotFound | discord.Forbidden), (ErrorSeverity.LOW, 301)),
-            (lambda e: isinstance(e, discord.HTTPException | ConnectionError), (ErrorSeverity.MEDIUM, 201)),
-            (lambda e: isinstance(e, asyncio.TimeoutError | TimeoutError), (ErrorSeverity.MEDIUM, 202)),
-            (lambda e: isinstance(e, MemoryError | SystemError), (ErrorSeverity.CRITICAL, 1)),
-            (lambda e: "database" in type(e).__name__.lower(), (ErrorSeverity.HIGH, 101)),
-            (lambda e: "permission" in type(e).__name__.lower(), (ErrorSeverity.LOW, 301)),
+            (
+                lambda e: isinstance(e, discord.NotFound | discord.Forbidden),
+                (ErrorSeverity.LOW, 301),
+            ),
+            (
+                lambda e: isinstance(e, discord.HTTPException | ConnectionError),
+                (ErrorSeverity.MEDIUM, 201),
+            ),
+            (
+                lambda e: isinstance(e, asyncio.TimeoutError | TimeoutError),
+                (ErrorSeverity.MEDIUM, 202),
+            ),
+            (
+                lambda e: isinstance(e, MemoryError | SystemError),
+                (ErrorSeverity.CRITICAL, 1),
+            ),
+            (
+                lambda e: "database" in type(e).__name__.lower(),
+                (ErrorSeverity.HIGH, 101),
+            ),
+            (
+                lambda e: "permission" in type(e).__name__.lower(),
+                (ErrorSeverity.LOW, 301),
+            ),
         ]
 
         for condition, result in error_patterns:
@@ -305,9 +321,7 @@ class ErrorHandler:
         self.statistics.record_error(error_type, tracking_id)
 
         # 格式化日誌訊息
-        error_msg = (
-            f"[{severity.value}] [{self.module_name}]{context} ({tracking_id})"
-        )
+        error_msg = f"[{severity.value}] [{self.module_name}]{context} ({tracking_id})"
 
         if extra_info:
             error_msg += f" | 額外信息: {extra_info}"
@@ -325,7 +339,9 @@ class ErrorHandler:
             try:
                 task = asyncio.create_task(callback(error, tracking_id, extra_info))
                 # 避免未處理的任務異常警告
-                task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+                task.add_done_callback(
+                    lambda t: t.exception() if not t.cancelled() else None
+                )
             except Exception as callback_error:
                 self.logger.error(f"錯誤回調失敗: {callback_error}")
 
@@ -410,19 +426,25 @@ class ErrorHandler:
                                 formatted_msg, ephemeral=True
                             )
                         )
-                        task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+                        task.add_done_callback(
+                            lambda t: t.exception() if not t.cancelled() else None
+                        )
                     else:
                         task = asyncio.create_task(
                             interaction_or_ctx.response.send_message(
                                 formatted_msg, ephemeral=True
                             )
                         )
-                        task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+                        task.add_done_callback(
+                            lambda t: t.exception() if not t.cancelled() else None
+                        )
                 elif isinstance(interaction_or_ctx, commands.Context):
                     task = asyncio.create_task(
                         interaction_or_ctx.reply(formatted_msg, mention_author=False)
                     )
-                    task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+                    task.add_done_callback(
+                        lambda t: t.exception() if not t.cancelled() else None
+                    )
             except Exception:
                 # 如果連錯誤訊息都發送失敗,只記錄到日誌
                 self.logger.error(f"無法發送錯誤訊息:{tracking_id}")
@@ -441,6 +463,7 @@ class ErrorHandler:
         """重置錯誤統計"""
         self.statistics.reset_statistics()
 
+
 def create_error_handler(
     module_name: str, logger: logging.Logger | None = None
 ) -> ErrorHandler:
@@ -455,6 +478,7 @@ def create_error_handler(
         ErrorHandler: 錯誤處理器實例
     """
     return ErrorHandler(module_name, logger)
+
 
 # 常用的錯誤處理裝飾器
 def error_handler(

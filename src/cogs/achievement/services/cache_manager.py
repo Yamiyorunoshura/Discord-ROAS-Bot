@@ -28,11 +28,13 @@ from ..database.models import Achievement, UserAchievement
 
 logger = logging.getLogger(__name__)
 
+
 class CacheLevel(str, Enum):
     """快取層級."""
 
     L1_MEMORY = "l1_memory"
     L2_FILE = "l2_file"
+
 
 class CacheType(str, Enum):
     """快取類型."""
@@ -43,6 +45,7 @@ class CacheType(str, Enum):
     USER_PROGRESS = "user_progress"
     STATS = "stats"
     LEADERBOARD = "leaderboard"
+
 
 @dataclass
 class CacheConfig:
@@ -60,6 +63,7 @@ class CacheConfig:
     l2_cache_path: str | None = None
     """L2 快取檔案路徑"""
 
+
 @dataclass
 class CacheStats:
     """快取統計."""
@@ -70,6 +74,7 @@ class CacheStats:
     size: int = 0
     hit_rate: float = 0.0
     last_reset: datetime = None
+
 
 class CacheManager:
     """成就系統快取管理器.
@@ -751,6 +756,7 @@ class CacheManager:
 
         if cleaned_count > 0:
             logger.debug(f"L2 快取清理完成: {cleaned_count} 項過期項目")
+
 
 __all__ = [
     "CacheConfig",

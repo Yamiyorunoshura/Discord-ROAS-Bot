@@ -175,6 +175,7 @@ for category_id, category in CONFIG_CATEGORIES.items():
     for item in category["items"]:
         CONFIG_KEY_MAP[item["key"]] = {"category": category_id, "item": item}
 
+
 # ────────────────────────────
 # 工具函數
 # ────────────────────────────
@@ -193,6 +194,7 @@ def calculate_similarity(text1: str, text2: str) -> float:
         return 0.0
     return SequenceMatcher(None, text1.lower(), text2.lower()).ratio()
 
+
 def get_config_display_name(key: str) -> str:
     """
     取得配置項的顯示名稱
@@ -204,6 +206,7 @@ def get_config_display_name(key: str) -> str:
         str: 顯示名稱
     """
     return CH_NAMES.get(key, key)
+
 
 def get_config_category(key: str) -> dict[str, Any]:
     """
@@ -217,6 +220,7 @@ def get_config_category(key: str) -> dict[str, Any]:
     """
     return CONFIG_KEY_MAP.get(key, {})
 
+
 def get_default_value(key: str) -> Any:
     """
     取得配置項的預設值
@@ -228,6 +232,7 @@ def get_default_value(key: str) -> Any:
         Any: 預設值
     """
     return DEFAULTS.get(key)
+
 
 def validate_config_value(key: str, value: str) -> tuple[bool, str]:
     """

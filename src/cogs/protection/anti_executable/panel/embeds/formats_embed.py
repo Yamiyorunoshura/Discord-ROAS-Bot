@@ -2,9 +2,14 @@
 反可執行檔案保護模組 - 格式管理面板 Embed 生成器
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import discord
 
-from ...main.main import AntiExecutable
+if TYPE_CHECKING:
+    from ...main.main import AntiExecutable
 
 
 class FormatsEmbed:

@@ -13,6 +13,7 @@ import discord
 if TYPE_CHECKING:
     from ...main.main import SyncDataCog
 
+
 async def create_history_embed(
     cog: "SyncDataCog", guild: discord.Guild, page: int = 0
 ) -> discord.Embed:
@@ -107,8 +108,9 @@ async def create_history_embed(
 
     return embed
 
+
 async def _get_sync_history(
-    cog: "SyncDataCog", guild_id: int, page: int = 0  # noqa: ARG001
+    cog: "SyncDataCog", guild_id: int, page: int = 0
 ) -> list[dict[str, Any]]:
     """
     獲取同步歷史記錄
@@ -161,7 +163,8 @@ async def _get_sync_history(
     except Exception:
         return []
 
-async def _get_total_sync_count(cog: "SyncDataCog", guild_id: int) -> int:  # noqa: ARG001
+
+async def _get_total_sync_count(cog: "SyncDataCog", guild_id: int) -> int:
     """獲取總同步次數"""
     try:
         # 這裡應該調用資料庫方法
@@ -169,13 +172,15 @@ async def _get_total_sync_count(cog: "SyncDataCog", guild_id: int) -> int:  # no
     except Exception:
         return 0
 
-async def _get_success_sync_count(cog: "SyncDataCog", guild_id: int) -> int:  # noqa: ARG001
+
+async def _get_success_sync_count(cog: "SyncDataCog", guild_id: int) -> int:
     """獲取成功同步次數"""
     try:
         # 這裡應該調用資料庫方法
         return 2  # 模擬資料
     except Exception:
         return 0
+
 
 def _get_sync_type_name(sync_type: str) -> str:
     """獲取同步類型名稱"""

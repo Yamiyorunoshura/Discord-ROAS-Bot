@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class AchievementPanel(discord.ui.View):
     """成就系統主面板控制器.
 
@@ -192,15 +193,13 @@ class AchievementPanel(discord.ui.View):
                 # 轉換為預期格式
                 result = []
                 for category in categories:
-                    result.append(
-                        {
-                            "id": category.get("id"),
-                            "name": category.get("name", "未分類"),
-                            "user_achievements_count": category.get(
-                                "user_achievements_count", 0
-                            ),
-                        }
-                    )
+                    result.append({
+                        "id": category.get("id"),
+                        "name": category.get("name", "未分類"),
+                        "user_achievements_count": category.get(
+                            "user_achievements_count", 0
+                        ),
+                    })
 
                 return result if result else self._get_no_data_categories()
             else:
@@ -356,14 +355,12 @@ class AchievementPanel(discord.ui.View):
                 # 轉換為瀏覽頁面需要的格式
                 result = []
                 for category in categories:
-                    result.append(
-                        {
-                            "id": category.get("id"),
-                            "name": category.get("name", "未分類"),
-                            "count": category.get("achievement_count", 0),
-                            "icon_emoji": category.get("icon_emoji", "📋"),
-                        }
-                    )
+                    result.append({
+                        "id": category.get("id"),
+                        "name": category.get("name", "未分類"),
+                        "count": category.get("achievement_count", 0),
+                        "icon_emoji": category.get("icon_emoji", "📋"),
+                    })
 
                 return result if result else self._get_no_data_categories()
             else:

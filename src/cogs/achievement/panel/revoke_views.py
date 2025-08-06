@@ -30,6 +30,7 @@ MAX_LABEL_LENGTH = 100  # UI 標籤最大長度
 MAX_DESCRIPTION_LENGTH = 100  # 描述最大長度
 TRUNCATE_SUFFIX_LENGTH = 97  # 截斷後的長度(保留3個字符給...)
 
+
 class RevokeAchievementView(ui.View):
     """撤銷成就視圖."""
 
@@ -232,7 +233,9 @@ class RevokeAchievementView(ui.View):
             await interaction.response.edit_message(embed=embed, view=self)
 
     @ui.button(label="🔄 重新整理", style=discord.ButtonStyle.secondary)
-    async def refresh_button(self, interaction: discord.Interaction, _button: ui.Button):
+    async def refresh_button(
+        self, interaction: discord.Interaction, _button: ui.Button
+    ):
         """重新整理成就列表."""
         try:
             self.current_page = 0
@@ -268,6 +271,7 @@ class RevokeAchievementView(ui.View):
         except Exception as e:
             logger.error(f"返回失敗: {e}")
             await interaction.response.send_message("❌ 返回時發生錯誤", ephemeral=True)
+
 
 class RevokeConfirmationView(ui.View):
     """撤銷成就確認視圖."""
@@ -319,9 +323,7 @@ class RevokeConfirmationView(ui.View):
         )
 
         embed.color = 0xFF6600
-        embed.set_footer(
-            text="點擊「設定」按鈕進行詳細配置,或直接點擊「撤銷」執行操作"
-        )
+        embed.set_footer(text="點擊「設定」按鈕進行詳細配置,或直接點擊「撤銷」執行操作")
 
         return embed
 
@@ -429,6 +431,7 @@ class RevokeConfirmationView(ui.View):
             except Exception:
                 pass
 
+
 class RevokeSettingsModal(ui.Modal):
     """撤銷設定模態框."""
 
@@ -465,6 +468,7 @@ class RevokeSettingsModal(ui.Modal):
             await interaction.response.send_message(
                 "❌ 處理設定時發生錯誤", ephemeral=True
             )
+
 
 class RevokeDoubleConfirmModal(ui.Modal):
     """撤銷二次確認模態框."""
@@ -536,6 +540,7 @@ class RevokeDoubleConfirmModal(ui.Modal):
             await interaction.response.send_message(
                 "❌ 處理確認時發生錯誤", ephemeral=True
             )
+
 
 class RevokeResultView(ui.View):
     """撤銷結果視圖."""

@@ -29,6 +29,7 @@ error_handler = create_error_handler("sync_data", logger)
 # 常數定義
 MIN_SYNC_INTERVAL = 30  # 最小同步間隔(秒)
 
+
 class SyncDataCog(commands.Cog):
     """
     資料同步管理 Cog

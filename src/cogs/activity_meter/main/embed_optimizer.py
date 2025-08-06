@@ -14,6 +14,7 @@ from ..constants import ELLIPSIS_MIN_LENGTH
 
 logger = logging.getLogger("activity_meter")
 
+
 class EmbedOptimizer:
     """
     Discord Embed 優化器
@@ -355,19 +356,23 @@ class EmbedOptimizer:
             "issues": issues,
         }
 
+
 # 全局實例
 embed_optimizer = EmbedOptimizer()
+
 
 # 便捷函數
 def optimize_embed(embed: discord.Embed) -> discord.Embed:
     """優化 embed 的便捷函數"""
     return embed_optimizer.optimize_embed(embed)
 
+
 def create_paginated_embeds(
     content: list[dict[str, Any]], base_embed: discord.Embed, items_per_page: int = 10
 ) -> list[discord.Embed]:
     """創建分頁 embed 的便捷函數"""
     return embed_optimizer.create_paginated_embeds(content, base_embed, items_per_page)
+
 
 def validate_embed(embed: discord.Embed) -> dict[str, Any]:
     """驗證 embed 的便捷函數"""

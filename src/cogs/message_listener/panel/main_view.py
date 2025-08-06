@@ -340,6 +340,7 @@ class EnhancedSettingsView(View):
             return False
         return True
 
+
 # 保持原有的 SettingsView 以向後兼容
 class SettingsView(EnhancedSettingsView):
     """
@@ -347,6 +348,7 @@ class SettingsView(EnhancedSettingsView):
     """
 
     pass
+
 
 class SearchPaginationView(View):
     """

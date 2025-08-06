@@ -44,6 +44,7 @@ DEFAULT_FONT_PATH = str(Path(WELCOME_FONTS_DIR) / WELCOME_DEFAULT_FONT)
 CACHE_TIMEOUT = 3600  # 1小時
 MAX_CACHE_SIZE = 50  # 最多快取50個伺服器的圖片
 
+
 # 權限檢查函數
 def is_allowed(inter, _command_name):
     """檢查用戶是否有權限執行指定指令"""

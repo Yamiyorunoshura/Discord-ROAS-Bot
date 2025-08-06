@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class EventDataProcessor:
     """事件資料處理器.
 
@@ -141,21 +142,19 @@ class EventDataProcessor:
             return standardized
 
         # 註冊標準化規則
-        self._standardization_rules.update(
-            {
-                "achievement.message_sent": standardize_message_event,
-                "achievement.message_edited": standardize_message_event,
-                "achievement.message_deleted": standardize_message_event,
-                "achievement.reaction_added": standardize_reaction_event,
-                "achievement.reaction_removed": standardize_reaction_event,
-                "achievement.voice_joined": standardize_voice_event,
-                "achievement.voice_left": standardize_voice_event,
-                "achievement.voice_moved": standardize_voice_event,
-                "achievement.member_joined": standardize_member_event,
-                "achievement.member_left": standardize_member_event,
-                "achievement.member_updated": standardize_member_event,
-            }
-        )
+        self._standardization_rules.update({
+            "achievement.message_sent": standardize_message_event,
+            "achievement.message_edited": standardize_message_event,
+            "achievement.message_deleted": standardize_message_event,
+            "achievement.reaction_added": standardize_reaction_event,
+            "achievement.reaction_removed": standardize_reaction_event,
+            "achievement.voice_joined": standardize_voice_event,
+            "achievement.voice_left": standardize_voice_event,
+            "achievement.voice_moved": standardize_voice_event,
+            "achievement.member_joined": standardize_member_event,
+            "achievement.member_left": standardize_member_event,
+            "achievement.member_updated": standardize_member_event,
+        })
 
     def add_filter(
         self,
@@ -467,7 +466,9 @@ class EventDataProcessor:
         }
         self._filter_stats.clear()
 
+
 # 預設過濾器函數
+
 
 def create_user_whitelist_filter(
     whitelisted_users: set[int],
@@ -486,6 +487,7 @@ def create_user_whitelist_filter(
 
     return filter_func
 
+
 def create_guild_whitelist_filter(
     whitelisted_guilds: set[int],
 ) -> Callable[[AchievementEventData], bool]:
@@ -503,6 +505,7 @@ def create_guild_whitelist_filter(
 
     return filter_func
 
+
 def create_event_type_filter(
     allowed_types: set[str],
 ) -> Callable[[AchievementEventData], bool]:
@@ -519,6 +522,7 @@ def create_event_type_filter(
         return event.event_type in allowed_types
 
     return filter_func
+
 
 def create_time_window_filter(
     start_time: datetime | None = None, end_time: datetime | None = None
@@ -539,6 +543,7 @@ def create_time_window_filter(
         return not (end_time and event.timestamp > end_time)
 
     return filter_func
+
 
 def create_rate_limit_filter(
     max_events_per_user: int = 100, time_window_minutes: int = 60

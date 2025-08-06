@@ -65,7 +65,9 @@ def _add_attachment_fields(embed: discord.Embed, message_data: dict[str, Any]) -
             attachment_info.append(f"{i + 1}. {name} ({size_str})")
 
     if len(attachments) > MAX_ATTACHMENTS_DISPLAY:
-        attachment_info.append(f"...以及 {len(attachments) - MAX_ATTACHMENTS_DISPLAY} 個附件")
+        attachment_info.append(
+            f"...以及 {len(attachments) - MAX_ATTACHMENTS_DISPLAY} 個附件"
+        )
 
     if attachment_info:
         embed.add_field(
@@ -75,7 +77,9 @@ def _add_attachment_fields(embed: discord.Embed, message_data: dict[str, Any]) -
         )
 
 
-def _add_channel_field(embed: discord.Embed, channel: Any, channel_id: int | None) -> None:
+def _add_channel_field(
+    embed: discord.Embed, channel: Any, channel_id: int | None
+) -> None:
     """添加頻道字段"""
     if channel:
         if isinstance(channel, discord.TextChannel):

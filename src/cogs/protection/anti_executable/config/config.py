@@ -219,6 +219,28 @@ DANGEROUS_MIME_TYPES = {
     "application/vnd.microsoft.portable-executable",
 }
 
+# 魔法字節簽名用於檢測文件類型
+MAGIC_SIGNATURES = {
+    # Windows 可執行檔案
+    b"MZ": "exe",  # DOS/Windows 可執行檔案
+    b"PK": "zip",  # ZIP 壓縮檔案
+    b"\x7fELF": "elf",  # Linux ELF 可執行檔案
+    b"\xca\xfe\xba\xbe": "java_class",  # Java class 檔案
+    b"\xfe\xed\xfa\xce": "macho",  # macOS Mach-O 可執行檔案
+    b"\xfe\xed\xfa\xcf": "macho_64",  # macOS Mach-O 64位可執行檔案
+    b"\xcf\xfa\xed\xfe": "macho_reverse",  # macOS Mach-O 反向字節序
+    b"\xce\xfa\xed\xfe": "macho_64_reverse",  # macOS Mach-O 64位反向字節序
+    b"Rar!": "rar",  # RAR 壓縮檔案
+    b"7z\xbc\xaf'\x1c": "7z",  # 7-Zip 壓縮檔案
+    b"\x00\x00\x01\x00": "ico",  # Windows 圖標檔案
+    b"<!DOCTYPE html": "html",  # HTML 檔案
+    b"<?xml": "xml",  # XML 檔案
+    b"#!/bin/sh": "shell_script",  # Shell 腳本
+    b"#!/bin/bash": "bash_script",  # Bash 腳本
+    b"#!/usr/bin/python": "python_script",  # Python 腳本
+    b"#!/usr/bin/perl": "perl_script",  # Perl 腳本
+}
+
 # 錯誤代碼映射
 ERROR_CODES = {
     "CONFIG_ERROR": "ANTI_EXECUTABLE_CONFIG_ERROR",
@@ -229,6 +251,7 @@ ERROR_CODES = {
     "MALICIOUS_FILE_HANDLER_ERROR": "ANTI_EXECUTABLE_MALICIOUS_FILE_HANDLER_ERROR",
     "PANEL_ERROR": "ANTI_EXECUTABLE_PANEL_ERROR",
 }
+
 
 # ────────────────────────────
 # 工具函數
@@ -248,12 +271,16 @@ def get_file_extension(filename: str) -> str:
             return ""
 
         parts = filename.lower().split(".")
-        if len(parts) >= MIN_FILE_EXTENSION_PARTS and f"{parts[-2]}.{parts[-1]}" in STRICT_EXTENSIONS:
+        if (
+            len(parts) >= MIN_FILE_EXTENSION_PARTS
+            and f"{parts[-2]}.{parts[-1]}" in STRICT_EXTENSIONS
+        ):
             return f"{parts[-2]}.{parts[-1]}"
 
         return parts[-1]
     except Exception:
         return ""
+
 
 def is_dangerous_file(filename: str, strict_mode: bool = False) -> bool:
     """
@@ -280,6 +307,7 @@ def is_dangerous_file(filename: str, strict_mode: bool = False) -> bool:
     except Exception:
         return False
 
+
 def is_safe_file(filename: str) -> bool:
     """
     檢查檔案是否為安全檔案
@@ -296,6 +324,7 @@ def is_safe_file(filename: str) -> bool:
     except Exception:
         return False
 
+
 def is_dangerous_mime_type(mime_type: str) -> bool:
     """
     檢查 MIME 類型是否為危險類型
@@ -310,6 +339,7 @@ def is_dangerous_mime_type(mime_type: str) -> bool:
         return mime_type.lower() in DANGEROUS_MIME_TYPES
     except Exception:
         return False
+
 
 def extract_urls_from_text(text: str) -> list[str]:
     """
@@ -327,6 +357,7 @@ def extract_urls_from_text(text: str) -> list[str]:
         return url_pattern.findall(text)
     except Exception:
         return []
+
 
 def is_executable_url(url: str) -> bool:
     """
@@ -352,6 +383,7 @@ def is_executable_url(url: str) -> bool:
         return is_dangerous_file(filename)
     except Exception:
         return False
+
 
 def format_file_list(files: list[str], max_length: int = 1000) -> str:
     """
@@ -385,6 +417,7 @@ def format_file_list(files: list[str], max_length: int = 1000) -> str:
         return "\n".join(result)
     except Exception:
         return "(解析錯誤)"
+
 
 def get_file_risk_level(filename: str, strict_mode: bool = False) -> str:
     """
@@ -420,6 +453,7 @@ def get_file_risk_level(filename: str, strict_mode: bool = False) -> str:
     except Exception:
         return "未知"
 
+
 def get_config_description(key: str) -> str:
     """
     獲取配置項目的描述
@@ -441,6 +475,7 @@ def get_config_description(key: str) -> str:
     }
 
     return descriptions.get(key, "未知配置項目")
+
 
 def get_stats_description(key: str) -> str:
     """

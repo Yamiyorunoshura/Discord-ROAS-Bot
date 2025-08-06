@@ -43,9 +43,16 @@ HTTP_NO_CONTENT = 204
 
 # 追蹤上下文
 request_trace_id: ContextVar[str | None] = ContextVar("request_trace_id", default=None)
-operation_span_id: ContextVar[str | None] = ContextVar("operation_span_id", default=None)
-user_context: ContextVar[dict[str, Any] | None] = ContextVar("user_context", default=None)
-guild_context: ContextVar[dict[str, Any] | None] = ContextVar("guild_context", default=None)
+operation_span_id: ContextVar[str | None] = ContextVar(
+    "operation_span_id", default=None
+)
+user_context: ContextVar[dict[str, Any] | None] = ContextVar(
+    "user_context", default=None
+)
+guild_context: ContextVar[dict[str, Any] | None] = ContextVar(
+    "guild_context", default=None
+)
+
 
 @dataclass
 class TraceContext:
@@ -73,6 +80,7 @@ class TraceContext:
             self.tags = {}
         if self.start_time == 0.0:
             self.start_time = time.time()
+
 
 class TraceManager:
     """追蹤管理器
@@ -191,14 +199,12 @@ class TraceManager:
             channel_id: 頻道ID
             channel_name: 頻道名稱
         """
-        guild_context.set(
-            {
-                "guild_id": guild_id,
-                "guild_name": guild_name,
-                "channel_id": channel_id,
-                "channel_name": channel_name,
-            }
-        )
+        guild_context.set({
+            "guild_id": guild_id,
+            "guild_name": guild_name,
+            "channel_id": channel_id,
+            "channel_name": channel_name,
+        })
 
     @staticmethod
     def clear_context() -> None:
@@ -208,9 +214,11 @@ class TraceManager:
         user_context.set(None)
         guild_context.set(None)
 
+
 # =====================================================
 # 告警系統 (Alert System)
 # =====================================================
+
 
 @dataclass
 class LogAlert:
@@ -240,6 +248,7 @@ class LogAlert:
         """檢查是否在冷卻時間內"""
         return time.time() - self.last_triggered < self.cooldown_seconds
 
+
 class AlertHandler(ABC):
     """告警處理器抽象基類"""
 
@@ -255,6 +264,7 @@ class AlertHandler(ABC):
             context: 相關上下文
         """
         pass
+
 
 class DiscordWebhookAlertHandler(AlertHandler):
     """使用Discord Webhook的告警處理器"""
@@ -281,9 +291,10 @@ class DiscordWebhookAlertHandler(AlertHandler):
             if self.mention_role_id:
                 payload["content"] = f"<@&{self.mention_role_id}>"
 
-            async with aiohttp.ClientSession() as session, session.post(self.webhook_url, json=payload) as response:
-                if response.status != HTTP_NO_CONTENT:
-                    print(f"Discord webhook 送信失敗: {response.status}")
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.webhook_url, json=payload) as response:
+                    if response.status != HTTP_NO_CONTENT:
+                        print(f"Discord webhook 送信失敗: {response.status}")
 
         except Exception as e:
             print(f"Discord 告警處理失敗: {e}")
@@ -326,31 +337,30 @@ class DiscordWebhookAlertHandler(AlertHandler):
 
         # 添加追蹤信息
         if "trace_id" in record:
-            embed["fields"].append(
-                {"name": "追蹤ID", "value": record["trace_id"], "inline": True}
-            )
+            embed["fields"].append({
+                "name": "追蹤ID",
+                "value": record["trace_id"],
+                "inline": True,
+            })
 
         # 添加用戶信息
         if "user_id" in record:
-            embed["fields"].append(
-                {
-                    "name": "用戶",
-                    "value": f"{record.get('username', 'Unknown')} ({record['user_id']})",
-                    "inline": True,
-                }
-            )
+            embed["fields"].append({
+                "name": "用戶",
+                "value": f"{record.get('username', 'Unknown')} ({record['user_id']})",
+                "inline": True,
+            })
 
         # 添加伺服器信息
         if "guild_id" in record:
-            embed["fields"].append(
-                {
-                    "name": "伺服器",
-                    "value": f"{record.get('guild_name', 'Unknown')} ({record['guild_id']})",
-                    "inline": True,
-                }
-            )
+            embed["fields"].append({
+                "name": "伺服器",
+                "value": f"{record.get('guild_name', 'Unknown')} ({record['guild_id']})",
+                "inline": True,
+            })
 
         return embed
+
 
 class ConsoleAlertHandler(AlertHandler):
     """控制台告警處理器"""
@@ -368,6 +378,7 @@ class ConsoleAlertHandler(AlertHandler):
         if "trace_id" in record:
             print(f"追蹤ID: {record['trace_id']}")
         print("-" * 50)
+
 
 class AlertManager:
     """告警管理器
@@ -514,9 +525,11 @@ class AlertManager:
                 # 避免告警處理失敗影響正常日誌
                 print(f"告警處理器錯誤: {e}")
 
+
 # =====================================================
 # 日誌格式化器 (Log Formatters)
 # =====================================================
+
 
 class StructuredLogFormatter:
     """結構化日誌格式化器
@@ -556,19 +569,17 @@ class StructuredLogFormatter:
         if self.include_trace:
             trace = TraceManager.get_current_trace()
             if trace:
-                record.update(
-                    {
-                        "trace_id": trace.trace_id,
-                        "span_id": trace.span_id,
-                        "user_id": trace.user_id,
-                        "username": trace.username,
-                        "guild_id": trace.guild_id,
-                        "guild_name": trace.guild_name,
-                        "channel_id": trace.channel_id,
-                        "channel_name": trace.channel_name,
-                        "command": trace.command,
-                    }
-                )
+                record.update({
+                    "trace_id": trace.trace_id,
+                    "span_id": trace.span_id,
+                    "user_id": trace.user_id,
+                    "username": trace.username,
+                    "guild_id": trace.guild_id,
+                    "guild_name": trace.guild_name,
+                    "channel_id": trace.channel_id,
+                    "channel_name": trace.channel_name,
+                    "command": trace.command,
+                })
 
         # 添加時間戳
         if "timestamp" not in record:
@@ -621,7 +632,10 @@ class StructuredLogFormatter:
         name = record.get("name", "unknown")
         message = record.get("message", "")
 
-        base_format = f"[dim]{timestamp}[/dim] [{color}]{level:8}[/{color}] | {name:20} | {message}"
+        base_format = (
+            f"[dim]{timestamp}[/dim] [{color}]{level:8}[/{color}] | "
+            f"{name:20} | {message}"
+        )
 
         # 添加追蹤信息
         if self.include_trace:
@@ -632,6 +646,7 @@ class StructuredLogFormatter:
                     base_format += f" | [green]user={trace.username}[/green]"
 
         return base_format
+
 
 def setup_logging(settings: Settings | None = None) -> None:
     """設定結構化日誌系統
@@ -647,19 +662,17 @@ def setup_logging(settings: Settings | None = None) -> None:
         """添加追蹤上下文到日誌記錄"""
         trace = TraceManager.get_current_trace()
         if trace:
-            event_dict.update(
-                {
-                    "trace_id": trace.trace_id,
-                    "span_id": trace.span_id,
-                    "user_id": trace.user_id,
-                    "username": trace.username,
-                    "guild_id": trace.guild_id,
-                    "guild_name": trace.guild_name,
-                    "channel_id": trace.channel_id,
-                    "channel_name": trace.channel_name,
-                    "command": trace.command,
-                }
-            )
+            event_dict.update({
+                "trace_id": trace.trace_id,
+                "span_id": trace.span_id,
+                "user_id": trace.user_id,
+                "username": trace.username,
+                "guild_id": trace.guild_id,
+                "guild_name": trace.guild_name,
+                "channel_id": trace.channel_id,
+                "channel_name": trace.channel_name,
+                "command": trace.command,
+            })
         return event_dict
 
     # 初始化告警管理器
@@ -686,24 +699,18 @@ def setup_logging(settings: Settings | None = None) -> None:
 
     # Add different processors based on output format
     if settings.logging.format == "json":
-        processors.extend(
-            [
-                structlog.processors.dict_tracebacks,
-                structlog.processors.JSONRenderer(),
-            ]
-        )
+        processors.extend([
+            structlog.processors.dict_tracebacks,
+            structlog.processors.JSONRenderer(),
+        ])
     elif settings.logging.format == "colored":
-        processors.extend(
-            [
-                structlog.dev.ConsoleRenderer(colors=True),
-            ]
-        )
+        processors.extend([
+            structlog.dev.ConsoleRenderer(colors=True),
+        ])
     else:  # text format
-        processors.extend(
-            [
-                structlog.dev.ConsoleRenderer(colors=False),
-            ]
-        )
+        processors.extend([
+            structlog.dev.ConsoleRenderer(colors=False),
+        ])
 
     # Configure structlog
     structlog.configure(
@@ -715,6 +722,7 @@ def setup_logging(settings: Settings | None = None) -> None:
 
     # Configure Python's built-in logging
     _setup_python_logging(settings)
+
 
 def _setup_python_logging(settings: Settings) -> None:
     """Set up Python's built-in logging system."""
@@ -773,6 +781,7 @@ def _setup_python_logging(settings: Settings) -> None:
 
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
+
 
 class BotLogger:
     """Enhanced logger class for the bot with structured logging."""
@@ -869,6 +878,7 @@ class BotLogger:
         """Bind command context to logger."""
         return self.bind(command=command_name)
 
+
 def get_logger(name: str, settings: Settings | None = None) -> BotLogger:
     """Get a bot logger instance.
 
@@ -880,6 +890,7 @@ def get_logger(name: str, settings: Settings | None = None) -> BotLogger:
         BotLogger instance
     """
     return BotLogger(name, settings)
+
 
 # Convenience function for Discord.py integration
 def setup_discord_logging(level: int = logging.INFO) -> None:
@@ -895,6 +906,7 @@ def setup_discord_logging(level: int = logging.INFO) -> None:
     # Reduce gateway logging
     discord_gateway_logger = logging.getLogger("discord.gateway")
     discord_gateway_logger.setLevel(logging.WARNING)
+
 
 # Logging decorators for performance monitoring
 def log_performance(logger: BotLogger):
@@ -953,6 +965,7 @@ def log_performance(logger: BotLogger):
 
     return decorator
 
+
 def log_errors(logger: BotLogger):
     """Decorator to automatically log errors."""
 
@@ -980,6 +993,7 @@ def log_errors(logger: BotLogger):
         )
 
     return decorator
+
 
 __all__ = [
     "BotLogger",

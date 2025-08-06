@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class MemoryThreshold(str, Enum):
     """記憶體閾值級別."""
 
@@ -46,6 +47,7 @@ class MemoryThreshold(str, Enum):
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
+
 
 @dataclass
 class MemorySnapshot:
@@ -72,6 +74,7 @@ class MemorySnapshot:
     active_coroutines: int = 0
     """活躍協程數量"""
 
+
 @dataclass
 class MemoryLeak:
     """記憶體洩漏資訊."""
@@ -90,6 +93,7 @@ class MemoryLeak:
 
     traceback: list[str]
     """堆疊追蹤"""
+
 
 class MemoryManager:
     """記憶體管理器.
@@ -235,9 +239,9 @@ class MemoryManager:
 
             # 取得協程資訊
             try:
-                active_coroutines = len(
-                    [task for task in asyncio.all_tasks() if not task.done()]
-                )
+                active_coroutines = len([
+                    task for task in asyncio.all_tasks() if not task.done()
+                ])
             except RuntimeError:
                 active_coroutines = 0
 
@@ -601,7 +605,9 @@ class MemoryManager:
             return {"error": "沒有可用的記憶體快照"}
 
         recent_snapshots = (
-            self._snapshots[-RECENT_SNAPSHOTS_COUNT:] if len(self._snapshots) >= RECENT_SNAPSHOTS_COUNT else self._snapshots
+            self._snapshots[-RECENT_SNAPSHOTS_COUNT:]
+            if len(self._snapshots) >= RECENT_SNAPSHOTS_COUNT
+            else self._snapshots
         )
         current_snapshot = self._snapshots[-1]
 
@@ -672,6 +678,7 @@ class MemoryManager:
         self._detected_leaks.clear()
 
         logger.info("記憶體統計已重置")
+
 
 __all__ = [
     "MemoryLeak",

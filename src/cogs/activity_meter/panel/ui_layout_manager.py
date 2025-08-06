@@ -13,6 +13,7 @@ import discord
 
 logger = logging.getLogger("activity_meter")
 
+
 class DiscordUILayoutManager:
     """
     Discord UI 佈局管理器
@@ -151,7 +152,9 @@ class DiscordUILayoutManager:
 
         for component in components:
             # 優先保留頁面選擇器和關閉按鈕
-            if (isinstance(component, discord.ui.Select) or hasattr(component, "label")) and current_row < DiscordUILayoutManager.max_rows:
+            if (
+                isinstance(component, discord.ui.Select) or hasattr(component, "label")
+            ) and current_row < DiscordUILayoutManager.max_rows:
                 component.row = current_row
                 essential_components.append(component)
                 current_row += 1
@@ -184,6 +187,7 @@ class DiscordUILayoutManager:
             "max_total_components": DiscordUILayoutManager.max_total_components,
             "is_compatible": self.check_layout_compatibility(components),
         }
+
 
 class UILayoutErrorHandler:
     """
@@ -265,7 +269,7 @@ class UILayoutErrorHandler:
         try:
             # 發送恢復開始訊息
             embed = discord.Embed(
-                title="🔄 正在修復佈局",
+                title="正在修復佈局",
                 description="系統正在自動調整組件佈局,請稍候...",
                 color=discord.Color.orange(),
             )
@@ -280,7 +284,7 @@ class UILayoutErrorHandler:
             # 如果恢復失敗,發送錯誤訊息
             try:
                 error_embed = discord.Embed(
-                    title="❌ 佈局恢復失敗",
+                    title="佈局恢復失敗",
                     description="無法自動修復佈局問題,請重新開啟面板",
                     color=discord.Color.red(),
                 )
@@ -296,7 +300,7 @@ class UILayoutErrorHandler:
             discord.Embed: 錯誤嵌入訊息
         """
         embed = discord.Embed(
-            title="❌ UI 佈局錯誤",
+            title="UI 佈局錯誤",
             description="面板組件數量超過 Discord 限制,正在嘗試自動修復...",
             color=discord.Color.red(),
         )
@@ -313,7 +317,7 @@ class UILayoutErrorHandler:
             discord.Embed: 錯誤嵌入訊息
         """
         embed = discord.Embed(
-            title="❌ 組件數量錯誤",
+            title="組件數量錯誤",
             description="面板組件數量超過 Discord 限制(最多25個組件),正在嘗試自動修復...",
             color=discord.Color.red(),
         )
@@ -333,8 +337,8 @@ class UILayoutErrorHandler:
             error: 錯誤對象
         """
         embed = discord.Embed(
-            title="❌ 發生錯誤",
-            description=f"���生未預期的錯誤:{error!s}",
+            title="發生錯誤",
+            description=f"產生未預期的錯誤:{error!s}",
             color=discord.Color.red(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -348,5 +352,5 @@ class UILayoutErrorHandler:
         """
         with contextlib.suppress(Exception):
             await interaction.response.send_message(
-                "❌ 發生錯誤,請稍後再試", ephemeral=True
+                "發生錯誤,請稍後再試", ephemeral=True
             )

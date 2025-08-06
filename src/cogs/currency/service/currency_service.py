@@ -23,7 +23,10 @@ from src.cogs.currency.database import (
 )
 from src.core.database.postgresql import get_db_session
 
+from .currency_statistics_service import CurrencyStatisticsService
+
 logger = logging.getLogger(__name__)
+
 
 class CurrencyService:
     """貨幣服務層.
@@ -34,6 +37,7 @@ class CurrencyService:
     def __init__(self):
         """初始化貨幣服務."""
         self.logger = logger
+        self.statistics_service = CurrencyStatisticsService()
 
     async def get_or_create_wallet(
         self, guild_id: int, user_id: int, initial_balance: int = 0
@@ -276,7 +280,7 @@ class CurrencyService:
             }
 
     async def get_guild_statistics(self, guild_id: int) -> dict[str, Any]:
-        """取得伺服器經濟統計.
+        """取得伺服器經濟統計 (使用 numpy 優化).
 
         Args:
             guild_id: Discord 伺服器 ID
@@ -286,7 +290,30 @@ class CurrencyService:
         """
         async with get_db_session() as session:
             repository = CurrencyRepository(session)
-            return await repository.get_guild_statistics(guild_id)
+
+            # 獲取原始統計資料
+            basic_stats = await repository.get_guild_statistics(guild_id)
+
+            # 獲取所有餘額用於進階統計計算
+            leaderboard, _ = await repository.get_leaderboard(guild_id, limit=10000)
+            balances = [float(wallet.balance) for wallet in leaderboard]
+
+            if balances:
+                # 使用 numpy 優化的統計計算
+                enhanced_stats = self.statistics_service.calculate_guild_statistics(
+                    balances
+                )
+                wealth_inequality = (
+                    self.statistics_service.calculate_wealth_inequality_metrics(
+                        balances
+                    )
+                )
+
+                # 合併統計資料
+                basic_stats.update(enhanced_stats)
+                basic_stats["wealth_inequality"] = wealth_inequality
+
+            return basic_stats
 
     async def add_balance(
         self,
@@ -510,6 +537,7 @@ class _CurrencyServiceSingleton:
             cls._instance = CurrencyService()
         return cls._instance
 
+
 def get_currency_service() -> CurrencyService:
     """取得貨幣服務實例(單例模式).
 
@@ -517,6 +545,7 @@ def get_currency_service() -> CurrencyService:
         貨幣服務實例
     """
     return _CurrencyServiceSingleton.get_instance()
+
 
 __all__ = [
     "CurrencyService",

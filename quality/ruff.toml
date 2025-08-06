@@ -1,0 +1,115 @@
+# Discord ROAS Bot - 品質保證用嚴格 Ruff 配置
+# 用於 CI/CD 管道的零違規品質檢查
+
+# 基本設定
+line-length = 88
+target-version = "py312"
+src = ["src", "scripts", "utils"]
+fix = false  # CI 模式下不自動修復
+
+# 檔案包含與排除
+include = ["*.py", "*.pyi"]
+extend-include = ["*.py"]
+
+exclude = [
+    ".git",
+    ".venv", 
+    "__pycache__",
+    "build/",
+    "dist/",
+    "logs/",
+    "dbs/",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "test_results/",
+    "quality-reports/"
+]
+
+[lint]
+# 啟用所有品質檢查規則
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings  
+    "F",     # Pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "ARG",   # flake8-unused-arguments
+    "PTH",   # flake8-use-pathlib
+    "PLR",   # Pylint refactor
+    "PLC",   # Pylint convention
+    "PLE",   # Pylint error
+    "PLW",   # Pylint warning
+    "UP",    # pyupgrade
+    "RUF",   # Ruff-specific rules
+    "ERA",   # eradicate
+    "TC",    # flake8-type-checking
+    "N",     # pep8-naming
+    "T20",   # flake8-print
+    "ICN",   # flake8-import-conventions
+    "RET",   # flake8-return
+    "SIM",   # flake8-simplify
+    "TID",   # flake8-tidy-imports
+]
+
+# CI 品質門檻模式：零容忍配置
+# 只忽略絕對必要的規則
+ignore = [
+    # 中文註釋相關（專案特殊需求）
+    "RUF002",  # ambiguous-unicode-character-docstring
+    "RUF003",  # ambiguous-unicode-character-comment
+    
+    # 暫時保留的開發期間註釋（嚴格審查）
+    "ERA001",  # commented-out-code - 需要手動審查
+    
+    # Print 語句（允許用於 CI 輸出）
+    "T201",    # print found - CI 腳本需要
+]
+
+# 無自動修復規則（CI 模式）  
+fixable = []
+unfixable = ["ALL"]
+
+# 文件特定規則（最小化例外）
+[lint.per-file-ignores]
+# CI 腳本和工具特殊需求
+"src/core/quality/ci_runner.py" = ["T201"]  # 允許 print 用於 CI 輸出
+"scripts/*.py" = ["T201"]  # 允許腳本使用 print
+
+# 測試檔案的最小例外
+"tests/**/*.py" = [
+    "ARG001",  # unused-function-argument - 測試 fixture
+    "PLR2004", # magic-value-comparison - 測試資料
+]
+
+[lint.isort]
+# Import 排序（嚴格模式）
+known-first-party = ["src", "cogs", "scripts", "utils"]
+known-local-folder = ["src"]
+force-single-line = false
+combine-as-imports = true
+split-on-trailing-comma = true
+force-sort-within-sections = true
+
+[lint.mccabe]
+# 複雜度限制（嚴格）
+max-complexity = 10
+
+[lint.pylint]
+# Pylint 嚴格設定
+max-args = 6
+max-locals = 15
+max-returns = 6
+max-statements = 50
+
+[format]
+# 格式化設定
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
+
+# 預覽功能
+preview = true

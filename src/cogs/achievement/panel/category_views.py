@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class CreateCategoryModal(ui.Modal):
     """分類新增模態框."""
 
@@ -194,14 +195,13 @@ class CreateCategoryModal(ui.Modal):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-
-
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
             )
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
+
 
 class CreateCategoryConfirmView(ui.View):
     """分類建立確認視圖."""
@@ -244,9 +244,9 @@ class CreateCategoryConfirmView(ui.View):
                     embed.set_footer(text="操作已記錄到審計日誌")
                 else:
                     # 顯示驗證錯誤
-                    error_text = "\n".join(
-                        [f"• {error}" for error in validation.errors]
-                    )
+                    error_text = "\n".join([
+                        f"• {error}" for error in validation.errors
+                    ])
                     embed = StandardEmbedBuilder.create_error_embed(
                         "分類建立失敗", f"❌ 分類建立時發生以下錯誤:\n\n{error_text}"
                     )
@@ -260,7 +260,6 @@ class CreateCategoryConfirmView(ui.View):
 
             # 重新整理管理面板
 
-
             await self.admin_panel.handle_navigation(
                 interaction, AdminPanelState.ACHIEVEMENTS
             )
@@ -272,8 +271,6 @@ class CreateCategoryConfirmView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-
-
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
             )
@@ -290,6 +287,7 @@ class CreateCategoryConfirmView(ui.View):
             "操作已取消", "✅ 分類建立操作已被取消."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class CategorySelectionView(ui.View):
     """分類選擇視圖."""
@@ -556,6 +554,7 @@ class CategorySelectionView(ui.View):
 
         return embed
 
+
 class EditCategoryModal(ui.Modal):
     """分類編輯模態框."""
 
@@ -717,6 +716,7 @@ class EditCategoryModal(ui.Modal):
             logger.error(f"檢查分類名稱唯一性失敗: {e}")
             return False
 
+
 class EditCategoryConfirmView(ui.View):
     """分類編輯確認視圖."""
 
@@ -764,9 +764,9 @@ class EditCategoryConfirmView(ui.View):
                     embed.set_footer(text="操作已記錄到審計日誌")
                 else:
                     # 顯示驗證錯誤
-                    error_text = "\n".join(
-                        [f"• {error}" for error in validation.errors]
-                    )
+                    error_text = "\n".join([
+                        f"• {error}" for error in validation.errors
+                    ])
                     embed = StandardEmbedBuilder.create_error_embed(
                         "分類更新失敗", f"❌ 分類更新時發生以下錯誤:\n\n{error_text}"
                     )
@@ -782,7 +782,6 @@ class EditCategoryConfirmView(ui.View):
 
             # 重新整理管理面板
 
-
             await self.admin_panel.handle_navigation(
                 interaction, AdminPanelState.ACHIEVEMENTS
             )
@@ -794,8 +793,6 @@ class EditCategoryConfirmView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-
-
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
             )
@@ -812,6 +809,7 @@ class EditCategoryConfirmView(ui.View):
             "操作已取消", "✅ 分類編輯操作已被取消."
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
 
 class DeleteCategoryConfirmView(ui.View):
     """分類刪除確認視圖."""
@@ -959,14 +957,13 @@ class DeleteCategoryConfirmView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-
-
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
             )
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
+
 
 class AchievementReassignView(ui.View):
     """成就重新分配視圖."""
@@ -1146,14 +1143,13 @@ class AchievementReassignView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-
-
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
             )
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
+
 
 class CategoryDetailView(ui.View):
     """分類詳細資訊視圖."""
@@ -1244,6 +1240,7 @@ class CategoryDetailView(ui.View):
             interaction, AdminPanelState.ACHIEVEMENTS
         )
 
+
 class CategoryListView(ui.View):
     """分類列表視圖."""
 
@@ -1292,6 +1289,7 @@ class CategoryListView(ui.View):
         await self.admin_panel.handle_navigation(
             interaction, AdminPanelState.ACHIEVEMENTS
         )
+
 
 class CategoryReorderView(ui.View):
     """分類排序視圖."""
@@ -1409,9 +1407,10 @@ class CategoryReorderView(ui.View):
                 category_orders = []
                 for i, category in enumerate(sorted_categories):
                     new_order = (i + 1) * 10
-                    category_orders.append(
-                        {"id": category.id, "display_order": new_order}
-                    )
+                    category_orders.append({
+                        "id": category.id,
+                        "display_order": new_order,
+                    })
 
                 # 執行批量排序更新
                 result = await admin_service.reorder_categories(
@@ -1429,14 +1428,13 @@ class CategoryReorderView(ui.View):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-
-
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
             )
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
+
 
 class CategoryOrderModal(ui.Modal):
     """分類順序設定模態框."""
@@ -1515,9 +1513,10 @@ class CategoryOrderModal(ui.Modal):
                 for i, new_order in enumerate(new_orders):
                     if i < len(sorted_categories):
                         category = sorted_categories[i]
-                        category_orders.append(
-                            {"id": category.id, "display_order": new_order}
-                        )
+                        category_orders.append({
+                            "id": category.id,
+                            "display_order": new_order,
+                        })
 
                 # 執行批量排序更新
                 result = await admin_service.reorder_categories(
@@ -1535,14 +1534,13 @@ class CategoryOrderModal(ui.Modal):
     async def _get_admin_service(self):
         """取得管理服務實例."""
         try:
-
-
             return AchievementAdminService(
                 repository=None, permission_service=None, cache_service=None
             )
         except Exception as e:
             logger.error(f"獲取管理服務失敗: {e}")
             return None
+
 
 class CategoryStatisticsView(ui.View):
     """分類統計視圖."""

@@ -29,7 +29,7 @@ class SearchModal(discord.ui.Modal):
             min_length=0,
             max_length=100,
             style=discord.TextStyle.short,
-            required=False
+            required=False,
         )
         self.add_item(self.search_input)
 
@@ -54,6 +54,7 @@ class SearchModal(discord.ui.Modal):
         )
         self.stop()
 
+
 class FilterModal(discord.ui.Modal):
     """篩選模態框類別."""
 
@@ -73,7 +74,7 @@ class FilterModal(discord.ui.Modal):
             "active": "啟用部門",
             "inactive": "停用部門",
             "with_roles": "有關聯角色",
-            "without_roles": "無關聯角色"
+            "without_roles": "無關聯角色",
         }
 
         options_text = "\n".join([f"{k}: {v}" for k, v in filter_options.items()])
@@ -86,7 +87,7 @@ class FilterModal(discord.ui.Modal):
             min_length=1,
             max_length=20,
             style=discord.TextStyle.short,
-            required=True
+            required=True,
         )
         self.add_item(self.filter_input)
 
@@ -95,7 +96,7 @@ class FilterModal(discord.ui.Modal):
             label="可用選項",
             default=options_text,
             style=discord.TextStyle.paragraph,
-            required=False
+            required=False,
         )
         self.description_input.disabled = True
         self.add_item(self.description_input)
@@ -111,7 +112,7 @@ class FilterModal(discord.ui.Modal):
             await interaction.response.send_message(
                 f"❌ 無效的篩選類型: {filter_value}\n"
                 f"可用選項: {', '.join(valid_filters)}",
-                ephemeral=True
+                ephemeral=True,
             )
             return
 

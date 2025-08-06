@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class CurrencyPanelView(StandardPanelView):
     """
     貨幣系統用戶端面板視圖
@@ -90,7 +91,7 @@ class CurrencyPanelView(StandardPanelView):
                 "description": "伺服器貨幣排行榜",
                 "embed_builder": self.build_leaderboard_embed,
                 "components": [],
-            }
+            },
         }
 
     def _setup_components(self):
@@ -99,58 +100,74 @@ class CurrencyPanelView(StandardPanelView):
 
         if self.current_page == "main":
             # 主頁面組件
-            self.add_item(TransferButton(
-                style=discord.ButtonStyle.primary,
-                custom_id="roas_currency_transfer"
-            ))
-            self.add_item(LeaderboardButton(
-                style=discord.ButtonStyle.secondary,
-                custom_id="roas_currency_leaderboard"
-            ))
-            self.add_item(RefreshButton(
-                style=discord.ButtonStyle.secondary,
-                custom_id="roas_currency_refresh"
-            ))
-            self.add_item(CloseButton(
-                style=discord.ButtonStyle.danger,
-                custom_id="roas_currency_close"
-            ))
+            self.add_item(
+                TransferButton(
+                    style=discord.ButtonStyle.primary,
+                    custom_id="roas_currency_transfer",
+                )
+            )
+            self.add_item(
+                LeaderboardButton(
+                    style=discord.ButtonStyle.secondary,
+                    custom_id="roas_currency_leaderboard",
+                )
+            )
+            self.add_item(
+                RefreshButton(
+                    style=discord.ButtonStyle.secondary,
+                    custom_id="roas_currency_refresh",
+                )
+            )
+            self.add_item(
+                CloseButton(
+                    style=discord.ButtonStyle.danger, custom_id="roas_currency_close"
+                )
+            )
 
         elif self.current_page == "leaderboard":
             # 排行榜頁面組件
-            self.add_item(self.create_standard_button(
-                label="上一頁",
-                style="secondary",
-                emoji="⬅️",
-                disabled=self.current_leaderboard_page <= 0,
-                custom_id="roas_currency_prev_page",
-                callback=self.prev_page_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="下一頁",
-                style="secondary",
-                emoji="➡️",
-                custom_id="roas_currency_next_page",
-                callback=self.next_page_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="我的排名",
-                style="primary",
-                emoji="📊",
-                custom_id="roas_currency_my_rank",
-                callback=self.my_rank_callback
-            ))
-            self.add_item(self.create_standard_button(
-                label="返回主頁",
-                style="secondary",
-                emoji="🏠",
-                custom_id="roas_currency_back_main",
-                callback=self.back_to_main_callback
-            ))
-            self.add_item(CloseButton(
-                style=discord.ButtonStyle.danger,
-                custom_id="roas_currency_close_lb"
-            ))
+            self.add_item(
+                self.create_standard_button(
+                    label="上一頁",
+                    style="secondary",
+                    emoji="⬅️",
+                    disabled=self.current_leaderboard_page <= 0,
+                    custom_id="roas_currency_prev_page",
+                    callback=self.prev_page_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="下一頁",
+                    style="secondary",
+                    emoji="➡️",
+                    custom_id="roas_currency_next_page",
+                    callback=self.next_page_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="我的排名",
+                    style="primary",
+                    emoji="📊",
+                    custom_id="roas_currency_my_rank",
+                    callback=self.my_rank_callback,
+                )
+            )
+            self.add_item(
+                self.create_standard_button(
+                    label="返回主頁",
+                    style="secondary",
+                    emoji="🏠",
+                    custom_id="roas_currency_back_main",
+                    callback=self.back_to_main_callback,
+                )
+            )
+            self.add_item(
+                CloseButton(
+                    style=discord.ButtonStyle.danger, custom_id="roas_currency_close_lb"
+                )
+            )
 
     async def start(self, interaction: discord.Interaction, page: str = "main"):
         """啟動面板並載入初始數據"""
@@ -198,7 +215,7 @@ class CurrencyPanelView(StandardPanelView):
                 user_rank_info=self.user_rank_info,
                 guild_stats=self.guild_stats,
                 user_id=self.author_id,
-                guild_id=self.guild_id
+                guild_id=self.guild_id,
             )
             return await renderer.render()
 
@@ -214,9 +231,7 @@ class CurrencyPanelView(StandardPanelView):
             # 載入排行榜數據
             offset = self.current_leaderboard_page * self.leaderboard_per_page
             leaderboard_data = await self.currency_service.get_leaderboard(
-                self.guild_id,
-                limit=self.leaderboard_per_page,
-                offset=offset
+                self.guild_id, limit=self.leaderboard_per_page, offset=offset
             )
 
             renderer = LeaderboardEmbedRenderer(
@@ -224,7 +239,7 @@ class CurrencyPanelView(StandardPanelView):
                 current_page=self.current_leaderboard_page,
                 per_page=self.leaderboard_per_page,
                 user_id=self.author_id,
-                guild_id=self.guild_id
+                guild_id=self.guild_id,
             )
             return await renderer.render()
 

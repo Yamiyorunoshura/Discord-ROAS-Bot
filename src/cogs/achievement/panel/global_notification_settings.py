@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class GlobalNotificationSettingsView(discord.ui.View):
     """全域通知設定面板視圖."""
 
@@ -319,6 +320,7 @@ class GlobalNotificationSettingsView(discord.ui.View):
 
         return embed
 
+
 class ChannelSelectView(discord.ui.View):
     """頻道選擇視圖."""
 
@@ -353,6 +355,7 @@ class ChannelSelectView(discord.ui.View):
         except Exception as e:
             logger.error(f"儲存頻道設定失敗: {e}")
             raise
+
 
 class ChannelSelect(discord.ui.ChannelSelect):
     """頻道選擇選單."""
@@ -401,6 +404,7 @@ class ChannelSelect(discord.ui.ChannelSelect):
                 "❌ 頻道設定失敗,請稍後再試.", ephemeral=True
             )
 
+
 class RateLimitModal(discord.ui.Modal):
     """頻率限制設定模態框."""
 
@@ -428,9 +432,13 @@ class RateLimitModal(discord.ui.Modal):
             # 驗證輸入值
             rate_limit = int(self.rate_limit_input.value)
 
-            if rate_limit < MIN_RATE_LIMIT_SECONDS or rate_limit > MAX_RATE_LIMIT_SECONDS:
+            if (
+                rate_limit < MIN_RATE_LIMIT_SECONDS
+                or rate_limit > MAX_RATE_LIMIT_SECONDS
+            ):
                 await interaction.response.send_message(
-                    "❌ 頻率限制必須在 {MIN_RATE_LIMIT_SECONDS}-{MAX_RATE_LIMIT_SECONDS} 秒之間", ephemeral=True
+                    "❌ 頻率限制必須在 {MIN_RATE_LIMIT_SECONDS}-{MAX_RATE_LIMIT_SECONDS} 秒之間",
+                    ephemeral=True,
                 )
                 return
 
@@ -472,6 +480,7 @@ class RateLimitModal(discord.ui.Modal):
             await interaction.response.send_message(
                 "❌ 設定更新失敗,請稍後再試.", ephemeral=True
             )
+
 
 async def create_global_notification_settings_panel(
     guild_id: int, repository: AchievementRepository
@@ -527,9 +536,7 @@ async def create_global_notification_settings_panel(
             )
             embed.add_field(name="🎯 重要成就篩選", value=filter_status, inline=True)
         else:
-            embed.add_field(
-                name="📋 狀態", value="尚未設定,將使用預設值", inline=False
-            )
+            embed.add_field(name="📋 狀態", value="尚未設定,將使用預設值", inline=False)
 
         embed.set_footer(text="僅管理員可以修改這些設定")
 
@@ -546,6 +553,7 @@ async def create_global_notification_settings_panel(
         )
 
         return error_embed, None
+
 
 __all__ = [
     "ChannelSelect",

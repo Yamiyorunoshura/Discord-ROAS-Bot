@@ -17,6 +17,7 @@ import discord
 
 logger = logging.getLogger(__name__)
 
+
 class AdminEmbedRenderer:
     """管理員面板 Embed 渲染器"""
 
@@ -58,7 +59,7 @@ class AdminEmbedRenderer:
                 title="🔒 貨幣系統管理員控台",
                 description="歡迎使用貨幣系統管理介面",
                 color=discord.Color.red(),
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             # 添加系統概覽
@@ -76,7 +77,7 @@ class AdminEmbedRenderer:
             # 設置頁腳
             embed.set_footer(
                 text=f"管理員: {self.admin_id} • 請謹慎使用管理功能",
-                icon_url="https://cdn.discordapp.com/emojis/⚠️.png"
+                icon_url="https://cdn.discordapp.com/emojis/⚠️.png",
             )
 
             return embed
@@ -88,7 +89,7 @@ class AdminEmbedRenderer:
             error_embed = discord.Embed(
                 title="❌ 載入錯誤",
                 description="無法載入管理員控台,請稍後再試",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             return error_embed
 
@@ -105,19 +106,11 @@ class AdminEmbedRenderer:
                 f"📋 **交易記錄**: {self.total_transactions:,} 筆"
             )
 
-            embed.add_field(
-                name="📈 系統概覽",
-                value=overview_text,
-                inline=True
-            )
+            embed.add_field(name="📈 系統概覽", value=overview_text, inline=True)
 
         except Exception as e:
             self.logger.warning(f"添加系統概覽失敗: {e}")
-            embed.add_field(
-                name="📈 系統概覽",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="📈 系統概覽", value="載入中...", inline=True)
 
     def _add_quick_stats(self, embed: discord.Embed):
         """添加快速統計"""
@@ -133,19 +126,11 @@ class AdminEmbedRenderer:
                 f"🔄 **系統狀態**: 正常運行"
             )
 
-            embed.add_field(
-                name="📊 快速統計",
-                value=stats_text,
-                inline=True
-            )
+            embed.add_field(name="📊 快速統計", value=stats_text, inline=True)
 
         except Exception as e:
             self.logger.warning(f"添加快速統計失敗: {e}")
-            embed.add_field(
-                name="📊 快速統計",
-                value="載入中...",
-                inline=True
-            )
+            embed.add_field(name="📊 快速統計", value="載入中...", inline=True)
 
     def _add_admin_features(self, embed: discord.Embed):
         """添加管理功能指引"""
@@ -159,11 +144,7 @@ class AdminEmbedRenderer:
                 "❌ **關閉面板** - 安全關閉管理介面"
             )
 
-            embed.add_field(
-                name="🛠️ 管理功能",
-                value=features_text,
-                inline=False
-            )
+            embed.add_field(name="🛠️ 管理功能", value=features_text, inline=False)
 
         except Exception as e:
             self.logger.warning(f"添加管理功能指引失敗: {e}")
@@ -177,11 +158,7 @@ class AdminEmbedRenderer:
                 "📝 **建議在操作時填寫詳細的原因說明**"
             )
 
-            embed.add_field(
-                name="🔐 安全提醒",
-                value=security_text,
-                inline=False
-            )
+            embed.add_field(name="🔐 安全提醒", value=security_text, inline=False)
 
         except Exception as e:
             self.logger.warning(f"添加安全提醒失敗: {e}")

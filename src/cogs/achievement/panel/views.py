@@ -30,6 +30,7 @@ RANK_SECOND = 2  # 第二名排名
 RANK_THIRD = 3  # 第三名排名
 RANK_TOP_TEN = 10  # 前十名排名
 
+
 class BaseAchievementView(ABC):
     """成就系統基礎視圖類別.
 
@@ -109,6 +110,7 @@ class BaseAchievementView(ABC):
         self._cache.clear()
         self._cache_valid = False
 
+
 class MainView(BaseAchievementView):
     """主頁面視圖.
 
@@ -166,6 +168,7 @@ class MainView(BaseAchievementView):
         """載入主頁面資料."""
         # 主頁面通常不需要額外資料
         return {"last_updated": "now", "page_type": "main"}
+
 
 class PersonalView(BaseAchievementView):
     """個人成就視圖.
@@ -227,12 +230,10 @@ class PersonalView(BaseAchievementView):
             # 添加已獲得成就列表
             earned_achievements = data.get("earned_achievements", [])
             if earned_achievements:
-                earned_text = "\\n".join(
-                    [
-                        f"🏅 **{ach['name']}** ({ach['points']} 點)\\n   _{ach['description']}_\\n   📅 {ach['earned_at']}"
-                        for ach in earned_achievements
-                    ]
-                )
+                earned_text = "\\n".join([
+                    f"🏅 **{ach['name']}** ({ach['points']} 點)\\n   _{ach['description']}_\\n   📅 {ach['earned_at']}"
+                    for ach in earned_achievements
+                ])
                 embed.add_field(
                     name="🏆 已獲得成就",
                     value=earned_text[:1024],  # Discord 限制 1024 字元
@@ -242,12 +243,10 @@ class PersonalView(BaseAchievementView):
             # 添加進行中的成就
             in_progress = data.get("in_progress", [])
             if in_progress:
-                progress_text = "\\n".join(
-                    [
-                        f"⏳ **{ach['name']}**\\n   {self._create_progress_bar(ach['current'], ach['target'])} {ach['current']}/{ach['target']}"
-                        for ach in in_progress[:5]
-                    ]
-                )
+                progress_text = "\\n".join([
+                    f"⏳ **{ach['name']}**\\n   {self._create_progress_bar(ach['current'], ach['target'])} {ach['current']}/{ach['target']}"
+                    for ach in in_progress[:5]
+                ])
                 embed.add_field(
                     name="🔄 進行中成就", value=progress_text[:1024], inline=False
                 )
@@ -299,17 +298,15 @@ class PersonalView(BaseAchievementView):
             # 格式化已獲得成就
             earned_achievements = []
             for user_ach, achievement in page_achievements:
-                earned_achievements.append(
-                    {
-                        "name": achievement.name,
-                        "description": achievement.description,
-                        "points": achievement.points,
-                        "earned_at": user_ach.earned_at.strftime("%Y-%m-%d %H:%M")
-                        if user_ach.earned_at
-                        else "未知",
-                        "category": achievement.category_id,
-                    }
-                )
+                earned_achievements.append({
+                    "name": achievement.name,
+                    "description": achievement.description,
+                    "points": achievement.points,
+                    "earned_at": user_ach.earned_at.strftime("%Y-%m-%d %H:%M")
+                    if user_ach.earned_at
+                    else "未知",
+                    "category": achievement.category_id,
+                })
 
             try:
                 # 嘗試從進度追蹤服務獲取真實進度數據
@@ -398,15 +395,13 @@ class PersonalView(BaseAchievementView):
                 # 轉換為預期的格式
                 result = []
                 for achievement in in_progress_achievements:
-                    result.append(
-                        {
-                            "name": achievement.get("name", "未知成就"),
-                            "description": achievement.get("description", ""),
-                            "current": achievement.get("current_progress", 0),
-                            "target": achievement.get("target_value", 100),
-                            "category": achievement.get("category", "一般"),
-                        }
-                    )
+                    result.append({
+                        "name": achievement.get("name", "未知成就"),
+                        "description": achievement.get("description", ""),
+                        "current": achievement.get("current_progress", 0),
+                        "target": achievement.get("target_value", 100),
+                        "category": achievement.get("category", "一般"),
+                    })
 
                 return result
             else:
@@ -467,6 +462,7 @@ class PersonalView(BaseAchievementView):
     def has_previous_page(self) -> bool:
         """是否有上一頁."""
         return self._current_page > 0
+
 
 class BrowserView(BaseAchievementView):
     """成就瀏覽視圖.
@@ -541,12 +537,10 @@ class BrowserView(BaseAchievementView):
 
                 # 顯示已獲得成就
                 if earned_achievements:
-                    earned_text = "\n".join(
-                        [
-                            f"🏅 **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_"
-                            for ach in earned_achievements[:4]  # 最多顯示 4 個
-                        ]
-                    )
+                    earned_text = "\n".join([
+                        f"🏅 **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_"
+                        for ach in earned_achievements[:4]  # 最多顯示 4 個
+                    ])
                     embed.add_field(
                         name="🏆 已獲得成就",
                         value=earned_text[:1024],  # Discord 限制
@@ -555,12 +549,10 @@ class BrowserView(BaseAchievementView):
 
                 # 顯示未獲得成就
                 if not_earned_achievements:
-                    not_earned_text = "\n".join(
-                        [
-                            f"⭕ **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_\n   💡 條件: {self._format_criteria(ach.get('criteria', {}))}"
-                            for ach in not_earned_achievements[:4]  # 最多顯示 4 個
-                        ]
-                    )
+                    not_earned_text = "\n".join([
+                        f"⭕ **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_\n   💡 條件: {self._format_criteria(ach.get('criteria', {}))}"
+                        for ach in not_earned_achievements[:4]  # 最多顯示 4 個
+                    ])
                     embed.add_field(
                         name="🎯 可獲得成就",
                         value=not_earned_text[:1024],  # Discord 限制
@@ -591,9 +583,7 @@ class BrowserView(BaseAchievementView):
             page = kwargs.get("page", 0)
             category_id = kwargs.get("category_id")
 
-            logger.debug(
-                f"[成就瀏覽]載入資料 - Page: {page}, Category: {category_id}"
-            )
+            logger.debug(f"[成就瀏覽]載入資料 - Page: {page}, Category: {category_id}")
 
             all_achievements = await self.achievement_service.list_achievements(
                 category_id=category_id, active_only=True
@@ -630,19 +620,17 @@ class BrowserView(BaseAchievementView):
                     else None
                 )
 
-                formatted_achievements.append(
-                    {
-                        "id": achievement.id,
-                        "name": achievement.name,
-                        "description": achievement.description,
-                        "category_id": achievement.category_id,
-                        "points": achievement.points,
-                        "criteria": achievement.criteria,
-                        "earned": earned,
-                        "progress": progress,
-                        "badge_url": achievement.badge_url,
-                    }
-                )
+                formatted_achievements.append({
+                    "id": achievement.id,
+                    "name": achievement.name,
+                    "description": achievement.description,
+                    "category_id": achievement.category_id,
+                    "points": achievement.points,
+                    "criteria": achievement.criteria,
+                    "earned": earned,
+                    "progress": progress,
+                    "badge_url": achievement.badge_url,
+                })
 
             # 獲取分類名稱
             category_name = "全部分類"
@@ -653,9 +641,9 @@ class BrowserView(BaseAchievementView):
                 category_name = category.name if category else f"分類 {category_id}"
 
             # 計算統計資訊
-            user_earned_count = len(
-                [ach for ach in formatted_achievements if ach["earned"]]
-            )
+            user_earned_count = len([
+                ach for ach in formatted_achievements if ach["earned"]
+            ])
             completion_rate = (
                 (user_earned_count / len(formatted_achievements) * 100)
                 if formatted_achievements
@@ -786,6 +774,7 @@ class BrowserView(BaseAchievementView):
         """是否有上一頁."""
         return self._current_page > 0
 
+
 class BrowseView(BaseAchievementView):
     """成就瀏覽視圖.
 
@@ -806,12 +795,10 @@ class BrowseView(BaseAchievementView):
             # 添加成就分類統計
             categories = data.get("categories", {})
             if categories:
-                category_text = "\\n".join(
-                    [
-                        f"📁 {cat['name']}: {cat['count']} 個成就"
-                        for cat in list(categories.values())[:5]
-                    ]
-                )
+                category_text = "\\n".join([
+                    f"📁 {cat['name']}: {cat['count']} 個成就"
+                    for cat in list(categories.values())[:5]
+                ])
                 embed.add_field(name="📋 成就分類", value=category_text, inline=True)
 
             # 添加篩選的成就列表
@@ -824,12 +811,10 @@ class BrowseView(BaseAchievementView):
                 ]
 
             if achievements:
-                achievement_text = "\\n".join(
-                    [
-                        f"{'🏅' if ach['earned'] else '⭕'} {ach['name']}"
-                        for ach in achievements[:10]
-                    ]
-                )
+                achievement_text = "\\n".join([
+                    f"{'🏅' if ach['earned'] else '⭕'} {ach['name']}"
+                    for ach in achievements[:10]
+                ])
                 embed.add_field(
                     name="🎯 成就列表", value=achievement_text, inline=False
                 )
@@ -881,6 +866,7 @@ class BrowseView(BaseAchievementView):
         except Exception as e:
             logger.error(f"[成就瀏覽]載入資料失敗: {e}")
             raise
+
 
 class LeaderboardView(BaseAchievementView):
     """排行榜視圖.
@@ -1215,6 +1201,7 @@ class LeaderboardView(BaseAchievementView):
         """是否有上一頁."""
         return self._current_page > 0
 
+
 class ViewFactory:
     """視圖工廠類.
 
@@ -1300,6 +1287,7 @@ class ViewFactory:
             LeaderboardView: 排行榜視圖實例
         """
         return LeaderboardView(achievement_service, guild_id, user_id)
+
 
 class ViewManager:
     """視圖管理器.

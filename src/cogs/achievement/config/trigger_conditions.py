@@ -37,6 +37,7 @@ class TriggerCondition:
     description: str = ""
     """條件描述"""
 
+
 @dataclass
 class AchievementTriggerConfig:
     """成就觸發配置.
@@ -58,6 +59,7 @@ class AchievementTriggerConfig:
 
     priority: int = 0
     """觸發優先級(數值越高優先級越高)"""
+
 
 class TriggerConditionTemplates:
     """觸發條件模板.
@@ -138,6 +140,7 @@ class TriggerConditionTemplates:
             description=f"在頻道 {channel_id} 中活動 {activity_count} 次",
         )
 
+
 class DefaultTriggerConfigs:
     """預設觸發配置.
 
@@ -181,6 +184,7 @@ class DefaultTriggerConfigs:
             dependencies=[prerequisite_achievement_id],
             priority=3,
         )
+
 
 class TriggerConditionValidator:
     """觸發條件驗證器.
@@ -319,6 +323,7 @@ class TriggerConditionValidator:
             errors.append("target_days 必須是正整數")
 
         return errors
+
 
 __all__ = [
     "AchievementTriggerConfig",

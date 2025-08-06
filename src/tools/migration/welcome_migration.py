@@ -29,15 +29,18 @@ from src.core.monitor import PerformanceMonitor
 if TYPE_CHECKING:
     from src.core.container import Container
 
+
 class MigrationError(Exception):
     """遷移錯誤異常"""
 
     pass
 
+
 class MigrationValidationError(MigrationError):
     """遷移驗證錯誤"""
 
     pass
+
 
 class WelcomeMigrationTool:
     """歡迎模塊數據遷移工具
@@ -160,7 +163,7 @@ class WelcomeMigrationTool:
             self._stats["errors"] += 1
             self._stats["end_time"] = datetime.now().timestamp()
             self._logger.error(f"歡迎數據遷移失敗: {e}", exc_info=True)
-            raise MigrationError(f"遷移失敗: {e}" ) from e
+            raise MigrationError(f"遷移失敗: {e}") from e
 
     async def _pre_migration_check(self) -> None:
         """遷移前檢查"""
@@ -190,7 +193,7 @@ class WelcomeMigrationTool:
             await self._repository.init_db()
             self._logger.info("新系統資料庫檢查通過")
         except Exception as e:
-            raise MigrationError(f"新系統初始化失敗: {e}" ) from e
+            raise MigrationError(f"新系統初始化失敗: {e}") from e
 
         # 檢查背景圖片目錄
         if self._old_bg_dir.exists():
@@ -331,7 +334,7 @@ class WelcomeMigrationTool:
 
         try:
             # 獲取新背景圖片目錄
-            from pathlib import Path  # noqa: PLC0415
+            from pathlib import Path
 
             new_bg_dir = Path(self._config.background_dir)
 
@@ -429,13 +432,11 @@ class WelcomeMigrationTool:
 
         try:
             # 1. 檢查數據完整性 - 簡化版檢查
-            result["validation_checks"].append(
-                {
-                    "check": "data_integrity",
-                    "status": "passed",
-                    "issues": [],
-                }
-            )
+            result["validation_checks"].append({
+                "check": "data_integrity",
+                "status": "passed",
+                "issues": [],
+            })
 
             # 簡化版檢查通過
 
@@ -443,14 +444,12 @@ class WelcomeMigrationTool:
             old_count = len(self._read_old_settings())
             new_count = len(await self._get_all_new_settings())
 
-            result["validation_checks"].append(
-                {
-                    "check": "record_count",
-                    "old_count": old_count,
-                    "new_count": new_count,
-                    "match": old_count == new_count,
-                }
-            )
+            result["validation_checks"].append({
+                "check": "record_count",
+                "old_count": old_count,
+                "new_count": new_count,
+                "match": old_count == new_count,
+            })
 
             if old_count != new_count:
                 result["warnings"].append(
@@ -517,7 +516,7 @@ class WelcomeMigrationTool:
 
         except sqlite3.Error as e:
             self._logger.error(f"讀取舊設定失敗: {e}")
-            raise MigrationError(f"讀取舊設定失敗: {e}" ) from e
+            raise MigrationError(f"讀取舊設定失敗: {e}") from e
 
         return settings
 
@@ -598,7 +597,7 @@ class WelcomeMigrationTool:
         Returns:
             是否為預設設定
         """
-        from src.cogs.welcome.config.config import DEFAULT_SETTINGS  # noqa: PLC0415
+        from src.cogs.welcome.config.config import DEFAULT_SETTINGS
 
         default_settings = DEFAULT_SETTINGS
 
@@ -754,7 +753,7 @@ class WelcomeMigrationTool:
         }
 
         try:
-            from pathlib import Path as PathLib  # noqa: PLC0415
+            from pathlib import Path as PathLib
 
             backup_dir = PathLib("backups") / f"welcome_migration_{migration_id}"
 
@@ -774,7 +773,7 @@ class WelcomeMigrationTool:
             # 回滾背景圖片
             backup_bg_dir = backup_dir / "old_backgrounds"
             if backup_bg_dir.exists():
-                from pathlib import Path  # noqa: PLC0415
+                from pathlib import Path
 
                 new_bg_dir = Path(self._config.background_dir)
 
@@ -801,10 +800,11 @@ class WelcomeMigrationTool:
 
         return rollback_result
 
+
 async def main() -> None:
     """主函數 - 用於測試和手動執行遷移"""
     # 使用動態導入避免在模組載入時的循環導入
-    from src.core.container import Container  # noqa: PLC0415
+    from src.core.container import Container
 
     # 初始化容器
     container = Container()
@@ -833,6 +833,7 @@ async def main() -> None:
 
     except Exception as e:
         print(f"遷移失敗: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

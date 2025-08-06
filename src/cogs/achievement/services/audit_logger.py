@@ -22,6 +22,7 @@ from ..constants import MAX_FAILED_OPERATIONS, NON_WORK_HOURS_END, NON_WORK_HOUR
 
 logger = logging.getLogger(__name__)
 
+
 class AuditEventType(Enum):
     """審計事件類型枚舉."""
 
@@ -48,6 +49,7 @@ class AuditEventType(Enum):
     DATA_ACCESS = "data_access"
     REPORT_GENERATED = "report_generated"
 
+
 class AuditSeverity(Enum):
     """審計嚴重性等級."""
 
@@ -56,6 +58,7 @@ class AuditSeverity(Enum):
     ERROR = "error"
     CRITICAL = "critical"
 
+
 class AuditStatus(Enum):
     """審計狀態."""
 
@@ -63,6 +66,7 @@ class AuditStatus(Enum):
     FAILED = "failed"
     PENDING = "pending"
     CANCELLED = "cancelled"
+
 
 @dataclass
 class AuditContext:
@@ -75,6 +79,7 @@ class AuditContext:
     session_id: str | None = None
     ip_address: str | None = None
     user_agent: str | None = None
+
 
 @dataclass
 class AuditEvent:
@@ -113,6 +118,7 @@ class AuditEvent:
     approved_by: int | None = None
     approval_timestamp: datetime | None = None
 
+
 @dataclass
 class AuditQuery:
     """審計查詢參數."""
@@ -134,6 +140,7 @@ class AuditQuery:
 
     sort_by: str = "timestamp"
     sort_order: str = "desc"  # asc, desc
+
 
 @dataclass
 class AuditReport:
@@ -161,6 +168,7 @@ class AuditReport:
     timeline_data: list[dict[str, Any]] = field(default_factory=list)
 
     duration_ms: float | None = None
+
 
 class AuditLogger:
     """審計日誌記錄器.
@@ -358,7 +366,10 @@ class AuditLogger:
             if event.context:
                 # 檢查非工作時間訪問
                 current_hour = datetime.utcnow().hour
-                if current_hour >= NON_WORK_HOURS_START or current_hour <= NON_WORK_HOURS_END:
+                if (
+                    current_hour >= NON_WORK_HOURS_START
+                    or current_hour <= NON_WORK_HOURS_END
+                ):
                     if risk_level == "low":
                         risk_level = "medium"
                     event.metadata["off_hours_access"] = True
@@ -547,7 +558,7 @@ class AuditLogger:
 
         return results
 
-    async def _query_database(self, query: AuditQuery) -> list[AuditEvent]:  # noqa: ARG002
+    async def _query_database(self, query: AuditQuery) -> list[AuditEvent]:
         """從資料庫查詢事件.
 
         Args:
@@ -576,13 +587,15 @@ class AuditLogger:
             # 檢查嚴重性等級
             not query.severity_levels or event.severity in query.severity_levels,
             # 檢查用戶ID
-            not query.user_ids or (event.context and event.context.user_id in query.user_ids),
+            not query.user_ids
+            or (event.context and event.context.user_id in query.user_ids),
             # 檢查目標類型
             not query.target_types or event.target_type in query.target_types,
             # 檢查目標ID
-            not query.target_ids or (
-                event.target_id in query.target_ids or
-                any(tid in query.target_ids for tid in event.target_ids)
+            not query.target_ids
+            or (
+                event.target_id in query.target_ids
+                or any(tid in query.target_ids for tid in event.target_ids)
             ),
             # 檢查時間範圍
             not query.start_time or event.timestamp >= query.start_time,
@@ -590,7 +603,7 @@ class AuditLogger:
             # 檢查風險等級
             not query.risk_levels or event.risk_level in query.risk_levels,
             # 檢查成功狀態
-            query.success_only is None or event.success == query.success_only
+            query.success_only is None or event.success == query.success_only,
         ]
 
         return all(conditions)
@@ -693,26 +706,22 @@ class AuditLogger:
             e for e in report.events if e.risk_level in ["high", "critical"]
         ]
         if high_risk_events:
-            security_issues.append(
-                {
-                    "type": "high_risk_operations",
-                    "count": len(high_risk_events),
-                    "description": f"檢測到 {len(high_risk_events)} 個高風險操作",
-                    "severity": "warning",
-                }
-            )
+            security_issues.append({
+                "type": "high_risk_operations",
+                "count": len(high_risk_events),
+                "description": f"檢測到 {len(high_risk_events)} 個高風險操作",
+                "severity": "warning",
+            })
 
         # 分析失敗操作
         failed_events = [e for e in report.events if not e.success]
         if len(failed_events) > MAX_FAILED_OPERATIONS:  # 超過失敗操作限制
-            security_issues.append(
-                {
-                    "type": "high_failure_rate",
-                    "count": len(failed_events),
-                    "description": f"操作失敗率過高: {len(failed_events)}/{len(report.events)}",
-                    "severity": "warning",
-                }
-            )
+            security_issues.append({
+                "type": "high_failure_rate",
+                "count": len(failed_events),
+                "description": f"操作失敗率過高: {len(failed_events)}/{len(report.events)}",
+                "severity": "warning",
+            })
 
         # 分析異常模式
         user_activities = {}
@@ -729,15 +738,13 @@ class AuditLogger:
         )
         for user_id, activity_count in user_activities.items():
             if activity_count > avg_activity * 3:  # 超過平均值3倍
-                security_issues.append(
-                    {
-                        "type": "unusual_user_activity",
-                        "user_id": user_id,
-                        "count": activity_count,
-                        "description": f"用戶 {user_id} 活動異常頻繁 ({activity_count} 次操作)",
-                        "severity": "info",
-                    }
-                )
+                security_issues.append({
+                    "type": "unusual_user_activity",
+                    "user_id": user_id,
+                    "count": activity_count,
+                    "description": f"用戶 {user_id} 活動異常頻繁 ({activity_count} 次操作)",
+                    "severity": "info",
+                })
 
         report.security_issues = security_issues
 
