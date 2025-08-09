@@ -46,7 +46,8 @@ class AntiExecutableDatabase:
         try:
             async with aiosqlite.connect(self.db_path) as db:
                 # 配置表
-                await db.execute("""
+                await db.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS config (
                         guild_id INTEGER,
                         key TEXT,
@@ -54,10 +55,12 @@ class AntiExecutableDatabase:
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (guild_id, key)
                     )
-                """)
+                """
+                )
 
                 # 統計表
-                await db.execute("""
+                await db.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS stats (
                         guild_id INTEGER,
                         stat_type TEXT,
@@ -65,10 +68,12 @@ class AntiExecutableDatabase:
                         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (guild_id, stat_type)
                     )
-                """)
+                """
+                )
 
                 # 操作日誌表
-                await db.execute("""
+                await db.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS action_logs (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         guild_id INTEGER,
@@ -77,10 +82,12 @@ class AntiExecutableDatabase:
                         details TEXT,
                         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """)
+                """
+                )
 
                 # 檔案檢測記錄表
-                await db.execute("""
+                await db.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS file_detections (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         guild_id INTEGER,
@@ -91,18 +98,47 @@ class AntiExecutableDatabase:
                         action_taken TEXT,
                         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """)
+                """
+                )
+
+                # 白名單表
+                await db.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS whitelist (
+                        guild_id INTEGER,
+                        item TEXT,
+                        added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (guild_id, item)
+                    )
+                """
+                )
+
+                # 黑名單表
+                await db.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS blacklist (
+                        guild_id INTEGER,
+                        item TEXT,
+                        added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (guild_id, item)
+                    )
+                """
+                )
 
                 # 索引
-                await db.execute("""
+                await db.execute(
+                    """
                     CREATE INDEX IF NOT EXISTS idx_action_logs_guild_time
                     ON action_logs(guild_id, timestamp)
-                """)
+                """
+                )
 
-                await db.execute("""
+                await db.execute(
+                    """
                     CREATE INDEX IF NOT EXISTS idx_file_detections_guild_time
                     ON file_detections(guild_id, timestamp)
-                """)
+                """
+                )
 
                 await db.commit()
                 logger.info("[反可執行檔案]資料庫初始化完成")
@@ -194,6 +230,91 @@ class AntiExecutableDatabase:
             )
             return {}
 
+    async def get_settings(self, guild_id: int) -> dict[str, Any]:
+        """
+        獲取伺服器所有設定，並提供預設值
+
+        Args:
+            guild_id: 伺服器 ID
+
+        Returns:
+            Dict[str, Any]: 設定字典，包含預設值
+        """
+        try:
+            # 獲取所有配置
+            config = await self.get_all_config(guild_id)
+
+            # 提供預設值
+            settings = {
+                "enabled": config.get("enabled", "false").lower() == "true",
+                "check_links": config.get("check_links", "true").lower() == "true",
+                "strict_mode": config.get("strict_mode", "false").lower() == "true",
+                "action": config.get("action", "delete"),
+                "log_channel": config.get("log_channel", ""),
+                "whitelist_channels": (
+                    config.get("whitelist_channels", "").split(",")
+                    if config.get("whitelist_channels")
+                    else []
+                ),
+                "custom_extensions": (
+                    config.get("custom_extensions", "").split(",")
+                    if config.get("custom_extensions")
+                    else []
+                ),
+            }
+
+            return settings
+
+        except Exception as exc:
+            error_handler.log_error(exc, f"獲取設定 - {guild_id}", "SETTINGS_GET_ERROR")
+            # 返回預設設定
+            return {
+                "enabled": False,
+                "check_links": True,
+                "strict_mode": False,
+                "action": "delete",
+                "log_channel": "",
+                "whitelist_channels": [],
+                "custom_extensions": [],
+            }
+
+    async def update_settings(self, guild_id: int, settings: dict[str, Any]) -> bool:
+        """
+        更新伺服器設定
+
+        Args:
+            guild_id: 伺服器 ID
+            settings: 設定字典
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                # 將設定轉換為字串存儲
+                for key, value in settings.items():
+                    if isinstance(value, bool):
+                        str_value = "true" if value else "false"
+                    elif isinstance(value, list):
+                        str_value = ",".join(str(item) for item in value)
+                    else:
+                        str_value = str(value)
+
+                    await db.execute(
+                        "INSERT OR REPLACE INTO config (guild_id, key, value) "
+                        "VALUES (?, ?, ?)",
+                        (guild_id, key, str_value),
+                    )
+
+                await db.commit()
+                return True
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"更新設定 - {guild_id}", "SETTINGS_UPDATE_ERROR"
+            )
+            return False
+
     # ───────── 統計管理 ─────────
     async def add_stat(self, guild_id: int, stat_type: str, count: int = 1):
         """
@@ -208,8 +329,12 @@ class AntiExecutableDatabase:
             async with self._lock, aiosqlite.connect(self.db_path) as db:
                 await db.execute(
                     """
-                    INSERT OR REPLACE INTO stats (guild_id, stat_type, count, last_updated)
-                    VALUES (?, ?, COALESCE((SELECT count FROM stats WHERE guild_id = ? AND stat_type = ?), 0) + ?, ?)
+                    INSERT OR REPLACE INTO stats
+                    (guild_id, stat_type, count, last_updated)
+                    VALUES (?, ?, COALESCE(
+                        (SELECT count FROM stats
+                         WHERE guild_id = ? AND stat_type = ?), 0
+                    ) + ?, ?)
                 """,
                     (
                         guild_id,
@@ -285,7 +410,8 @@ class AntiExecutableDatabase:
             async with self._lock, aiosqlite.connect(self.db_path) as db:
                 await db.execute(
                     """
-                    INSERT INTO action_logs (guild_id, user_id, action, details, timestamp)
+                    INSERT INTO action_logs
+                    (guild_id, user_id, action, details, timestamp)
                     VALUES (?, ?, ?, ?, ?)
                 """,
                     (guild_id, user_id, action, details, datetime.now()),
@@ -399,7 +525,9 @@ class AntiExecutableDatabase:
             async with self._lock, aiosqlite.connect(self.db_path) as db:
                 await db.execute(
                     """
-                    INSERT INTO file_detections (guild_id, user_id, filename, file_extension, risk_level, action_taken, timestamp)
+                    INSERT INTO file_detections
+                    (guild_id, user_id, filename, file_extension,
+                     risk_level, action_taken, timestamp)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -440,7 +568,8 @@ class AntiExecutableDatabase:
                 aiosqlite.connect(self.db_path) as db,
                 db.execute(
                     """
-                SELECT user_id, filename, file_extension, risk_level, action_taken, timestamp
+                SELECT user_id, filename, file_extension,
+                       risk_level, action_taken, timestamp
                 FROM file_detections
                 WHERE guild_id = ?
                 ORDER BY timestamp DESC
@@ -567,7 +696,8 @@ class AntiExecutableDatabase:
                 else:
                     # 清理特定伺服器
                     await db.execute(
-                        "DELETE FROM file_detections WHERE guild_id = ? AND timestamp < ?",
+                        "DELETE FROM file_detections "
+                        "WHERE guild_id = ? AND timestamp < ?",
                         (guild_id, cutoff_date),
                     )
 
@@ -620,4 +750,237 @@ class AntiExecutableDatabase:
 
         except Exception as exc:
             error_handler.log_error(exc, "獲取資料庫資訊", "DATABASE_INFO_ERROR")
+            return {}
+
+    # ───────── 白名單管理 ─────────
+    async def get_whitelist(self, guild_id: int) -> set[str]:
+        """
+        獲取白名單
+
+        Args:
+            guild_id: 伺服器 ID
+
+        Returns:
+            Set[str]: 白名單集合
+        """
+        try:
+            async with (
+                self._lock,
+                aiosqlite.connect(self.db_path) as db,
+                db.execute(
+                    "SELECT item FROM whitelist WHERE guild_id = ?", (guild_id,)
+                ) as cursor,
+            ):
+                rows = await cursor.fetchall()
+                return {row[0] for row in rows}
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"獲取白名單 - {guild_id}", "WHITELIST_GET_ERROR"
+            )
+            return set()
+
+    async def add_to_whitelist(self, guild_id: int, item: str) -> bool:
+        """
+        添加到白名單
+
+        Args:
+            guild_id: 伺服器 ID
+            item: 要添加的項目
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    "INSERT OR IGNORE INTO whitelist (guild_id, item) VALUES (?, ?)",
+                    (guild_id, item),
+                )
+                await db.commit()
+                return True
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"添加到白名單 - {guild_id}:{item}", "WHITELIST_ADD_ERROR"
+            )
+            return False
+
+    async def remove_from_whitelist(self, guild_id: int, item: str) -> bool:
+        """
+        從白名單移除
+
+        Args:
+            guild_id: 伺服器 ID
+            item: 要移除的項目
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                cursor = await db.execute(
+                    "DELETE FROM whitelist WHERE guild_id = ? AND item = ?",
+                    (guild_id, item),
+                )
+                await db.commit()
+                return cursor.rowcount > 0
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"從白名單移除 - {guild_id}:{item}", "WHITELIST_REMOVE_ERROR"
+            )
+            return False
+
+    async def clear_whitelist(self, guild_id: int) -> bool:
+        """
+        清空白名單
+
+        Args:
+            guild_id: 伺服器 ID
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    "DELETE FROM whitelist WHERE guild_id = ?", (guild_id,)
+                )
+                await db.commit()
+                return True
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"清空白名單 - {guild_id}", "WHITELIST_CLEAR_ERROR"
+            )
+            return False
+
+    # ───────── 黑名單管理 ─────────
+    async def get_blacklist(self, guild_id: int) -> set[str]:
+        """
+        獲取黑名單
+
+        Args:
+            guild_id: 伺服器 ID
+
+        Returns:
+            Set[str]: 黑名單集合
+        """
+        try:
+            async with (
+                self._lock,
+                aiosqlite.connect(self.db_path) as db,
+                db.execute(
+                    "SELECT item FROM blacklist WHERE guild_id = ?", (guild_id,)
+                ) as cursor,
+            ):
+                rows = await cursor.fetchall()
+                return {row[0] for row in rows}
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"獲取黑名單 - {guild_id}", "BLACKLIST_GET_ERROR"
+            )
+            return set()
+
+    async def add_to_blacklist(self, guild_id: int, item: str) -> bool:
+        """
+        添加到黑名單
+
+        Args:
+            guild_id: 伺服器 ID
+            item: 要添加的項目
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    "INSERT OR IGNORE INTO blacklist (guild_id, item) VALUES (?, ?)",
+                    (guild_id, item),
+                )
+                await db.commit()
+                return True
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"添加到黑名單 - {guild_id}:{item}", "BLACKLIST_ADD_ERROR"
+            )
+            return False
+
+    async def remove_from_blacklist(self, guild_id: int, item: str) -> bool:
+        """
+        從黑名單移除
+
+        Args:
+            guild_id: 伺服器 ID
+            item: 要移除的項目
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                cursor = await db.execute(
+                    "DELETE FROM blacklist WHERE guild_id = ? AND item = ?",
+                    (guild_id, item),
+                )
+                await db.commit()
+                return cursor.rowcount > 0
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"從黑名單移除 - {guild_id}:{item}", "BLACKLIST_REMOVE_ERROR"
+            )
+            return False
+
+    # ───────── 統計管理增強 ─────────
+    async def clear_stats(self, guild_id: int) -> bool:
+        """
+        清空統計資料
+
+        Args:
+            guild_id: 伺服器 ID
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute("DELETE FROM stats WHERE guild_id = ?", (guild_id,))
+                await db.commit()
+                return True
+
+        except Exception as exc:
+            error_handler.log_error(exc, f"清空統計 - {guild_id}", "STATS_CLEAR_ERROR")
+            return False
+
+    # ───────── 格式管理增強 ─────────
+    async def reset_custom_formats(self, guild_id: int) -> bool:
+        """
+        重置自訂格式
+
+        Args:
+            guild_id: 伺服器 ID
+
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self._lock, aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    "DELETE FROM config "
+                    "WHERE guild_id = ? AND key = 'custom_extensions'",
+                    (guild_id,),
+                )
+                await db.commit()
+                return True
+
+        except Exception as exc:
+            error_handler.log_error(
+                exc, f"重置自訂格式 - {guild_id}", "FORMAT_RESET_ERROR"
+            )
+            return False
             return {}

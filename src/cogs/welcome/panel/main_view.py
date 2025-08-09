@@ -132,16 +132,16 @@ class SettingsView(discord.ui.View):
                 label="💬 設定歡迎訊息", description="設定純文字歡迎訊息"
             ),
             discord.SelectOption(
-                label="📍 調整頭像 X 位置", description="調整頭像在圖片上的 X 座標"
+                label="調整頭像 X 位置", description="調整頭像在圖片上的 X 座標"
             ),
             discord.SelectOption(
-                label="📍 調整頭像 Y 位置", description="調整頭像在圖片上的 Y 座標"
+                label="調整頭像 Y 位置", description="調整頭像在圖片上的 Y 座標"
             ),
             discord.SelectOption(
-                label="📍 調整標題 Y 位置", description="調整標題的 Y 座標"
+                label="調整標題 Y 位置", description="調整標題的 Y 座標"
             ),
             discord.SelectOption(
-                label="📍 調整內容 Y 位置", description="調整內容的 Y 座標"
+                label="調整內容 Y 位置", description="調整內容的 Y 座標"
             ),
             discord.SelectOption(
                 label="🔤 調整標題字體大小", description="調整標題字體大小(像素)"
@@ -263,7 +263,7 @@ class SettingsView(discord.ui.View):
                 interaction,
             )
 
-    @discord.ui.button(label="預覽效果", style=discord.ButtonStyle.primary, emoji="👁️")
+    @discord.ui.button(label="預覽效果", style=discord.ButtonStyle.primary)
     async def preview_button(
         self, interaction: discord.Interaction, _button: discord.ui.Button
     ):
@@ -325,7 +325,7 @@ class SettingsView(discord.ui.View):
                 exc, ErrorCodes.UI_INTERACTION_FAILED, "預覽按鈕操作失敗", interaction
             )
 
-    @discord.ui.button(label="關閉", style=discord.ButtonStyle.secondary, emoji="❌")
+    @discord.ui.button(label="關閉", style=discord.ButtonStyle.secondary)
     async def close_button(
         self, interaction: discord.Interaction, _button: discord.ui.Button
     ):

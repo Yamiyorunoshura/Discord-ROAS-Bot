@@ -107,7 +107,7 @@ class ExecutableActions:
                 color=discord.Color.red(),
             )
 
-            embed.add_field(name="👤 用戶", value=message.author.mention, inline=True)
+            embed.add_field(name="用戶", value=message.author.mention, inline=True)
 
             embed.add_field(name="📁 檔案", value=filename, inline=True)
 
@@ -157,12 +157,12 @@ class ExecutableActions:
             )
 
             embed.add_field(
-                name="👤 用戶",
+                name="用戶",
                 value=f"{message.author.mention} ({message.author.id})",
                 inline=True,
             )
 
-            embed.add_field(name="📍 頻道", value=message.channel.mention, inline=True)
+            embed.add_field(name="頻道", value=message.channel.mention, inline=True)
 
             embed.add_field(name="📁 檔案", value=filename, inline=True)
 

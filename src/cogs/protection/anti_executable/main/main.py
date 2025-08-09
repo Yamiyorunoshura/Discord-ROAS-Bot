@@ -180,13 +180,41 @@ class AntiExecutable(ProtectionCog):
             stats = self.stats.get(interaction.guild_id, {})
             embed.add_field(
                 name="📊 攔截統計",
-                value=f"附件: {stats.get('attachments_blocked', 0)} 個\n連結: {stats.get('links_blocked', 0)} 個",
+                value=(
+                    f"附件: {stats.get('attachments_blocked', 0)} 個\n"
+                    f"連結: {stats.get('links_blocked', 0)} 個"
+                ),
                 inline=True,
             )
 
             embed.set_footer(text=f"面板載入失敗: {exc}")
 
             await interaction.response.send_message(embed=embed)
+
+    async def get_config(
+        self, guild_id: int, key: str | None = None, default: Any = None
+    ) -> Any:
+        """
+        獲取配置項目 - 面板系統適配方法
+
+        Args:
+            guild_id: 伺服器 ID
+            key: 配置鍵(可選,如果為 None 則返回所有配置)
+            default: 預設值
+
+        Returns:
+            配置值或所有配置字典
+        """
+        try:
+            if key is None:
+                # 返回所有配置
+                return await self.db.get_all_config(guild_id)
+            else:
+                # 返回特定配置
+                return await self.db.get_config(guild_id, key, default)
+        except Exception as exc:
+            logger.error(f"[反可執行檔案]獲取配置失敗: {exc}")
+            return default if key else {}
 
     async def get_settings(self, guild_id: int) -> dict[str, Any]:
         """
@@ -263,3 +291,183 @@ class AntiExecutable(ProtectionCog):
         if success and guild_id in self._whitelist_cache:
             self._whitelist_cache[guild_id].discard(item)
         return success
+
+    async def get_blacklist(self, guild_id: int) -> set[str]:
+        """
+        獲取黑名單
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            黑名單集合
+        """
+        # 優先使用快取
+        if guild_id in self._blacklist_cache:
+            return self._blacklist_cache[guild_id]
+
+        # 從資料庫載入
+        blacklist = await self.db.get_blacklist(guild_id)
+        self._blacklist_cache[guild_id] = blacklist
+        return blacklist
+
+    async def add_to_blacklist(self, guild_id: int, item: str) -> bool:
+        """
+        添加到黑名單
+
+        Args:
+            guild_id: 伺服器ID
+            item: 要添加的項目
+
+        Returns:
+            是否成功
+        """
+        success = await self.db.add_to_blacklist(guild_id, item)
+        if success and guild_id in self._blacklist_cache:
+            self._blacklist_cache[guild_id].add(item)
+        return success
+
+    async def remove_from_blacklist(self, guild_id: int, item: str) -> bool:
+        """
+        從黑名單移除
+
+        Args:
+            guild_id: 伺服器ID
+            item: 要移除的項目
+
+        Returns:
+            是否成功
+        """
+        success = await self.db.remove_from_blacklist(guild_id, item)
+        if success and guild_id in self._blacklist_cache:
+            self._blacklist_cache[guild_id].discard(item)
+        return success
+
+    async def get_stats(self, guild_id: int) -> dict[str, int]:
+        """
+        獲取統計資料
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            統計資料字典
+        """
+        # 從記憶體統計獲取
+        memory_stats = self.stats.get(guild_id, {})
+
+        # 從資料庫獲取歷史統計
+        db_stats = await self.db.get_stats(guild_id)
+
+        # 合併統計資料
+        combined_stats = {
+            "total_blocked": memory_stats.get("attachments_blocked", 0)
+            + memory_stats.get("links_blocked", 0),
+            "files_blocked": memory_stats.get("attachments_blocked", 0),
+            "links_blocked": memory_stats.get("links_blocked", 0),
+            **db_stats,
+        }
+
+        return combined_stats
+
+    async def clear_stats(self, guild_id: int) -> bool:
+        """
+        清空統計資料
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            是否成功
+        """
+        try:
+            # 清空記憶體統計
+            if guild_id in self.stats:
+                del self.stats[guild_id]
+
+            # 清空資料庫統計
+            success = await self.db.clear_stats(guild_id)
+            return success
+        except Exception as exc:
+            logger.error(f"清空統計失敗: {exc}")
+            return False
+
+    async def enable_protection(self, guild_id: int) -> bool:
+        """
+        啟用保護
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            是否成功
+        """
+        return await self.update_settings(guild_id, {"enabled": True})
+
+    async def disable_protection(self, guild_id: int) -> bool:
+        """
+        停用保護
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            是否成功
+        """
+        return await self.update_settings(guild_id, {"enabled": False})
+
+    async def clear_whitelist(self, guild_id: int) -> bool:
+        """
+        清空白名單
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            是否成功
+        """
+        try:
+            success = await self.db.clear_whitelist(guild_id)
+            if success and guild_id in self._whitelist_cache:
+                self._whitelist_cache[guild_id].clear()
+            return success
+        except Exception as exc:
+            logger.error(f"清空白名單失敗: {exc}")
+            return False
+
+    async def reset_formats(self, guild_id: int) -> bool:
+        """
+        重置格式為預設值
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            是否成功
+        """
+        try:
+            success = await self.db.reset_custom_formats(guild_id)
+            if success and guild_id in self._custom_formats_cache:
+                del self._custom_formats_cache[guild_id]
+            return success
+        except Exception as exc:
+            logger.error(f"重置格式失敗: {exc}")
+            return False
+
+    async def export_stats(self, guild_id: int) -> str:
+        """
+        匯出統計資料
+
+        Args:
+            guild_id: 伺服器ID
+
+        Returns:
+            匯出的統計資料字串
+        """
+        try:
+            stats = await self.get_stats(guild_id)
+            # 這裡可以實現更詳細的匯出邏輯
+            return f"統計資料匯出功能開發中... 目前統計: {stats}"
+        except Exception as exc:
+            logger.error(f"匯出統計失敗: {exc}")
+            return "匯出失敗"

@@ -222,7 +222,6 @@ class ActivityPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="關閉面板",
                     style=discord.ButtonStyle.secondary,
-                    emoji="❌",
                     callback=self.close_callback,
                 ),
             ]
@@ -433,7 +432,7 @@ class ActivityPanelView(StandardPanelView):
             preview_button = self.create_standard_button(
                 label="預覽排行榜",
                 style=discord.ButtonStyle.primary,
-                emoji="👁️",
+                ,
                 callback=self.preview_style_callback,
             )
             preview_button.row = 2
@@ -442,7 +441,7 @@ class ActivityPanelView(StandardPanelView):
             close_button = self.create_standard_button(
                 label="關閉面板",
                 style=discord.ButtonStyle.secondary,
-                emoji="❌",
+                ,
                 callback=self.close_callback,
             )
             close_button.row = 3
@@ -485,7 +484,7 @@ class ActivityPanelView(StandardPanelView):
             preview_button = self.create_standard_button(
                 label="進度條預覽",
                 style=discord.ButtonStyle.primary,
-                emoji="📊",
+                ,
                 custom_id="preview_progress",
             )
             preview_button.row = 3  # 明確指定行,避免與設定頁面衝突
@@ -503,7 +502,7 @@ class ActivityPanelView(StandardPanelView):
             ranking_button = self.create_standard_button(
                 label="排行榜",
                 style=discord.ButtonStyle.primary,
-                emoji="🏆",
+                ,
                 custom_id="show_ranking",
             )
             ranking_button.row = 3  # 明確指定行,避免與設定頁面衝突
@@ -513,7 +512,7 @@ class ActivityPanelView(StandardPanelView):
             trend_button = self.create_standard_button(
                 label="趨勢分析",
                 style=discord.ButtonStyle.secondary,
-                emoji="📈",
+                ,
                 custom_id="show_trend",
             )
             trend_button.row = 3  # 與排行榜按鈕在同一行
@@ -538,7 +537,7 @@ class ActivityPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="設定",
                     style=discord.ButtonStyle.primary,
-                    emoji="⚙",
+                    ,
                     callback=self.settings_callback,
                 ),
                 self.create_standard_button(
@@ -550,7 +549,7 @@ class ActivityPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="關閉面板",
                     style=discord.ButtonStyle.danger,
-                    emoji="❌",
+                    ,
                     callback=self.close_callback,
                 ),
             ]
@@ -570,7 +569,7 @@ class ActivityPanelView(StandardPanelView):
                 close_button = self.create_standard_button(
                     label="關閉",
                     style=discord.ButtonStyle.danger,
-                    emoji="❌",
+                    ,
                     callback=self.close_callback,
                 )
                 close_button.row = 0
@@ -584,7 +583,7 @@ class ActivityPanelView(StandardPanelView):
         return self.create_standard_button(
             label="重新整理",
             style=discord.ButtonStyle.secondary,
-            emoji="🔄",
+            ,
             callback=self.refresh_callback,
         )
 
@@ -593,7 +592,7 @@ class ActivityPanelView(StandardPanelView):
         return self.create_standard_button(
             label="設定",
             style=discord.ButtonStyle.primary,
-            emoji="⚙",
+            ,
             callback=self.settings_callback,
         )
 
@@ -602,7 +601,7 @@ class ActivityPanelView(StandardPanelView):
         return self.create_standard_button(
             label="統計",
             style=discord.ButtonStyle.primary,
-            emoji="📊",
+            ,
             callback=self.stats_callback,
         )
 
@@ -835,7 +834,7 @@ class ActivityPanelView(StandardPanelView):
         )
 
         embed.add_field(
-            name="💡 提示",
+                            name="提示",
             value="如果問題持續存在,請重新開啟面板或聯繫管理員",
             inline=False,
         )
@@ -1351,7 +1350,7 @@ class ProgressBarPreviewButton(discord.ui.Button):
 
     def __init__(self, view):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="預覽進度條風格", emoji="👁️", row=1
+            style=discord.ButtonStyle.primary, label="預覽進度條風格", row=1
         )
         # 在 Discord.py 2.5.2 中,不能直接設置屬性
         # 使用 __dict__ 來設置 view 屬性

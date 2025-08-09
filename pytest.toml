@@ -1,71 +1,81 @@
+# pytest 配置文件 - Discord 機器人測試
+
 [tool.pytest.ini_options]
-# Pytest 配置
-
-# 測試目錄
+# 測試發現
 testpaths = ["tests"]
-
-# Python 文件模式
 python_files = ["test_*.py", "*_test.py"]
-
-# Python 類別模式
 python_classes = ["Test*"]
-
-# Python 函數模式
 python_functions = ["test_*"]
 
-# 額外的命令列選項
-addopts = [
-    "-v",                           # 詳細輸出
-    "--strict-markers",             # 嚴格標記模式
-    "--tb=short",                   # 簡潔的錯誤追蹤
-    "--asyncio-mode=auto",          # 自動異步模式
-    "--disable-warnings",           # 禁用警告
-]
-
-# 異步測試配置
+# 異步支援
 asyncio_mode = "auto"
 
-# 測試標記
+# 輸出選項
+addopts = [
+    "-v",                          # 詳細輸出
+    "--strict-markers",            # 嚴格標記模式
+    "--strict-config",             # 嚴格配置模式
+    "--tb=short",                  # 簡短traceback
+    "--maxfail=3",                 # 最多失敗3次後停止
+    "--disable-warnings",          # 禁用警告
+    "--color=yes",                 # 彩色輸出
+]
+
+# 標記定義
 markers = [
-    "unit: 單元測試標記",
-    "integration: 整合測試標記", 
-    "security: 安全測試標記",
-    "performance: 效能測試標記",
-    "database: 資料庫測試標記",
-    "slow: 緩慢測試標記",
-    "network: 需要網路的測試",
-    "mock: 使用Mock對象的測試"
+    # 測試類型標記
+    "unit: 單元測試",
+    "integration: 整合測試",
+    "performance: 效能測試",
+    "security: 安全測試",
+    "slow: 慢速測試 (>5秒)",
+    "fast: 快速測試 (<1秒)",
+    
+    # Discord 相關標記
+    "mock: 使用 Mock 的測試",
+    "panel: UI 面板互動測試",
+    "embed: Discord 嵌入訊息測試",
+    "command: 斜線指令測試",
+    "dpytest: 使用 dpytest 框架的測試",
+    
+    # 資料庫標記
+    "database: 資料庫相關測試",
+    "memory_db: 使用記憶體資料庫的測試",
+    "isolated_db: 使用隔離資料庫的測試",
+    
+    # 功能模組標記
+    "activity_meter: 活躍度系統測試",
+    "achievement: 成就系統測試",
+    "welcome: 歡迎系統測試",
+    "protection: 保護系統測試",
+    "government: 政府系統測試",
+    "currency: 貨幣系統測試",
+    "sync_data: 資料同步測試",
+    "message_listener: 訊息監聽測試",
+    
+    # 網路相關標記
+    "network: 需要網路連接的測試",
+    "offline: 離線測試",
+    "external_api: 外部 API 測試",
+    
+    # 錯誤處理標記
+    "error_handling: 錯誤處理測試",
+    "timeout: 超時測試",
+    "retry: 重試機制測試",
 ]
 
-# 最低Python版本
-minversion = "6.0"
-
-# 測試發現模式
-testmon_noselect = true
-
-# 日誌配置
-log_auto_indent = true
-log_cli = true
-log_cli_level = "INFO"
-log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
-log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-
-# 過濾警告
-filterwarnings = [
-    "ignore::UserWarning",
-    "ignore::DeprecationWarning",
-    "ignore::pytest.PytestUnraisableExceptionWarning"
-]
-
-# 覆蓋率配置（如果使用 pytest-cov）
+# 測試覆蓋率
 [tool.coverage.run]
-source = ["src/cogs/achievement"]
+source = ["src"]
 omit = [
-    "tests/*",
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
     "*/migrations/*",
     "*/venv/*",
-    "*/__pycache__/*"
+    "*/.venv/*",
 ]
+parallel = true
 
 [tool.coverage.report]
 exclude_lines = [
@@ -76,11 +86,28 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
     "if 0:",
-    "if __name__ == .__main__.:"
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
 ]
-
+ignore_errors = true
 show_missing = true
 precision = 2
 
 [tool.coverage.html]
 directory = "htmlcov"
+
+# 效能測試配置
+[tool.pytest.benchmark]
+only_run_when_measuring = true
+min_rounds = 5
+max_time = 2.0
+min_time = 0.005
+warmup = false
+warmup_iterations = 100000
+disable_gc = true
+timer = "perf_counter"
+
+# 測試數據生成
+[tool.pytest.factoryboy]
+# Factory Boy 配置(如需要)

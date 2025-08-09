@@ -297,8 +297,8 @@ class SecureAdminPanel(SecurityPanelMixin, AdminPanel):
                 name="歷史追蹤",
                 value=(
                     "• 📝 所有管理操作記錄\n"
-                    "• 🎯 詳細的操作資料變更\n"
-                    "• 👤 執行者資訊追蹤\n"
+                    "• 詳細的操作資料變更\n"
+                    "• 執行者資訊追蹤\n"
                     "• ⏰ 完整的時間軸記錄"
                 ),
                 inline=True,
@@ -330,7 +330,7 @@ class SecurityOverviewView(ui.View):
         super().__init__(timeout=900)  # 15分鐘超時
         self.admin_panel = admin_panel
 
-    @ui.button(label="審計日誌", emoji="📋", style=discord.ButtonStyle.primary)
+    @ui.button(label="審計日誌", style=discord.ButtonStyle.primary)
     async def audit_logs_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -339,7 +339,7 @@ class SecurityOverviewView(ui.View):
             interaction, SecurityPanelState.AUDIT_LOGS
         )
 
-    @ui.button(label="操作歷史", emoji="📊", style=discord.ButtonStyle.primary)
+    @ui.button(label="操作歷史", style=discord.ButtonStyle.primary)
     async def operation_history_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -348,7 +348,7 @@ class SecurityOverviewView(ui.View):
             interaction, SecurityPanelState.OPERATION_HISTORY
         )
 
-    @ui.button(label="權限管理", emoji="🛡️", style=discord.ButtonStyle.secondary)
+    @ui.button(label="權限管理", style=discord.ButtonStyle.secondary)
     async def permission_management_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -357,7 +357,7 @@ class SecurityOverviewView(ui.View):
             interaction, SecurityPanelState.PERMISSION_MANAGEMENT
         )
 
-    @ui.button(label="安全設定", emoji="⚙️", style=discord.ButtonStyle.secondary)
+    @ui.button(label="安全設定", style=discord.ButtonStyle.secondary)
     async def security_settings_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -366,7 +366,7 @@ class SecurityOverviewView(ui.View):
             interaction, SecurityPanelState.SECURITY_SETTINGS
         )
 
-    @ui.button(label="返回主面板", emoji="🏠", style=discord.ButtonStyle.success, row=1)
+    @ui.button(label="返回主面板", style=discord.ButtonStyle.success, row=1)
     async def back_to_main_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -381,7 +381,7 @@ class AuditLogsView(ui.View):
         super().__init__(timeout=900)
         self.admin_panel = admin_panel
 
-    @ui.button(label="查詢最近事件", emoji="🔍", style=discord.ButtonStyle.primary)
+    @ui.button(label="查詢最近事件", style=discord.ButtonStyle.primary)
     async def query_recent_events(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -437,7 +437,7 @@ class AuditLogsView(ui.View):
             logger.error(f"[審計日誌]查詢最近事件失敗: {e}")
             await interaction.followup.send("❌ 查詢審計事件時發生錯誤", ephemeral=True)
 
-    @ui.button(label="高風險事件", emoji="⚠️", style=discord.ButtonStyle.danger)
+    @ui.button(label="高風險事件", style=discord.ButtonStyle.danger)
     async def query_high_risk_events(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -497,7 +497,7 @@ class AuditLogsView(ui.View):
                 "❌ 查詢高風險事件時發生錯誤", ephemeral=True
             )
 
-    @ui.button(label="生成報告", emoji="📊", style=discord.ButtonStyle.secondary)
+    @ui.button(label="生成報告", style=discord.ButtonStyle.secondary)
     async def generate_audit_report(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -566,7 +566,7 @@ class AuditLogsView(ui.View):
             await interaction.followup.send("❌ 生成審計報告時發生錯誤", ephemeral=True)
 
     @ui.button(
-        label="返回安全面板", emoji="🔒", style=discord.ButtonStyle.success, row=1
+        label="返回安全面板", style=discord.ButtonStyle.success, row=1
     )
     async def back_to_security_button(
         self, interaction: discord.Interaction, _button: ui.Button
@@ -584,7 +584,7 @@ class OperationHistoryView(ui.View):
         super().__init__(timeout=900)
         self.admin_panel = admin_panel
 
-    @ui.button(label="最近操作", emoji="📝", style=discord.ButtonStyle.primary)
+    @ui.button(label="最近操作", style=discord.ButtonStyle.primary)
     async def recent_operations(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -642,7 +642,7 @@ class OperationHistoryView(ui.View):
             logger.error(f"[操作歷史]查詢最近操作失敗: {e}")
             await interaction.followup.send("❌ 查詢操作歷史時發生錯誤", ephemeral=True)
 
-    @ui.button(label="操作分析", emoji="📊", style=discord.ButtonStyle.secondary)
+    @ui.button(label="操作分析", style=discord.ButtonStyle.secondary)
     async def operation_analysis(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -689,7 +689,7 @@ class OperationHistoryView(ui.View):
                         reverse=True,
                     )[:5]
                 ])
-                embed.add_field(name="🎯 主要操作類型", value=action_stats, inline=True)
+                embed.add_field(name="主要操作類型", value=action_stats, inline=True)
 
             if analysis.most_active_executors:
                 executor_stats = ""
@@ -716,7 +716,7 @@ class OperationHistoryView(ui.View):
             await interaction.followup.send("❌ 進行操作分析時發生錯誤", ephemeral=True)
 
     @ui.button(
-        label="返回安全面板", emoji="🔒", style=discord.ButtonStyle.success, row=1
+        label="返回安全面板", style=discord.ButtonStyle.success, row=1
     )
     async def back_to_security_button(
         self, interaction: discord.Interaction, _button: ui.Button

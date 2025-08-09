@@ -41,7 +41,7 @@ class EnableButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="啟用保護", style=discord.ButtonStyle.green, emoji="🟢"
+            view=view, label="啟用保護", style=discord.ButtonStyle.green
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -58,7 +58,7 @@ class DisableButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="停用保護", style=discord.ButtonStyle.red, emoji="🔴"
+            view=view, label="停用保護", style=discord.ButtonStyle.red
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -75,7 +75,7 @@ class SettingsButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="進階設定", style=discord.ButtonStyle.secondary, emoji="⚙️"
+            view=view, label="進階設定", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -89,7 +89,7 @@ class HelpButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="使用說明", style=discord.ButtonStyle.secondary, emoji="❓"
+            view=view, label="使用說明", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -102,19 +102,32 @@ class HelpButton(BaseButton):
 
         embed.add_field(
             name="🔧 功能說明",
-            value="• 自動檢測並攔截可執行檔案\n• 支援多種檔案格式檢測\n• 白名單和黑名單管理\n• 詳細的攔截統計",
+            value=(
+                "• 自動檢測並攔截可執行檔案\n"
+                "• 支援多種檔案格式檢測\n"
+                "• 白名單和黑名單管理\n"
+                "• 詳細的攔截統計"
+            ),
             inline=False,
         )
 
         embed.add_field(
             name="⚙️ 設定選項",
-            value="• 刪除訊息:自動刪除違規訊息\n• 管理員通知:向管理員發送通知\n• 用戶警告:向用戶發送警告訊息",
+            value=(
+                "• 刪除訊息:自動刪除違規訊息\n"
+                "• 管理員通知:向管理員發送通知\n"
+                "• 用戶警告:向用戶發送警告訊息"
+            ),
             inline=False,
         )
 
         embed.add_field(
             name="📋 清單管理",
-            value="• 白名單:允許的檔案格式或網域\n• 黑名單:直接攔截的項目\n• 格式管理:設定檢測的檔案格式",
+            value=(
+                "• 白名單:允許的檔案格式或網域\n"
+                "• 黑名單:直接攔截的項目\n"
+                "• 格式管理:設定檢測的檔案格式"
+            ),
             inline=False,
         )
 
@@ -127,7 +140,7 @@ class AddWhitelistButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="新增項目", style=discord.ButtonStyle.green, emoji="+"
+            view=view, label="新增項目", style=discord.ButtonStyle.green
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -141,7 +154,7 @@ class RemoveWhitelistButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="移除項目", style=discord.ButtonStyle.red, emoji="-"
+            view=view, label="移除項目", style=discord.ButtonStyle.red
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -155,7 +168,7 @@ class ClearWhitelistButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="清空白名單", style=discord.ButtonStyle.red, emoji="🗑️"
+            view=view, label="清空白名單", style=discord.ButtonStyle.red
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -173,7 +186,7 @@ class AddBlacklistButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="新增項目", style=discord.ButtonStyle.green, emoji="+"
+            view=view, label="新增項目", style=discord.ButtonStyle.green
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -187,7 +200,7 @@ class RemoveBlacklistButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="移除項目", style=discord.ButtonStyle.red, emoji="-"
+            view=view, label="移除項目", style=discord.ButtonStyle.red
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -201,7 +214,7 @@ class RefreshBlacklistButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="重新整理", style=discord.ButtonStyle.secondary, emoji="🔄"
+            view=view, label="重新整理", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -218,7 +231,7 @@ class AddFormatButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="新增格式", style=discord.ButtonStyle.green, emoji="+"
+            view=view, label="新增格式", style=discord.ButtonStyle.green
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -232,7 +245,7 @@ class RemoveFormatButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="移除格式", style=discord.ButtonStyle.red, emoji="-"
+            view=view, label="移除格式", style=discord.ButtonStyle.red
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -246,7 +259,7 @@ class ResetFormatsButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="重置格式", style=discord.ButtonStyle.secondary, emoji="🔄"
+            view=view, label="重置格式", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -264,7 +277,7 @@ class ClearStatsButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="清空統計", style=discord.ButtonStyle.red, emoji="🗑️"
+            view=view, label="清空統計", style=discord.ButtonStyle.red
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -281,7 +294,7 @@ class ExportStatsButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="匯出統計", style=discord.ButtonStyle.secondary, emoji="📊"
+            view=view, label="匯出統計", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -301,7 +314,7 @@ class RefreshStatsButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="重新整理", style=discord.ButtonStyle.secondary, emoji="🔄"
+            view=view, label="重新整理", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -318,7 +331,7 @@ class PrevPageButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="上一頁", style=discord.ButtonStyle.secondary, emoji="⬅️"
+            view=view, label="上一頁", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -331,7 +344,7 @@ class NextPageButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="下一頁", style=discord.ButtonStyle.secondary, emoji="➡️"
+            view=view, label="下一頁", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -345,7 +358,7 @@ class CloseButton(BaseButton):
 
     def __init__(self, view: AntiExecutableMainView):
         super().__init__(
-            view=view, label="關閉面板", style=discord.ButtonStyle.secondary, emoji="✖️"
+            view=view, label="關閉面板", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction):

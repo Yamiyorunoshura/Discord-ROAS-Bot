@@ -224,7 +224,7 @@ def run(
 
     try:
         asyncio.run(main())
-        console.print("👋 [green]Thank you for using Discord ADR Bot![/green]")
+        console.print("[green]Thank you for using Discord ADR Bot![/green]")
     except KeyboardInterrupt:
         console.print("\n🛑 [yellow]Application interrupted[/yellow]")
     except Exception as e:
@@ -333,7 +333,7 @@ def validate_config(
                 except Exception as e:
                     console.print(f"⚠️  Could not show configuration sources: {e}")
 
-            console.print("\n🎉 [green]All configuration checks passed![/green]")
+            console.print("\n[green]All configuration checks passed![/green]")
 
         except Exception as e:
             console.print(f"❌ [red]Configuration validation failed: {e}[/red]")

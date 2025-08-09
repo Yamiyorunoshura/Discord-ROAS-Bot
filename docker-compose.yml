@@ -84,6 +84,10 @@ volumes:
     driver: local
   grafana-data:
     driver: local
+  redis-data:
+    driver: local
+  loki-data:
+    driver: local
 
 # ============================================================================
 # 服務定義
@@ -132,6 +136,7 @@ services:
         reservations:
           cpus: '0.5'
           memory: 256M
+    command: ["run"]
 
   # 開發環境服務
   discord-bot-dev:
@@ -153,7 +158,7 @@ services:
     ports:
       - "8080:8080"  # API 端口
       - "5678:5678"  # 除錯端口
-    command: ["--development", "--reload"]
+    command: ["run", "--development", "--reload"]
     profiles:
       - dev
     stdin_open: true
@@ -332,11 +337,11 @@ services:
 # ============================================================================
 # 額外資料卷 (監控和快取)
 # ============================================================================
-volumes:
-  redis-data:
-    driver: local
-  loki-data:
-    driver: local
+# volumes:
+#   redis-data:
+#     driver: local
+#   loki-data:
+#     driver: local
 
 # ============================================================================
 # 開發環境 Compose 覆蓋範例

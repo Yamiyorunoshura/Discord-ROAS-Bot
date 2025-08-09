@@ -86,28 +86,31 @@ class GovernmentPanelView(discord.ui.View):
 
         # 主要功能按鈕 (Row 0)
         refresh_btn = discord.ui.Button(
-            label="🔄 重新整理",
+            label="重新整理",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_refresh",
             row=0,
+
         )
         refresh_btn.callback = self.refresh_button
         self.add_item(refresh_btn)
 
         search_btn = discord.ui.Button(
-            label="🔍 搜尋",
+            label="搜尋",
             style=discord.ButtonStyle.primary,
             custom_id="roas_gov_search",
             row=0,
+
         )
         search_btn.callback = self.search_button
         self.add_item(search_btn)
 
         filter_btn = discord.ui.Button(
-            label="📋 篩選",
+            label="篩選",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_filter",
             row=0,
+
         )
         filter_btn.callback = self.filter_button
         self.add_item(filter_btn)
@@ -115,11 +118,12 @@ class GovernmentPanelView(discord.ui.View):
         # 分頁控制 (Row 1)
         if self._needs_pagination():
             prev_btn = discord.ui.Button(
-                label="◀️ 上一頁",
+                label="上一頁",
                 style=discord.ButtonStyle.secondary,
                 custom_id="roas_gov_prev",
                 row=1,
                 disabled=(self.current_page == 0),
+
             )
             prev_btn.callback = self.prev_button
             self.add_item(prev_btn)
@@ -129,11 +133,12 @@ class GovernmentPanelView(discord.ui.View):
             total_pages = self._calculate_total_pages(filtered_departments)
 
             next_btn = discord.ui.Button(
-                label="下一頁 ▶️",
+                label="下一頁",
                 style=discord.ButtonStyle.secondary,
                 custom_id="roas_gov_next",
                 row=1,
                 disabled=(self.current_page >= total_pages - 1),
+
             )
             next_btn.callback = self.next_button
             self.add_item(next_btn)
@@ -141,19 +146,21 @@ class GovernmentPanelView(discord.ui.View):
         # 管理員控制 (Row 2)
         if self._is_admin():
             manage_btn = discord.ui.Button(
-                label="⚙️ 管理",
+                label="管理",
                 style=discord.ButtonStyle.danger,
                 custom_id="roas_gov_manage",
                 row=2,
+
             )
             manage_btn.callback = self.manage_button
             self.add_item(manage_btn)
 
             sync_btn = discord.ui.Button(
-                label="🔄 同步角色",
+                label="同步角色",
                 style=discord.ButtonStyle.secondary,
                 custom_id="roas_gov_sync_roles",
                 row=2,
+
             )
             sync_btn.callback = self.sync_roles_button
             self.add_item(sync_btn)

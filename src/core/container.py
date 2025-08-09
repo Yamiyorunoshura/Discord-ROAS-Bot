@@ -36,7 +36,7 @@ except ImportError:
     # 如果無法導入舊模組,使用佔位符
     MultiLevelCache = None  # type: ignore[assignment]
     get_global_cache_manager = None  # type: ignore[assignment]
-    HealthChecker = None  # type: ignore[assignment]  
+    HealthChecker = None  # type: ignore[assignment]
     get_health_checker = None  # type: ignore[assignment]
 
 T = TypeVar("T")

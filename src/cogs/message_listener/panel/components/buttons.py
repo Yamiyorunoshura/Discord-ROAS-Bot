@@ -12,7 +12,7 @@ class SmartBatchConfigButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="智能批量設定", emoji="🧠", row=0
+            style=discord.ButtonStyle.primary, label="智能批量設定", row=0
         )
         self.cog = cog
 
@@ -61,7 +61,7 @@ class SmartBatchConfigButton(Button):
                 )
 
             embed.add_field(
-                name="💡 智能特性",
+                name="智能特性",
                 value=(
                     "✅ 內容長度動態調整\n"
                     "✅ 附件數量智能識別\n"
@@ -84,7 +84,7 @@ class RenderQualityButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="渲染品質", emoji="🎨", row=0
+            style=discord.ButtonStyle.secondary, label="渲染品質", row=0
         )
         self.cog = cog
 
@@ -99,7 +99,7 @@ class FontSettingsButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="字體設定", emoji="🔤", row=0
+            style=discord.ButtonStyle.secondary, label="字體設定", row=0
         )
         self.cog = cog
 
@@ -114,7 +114,7 @@ class ColorThemeButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="顏色主題", emoji="🌈", row=1
+            style=discord.ButtonStyle.secondary, label="顏色主題", row=1
         )
         self.cog = cog
 
@@ -134,7 +134,7 @@ class RenderPreviewButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.success, label="渲染預覽", emoji="👁️", row=1
+            style=discord.ButtonStyle.success, label="渲染預覽", row=1
         )
         self.cog = cog
 
@@ -405,31 +405,26 @@ class ColorThemeSelect(Select):
             discord.SelectOption(
                 label="Discord 預設",
                 description="使用 Discord 官方預設顏色",
-                emoji="🎮",
                 value="discord_default",
             ),
             discord.SelectOption(
                 label="明亮主題",
                 description="明亮清爽的顏色搭配",
-                emoji="☀️",
                 value="light_theme",
             ),
             discord.SelectOption(
                 label="高對比主題",
                 description="高對比度,適合視覺輔助",
-                emoji="🔍",
                 value="high_contrast",
             ),
             discord.SelectOption(
                 label="護眼主題",
                 description="柔和的護眼色調",
-                emoji="👁️",
                 value="eye_care",
             ),
             discord.SelectOption(
                 label="彩虹主題",
                 description="豐富多彩的顏色組合",
-                emoji="🌈",
                 value="rainbow",
             ),
         ]
@@ -523,7 +518,7 @@ class HelpButton(Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="幫助", emoji="❓", row=2
+            style=discord.ButtonStyle.secondary, label="幫助", row=2
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -562,7 +557,7 @@ class AdjustBatchSize(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="調整批量大小", emoji="📊", row=2
+            style=discord.ButtonStyle.secondary, label="調整批量大小", row=2
         )
         self.cog = cog
 
@@ -581,7 +576,7 @@ class AdjustBatchTime(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="調整批量時間", emoji="⏰", row=2
+            style=discord.ButtonStyle.secondary, label="調整批量時間", row=2
         )
         self.cog = cog
 
@@ -638,7 +633,7 @@ class ToggleEdits(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="編輯監控", emoji="✏️", row=3
+            style=discord.ButtonStyle.secondary, label="編輯監控", row=3
         )
         self.cog = cog
 
@@ -675,7 +670,7 @@ class ToggleDeletes(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="刪除監控", emoji="🗑️", row=3
+            style=discord.ButtonStyle.secondary, label="刪除監控", row=3
         )
         self.cog = cog
 
@@ -712,13 +707,13 @@ class CloseButton(Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.danger, label="關閉", emoji="❌", row=4
+            style=discord.ButtonStyle.danger, label="關閉", row=4
         )
 
     async def callback(self, interaction: discord.Interaction):
         """關閉回調"""
         embed = discord.Embed(
-            title="👋 面板已關閉",
+            title="面板已關閉",
             description="感謝使用訊息監聽器設定面板!",
             color=discord.Color.green(),
         )
@@ -767,7 +762,7 @@ class FullPreviewButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="完整預覽", emoji="🎨", row=0
+            style=discord.ButtonStyle.primary, label="完整預覽", row=0
         )
         self.cog = cog
 
@@ -783,7 +778,7 @@ class QuickPreviewButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="快速預覽", emoji="⚡", row=0
+            style=discord.ButtonStyle.secondary, label="快速預覽", row=0
         )
         self.cog = cog
 
@@ -821,7 +816,7 @@ class PreviewSettingsButton(Button):
 
     def __init__(self, cog):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="預覽設定", emoji="⚙️", row=0
+            style=discord.ButtonStyle.secondary, label="預覽設定", row=0
         )
         self.cog = cog
 
@@ -837,13 +832,13 @@ class ClosePreviewButton(Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="關閉", emoji="❌", row=1
+            style=discord.ButtonStyle.secondary, label="關閉", row=1
         )
 
     async def callback(self, interaction: discord.Interaction):
         """關閉預覽回調"""
         embed = discord.Embed(
-            title="👋 預覽面板已關閉",
+            title="預覽面板已關閉",
             description="感謝使用預覽功能!",
             color=discord.Color.green(),
         )
@@ -895,7 +890,7 @@ class SimplePreviewModal(Modal):
             )
 
             embed.add_field(
-                name="👤 用戶資訊",
+                name="用戶資訊",
                 value=f"用戶名稱:{self.username.value}",
                 inline=False,
             )

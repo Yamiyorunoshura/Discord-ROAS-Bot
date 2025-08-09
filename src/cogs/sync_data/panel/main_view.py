@@ -95,7 +95,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="完整同步",
                 style="primary",
-                emoji="🔄",
+                ,
                 callback=self.full_sync_callback,
             )
         )
@@ -104,7 +104,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="角色同步",
                 style="secondary",
-                emoji="👥",
+                ,
                 callback=self.roles_sync_callback,
             )
         )
@@ -113,7 +113,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="頻道同步",
                 style="secondary",
-                emoji="📝",
+                ,
                 callback=self.channels_sync_callback,
             )
         )
@@ -122,7 +122,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="停止同步",
                 style="danger",
-                emoji="⏹️",
+                ,
                 callback=self.stop_sync_callback,
             )
         )
@@ -130,7 +130,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="同步資料",
                 style="success",
-                emoji="🔄",
+                ,
                 callback=self.sync_data_callback,
             )
         )
@@ -139,7 +139,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="同步歷史",
                 style="secondary",
-                emoji="📜",
+                ,
                 callback=self.sync_history_callback,
             )
         )
@@ -148,7 +148,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="重新整理",
                 style="secondary",
-                emoji="🔄",
+                ,
                 callback=self.refresh_callback,
             )
         )
@@ -156,7 +156,7 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="匯出記錄",
                 style="secondary",
-                emoji="📤",
+                ,
                 callback=self.export_logs_callback,
             )
         )
@@ -165,14 +165,14 @@ class SyncDataMainView(StandardPanelView):
             self.create_standard_button(
                 label="清除記錄",
                 style="danger",
-                emoji="🗑️",
+                ,
                 callback=self.clear_logs_callback,
             )
         )
 
         self.add_item(
             self.create_standard_button(
-                label="關閉", style="danger", emoji="❌", callback=self.close_callback
+                label="關閉", style="danger", callback=self.close_callback
             )
         )
 
@@ -487,7 +487,7 @@ class ConfirmClearLogsView(discord.ui.View):
         super().__init__(timeout=30)
         self.parent_view = parent_view
 
-    @discord.ui.button(label="確認清除", style=discord.ButtonStyle.danger, emoji="⚠️")
+    @discord.ui.button(label="確認清除", style=discord.ButtonStyle.danger)
     async def confirm_clear(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -519,7 +519,7 @@ class ConfirmClearLogsView(discord.ui.View):
             )
             await interaction.response.edit_message(embed=error_embed, view=self)
 
-    @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary, emoji="❌")
+    @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary)
     async def cancel_clear(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):

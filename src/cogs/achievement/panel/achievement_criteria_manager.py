@@ -74,7 +74,7 @@ class AchievementCriteriaManager:
     async def _create_criteria_overview_embed(self) -> discord.Embed:
         """創建條件概覽 Embed."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "🎯 成就條件編輯器",
+            "成就條件編輯器",
             f"**成就名稱**: {self.current_achievement.name}\n"
             f"**成就類型**: {self.current_achievement.type.value}\n"
             f"**當前條件**: {len(self.current_criteria)} 個條件",
@@ -137,7 +137,7 @@ class CriteriaEditorView(ui.View):
         super().__init__(timeout=600)
         self.criteria_manager = criteria_manager
 
-    @ui.button(label="訊息數量條件", style=discord.ButtonStyle.primary, emoji="💬")
+    @ui.button(label="訊息數量條件", style=discord.ButtonStyle.primary)
     async def message_count_criteria(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -145,7 +145,7 @@ class CriteriaEditorView(ui.View):
         modal = MessageCountCriteriaModal(self.criteria_manager)
         await interaction.response.send_modal(modal)
 
-    @ui.button(label="關鍵字條件", style=discord.ButtonStyle.primary, emoji="🔍")
+    @ui.button(label="關鍵字條件", style=discord.ButtonStyle.primary)
     async def keyword_criteria(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -153,13 +153,13 @@ class CriteriaEditorView(ui.View):
         modal = KeywordCriteriaModal(self.criteria_manager)
         await interaction.response.send_modal(modal)
 
-    @ui.button(label="時間條件", style=discord.ButtonStyle.primary, emoji="⏰")
+    @ui.button(label="時間條件", style=discord.ButtonStyle.primary)
     async def time_criteria(self, interaction: discord.Interaction, _button: ui.Button):
         """設置時間條件."""
         modal = TimeCriteriaModal(self.criteria_manager)
         await interaction.response.send_modal(modal)
 
-    @ui.button(label="複合條件", style=discord.ButtonStyle.secondary, emoji="🔗")
+    @ui.button(label="複合條件", style=discord.ButtonStyle.secondary)
     async def complex_criteria(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -170,7 +170,7 @@ class CriteriaEditorView(ui.View):
         )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @ui.button(label="預覽並保存", style=discord.ButtonStyle.success, emoji="💾")
+    @ui.button(label="預覽並保存", style=discord.ButtonStyle.success)
     async def preview_and_save(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -440,13 +440,13 @@ class ComplexCriteriaView(ui.View):
         super().__init__(timeout=300)
         self.criteria_manager = criteria_manager
 
-    @ui.button(label="AND 邏輯", style=discord.ButtonStyle.primary, emoji="+")
+    @ui.button(label="AND 邏輯", style=discord.ButtonStyle.primary)
     async def and_logic(self, interaction: discord.Interaction, _button: ui.Button):
         """設置 AND 邏輯條件."""
         modal = ComplexCriteriaModal(self.criteria_manager, "AND")
         await interaction.response.send_modal(modal)
 
-    @ui.button(label="OR 邏輯", style=discord.ButtonStyle.secondary, emoji="🔀")
+    @ui.button(label="OR 邏輯", style=discord.ButtonStyle.secondary)
     async def or_logic(self, interaction: discord.Interaction, _button: ui.Button):
         """設置 OR 邏輯條件."""
         modal = ComplexCriteriaModal(self.criteria_manager, "OR")
@@ -498,7 +498,7 @@ class SaveConfirmationView(ui.View):
         super().__init__(timeout=300)
         self.criteria_manager = criteria_manager
 
-    @ui.button(label="確認保存", style=discord.ButtonStyle.success, emoji="✅")
+    @ui.button(label="確認保存", style=discord.ButtonStyle.success)
     async def confirm_save(self, interaction: discord.Interaction, _button: ui.Button):
         """確認保存條件."""
         try:
@@ -522,7 +522,7 @@ class SaveConfirmationView(ui.View):
             logger.error(f"確認保存失敗: {e}")
             await interaction.followup.send("❌ 保存時發生錯誤", ephemeral=True)
 
-    @ui.button(label="取消", style=discord.ButtonStyle.secondary, emoji="❌")
+    @ui.button(label="取消", style=discord.ButtonStyle.secondary)
     async def cancel_save(self, interaction: discord.Interaction, _button: ui.Button):
         """取消保存."""
         embed = StandardEmbedBuilder.create_info_embed(

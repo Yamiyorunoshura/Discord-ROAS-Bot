@@ -682,7 +682,7 @@ class PerformanceAnalyzer:
                 ])
 
         if medium_bottlenecks:
-            recommendations.append("💡 中優先級優化建議:")
+            recommendations.append("中優先級優化建議:")
             for bottleneck in medium_bottlenecks:
                 recommendations.extend([
                     f"  - {rec}" for rec in bottleneck.recommendations

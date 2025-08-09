@@ -111,19 +111,19 @@ class ResetDataView(ui.View):
                 label="🗑️ 完整重置",
                 value="full",
                 description="清除所有成就和進度資料(最危險)",
-                emoji="🗑️",
+                ,
             ),
             discord.SelectOption(
                 label="📁 分類重置",
                 value="category",
                 description="僅重置特定分類的資料",
-                emoji="📁",
+                ,
             ),
             discord.SelectOption(
                 label="📈 進度重置",
                 value="progress_only",
                 description="僅清除進度記錄,保留已獲得的成就",
-                emoji="📈",
+                ,
             ),
         ],
     )
@@ -349,7 +349,7 @@ class CategoryResetView(ui.View):
                     label=category.name[:100],  # 限制長度
                     value=str(category.id),
                     description=f"重置分類「{category.name}」的所有資料"[:100],
-                    emoji="📁",
+                    ,
                 )
             )
 
@@ -466,13 +466,13 @@ class ResetConfirmationView(ui.View):
         embed.color = color
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=f"**用戶**: {member.display_name}\n**ID**: `{member.id}`",
             inline=True,
         )
 
         embed.add_field(
-            name="🎯 重置範圍", value=self._get_reset_scope_description(), inline=True
+                            name="重置範圍", value=self._get_reset_scope_description(), inline=True
         )
 
         embed.add_field(
@@ -704,13 +704,13 @@ class ResetResultView(ui.View):
         )
 
         embed.add_field(
-            name="👤 用戶資訊",
+                            name="用戶資訊",
             value=f"**用戶**: {member.display_name}\n**ID**: `{member.id}`",
             inline=True,
         )
 
         embed.add_field(
-            name="🎯 重置範圍", value=self._get_reset_scope_description(), inline=True
+                            name="重置範圍", value=self._get_reset_scope_description(), inline=True
         )
 
         embed.add_field(
@@ -750,7 +750,7 @@ class ResetResultView(ui.View):
                 "❌ 開啟重置選項時發生錯誤", ephemeral=True
             )
 
-    @ui.button(label="👤 管理此用戶", style=discord.ButtonStyle.secondary)
+    @ui.button(label="管理此用戶", style=discord.ButtonStyle.secondary)
     async def manage_user_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ):

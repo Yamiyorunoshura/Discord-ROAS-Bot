@@ -1,8 +1,8 @@
 """
-反垃圾訊息設定面板嵌入生成器
-- 生成各種設定視圖的嵌入
-- 支援分類和總覽顯示
-- 格式化設定值和說明
+
+- 
+- 
+- 
 """
 
 from typing import TYPE_CHECKING
@@ -19,15 +19,15 @@ async def create_settings_embed(
     cog: "AntiSpam", guild: discord.Guild, category: str = "all"
 ) -> discord.Embed:
     """
-    創建設定嵌入
+    
 
     Args:
-        cog: AntiSpam 模組實例
-        guild: Discord 伺服器物件
-        category: 要顯示的分類 ("all" 或分類ID)
+        cog: AntiSpam 
+        guild: Discord 
+        category:  ("all" ID)
 
     Returns:
-        discord.Embed: 設定嵌入
+        discord.Embed: 
     """
 
     if category == "all":
@@ -39,23 +39,21 @@ async def create_settings_embed(
 async def _create_overview_embed(
     cog: "AntiSpam", guild: discord.Guild
 ) -> discord.Embed:
-    """創建總覽嵌入"""
+    """"""
     embed = discord.Embed(
-        title="🛡️ 反垃圾訊息保護設定",
-        description=f"伺服器:{guild.name}",
+        title="🚫 防洗版系統設定",
+        description=f"🏠 伺服器: {guild.name}",
         color=discord.Color.blue(),
     )
 
-    # 檢查模組是否啟用
     enabled = await cog.get_cfg(guild.id, "enabled", "true")
-    status_emoji = "✅" if enabled and enabled.lower() == "true" else "❌"
+    status_emoji = "🟢" if enabled and enabled.lower() == "true" else "🔴"
     embed.add_field(
         name="📊 系統狀態",
-        value=f"{status_emoji} 模組狀態:{'啟用' if enabled and enabled.lower() == 'true' else '停用'}",
+        value=f"{status_emoji} 狀態: {'已啟用' if enabled and enabled.lower() == 'true' else '已停用'}",
         inline=False,
     )
 
-    # 顯示主要設定摘要
     freq_limit = await cog.get_cfg(
         guild.id, "spam_freq_limit", str(DEFAULTS["spam_freq_limit"])
     )
@@ -71,115 +69,107 @@ async def _create_overview_embed(
 
     embed.add_field(
         name="⚡ 頻率限制",
-        value=f"{freq_limit or DEFAULTS['spam_freq_limit']} 訊息 / {freq_window or DEFAULTS['spam_freq_window']} 秒",
+        value=f"📊 {freq_limit or DEFAULTS['spam_freq_limit']} 則訊息 / {freq_window or DEFAULTS['spam_freq_window']} 秒",
         inline=True,
     )
 
     embed.add_field(
         name="🔄 重複限制",
-        value=f"{identical_limit or DEFAULTS['spam_identical_limit']} 次重複",
+        value=f"📝 {identical_limit or DEFAULTS['spam_identical_limit']} 則相同訊息",
         inline=True,
     )
 
     embed.add_field(
-        name="⚔️ 禁言時間",
-        value=f"{timeout_minutes or DEFAULTS['spam_timeout_minutes']} 分鐘",
+        name="⏰ 禁言時間",
+        value=f"🔕 {timeout_minutes or DEFAULTS['spam_timeout_minutes']} 分鐘",
         inline=True,
     )
 
-    # 通知設定
     notify_channel = await cog.get_cfg(guild.id, "spam_notify_channel", "")
     if notify_channel:
         try:
             channel = guild.get_channel(int(notify_channel))
-            channel_name = channel.name if channel else "已刪除的頻道"
+            channel_name = channel.name if channel else ""
         except Exception:
-            channel_name = "無效頻道"
+            channel_name = ""
     else:
-        channel_name = "未設定"
+        channel_name = ""
 
-    embed.add_field(name="📢 通知設定", value=f"通知頻道:{channel_name}", inline=False)
+    embed.add_field(name="📢 通知頻道", value=f"📺 #{channel_name}", inline=False)
 
-    # 分類說明
     embed.add_field(
-        name="📋 設定分類",
+        name="🎮 快速設定",
         value=(
-            "⚡ **頻率限制** - 訊息發送頻率控制\n"
-            "🔄 **重複/相似** - 重複和相似內容檢測\n"
-            "😀 **貼圖限制** - 貼圖使用頻率控制\n"
-            "⚔️ **處理動作** - 違規處理和通知設定"
+            "🔸 **頻率** - 控制訊息發送頻率\n"
+            "🔸 **重複** - 偵測重複或相似訊息\n"
+            "🔸 **貼圖** - 限制表情貼圖使用\n"
+            "🔸 **動作** - 設定違規時的處理方式"
         ),
         inline=False,
     )
 
-    embed.set_footer(text="選擇上方的分類進行詳細設定")
+    embed.set_footer(text="使用下方按鈕來調整各項設定")
     return embed
 
 
 async def _create_category_embed(
     cog: "AntiSpam", guild: discord.Guild, category_id: str
 ) -> discord.Embed:
-    """創建分類設定嵌入"""
+    """"""
     category = CONFIG_CATEGORIES.get(category_id)
     if not category:
-        # 回退到總覽
         return await _create_overview_embed(cog, guild)
 
-    # 分類圖標
     category_emojis = {
-        "frequency": "⚡",
-        "repeat": "🔄",
-        "sticker": "😀",
-        "action": "⚔️",
+        "frequency": "",
+        "repeat": "",
+        "sticker": "",
+        "action": "",
     }
 
-    emoji = category_emojis.get(category_id, "⚙️")
+    emoji = category_emojis.get(category_id, "")
 
     embed = discord.Embed(
-        title=f"{emoji} {category['name']} 設定",
+        title=f"{emoji} {category['name']} ",
         description=category["desc"],
         color=discord.Color.blue(),
     )
 
-    # 顯示該分類的所有設定項
     for item in category["items"]:
         key = item["key"]
         current_value = await cog.get_cfg(guild.id, key, str(DEFAULTS[key]))
 
-        # 格式化值顯示
         display_value = _format_config_value(
             key, current_value or str(DEFAULTS[key]), guild
         )
 
         embed.add_field(
-            name=f"🔧 {item['name']}",
+            name=f" {item['name']}",
             value=(
-                f"**當前值**: {display_value}\n"
-                f"**說明**: {item['desc']}\n"
-                f"**建議**: {item['recommend']}"
+                f"****: {display_value}\n"
+                f"****: {item['desc']}\n"
+                f"****: {item['recommend']}"
             ),
             inline=False,
         )
 
-    embed.set_footer(text="點擊下方按鈕進行設定或查看其他功能")
+    embed.set_footer(text="")
     return embed
 
 
 def _format_config_value(key: str, value: str, guild: discord.Guild) -> str:
-    """格式化設定值顯示"""
+    """"""
     try:
-        # 定義格式化規則
         formatters = {
             "spam_notify_channel": lambda v: _format_channel_value(v, guild),
-            "spam_response_enabled": lambda v: "啟用"
+            "spam_response_enabled": lambda v: ""
             if v.lower() == "true"
-            else "停用",
-            "spam_timeout_minutes": lambda v: f"{v} 分鐘",
+            else "",
+            "spam_timeout_minutes": lambda v: f"{v} ",
             "spam_similar_threshold": lambda v: f"{float(v):.1%}",
-            "spam_response_message": lambda v: f'"{v}"' if v else "預設訊息",
+            "spam_response_message": lambda v: f'"{v}"' if v else "",
         }
 
-        # 處理多個鍵的通用格式
         limit_keys = [
             "spam_freq_limit",
             "spam_identical_limit",
@@ -193,13 +183,12 @@ def _format_config_value(key: str, value: str, guild: discord.Guild) -> str:
             "spam_sticker_window",
         ]
 
-        # 根據鍵類型進行格式化
         if key in formatters:
             return formatters[key](value)
         elif key in limit_keys:
-            return f"{value} 次"
+            return f"{value} "
         elif key in window_keys:
-            return f"{value} 秒"
+            return f"{value} "
         else:
             return value
 
@@ -208,11 +197,11 @@ def _format_config_value(key: str, value: str, guild: discord.Guild) -> str:
 
 
 def _format_channel_value(value: str, guild: discord.Guild) -> str:
-    """格式化頻道值"""
+    """"""
     if not value or value == "":
-        return "未設定"
+        return ""
     try:
         channel = guild.get_channel(int(value))
-        return f"#{channel.name}" if channel else "無效頻道"
+        return f"#{channel.name}" if channel else ""
     except Exception:
-        return "無效頻道"
+        return ""

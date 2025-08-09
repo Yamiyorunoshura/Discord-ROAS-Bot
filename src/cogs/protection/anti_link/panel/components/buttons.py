@@ -18,7 +18,7 @@ class TutorialButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="📚 使用教學", style=discord.ButtonStyle.secondary, emoji="📚"
+            label="📚 使用教學", style=discord.ButtonStyle.secondary
         )
         self.main_view = view
 
@@ -56,7 +56,7 @@ class EnableButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="🟢 啟用保護", style=discord.ButtonStyle.success, emoji="🟢"
+            label="啟用保護", style=discord.ButtonStyle.success
         )
         self.main_view = view
 
@@ -80,7 +80,7 @@ class DisableButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="🔴 停用保護", style=discord.ButtonStyle.danger, emoji="🔴"
+            label="🔴 停用保護", style=discord.ButtonStyle.danger
         )
         self.main_view = view
 
@@ -104,7 +104,7 @@ class EditSettingsButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="✏️ 編輯設定", style=discord.ButtonStyle.primary, emoji="✏️"
+            label="✏️ 編輯設定", style=discord.ButtonStyle.primary
         )
         self.main_view = view
 
@@ -120,7 +120,7 @@ class ResetSettingsButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="🔄 重置設定", style=discord.ButtonStyle.secondary, emoji="🔄"
+            label="重置設定", style=discord.ButtonStyle.secondary
         )
         self.main_view = view
 
@@ -136,7 +136,7 @@ class AddWhitelistButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="+ 添加白名單", style=discord.ButtonStyle.success, emoji="+"
+            label="+ 添加白名單", style=discord.ButtonStyle.success
         )
         self.main_view = view
 
@@ -152,7 +152,7 @@ class RemoveWhitelistButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="- 移除白名單", style=discord.ButtonStyle.danger, emoji="-"
+            label="- 移除白名單", style=discord.ButtonStyle.danger
         )
         self.main_view = view
 
@@ -168,7 +168,7 @@ class ClearWhitelistButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="🗑️ 清空白名單", style=discord.ButtonStyle.danger, emoji="🗑️"
+            label="🗑️ 清空白名單", style=discord.ButtonStyle.danger
         )
         self.main_view = view
 
@@ -184,7 +184,7 @@ class AddBlacklistButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="+ 添加黑名單", style=discord.ButtonStyle.danger, emoji="+"
+            label="+ 添加黑名單", style=discord.ButtonStyle.danger
         )
         self.main_view = view
 
@@ -200,7 +200,7 @@ class RemoveBlacklistButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="- 移除黑名單", style=discord.ButtonStyle.success, emoji="-"
+            label="- 移除黑名單", style=discord.ButtonStyle.success
         )
         self.main_view = view
 
@@ -216,7 +216,7 @@ class RefreshBlacklistButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="🔄 刷新黑名單", style=discord.ButtonStyle.secondary, emoji="🔄"
+            label="刷新黑名單", style=discord.ButtonStyle.secondary
         )
         self.main_view = view
 
@@ -232,7 +232,7 @@ class ClearStatsButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="🗑️ 清空統計", style=discord.ButtonStyle.danger, emoji="🗑️"
+            label="🗑️ 清空統計", style=discord.ButtonStyle.danger
         )
         self.main_view = view
 
@@ -248,7 +248,7 @@ class ExportStatsButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="📊 匯出統計", style=discord.ButtonStyle.primary, emoji="📊"
+            label="匯出統計", style=discord.ButtonStyle.primary
         )
         self.main_view = view
 
@@ -264,14 +264,14 @@ class CloseButton(ui.Button):
 
     def __init__(self, view: AntiLinkMainView):
         super().__init__(
-            label="❌ 關閉面板", style=discord.ButtonStyle.secondary, emoji="❌"
+            label="關閉面板", style=discord.ButtonStyle.secondary
         )
         self.main_view = view
 
     async def callback(self, interaction: discord.Interaction):
         """按鈕回調"""
         embed = discord.Embed(
-            title="👋 面板已關閉",
+            title="面板已關閉",
             description="感謝使用反惡意連結保護系統",
             color=discord.Color.greyple(),
         )

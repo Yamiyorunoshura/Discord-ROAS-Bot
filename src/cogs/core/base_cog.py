@@ -738,14 +738,13 @@ class StandardPanelView(BasePanelView):
             self.create_standard_button(
                 label="重新整理",
                 style="secondary",
-                emoji="🔄",
                 callback=self.refresh_callback,
             )
         )
 
         self.add_item(
             self.create_standard_button(
-                label="關閉", style="danger", emoji="❌", callback=self.close_callback
+                label="關閉", style="danger", callback=self.close_callback
             )
         )
 

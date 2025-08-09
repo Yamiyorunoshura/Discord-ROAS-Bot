@@ -160,7 +160,7 @@ class CreateCategoryModal(ui.Modal):
             )
 
             embed.add_field(
-                name="💡 提示",
+                name="提示",
                 value=(
                     "• 分類建立後可以立即使用\n"
                     "• 可以隨時修改分類資訊\n"
@@ -315,10 +315,9 @@ class CategorySelectionView(ui.View):
         for category in categories[:25]:  # Discord 選單最多 25 個選項
             options.append(
                 discord.SelectOption(
-                    label=f"{category.icon_emoji} {category.name}",
+                    label=f"{category.name}",
                     value=str(category.id),
                     description=f"{category.description[:80]}...",
-                    emoji=category.icon_emoji,
                 )
             )
 
@@ -992,10 +991,9 @@ class AchievementReassignView(ui.View):
             if category["id"] != self.source_category.id:
                 options.append(
                     discord.SelectOption(
-                        label=f"{category['emoji']} {category['name']}",
+                        label=f"{category['name']}",
                         value=str(category["id"]),
                         description=f"將成就移動到「{category['name']}」分類",
-                        emoji=category["emoji"],
                     )
                 )
 
@@ -1595,7 +1593,7 @@ class CategoryStatisticsView(ui.View):
             embed.add_field(name="📈 報告摘要", value=report, inline=False)
 
             embed.add_field(
-                name="💡 提示",
+                name="提示",
                 value="完整報告已記錄到系統日誌中,管理員可查閱詳細數據.",
                 inline=False,
             )

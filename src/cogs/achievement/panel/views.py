@@ -122,7 +122,7 @@ class MainView(BaseAchievementView):
         try:
             embed = StandardEmbedBuilder.create_info_embed(
                 "成就系統",
-                "🎯 **歡迎使用成就系統!**\n\n"
+                "**歡迎使用成就系統!**\n\n"
                 "這裡是您的成就中心,提供完整的成就管理功能:\n\n"
                 "🏅 **我的成就** - 查看您的個人成就進度\n"
                 "　• 已獲得的成就列表\n"
@@ -155,7 +155,7 @@ class MainView(BaseAchievementView):
             except Exception as e:
                 logger.warning(f"[主頁面]設置用戶資訊失敗: {e}")
 
-            embed.set_footer(text="💡 使用選單切換不同頁面")
+            embed.set_footer(text="使用選單切換不同頁面")
             return embed
 
         except Exception as e:
@@ -253,7 +253,7 @@ class PersonalView(BaseAchievementView):
 
             # 設置footer
             embed.set_footer(
-                text=f"💡 使用按鈕切換頁面和篩選分類 | 總共 {stats.get('earned', 0)} 個成就"
+                text=f"使用按鈕切換頁面和篩選分類 | 總共 {stats.get('earned', 0)} 個成就"
             )
 
             return embed
@@ -550,23 +550,23 @@ class BrowserView(BaseAchievementView):
                 # 顯示未獲得成就
                 if not_earned_achievements:
                     not_earned_text = "\n".join([
-                        f"⭕ **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_\n   💡 條件: {self._format_criteria(ach.get('criteria', {}))}"
+                        f"⭕ **{ach['name']}** ({ach['points']} 點)\n   _{ach['description'][:MAX_DESCRIPTION_PREVIEW]}{'...' if len(ach['description']) > MAX_DESCRIPTION_PREVIEW else ''}_\n   條件: {self._format_criteria(ach.get('criteria', {}))}"
                         for ach in not_earned_achievements[:4]  # 最多顯示 4 個
                     ])
                     embed.add_field(
-                        name="🎯 可獲得成就",
+                        name="可獲得成就",
                         value=not_earned_text[:1024],  # Discord 限制
                         inline=False,
                     )
             else:
                 embed.add_field(
-                    name="🎯 成就列表", value="此分類暫無成就", inline=False
+                    name="成就列表", value="此分類暫無成就", inline=False
                 )
 
             # 設置 footer
             total_points = sum(ach.get("points", 0) for ach in achievements)
             embed.set_footer(
-                text=f"💡 使用選單篩選分類和分頁導航 | 本頁總點數: {total_points}"
+                text=f"使用選單篩選分類和分頁導航 | 本頁總點數: {total_points}"
             )
 
             return embed
@@ -816,11 +816,11 @@ class BrowseView(BaseAchievementView):
                     for ach in achievements[:10]
                 ])
                 embed.add_field(
-                    name="🎯 成就列表", value=achievement_text, inline=False
+                    name="成就列表", value=achievement_text, inline=False
                 )
             else:
                 embed.add_field(
-                    name="🎯 成就列表", value="此分類暫無成就", inline=False
+                    name="成就列表", value="此分類暫無成就", inline=False
                 )
 
             return embed
@@ -941,7 +941,7 @@ class LeaderboardView(BaseAchievementView):
             if user_rank:
                 value_name = self._get_value_display_name(leaderboard_type)
                 embed.add_field(
-                    name="📍 您的排名",
+                    name="您的排名",
                     value=f"第 {user_rank['rank']} 名\n"
                     f"{value_name}: {user_rank['value']:,}",
                     inline=True,
@@ -981,7 +981,7 @@ class LeaderboardView(BaseAchievementView):
                 embed.add_field(name="🏅 排行榜", value="暫無排行榜資料", inline=False)
 
             # 設置 footer
-            embed.set_footer(text="💡 使用選單切換排行榜類型,使用按鈕進行分頁瀏覽")
+            embed.set_footer(text="使用選單切換排行榜類型,使用按鈕進行分頁瀏覽")
 
             return embed
 

@@ -19,11 +19,10 @@ from .settings_modal import AutoSyncSettingsModal, SyncRangeModal
 class SyncButton(ui.Button):
     """同步按鈕"""
 
-    def __init__(self, sync_type: str, label: str, emoji: str, row: int = 0):
+    def __init__(self, sync_type: str, label: str, row: int = 0):
         super().__init__(
             style=discord.ButtonStyle.primary,
             label=label,
-            emoji=emoji,
             custom_id=f"sync_{sync_type}",
             row=row,
         )
@@ -45,7 +44,7 @@ class HistoryButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="同步歷史", emoji="📋", row=row
+            style=discord.ButtonStyle.secondary, label="同步歷史", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -64,7 +63,7 @@ class SettingsButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="同步設定", emoji="⚙️", row=row
+            style=discord.ButtonStyle.secondary, label="同步設定", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -94,7 +93,7 @@ class AutoSyncButton(ui.Button):
 
     def __init__(self, cog: "SyncDataCog"):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="自動同步設定", emoji="🔄", row=0
+            style=discord.ButtonStyle.primary, label="自動同步設定", row=0
         )
         self.cog = cog
 
@@ -109,7 +108,7 @@ class SyncRangeButton(ui.Button):
 
     def __init__(self, cog: "SyncDataCog"):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="同步範圍設定", emoji="📋", row=0
+            style=discord.ButtonStyle.primary, label="同步範圍設定", row=0
         )
         self.cog = cog
 
@@ -138,7 +137,7 @@ class SettingsInfoButton(ui.Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="當前設定", emoji="📊", row=1
+            style=discord.ButtonStyle.secondary, label="當前設定", row=1
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -198,13 +197,13 @@ class CloseSettingsButton(ui.Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="關閉", emoji="❌", row=1
+            style=discord.ButtonStyle.secondary, label="關閉", row=1
         )
 
     async def callback(self, interaction: discord.Interaction):
         """關閉設定回調"""
         embed = discord.Embed(
-            title="👋 設定面板已關閉",
+            title="設定面板已關閉",
             description="感謝使用同步設定功能!",
             color=discord.Color.green(),
         )
@@ -217,7 +216,7 @@ class RefreshButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="刷新", emoji="🔄", row=row
+            style=discord.ButtonStyle.secondary, label="刷新", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -234,13 +233,13 @@ class CloseButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="關閉", emoji="❌", row=row
+            style=discord.ButtonStyle.secondary, label="關閉", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
         """關閉按鈕回調"""
         embed = discord.Embed(
-            title="👋 面板已關閉",
+            title="面板已關閉",
             description="感謝使用資料同步系統!",
             color=discord.Color.green(),
         )

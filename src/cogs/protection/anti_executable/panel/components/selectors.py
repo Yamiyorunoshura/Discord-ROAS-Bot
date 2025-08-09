@@ -30,31 +30,26 @@ class PanelSelector(ui.Select):
             discord.SelectOption(
                 label="主要面板",
                 description="檢視模組狀態和基本設定",
-                emoji="🏠",
                 value="main",
             ),
             discord.SelectOption(
                 label="白名單管理",
                 description="管理允許的檔案格式和網域",
-                emoji="📋",
                 value="whitelist",
             ),
             discord.SelectOption(
                 label="黑名單管理",
                 description="管理被禁止的項目",
-                emoji="🚫",
                 value="blacklist",
             ),
             discord.SelectOption(
                 label="格式管理",
                 description="管理檢測的檔案格式",
-                emoji="📁",
                 value="formats",
             ),
             discord.SelectOption(
                 label="攔截統計",
                 description="檢視詳細的攔截統計資料",
-                emoji="📊",
                 value="stats",
             ),
         ]

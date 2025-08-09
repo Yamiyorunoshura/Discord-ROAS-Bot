@@ -70,7 +70,7 @@ class PageSelector(discord.ui.Select):
     def __init__(self, view):
         options = [
             discord.SelectOption(
-                label="設定", value="settings", emoji="⚙️", description="系統設定和配置"
+                label="設定", value="settings", description="系統設定和配置"
             ),
             discord.SelectOption(
                 label="預覽",
@@ -78,7 +78,7 @@ class PageSelector(discord.ui.Select):
                 description="預覽目前進度條風格效果",
             ),
             discord.SelectOption(
-                label="統計", value="stats", emoji="📊", description="查看統計資訊"
+                label="統計", value="stats", description="查看統計資訊"
             ),
         ]
         super().__init__(
@@ -120,11 +120,11 @@ class StyleSelector(discord.ui.Select):
 
     def __init__(self, view):
         options = [
-            discord.SelectOption(label="經典", value="classic", emoji="🎨"),
-            discord.SelectOption(label="現代", value="modern", emoji="🖥️"),
-            discord.SelectOption(label="霓虹", value="neon", emoji="💫"),
-            discord.SelectOption(label="極簡", value="minimal", emoji="⚪"),
-            discord.SelectOption(label="漸層", value="gradient", emoji="🌈"),
+            discord.SelectOption(label="經典", value="classic"),
+            discord.SelectOption(label="現代", value="modern"),
+            discord.SelectOption(label="霓虹", value="neon"),
+            discord.SelectOption(label="極簡", value="minimal"),
+            discord.SelectOption(label="漸層", value="gradient"),
         ]
         super().__init__(
             placeholder="選擇進度條風格",
@@ -189,12 +189,12 @@ class ChannelSelector(discord.ui.Select):
                 if ch.permissions_for(guild.me).send_messages
             ]
             options = [
-                discord.SelectOption(label=ch.name, value=str(ch.id), emoji="📢")
+                discord.SelectOption(label=ch.name, value=str(ch.id))
                 for ch in channels[:25]  # Discord限制最多25個選項
             ]
         except Exception:
             # 如果獲取頻道失敗,使用預設選項
-            options = [discord.SelectOption(label="預設頻道", value="0", emoji="📢")]
+            options = [discord.SelectOption(label="預設頻道", value="0")]
 
         super().__init__(
             placeholder="選擇公告頻道",
@@ -231,7 +231,7 @@ class TimeSelector(discord.ui.Select):
     def __init__(self, view):
         # 減少選項數量以避免佈局問題
         options = [
-            discord.SelectOption(label=f"{hour:02d}:00", value=str(hour), emoji="⏰")
+            discord.SelectOption(label=f"{hour:02d}:00", value=str(hour))
             for hour in range(0, 24, 2)  # 每2小時一個選項,減少選項數量
         ]
         super().__init__(

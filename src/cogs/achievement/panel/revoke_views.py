@@ -157,7 +157,7 @@ class RevokeAchievementView(ui.View):
                     label=label,
                     value=str(achievement.id),
                     description=description,
-                    emoji="❌",
+                    ,
                 )
             )
 
@@ -299,7 +299,7 @@ class RevokeConfirmationView(ui.View):
         )
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=f"**用戶**: {member.display_name}\n**ID**: `{member.id}`",
             inline=True,
         )
@@ -568,7 +568,7 @@ class RevokeResultView(ui.View):
         )
 
         embed.add_field(
-            name="👤 用戶資訊",
+                            name="用戶資訊",
             value=f"**用戶**: {member.display_name}\n**ID**: `{member.id}`",
             inline=True,
         )

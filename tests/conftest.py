@@ -24,6 +24,17 @@ from discord.ext import commands
 # 導入測試基礎設施
 # from src.core.testing import DpytestConfig, cleanup_test_environment  # Temporarily commented out
 
+# 導入新增的 Discord 互動測試固件
+from .fixtures import (
+    CommandTester,
+    command_tester,
+    interaction_simulator,
+    mock_button_interaction,
+    mock_select_interaction, 
+    mock_slash_command_interaction,
+    response_validator,
+)
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 🎯 測試環境配置
 # ═══════════════════════════════════════════════════════════════════════════════════════════

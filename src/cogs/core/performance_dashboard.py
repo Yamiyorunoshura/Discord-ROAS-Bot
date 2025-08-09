@@ -104,37 +104,37 @@ class PerformanceDashboardView(StandardPanelView):
             discord.SelectOption(
                 label="系統概覽",
                 value="overview",
-                emoji="📊",
+                ,
                 description="查看系統整體性能概覽",
             ),
             discord.SelectOption(
                 label="緩存統計",
                 value="cache",
-                emoji="🗄️",
+                ,
                 description="查看緩存系統性能指標",
             ),
             discord.SelectOption(
                 label="資料庫性能",
                 value="database",
-                emoji="🗃️",
+                ,
                 description="查看資料庫連接池統計",
             ),
             discord.SelectOption(
                 label="事件匯流排",
                 value="events",
-                emoji="📡",
+                ,
                 description="查看事件處理性能統計",
             ),
             discord.SelectOption(
                 label="系統資源",
                 value="system",
-                emoji="💻",
+                ,
                 description="查看系統資源使用情況",
             ),
             discord.SelectOption(
                 label="性能警報",
                 value="alerts",
-                emoji="🚨",
+                ,
                 description="查看性能警報和建議",
             ),
         ]
@@ -153,7 +153,7 @@ class PerformanceDashboardView(StandardPanelView):
             self.create_standard_button(
                 label="刷新數據",
                 style="primary",
-                emoji="🔄",
+                ,
                 callback=self.refresh_callback,
             )
         )
@@ -162,7 +162,7 @@ class PerformanceDashboardView(StandardPanelView):
             self.create_standard_button(
                 label="生成報告",
                 style="secondary",
-                emoji="📋",
+                ,
                 callback=self.generate_report_callback,
             )
         )
@@ -171,14 +171,14 @@ class PerformanceDashboardView(StandardPanelView):
             self.create_standard_button(
                 label="自動刷新",
                 style="secondary",
-                emoji="⏰",
+                ,
                 callback=self.toggle_auto_refresh_callback,
             )
         )
 
         self.add_item(
             self.create_standard_button(
-                label="關閉", style="danger", emoji="❌", callback=self.close_callback
+                label="關閉", style="danger", callback=self.close_callback
             )
         )
 
@@ -325,7 +325,7 @@ class PerformanceDashboardView(StandardPanelView):
                 # 性能指標
                 hit_rate = cache_stats.get("hit_rate", 0)
                 embed.add_field(
-                    name="🎯 性能指標",
+                    name="性能指標",
                     value=f"命中率: {hit_rate:.1f}%\n"
                     f"平均響應: {cache_stats.get('avg_response_time', 0):.2f}ms\n"
                     f"記憶體使用: {cache_stats.get('memory_usage', 0):.1f}MB",
@@ -393,7 +393,7 @@ class PerformanceDashboardView(StandardPanelView):
 
                 # 負載均衡
                 embed.add_field(
-                    name="⚖️ 負載均衡",
+                    name="負載均衡",
                     value=f"策略: {db_stats.get('load_balance_strategy', 'Unknown')}\n"
                     f"最優連接: {db_stats.get('optimal_connection', 'N/A')}\n"
                     f"故障恢復: {db_stats.get('auto_recovery_enabled', False)}",
@@ -591,7 +591,7 @@ class PerformanceDashboardView(StandardPanelView):
                 embed.add_field(name="⚠️ 警告", value=warning_text, inline=False)
 
             if alerts["recommendations"]:
-                rec_text = "\n".join([f"💡 {rec}" for rec in alerts["recommendations"]])
+                rec_text = "\n".join([f"{rec}" for rec in alerts["recommendations"]])
                 embed.add_field(name="📋 優化建議", value=rec_text, inline=False)
 
             if not any([
