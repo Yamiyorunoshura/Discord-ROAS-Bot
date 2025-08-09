@@ -90,7 +90,7 @@ class NotificationPreferencesView(discord.ui.View):
         label="私訊通知: 開啟",
         style=discord.ButtonStyle.success,
         custom_id="dm_toggle",
-        emoji="💬",
+        ,
     )
     async def toggle_dm_notifications(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -121,7 +121,7 @@ class NotificationPreferencesView(discord.ui.View):
         label="伺服器公告: 開啟",
         style=discord.ButtonStyle.success,
         custom_id="announcement_toggle",
-        emoji="📢",
+        ,
     )
     async def toggle_server_announcements(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -154,7 +154,6 @@ class NotificationPreferencesView(discord.ui.View):
         label="通知類型篩選",
         style=discord.ButtonStyle.primary,
         custom_id="type_filter",
-        emoji="🎯",
     )
     async def configure_notification_types(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -167,7 +166,7 @@ class NotificationPreferencesView(discord.ui.View):
             )
 
             embed = discord.Embed(
-                title="🎯 通知類型篩選",
+                title="通知類型篩選",
                 description="選擇您想要接收通知的成就類型:",
                 color=0x3498DB,
             )
@@ -211,7 +210,7 @@ class NotificationPreferencesView(discord.ui.View):
         label="重置為預設",
         style=discord.ButtonStyle.danger,
         custom_id="reset_preferences",
-        emoji="🔄",
+        ,
     )
     async def reset_preferences(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -300,7 +299,7 @@ class NotificationPreferencesView(discord.ui.View):
         else:
             type_filter = "接收所有類型"
 
-        embed.add_field(name="🎯 通知類型", value=type_filter, inline=False)
+        embed.add_field(name="通知類型", value=type_filter, inline=False)
 
         embed.set_footer(text="點擊按鈕來調整您的通知偏好")
 
@@ -368,49 +367,48 @@ class NotificationTypeSelect(discord.ui.Select):
                 label="計數型成就",
                 value="counter",
                 description="基於計數的成就(如發送訊息數量)",
-                emoji="🔢",
+                ,
             ),
             discord.SelectOption(
                 label="里程碑成就",
                 value="milestone",
                 description="達到特定里程碑的成就",
-                emoji="🏆",
+                ,
             ),
             discord.SelectOption(
                 label="時間型成就",
                 value="time_based",
                 description="基於時間的成就(如連續登入)",
-                emoji="⏰",
+                ,
             ),
             discord.SelectOption(
                 label="條件型成就",
                 value="conditional",
                 description="滿足特定條件的成就",
-                emoji="✅",
+                ,
             ),
             discord.SelectOption(
                 label="稀有成就",
                 value="rare",
                 description="獲得難度較高的稀有成就",
-                emoji="💎",
+                ,
             ),
             discord.SelectOption(
                 label="史詩成就",
                 value="epic",
                 description="非常難獲得的史詩級成就",
-                emoji="⚡",
+                ,
             ),
             discord.SelectOption(
                 label="傳奇成就",
                 value="legendary",
                 description="極其罕見的傳奇級成就",
-                emoji="👑",
+                ,
             ),
             discord.SelectOption(
                 label="所有成就",
                 value="all",
                 description="接收所有類型的成就通知",
-                emoji="🌟",
             ),
         ]
 

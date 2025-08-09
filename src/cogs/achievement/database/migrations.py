@@ -85,7 +85,7 @@ class AchievementMigrations:
         default_categories = [
             ("social", "社交成就", 1, "👥"),
             ("activity", "活躍度成就", 2, "⚡"),
-            ("special", "特殊成就", 3, "🌟"),
+            ("special", "特殊成就", 3, "✨"),
             ("milestone", "里程碑成就", 4, "🏆"),
         ]
 

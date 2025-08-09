@@ -217,7 +217,7 @@ class MainAchievementPanelView(ui.View):
                     label="📊 全部成就",
                     value="all",
                     description="顯示所有可用成就",
-                    emoji="📊",
+                    ,
                 )
             ]
 
@@ -249,7 +249,6 @@ class MainAchievementPanelView(ui.View):
                             label=display_name[:100],  # Discord 限制
                             value=str(category.id),
                             description=description[:100],  # Discord 限制
-                            emoji=category.icon_emoji,
                         )
                     )
 
@@ -337,7 +336,7 @@ class MainAchievementPanelView(ui.View):
 
             # 添加操作指南
             embed.add_field(
-                name="💡 操作指南",
+                name="操作指南",
                 value="• 使用下拉選單選擇分類\n"
                 "• 點擊 🔄 重新整理資料\n"
                 "• 使用 ◀️ ▶️ 翻頁瀏覽",

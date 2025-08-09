@@ -24,20 +24,22 @@ class AdminControls:
     def create_manage_button() -> discord.ui.Button:
         """創建管理按鈕."""
         return discord.ui.Button(
-            label="⚙️ 管理",
+            label="管理",
             style=discord.ButtonStyle.danger,
             custom_id="roas_gov_manage",
             row=3,
+
         )
 
     @staticmethod
     def create_sync_roles_button() -> discord.ui.Button:
         """創建同步角色按鈕."""
         return discord.ui.Button(
-            label="🔄 同步角色",
+            label="同步角色",
             style=discord.ButtonStyle.secondary,
             custom_id="roas_gov_sync_roles",
             row=3,
+
         )
 
 

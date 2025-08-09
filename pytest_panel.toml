@@ -1,0 +1,52 @@
+# pytest 面板測試專用配置
+
+[tool.pytest.ini_options]
+# 面板測試專用配置
+testpaths = ["tests/unit/cogs"]
+python_files = ["test_*panels*.py", "*_panel_test.py"]
+
+# 異步支援
+asyncio_mode = "auto"
+
+# 面板測試專用選項
+addopts = [
+    "-v",
+    "--strict-markers", 
+    "--tb=short",
+    "--maxfail=5",             # 面板測試允許更多失敗
+    "--disable-warnings",
+    "--color=yes",
+    "-m", "panel",             # 只運行面板測試
+]
+
+# 面板測試標記
+markers = [
+    "panel: UI 面板互動測試",
+    "button: 按鈕互動測試", 
+    "select: 選擇器互動測試",
+    "modal: 模態框測試",
+    "view: Discord UI View 測試",
+    "component: Discord UI Component 測試",
+    "interaction: Discord 互動測試",
+    "mock: Mock 測試",
+    "timeout: 測試超時處理",
+    "permission: 權限檢查測試",
+    "state: 狀態管理測試",
+    "validation: 輸入驗證測試",
+    "error_handling: 錯誤處理測試",
+    "performance: 面板效能測試",
+    "concurrent: 併發互動測試",
+]
+
+# 測試覆蓋率 - 面板專用
+[tool.coverage.run]
+source = ["src/cogs/*/panel", "src/cogs/*/main"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 80

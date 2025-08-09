@@ -19,7 +19,7 @@ class StatsButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="統計資料", emoji="📊", row=row
+            style=discord.ButtonStyle.secondary, label="統計資料", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -39,7 +39,7 @@ class TestButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="功能測試", emoji="🧪", row=row
+            style=discord.ButtonStyle.secondary, label="功能測試", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -57,7 +57,7 @@ class HelpButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="幫助", emoji="❓", row=row
+            style=discord.ButtonStyle.secondary, label="幫助", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -76,7 +76,7 @@ class ResetButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.danger, label="重置設定", emoji="🔄", row=row
+            style=discord.ButtonStyle.danger, label="重置設定", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -95,13 +95,13 @@ class CloseButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="關閉", emoji="❌", row=row
+            style=discord.ButtonStyle.secondary, label="關閉", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
         """關閉按鈕回調"""
         embed = discord.Embed(
-            title="👋 面板已關閉",
+            title="面板已關閉",
             description="感謝使用反垃圾訊息保護系統!",
             color=discord.Color.green(),
         )
@@ -119,11 +119,10 @@ class CloseButton(ui.Button):
 class CategorySelectButton(ui.Button):
     """分類選擇按鈕"""
 
-    def __init__(self, category_id: str, category_name: str, emoji: str, row: int = 0):
+    def __init__(self, category_id: str, category_name: str, row: int = 0):
         super().__init__(
             style=discord.ButtonStyle.primary,
             label=category_name,
-            emoji=emoji,
             custom_id=f"category_{category_id}",
             row=row,
         )
@@ -150,7 +149,7 @@ class SensitivityButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="靈敏度設定", emoji="⚙️", row=row
+            style=discord.ButtonStyle.secondary, label="靈敏度設定", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -226,11 +225,10 @@ class SensitivitySelectView(ui.View):
 class SensitivityLevelButton(ui.Button):
     """靈敏度等級按鈕"""
 
-    def __init__(self, level: str, label: str, emoji: str, row: int = 0):
+    def __init__(self, level: str, label: str, row: int = 0):
         super().__init__(
             style=discord.ButtonStyle.secondary,
             label=f"{label}靈敏度",
-            emoji=emoji,
             custom_id=f"sensitivity_{level}",
             row=row,
         )
@@ -293,7 +291,7 @@ class BackButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.secondary, label="返回", emoji="↩️", row=row
+            style=discord.ButtonStyle.secondary, label="返回", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):

@@ -1,18 +1,18 @@
-# Discord ROAS Bot v2.3 Brownfield Enhancement Architecture
+# Discord ROAS Bot Brownfield Architecture Document
 
 ## Table of Contents
 
-- [Discord ROAS Bot v2.3 Brownfield Enhancement Architecture](#table-of-contents)
+- [Discord ROAS Bot Brownfield Architecture Document](#table-of-contents)
   - [Introduction](#introduction)
-  - [Enhancement Scope and Integration Strategy](#enhancement-scope-and-integration-strategy)
-  - [Tech Stack Alignment](#tech-stack-alignment)
-  - [Data Models and Schema Changes](#data-models-and-schema-changes)
-  - [Component Architecture](#component-architecture)
-  - [API Design and Integration](#api-design-and-integration)
-  - [Source Tree Integration](#source-tree-integration)
-  - [Infrastructure and Deployment Integration](#infrastructure-and-deployment-integration)
-  - [Coding Standards and Conventions](#coding-standards-and-conventions)
-  - [Testing Strategy](#testing-strategy)
-  - [Security Integration](#security-integration)
-  - [Checklist Results Report](#checklist-results-report)
-  - [Next Steps](#next-steps)
+  - [Quick Reference - Key Files and Entry Points](#quick-reference-key-files-and-entry-points)
+  - [High Level Architecture](#high-level-architecture)
+  - [Source Tree and Module Organization](#source-tree-and-module-organization)
+  - [Data Models and APIs](#data-models-and-apis)
+  - [Technical Debt and Known Issues](#technical-debt-and-known-issues)
+  - [Integration Points and External Dependencies](#integration-points-and-external-dependencies)
+  - [Development and Deployment](#development-and-deployment)
+  - [Testing Reality](#testing-reality)
+  - [Enhancement Impact Analysis](#enhancement-impact-analysis)
+  - [Testing Architecture Deep Dive](#testing-architecture-deep-dive)
+  - [Appendix - Useful Commands and Scripts](#appendix-useful-commands-and-scripts)
+  - [Critical Testing Constraints](#critical-testing-constraints)

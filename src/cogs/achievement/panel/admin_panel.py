@@ -333,11 +333,11 @@ class AdminPanel:
             "歡迎使用 Discord ROAS Bot 成就系統管理面板!\n\n"
             "**主要功能:**\n"
             "🏆 **成就管理** - 創建、編輯、刪除成就\n"
-            "🎯 **條件設置** - 設置成就達成條件\n"
+            "**條件設置** - 設置成就達成條件\n"
             "👥 **用戶管理** - 管理用戶成就和進度\n"
             "📦 **批量操作** - 批量處理成就和用戶\n"
             "📊 **統計分析** - 查看系統統計和報表\n\n"
-            "💡 **提示:** 點擊下方的「📚 使用指南」查看詳細說明",
+            "**提示:** 點擊下方的「📚 使用指南」查看詳細說明",
         )
 
         # 系統狀態
@@ -355,7 +355,7 @@ class AdminPanel:
         )
 
         embed.add_field(
-            name="🎯 已解鎖成就",
+                            name="已解鎖成就",
             value=f"{stats.get('unlocked_achievements', 0):,}",
             inline=True,
         )
@@ -430,7 +430,7 @@ class AdminPanel:
             user_stats = await self._load_user_management_stats()
 
             embed = StandardEmbedBuilder.create_info_embed(
-                "👤 用戶成就管理",
+                "用戶成就管理",
                 "管理用戶的成就和進度,支援手動授予、撤銷和重置等操作.",
             )
 
@@ -1011,25 +1011,24 @@ class AdminPanelView(ui.View):
                 label="📊 系統概覽",
                 value="overview",
                 description="查看系統狀態和統計",
-                emoji="📊",
+                ,
             ),
             discord.SelectOption(
                 label="🏆 成就管理",
                 value="achievements",
                 description="管理成就定義(Story 4.2)",
-                emoji="🏆",
+                ,
             ),
             discord.SelectOption(
-                label="👤 用戶管理",
+                label="用戶管理",
                 value="users",
                 description="管理用戶成就(Story 4.3)",
-                emoji="👤",
             ),
             discord.SelectOption(
                 label="⚙️ 系統設定",
                 value="settings",
                 description="系統配置管理",
-                emoji="⚙️",
+                ,
             ),
         ],
     )
@@ -1060,7 +1059,7 @@ class AdminPanelView(ui.View):
                 "❌ 處理導航時發生錯誤", ephemeral=True
             )
 
-    @ui.button(label="📚 使用指南", style=discord.ButtonStyle.primary, emoji="📚")
+    @ui.button(label="📚 使用指南", style=discord.ButtonStyle.primary)
     async def help_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
@@ -1142,49 +1141,48 @@ class AchievementManagementView(ui.View):
                 label="+ 新增成就",
                 value="create",
                 description="創建新的成就定義",
-                emoji="+",
+                ,
             ),
             discord.SelectOption(
                 label="📝 編輯成就",
                 value="edit",
                 description="修改現有成就",
-                emoji="📝",
+                ,
             ),
             discord.SelectOption(
                 label="📋 成就列表",
                 value="list",
                 description="查看所有成就",
-                emoji="📋",
+                ,
             ),
             discord.SelectOption(
                 label="📄 複製成就",
                 value="copy",
                 description="複製現有成就創建新成就",
-                emoji="📄",
+                ,
             ),
             discord.SelectOption(
                 label="🗑️ 刪除成就",
                 value="delete",
                 description="刪除成就定義",
-                emoji="🗑️",
+                ,
             ),
             discord.SelectOption(
                 label="📦 批量操作",
                 value="bulk",
                 description="批量管理成就",
-                emoji="📦",
+                ,
             ),
             discord.SelectOption(
                 label="📂 分類管理",
                 value="categories",
                 description="管理成就分類",
-                emoji="📂",
+                ,
             ),
             discord.SelectOption(
-                label="🎯 條件設置",
+                label="條件設置",
                 value="criteria",
                 description="設置成就達成條件",
-                emoji="🎯",
             ),
         ],
     )
@@ -1460,7 +1458,7 @@ class AchievementManagementView(ui.View):
             # 創建成就選擇視圖
             view = AchievementCriteriaSelectionView(self.panel, achievements)
             embed = StandardEmbedBuilder.create_info_embed(
-                "🎯 成就條件設置",
+                "成就條件設置",
                 f"**總共有 {len(achievements)} 個成就**\n\n"
                 "請選擇要設置條件的成就:\n\n"
                 "• 設置訊息數量條件\n"
@@ -1891,7 +1889,7 @@ class AchievementSelectionView(ui.View):
                     label=f"{status_icon} {achievement.name}",
                     value=str(achievement.id),
                     description=f"{achievement.description[:80]}...",
-                    emoji="🏆",
+                    ,
                 )
             )
 
@@ -2269,7 +2267,6 @@ class CopyCategorySelectionView(ui.View):
                     label=label,
                     value=str(category.id),
                     description=description,
-                    emoji=category.icon_emoji,
                     default=is_default,
                 )
             )
@@ -3033,7 +3030,7 @@ class AchievementDetailView(ui.View):
 
             # 基本統計
             embed.add_field(
-                name="🎯 獲得統計",
+                name="獲得統計",
                 value=(
                     f"**總獲得次數**: {statistics.get('earned_count', 0):,}\n"
                     f"**完成率**: {statistics.get('completion_rate', 0.0):.2f}%\n"
@@ -3158,37 +3155,37 @@ class UserManagementView(ui.View):
                 label="🔍 搜尋用戶",
                 value="search_user",
                 description="搜尋要管理的用戶",
-                emoji="🔍",
+                ,
             ),
             discord.SelectOption(
                 label="🎁 授予成就",
                 value="grant_achievement",
                 description="手動授予用戶成就",
-                emoji="🎁",
+                ,
             ),
             discord.SelectOption(
                 label="❌ 撤銷成就",
                 value="revoke_achievement",
                 description="撤銷用戶已獲得的成就",
-                emoji="❌",
+                ,
             ),
             discord.SelectOption(
                 label="📈 調整進度",
                 value="adjust_progress",
                 description="調整用戶成就進度",
-                emoji="📈",
+                ,
             ),
             discord.SelectOption(
                 label="🔄 重置資料",
                 value="reset_data",
                 description="重置用戶成就資料",
-                emoji="🔄",
+                ,
             ),
             discord.SelectOption(
                 label="👥 批量操作",
                 value="bulk_operations",
                 description="批量用戶操作",
-                emoji="👥",
+                ,
             ),
         ],
     )
@@ -3607,7 +3604,7 @@ class UserSearchModal(ui.Modal):
             member = user_data["user"]
 
             embed.add_field(
-                name="👤 用戶資訊",
+                name="用戶資訊",
                 value=(
                     f"**用戶名**: {user_data['username']}\n"
                     f"**顯示名**: {user_data['display_name']}\n"
@@ -3643,7 +3640,7 @@ class UserSearchModal(ui.Modal):
             )
 
         embed.add_field(
-            name="💡 下一步",
+                            name="下一步",
             value="請選擇一個用戶來查看詳細資訊或執行管理操作.",
             inline=False,
         )
@@ -3686,9 +3683,7 @@ class UserSelectionView(ui.View):
                     discord.SelectOption(
                         label=f"{user_data['display_name']}",
                         value=str(user_data["user_id"]),
-                        description=description[:100],  # Discord 限制
-                        emoji="👤",
-                    )
+                        description=description[:100],  # Discord 限制)
                 )
 
             self.user_select = ui.Select(
@@ -3737,7 +3732,7 @@ class UserSelectionView(ui.View):
         member = user_data["user"]
 
         embed = StandardEmbedBuilder.create_info_embed(
-            f"👤 {user_data['display_name']} - 成就管理", "用戶詳細資訊和成就管理選項"
+                            f"{user_data['display_name']} - 成就管理", "用戶詳細資訊和成就管理選項"
         )
 
         # 基本資訊
@@ -3883,7 +3878,7 @@ class AdjustProgressUserSelectionView(ui.View):
                     label=user["display_name"][:100],  # Discord 限制
                     value=str(user["user_id"]),
                     description=description[:100],  # Discord 限制
-                    emoji="📈",
+                    ,
                 )
             )
 
@@ -4057,7 +4052,6 @@ class AdjustProgressSelectionView(ui.View):
                     label=progress["achievement_name"][:100],
                     value=str(progress["achievement_id"]),
                     description=description[:100],
-                    emoji=emoji,
                 )
             )
 
@@ -4300,7 +4294,7 @@ class AdjustProgressModal(ui.Modal):
         # 根據是否會完成設置不同的顏色和標題
         if will_complete and not is_currently_completed:
             embed = StandardEmbedBuilder.create_success_embed(
-                "🎉 確認進度調整 (將完成成就)",
+                "確認進度調整 (將完成成就)",
                 "此調整將導致成就自動完成!請仔細確認操作.",
             )
         elif is_currently_completed and new_value < target_value:
@@ -4314,7 +4308,7 @@ class AdjustProgressModal(ui.Modal):
 
         # 基本資訊
         embed.add_field(
-            name="👤 調整對象",
+                            name="調整對象",
             value=(
                 f"**用戶**: {self.user_data['display_name']}\n"
                 f"**成就**: {self.progress_data['achievement_name']}"
@@ -4426,7 +4420,7 @@ class AdjustProgressConfirmView(ui.View):
 
                 if self.will_complete:
                     embed.add_field(
-                        name="🎉 成就完成",
+                        name="成就完成",
                         value="此調整觸發了成就完成,用戶已獲得相應獎勵!",
                         inline=False,
                     )
@@ -4554,7 +4548,7 @@ class AdjustProgressFollowupView(ui.View):
                 "❌ 繼續調整時發生錯誤", ephemeral=True
             )
 
-    @ui.button(label="👤 管理其他用戶", style=discord.ButtonStyle.secondary)
+    @ui.button(label="管理其他用戶", style=discord.ButtonStyle.secondary)
     async def manage_other_user(
         self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
@@ -4753,7 +4747,7 @@ class ResetDataUserSelectionView(ui.View):
                     label=user["display_name"][:100],  # Discord 限制
                     value=str(user["user_id"]),
                     description=description[:100],  # Discord 限制
-                    emoji="🔄",
+                    ,
                 )
             )
 
@@ -5118,7 +5112,7 @@ class SelectiveResetOptionsView(ui.View):
                         label=f"重置分類: {category}",
                         value=f"category_{category}",
                         description=f"重置 {category} 分類的所有資料",
-                        emoji="📂",
+                        ,
                     )
                 )
 
@@ -6082,7 +6076,7 @@ class BulkOperationSelectionView(ui.View):
                         label=f"{selected_icon}{status_icon} {achievement.name}",
                         value=str(achievement.id),
                         description=f"{achievement.description[:80]}...",
-                        emoji="🏆",
+                        ,
                     )
                 )
 
@@ -6121,7 +6115,7 @@ class BulkOperationSelectionView(ui.View):
     def _add_action_buttons(self):
         """添加操作控制按鈕."""
         operation_button = ui.Button(
-            label=f"🎯 執行批量操作 ({len(self.selected_achievements)})",
+                            label=f"執行批量操作 ({len(self.selected_achievements)})",
             style=discord.ButtonStyle.primary,
             disabled=len(self.selected_achievements) == 0,
         )
@@ -6292,7 +6286,7 @@ class BulkOperationSelectionView(ui.View):
 
         embed = StandardEmbedBuilder.create_info_embed(
             "📦 批量操作 - 成就選擇",
-            f"🎯 **選擇進度**: {len(self.selected_achievements)}/{len(self.achievements)} 個成就\n"
+            f"**選擇進度**: {len(self.selected_achievements)}/{len(self.achievements)} 個成就\n"
             f"📄 **當前頁面**: {self.current_page + 1}/{total_pages}\n\n",
         )
 
@@ -6342,7 +6336,7 @@ class BulkOperationSelectionView(ui.View):
     ) -> discord.Embed:
         """建立操作預覽嵌入訊息."""
         embed = StandardEmbedBuilder.create_info_embed(
-            "🎯 批量操作預覽",
+            "批量操作預覽",
             f"準備對 **{len(selected_achievements)}** 個成就執行批量操作",
         )
 
@@ -6461,25 +6455,25 @@ class BulkOperationTypeSelectionView(ui.View):
                 label="🟢 批量啟用成就",
                 value="bulk_enable",
                 description="將選中成就設為啟用狀態",
-                emoji="✅",
+                ,
             ),
             discord.SelectOption(
                 label="🔴 批量停用成就",
                 value="bulk_disable",
                 description="將選中成就設為停用狀態",
-                emoji="❌",
+                ,
             ),
             discord.SelectOption(
                 label="🗑️ 批量刪除成就",
                 value="bulk_delete",
                 description="永久刪除選中的成就(不可復原)",
-                emoji="🗑️",
+                ,
             ),
             discord.SelectOption(
                 label="📂 批量變更分類",
                 value="bulk_change_category",
                 description="將選中成就移動到新分類",
-                emoji="📂",
+                ,
             ),
         ],
     )
@@ -6938,7 +6932,7 @@ class BulkOperationTypeSelectionView(ui.View):
                 "1️⃣ 選擇目標分類\n"
                 "2️⃣ 確認變更操作\n"
                 "3️⃣ 查看執行結果\n\n"
-                "💡 **提示**: 已在目標分類的成就將被跳過"
+                "**提示**: 已在目標分類的成就將被跳過"
             ),
             inline=False,
         )
@@ -7276,7 +7270,7 @@ class BulkOperationProgressView(ui.View):
             # 顯示操作特定參數
             operation_info = self._get_operation_info()
             if operation_info:
-                embed.add_field(name="🎯 操作詳情", value=operation_info, inline=True)
+                embed.add_field(name="操作詳情", value=operation_info, inline=True)
 
             # 進度條
             if self.total_count > 0:
@@ -7328,7 +7322,7 @@ class BulkOperationProgressView(ui.View):
             operation_summary = self._get_operation_summary()
             if operation_summary:
                 embed.add_field(
-                    name="🎯 操作摘要", value=operation_summary, inline=True
+                    name="操作摘要", value=operation_summary, inline=True
                 )
 
             # 執行時間
@@ -7870,7 +7864,7 @@ class BulkDeleteConfirmView(ui.View):
             else:
                 suggestion = "所有成就都有依賴關係,需要慎重考慮是否強制刪除"
 
-            embed.add_field(name="💡 建議", value=suggestion, inline=False)
+            embed.add_field(name="建議", value=suggestion, inline=False)
 
             embed.color = 0x3498DB
             embed.set_footer(text="詳細分析報告 | 基於當前數據生成")
@@ -7943,7 +7937,7 @@ class ForceDeleteConfirmView(ui.View):
         embed = StandardEmbedBuilder.create_success_embed(
             "明智的選擇!",
             "✅ 強制刪除已被取消.\n\n"
-            "💡 **建議**:\n"
+            "**建議**:\n"
             "• 考慮先停用成就而不是刪除\n"
             "• 或者只刪除沒有用戶依賴的成就\n"
             "• 可以稍後再進行此操作\n\n"
@@ -7990,10 +7984,9 @@ class BulkCategoryChangeView(ui.View):
 
             options.append(
                 discord.SelectOption(
-                    label=f"{category.icon_emoji} {category.name}{count_text}",
+                    label=f"{category.name}{count_text}",
                     value=str(category.id),
                     description=f"{category.description[:90]}...",
-                    emoji=category.icon_emoji,
                 )
             )
 
@@ -8083,7 +8076,7 @@ class BulkCategoryChangeView(ui.View):
 
         # 目標分類資訊
         embed.add_field(
-            name="🎯 目標分類",
+                            name="目標分類",
             value=(
                 f"**名稱**: {target_category.name}\n"
                 f"**描述**: {target_category.description}\n"
@@ -8178,7 +8171,7 @@ class BulkCategoryChangeView(ui.View):
                 "1️⃣ 選擇目標分類\n"
                 "2️⃣ 確認變更操作\n"
                 "3️⃣ 查看執行結果\n\n"
-                "💡 **提示**: 已在目標分類的成就將被跳過"
+                "**提示**: 已在目標分類的成就將被跳過"
             ),
             inline=False,
         )
@@ -8383,37 +8376,37 @@ class CategoryManagementView(ui.View):
                 label="+ 新增分類",
                 value="create",
                 description="建立新的成就分類",
-                emoji="+",
+                ,
             ),
             discord.SelectOption(
                 label="📝 編輯分類",
                 value="edit",
                 description="修改現有分類資訊",
-                emoji="📝",
+                ,
             ),
             discord.SelectOption(
                 label="📋 分類列表",
                 value="list",
                 description="查看所有分類",
-                emoji="📋",
+                ,
             ),
             discord.SelectOption(
                 label="🔄 排序管理",
                 value="reorder",
                 description="調整分類顯示順序",
-                emoji="🔄",
+                ,
             ),
             discord.SelectOption(
                 label="📈 使用統計",
                 value="statistics",
                 description="查看分類使用統計",
-                emoji="📈",
+                ,
             ),
             discord.SelectOption(
                 label="🗑️ 刪除分類",
                 value="delete",
                 description="刪除分類(會處理成就重新分配)",
-                emoji="🗑️",
+                ,
             ),
         ],
     )
@@ -8693,7 +8686,7 @@ class CategoryManagementView(ui.View):
                 embed.add_field(name=field_name, value="\n\n".join(group), inline=False)
 
         embed.add_field(
-            name="💡 管理提示",
+                            name="管理提示",
             value=(
                 "• 點擊下方按鈕進行分類操作\n"
                 "• 分類會影響成就的組織和顯示\n"
@@ -9202,7 +9195,7 @@ class GrantUserSearchModal(ui.Modal):
             member = user_data["user"]
 
             embed.add_field(
-                name="👤 用戶資訊",
+                name="用戶資訊",
                 value=(
                     f"**用戶名**: {user_data['username']}\n"
                     f"**顯示名**: {user_data['display_name']}\n"
@@ -9237,7 +9230,7 @@ class GrantUserSearchModal(ui.Modal):
             )
 
         embed.add_field(
-            name="💡 下一步", value="請選擇一個用戶來執行成就管理操作.", inline=False
+                name="下一步", value="請選擇一個用戶來執行成就管理操作.", inline=False
         )
 
         embed.color = 0xFF6B35
@@ -9271,7 +9264,6 @@ class GrantAchievementUserSelectionView(ui.View):
                         label=f"{user_data['display_name']}",
                         value=str(user_data["user_id"]),
                         description=description[:100],
-                        emoji="👤",
                     )
                 )
 
@@ -9328,7 +9320,7 @@ class GrantAchievementUserSelectionView(ui.View):
         )
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=(
                 f"**用戶名**: {user_data['username']}\n"
                 f"**顯示名**: {user_data['display_name']}\n"
@@ -9395,7 +9387,7 @@ class GrantAchievementSelectionView(ui.View):
                             label=achievement.get("name", "未知成就"),
                             value=str(achievement.get("id", 0)),
                             description=description,
-                            emoji="🏆",
+                            ,
                         )
                     )
 
@@ -9513,7 +9505,7 @@ class GrantAchievementSelectionView(ui.View):
         )
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=(
                 f"**用戶名**: {self.user_data['username']}\n"
                 f"**顯示名**: {self.user_data['display_name']}\n"
@@ -9642,7 +9634,7 @@ class GrantAchievementConfirmView(ui.View):
         )
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=(
                 f"**用戶名**: {self.user_data['username']}\n"
                 f"**顯示名**: {self.user_data['display_name']}\n"
@@ -9712,7 +9704,7 @@ class GrantAchievementConfirmView(ui.View):
     async def _create_grant_success_embed(self) -> discord.Embed:
         """建立授予成功 Embed."""
         embed = StandardEmbedBuilder.create_success_embed(
-            "🎉 成就授予成功",
+            "成就授予成功",
             f"✅ 已成功為用戶 **{self.user_data['display_name']}** 授予成就!",
         )
 
@@ -9810,7 +9802,7 @@ class GrantAchievementFollowupView(ui.View):
         self.user_data = user_data
         self.achievement = achievement
 
-    @ui.button(label="👤 查看用戶詳情", style=discord.ButtonStyle.primary)
+    @ui.button(label="查看用戶詳情", style=discord.ButtonStyle.primary)
     async def view_user_details(
         self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
@@ -9888,7 +9880,7 @@ class GrantAchievementFollowupView(ui.View):
         member = self.user_data["user"]
 
         embed = StandardEmbedBuilder.create_info_embed(
-            f"👤 用戶詳情 - {self.user_data['display_name']}",
+            f"用戶詳情 - {self.user_data['display_name']}",
             "查看用戶的完整成就和進度資訊",
         )
 
@@ -9966,7 +9958,6 @@ class RevokeAchievementUserSelectionView(ui.View):
                         label=f"{user_data['display_name']}",
                         value=str(user_data["user_id"]),
                         description=description[:100],
-                        emoji="👤",
                     )
                 )
 
@@ -10023,7 +10014,7 @@ class RevokeAchievementUserSelectionView(ui.View):
         )
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=(
                 f"**用戶名**: {user_data['username']}\n"
                 f"**顯示名**: {user_data['display_name']}\n"
@@ -10089,7 +10080,7 @@ class RevokeAchievementSelectionView(ui.View):
                             label=achievement.get("name", "未知成就"),
                             value=str(achievement.get("id", 0)),
                             description=description[:100],
-                            emoji="🏆",
+                            ,
                         )
                     )
 
@@ -10205,7 +10196,7 @@ class RevokeAchievementSelectionView(ui.View):
         )
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=(
                 f"**用戶名**: {self.user_data['username']}\n"
                 f"**顯示名**: {self.user_data['display_name']}\n"
@@ -10399,7 +10390,7 @@ class RevokeAchievementConfirmView(ui.View):
         )
 
         embed.add_field(
-            name="👤 目標用戶",
+                            name="目標用戶",
             value=(
                 f"**用戶名**: {self.user_data['username']}\n"
                 f"**顯示名**: {self.user_data['display_name']}\n"
@@ -10632,7 +10623,7 @@ class RevokeAchievementFollowupView(ui.View):
         self.user_data = user_data
         self.achievement = achievement
 
-    @ui.button(label="👤 查看用戶詳情", style=discord.ButtonStyle.primary)
+    @ui.button(label="查看用戶詳情", style=discord.ButtonStyle.primary)
     async def view_user_details(
         self, interaction: discord.Interaction, _button: ui.Button
     ) -> None:
@@ -10739,7 +10730,7 @@ class RevokeAchievementFollowupView(ui.View):
         member = self.user_data["user"]
 
         embed = StandardEmbedBuilder.create_info_embed(
-            f"👤 用戶詳情 - {self.user_data['display_name']}",
+            f"用戶詳情 - {self.user_data['display_name']}",
             "查看用戶的完整成就和進度資訊",
         )
 
@@ -10816,8 +10807,7 @@ class BulkUserSelectionView(ui.View):
             )
             options.append(
                 discord.SelectOption(
-                    label=label, value=str(i), description=description[:100], emoji="👤"
-                )
+                    label=label, value=str(i), description=description[:100])
             )
 
         # 用戶多選下拉選單
@@ -10915,7 +10905,7 @@ class BulkGrantAchievementView(ui.View):
                     label=f"{status_icon} {achievement.name}",
                     value=str(achievement.id),
                     description=f"{achievement.description[:80]}...",
-                    emoji="🏆",
+                    ,
                 )
             )
 
@@ -11126,7 +11116,7 @@ class BulkGrantConfirmView(ui.View):
 
         if success_rate == SUCCESS_RATE_THRESHOLD:
             embed = StandardEmbedBuilder.create_success_embed(
-                "🎉 批量授予完成",
+                "批量授予完成",
                 f"✅ 成功為所有 {len(successful)} 個用戶授予成就「{self.achievement.name}」",
             )
         elif success_rate > PARTIAL_SUCCESS_THRESHOLD:
@@ -11332,7 +11322,7 @@ class BulkRevokeAchievementView(ui.View):
                     label=achievement.name,
                     value=str(achievement.id),
                     description=f"將從 {len(selected_users)} 個用戶撤銷此成就",
-                    emoji="❌",
+                    ,
                 )
             )
 
@@ -11806,7 +11796,7 @@ class AchievementCriteriaSelectionView(ui.View):
                     label=achievement.name[:100],  # 限制標籤長度
                     value=str(achievement.id),
                     description=f"類型: {achievement.type.value} | 點數: {achievement.points}",
-                    emoji="🏆",
+                    ,
                 )
             )
 

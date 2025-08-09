@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
@@ -38,9 +39,6 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class Base(DeclarativeBase):

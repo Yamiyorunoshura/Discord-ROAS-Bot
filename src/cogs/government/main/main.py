@@ -416,7 +416,7 @@ class GovernmentCog(BaseCog):
     async def _create_department_embed(self, department: Department) -> discord.Embed:
         """創建部門資訊 Embed."""
         embed = discord.Embed(
-            title=f"🏛️ {department.name}",
+            title=f"{department.name}",
             description=department.description or "無描述",
             color=discord.Color.blue(),
         )
@@ -468,7 +468,7 @@ class GovernmentCog(BaseCog):
     ) -> discord.Embed:
         """創建部門階層 Embed."""
         embed = discord.Embed(
-            title="🏛️ 部門階層結構",
+            title="部門階層結構",
             color=discord.Color.blue(),
         )
 

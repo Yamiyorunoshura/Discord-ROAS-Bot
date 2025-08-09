@@ -140,7 +140,7 @@ class UIManager:
 
         # 添加設定項目
         embed.add_field(
-            name="🎯 活躍度增益",
+                            name="活躍度增益",
             value=f"`{settings.get('activity_gain', 5.0)}` 分/訊息",
             inline=True,
         )

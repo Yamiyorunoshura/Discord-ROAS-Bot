@@ -38,19 +38,19 @@ class PageSelector(discord.ui.Select):
             discord.SelectOption(
                 label="我的成就",
                 description="查看您已獲得的成就和進度",
-                emoji="🏅",
+                emoji="🏆",
                 value="personal",
             ),
             discord.SelectOption(
                 label="成就瀏覽",
                 description="瀏覽所有可用的成就",
-                emoji="📚",
+                ,
                 value="browse",
             ),
             discord.SelectOption(
                 label="排行榜",
                 description="查看成就排行榜",
-                emoji="🏆",
+                ,
                 value="leaderboard",
             ),
         ]
@@ -99,7 +99,7 @@ class NavigationButton(discord.ui.Button):
         self.panel = panel
         self.target_page = target_page
 
-        super().__init__(label=label, emoji=emoji, style=style)
+        super().__init__(label=label, style=style)
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """按鈕回調處理."""
@@ -122,7 +122,7 @@ class RefreshButton(discord.ui.Button):
         self.panel = panel
 
         super().__init__(
-            label="重新整理", emoji="🔄", style=discord.ButtonStyle.secondary
+            label="重新整理", style=discord.ButtonStyle.secondary
         )
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -145,7 +145,7 @@ class CloseButton(discord.ui.Button):
         """
         self.panel = panel
 
-        super().__init__(label="關閉", emoji="❌", style=discord.ButtonStyle.danger)
+        super().__init__(label="關閉", style=discord.ButtonStyle.danger)
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """按鈕回調處理."""
@@ -175,7 +175,7 @@ class BrowserCategorySelector(discord.ui.Select):
             discord.SelectOption(
                 label="全部分類",
                 description="顯示所有類型的成就",
-                emoji="📋",
+                ,
                 value="all",
             )
         ]
@@ -186,7 +186,7 @@ class BrowserCategorySelector(discord.ui.Select):
                 discord.SelectOption(
                     label=category["name"],
                     description=f"共 {category['count']} 個成就",
-                    emoji=category.get("icon_emoji", "📁"),
+                    emoji="📁",
                     value=str(category["id"]),
                 )
             )
@@ -225,7 +225,6 @@ class BrowserPaginationButton(discord.ui.Button):
         *,
         direction: str,
         label: str,
-        emoji: str | None = None,
         disabled: bool = False,
     ):
         """初始化瀏覽分頁按鈕.
@@ -234,7 +233,6 @@ class BrowserPaginationButton(discord.ui.Button):
             panel: 所屬的成就面板實例
             direction: 導航方向 ("prev", "next", "first", "last")
             label: 按鈕標籤
-            emoji: 按鈕表情符號
             disabled: 是否禁用
         """
         self.panel = panel
@@ -242,7 +240,6 @@ class BrowserPaginationButton(discord.ui.Button):
 
         super().__init__(
             label=label,
-            emoji=emoji,
             style=discord.ButtonStyle.secondary,
             disabled=disabled,
         )
@@ -291,7 +288,7 @@ class AchievementBrowserDetailButton(discord.ui.Button):
 
         super().__init__(
             label=f"{achievement_data['name'][:20]}...",
-            emoji="i",
+            ,
             style=discord.ButtonStyle.primary,
         )
 
@@ -330,7 +327,7 @@ class AchievementProgressIndicatorView:
         """
         if not progress:
             return {
-                "name": f"🎯 {achievement['name']}",
+                "name": f"{achievement['name']}",
                 "value": f"_{achievement['description']}_\n💰 獎勵: {achievement['points']} 點",
             }
 
@@ -393,7 +390,7 @@ class AchievementCategorySelector(discord.ui.Select):
 
         options = [
             discord.SelectOption(
-                label="全部", description="顯示所有成就", emoji="📋", value="all"
+                label="全部", description="顯示所有成就", value="all"
             )
         ]
 
@@ -403,7 +400,7 @@ class AchievementCategorySelector(discord.ui.Select):
                 discord.SelectOption(
                     label=category["name"],
                     description=f"{category['count']} 個成就",
-                    emoji="📁",
+                    ,
                     value=str(category["id"]),
                 )
             )
@@ -453,7 +450,7 @@ class AchievementStatusButton(discord.ui.Button):
         self.panel = panel
         self.status = status
 
-        super().__init__(label=label, emoji=emoji, style=discord.ButtonStyle.primary)
+        super().__init__(label=label, style=discord.ButtonStyle.primary)
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """按鈕回調處理."""
@@ -483,7 +480,6 @@ class PaginationButton(discord.ui.Button):
         *,
         direction: str,
         label: str,
-        emoji: str | None = None,
         disabled: bool = False,
     ):
         """初始化分頁按鈕.
@@ -492,7 +488,6 @@ class PaginationButton(discord.ui.Button):
             panel: 所屬的成就面板實例
             direction: 導航方向 ("prev", "next", "first", "last")
             label: 按鈕標籤
-            emoji: 按鈕表情符號
             disabled: 是否禁用
         """
         self.panel = panel
@@ -500,7 +495,6 @@ class PaginationButton(discord.ui.Button):
 
         super().__init__(
             label=label,
-            emoji=emoji,
             style=discord.ButtonStyle.secondary,
             disabled=disabled,
         )
@@ -550,7 +544,7 @@ class PersonalCategorySelector(discord.ui.Select):
             discord.SelectOption(
                 label="全部分類",
                 description="顯示所有已獲得的成就",
-                emoji="📋",
+                ,
                 value="all",
             )
         ]
@@ -561,7 +555,7 @@ class PersonalCategorySelector(discord.ui.Select):
                     discord.SelectOption(
                         label=category["name"],
                         description=f"已獲得 {category['user_achievements_count']} 個成就",
-                        emoji="📁",
+                        ,
                         value=str(category["id"]),
                     )
                 )
@@ -747,7 +741,7 @@ class ComponentFactory:
             NavigationButton: 導航按鈕組件
         """
         return NavigationButton(
-            panel, label=label, emoji=emoji, target_page=target_page
+            panel, label=label, target_page=target_page
         )
 
     @staticmethod
@@ -805,24 +799,24 @@ class ComponentFactory:
         """
         return [
             BrowserPaginationButton(
-                panel, direction="first", label="首頁", emoji="⏮️", disabled=not has_prev
+                panel, direction="first", label="首頁", disabled=not has_prev
             ),
             BrowserPaginationButton(
                 panel,
                 direction="prev",
                 label="上一頁",
-                emoji="◀️",
+                ,
                 disabled=not has_prev,
             ),
             BrowserPaginationButton(
                 panel,
                 direction="next",
                 label="下一頁",
-                emoji="▶️",
+                ,
                 disabled=not has_next,
             ),
             BrowserPaginationButton(
-                panel, direction="last", label="末頁", emoji="⏭️", disabled=not has_next
+                panel, direction="last", label="末頁", disabled=not has_next
             ),
         ]
 
@@ -867,10 +861,10 @@ class ComponentFactory:
             list[AchievementStatusButton]: 狀態篩選按鈕列表
         """
         return [
-            AchievementStatusButton(panel, status="all", label="全部", emoji="📋"),
-            AchievementStatusButton(panel, status="earned", label="已獲得", emoji="✅"),
+            AchievementStatusButton(panel, status="all", label="全部"),
+            AchievementStatusButton(panel, status="earned", label="已獲得"),
             AchievementStatusButton(
-                panel, status="not_earned", label="未獲得", emoji="⭕"
+                panel, status="not_earned", label="未獲得"
             ),
         ]
 
@@ -890,24 +884,24 @@ class ComponentFactory:
         """
         return [
             PaginationButton(
-                panel, direction="first", label="首頁", emoji="⏮️", disabled=not has_prev
+                panel, direction="first", label="首頁", disabled=not has_prev
             ),
             PaginationButton(
                 panel,
                 direction="prev",
                 label="上一頁",
-                emoji="◀️",
+                ,
                 disabled=not has_prev,
             ),
             PaginationButton(
                 panel,
                 direction="next",
                 label="下一頁",
-                emoji="▶️",
+                ,
                 disabled=not has_next,
             ),
             PaginationButton(
-                panel, direction="last", label="末頁", emoji="⏭️", disabled=not has_next
+                panel, direction="last", label="末頁", disabled=not has_next
             ),
         ]
 
@@ -971,24 +965,24 @@ class ComponentFactory:
         """
         return [
             LeaderboardPaginationButton(
-                panel, direction="first", label="首頁", emoji="⏮️", disabled=not has_prev
+                panel, direction="first", label="首頁", disabled=not has_prev
             ),
             LeaderboardPaginationButton(
                 panel,
                 direction="prev",
                 label="上一頁",
-                emoji="◀️",
+                ,
                 disabled=not has_prev,
             ),
             LeaderboardPaginationButton(
                 panel,
                 direction="next",
                 label="下一頁",
-                emoji="▶️",
+                ,
                 disabled=not has_next,
             ),
             LeaderboardPaginationButton(
-                panel, direction="last", label="末頁", emoji="⏭️", disabled=not has_next
+                panel, direction="last", label="末頁", disabled=not has_next
             ),
         ]
 
@@ -1015,13 +1009,13 @@ class LeaderboardTypeSelector(discord.ui.Select):
             discord.SelectOption(
                 label="成就總數排行榜",
                 description="按獲得成就總數排序",
-                emoji="🏅",
+                ,
                 value="count",
             ),
             discord.SelectOption(
                 label="成就點數排行榜",
                 description="按獲得成就點數排序",
-                emoji="💎",
+                ,
                 value="points",
             ),
         ]
@@ -1031,7 +1025,7 @@ class LeaderboardTypeSelector(discord.ui.Select):
                 discord.SelectOption(
                     label=f"{category['name']} 排行榜",
                     description=f"按 {category['name']} 分類成就數排序",
-                    emoji="📁",
+                    ,
                     value=f"category_{category['id']}",
                 )
             )
@@ -1074,7 +1068,6 @@ class LeaderboardPaginationButton(discord.ui.Button):
         *,
         direction: str,
         label: str,
-        emoji: str | None = None,
         disabled: bool = False,
     ):
         """初始化排行榜分頁按鈕.
@@ -1083,7 +1076,6 @@ class LeaderboardPaginationButton(discord.ui.Button):
             panel: 所屬的成就面板實例
             direction: 導航方向 ("prev", "next", "first", "last")
             label: 按鈕標籤
-            emoji: 按鈕表情符號
             disabled: 是否禁用
         """
         self.panel = panel
@@ -1091,7 +1083,6 @@ class LeaderboardPaginationButton(discord.ui.Button):
 
         super().__init__(
             label=label,
-            emoji=emoji,
             style=discord.ButtonStyle.secondary,
             disabled=disabled,
         )

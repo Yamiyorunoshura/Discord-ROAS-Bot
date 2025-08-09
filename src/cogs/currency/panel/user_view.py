@@ -130,7 +130,7 @@ class CurrencyPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="上一頁",
                     style="secondary",
-                    emoji="⬅️",
+                    ,
                     disabled=self.current_leaderboard_page <= 0,
                     custom_id="roas_currency_prev_page",
                     callback=self.prev_page_callback,
@@ -140,7 +140,7 @@ class CurrencyPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="下一頁",
                     style="secondary",
-                    emoji="➡️",
+                    ,
                     custom_id="roas_currency_next_page",
                     callback=self.next_page_callback,
                 )
@@ -149,7 +149,7 @@ class CurrencyPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="我的排名",
                     style="primary",
-                    emoji="📊",
+                    ,
                     custom_id="roas_currency_my_rank",
                     callback=self.my_rank_callback,
                 )
@@ -158,7 +158,7 @@ class CurrencyPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="返回主頁",
                     style="secondary",
-                    emoji="🏠",
+                    ,
                     custom_id="roas_currency_back_main",
                     callback=self.back_to_main_callback,
                 )

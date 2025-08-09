@@ -492,7 +492,7 @@ class CategoryTreeView(ui.View):
 
             # 操作說明
             embed.add_field(
-                name="💡 操作說明",
+                name="操作說明",
                 value="• 點擊 📁 展開分類\n• 點擊 📂 收合分類\n• 點擊 📄 查看成就",
                 inline=True,
             )

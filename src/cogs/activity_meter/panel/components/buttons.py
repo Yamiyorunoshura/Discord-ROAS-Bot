@@ -13,7 +13,7 @@ class CloseButton(discord.ui.Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.danger, label="關閉", emoji="❌", row=1
+            style=discord.ButtonStyle.danger, label="關閉", row=1
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -65,7 +65,7 @@ class PreviewButton(discord.ui.Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="預覽排行榜", emoji="👁️", row=1
+            style=discord.ButtonStyle.primary, label="預覽排行榜", row=1
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -86,7 +86,7 @@ class SettingsButton(discord.ui.Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.success, label="設定", emoji="⚙️", row=2
+            style=discord.ButtonStyle.success, label="設定", row=2
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -107,7 +107,7 @@ class StatsButton(discord.ui.Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.success, label="統計", emoji="📊", row=2
+            style=discord.ButtonStyle.success, label="統計", row=2
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -128,7 +128,7 @@ class TimeSettingButton(discord.ui.Button):
 
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="設定時間", emoji="⏰", row=3
+            style=discord.ButtonStyle.primary, label="設定時間", row=3
         )
 
     async def callback(self, interaction: discord.Interaction):

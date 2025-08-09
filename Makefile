@@ -33,6 +33,44 @@ lint: ## Run linting (ruff + mypy)
 	uv run mypy src
 	@echo "✅ Linting completed"
 
+# Testing Commands for Discord Bot Commands & Panels
+test-fast: ## Run fast unit tests with mocks
+	@echo "🏃‍♂️ Running fast tests..."
+	uv run pytest -m "unit and mock and not slow" --maxfail=3 --tb=short --disable-warnings --quiet tests/unit/
+	@echo "✅ Fast tests completed"
+
+test-commands: ## Run Discord slash command tests
+	@echo "⚡ Running command tests..."
+	uv run pytest -m "command and mock" --maxfail=5 --tb=short tests/unit/cogs/*/test_*command*.py
+	@echo "✅ Command tests completed"
+
+test-panels: ## Run Discord panel interaction tests
+	@echo "🎨 Running panel interaction tests..."
+	uv run pytest -c pytest_panel.toml --maxfail=5 --tb=short tests/unit/cogs/*/test_*panel*.py
+	@echo "✅ Panel tests completed"
+
+test-panels-coverage: ## Run panel tests with coverage
+	@echo "📊 Running panel tests with coverage..."
+	uv run pytest -c pytest_panel.toml -m "panel" --cov=src/cogs/*/panel --cov-report=html:reports/panel_coverage --cov-report=term-missing tests/unit/cogs/
+	@echo "✅ Panel coverage report generated: reports/panel_coverage/index.html"
+
+test-integration: ## Run integration tests
+	@echo "🔄 Running integration tests..."
+	uv run pytest -m "integration and database" --maxfail=3 --tb=short tests/
+	@echo "✅ Integration tests completed"
+
+test-performance: ## Run performance tests
+	@echo "⚡ Running performance tests..."
+	uv run pytest -m "performance" --benchmark-only --benchmark-sort=mean tests/
+	@echo "✅ Performance tests completed"
+
+test-commands-panels: ## Run comprehensive command and panel tests
+	@echo "🧪 Running comprehensive command and panel tests..."
+	$(MAKE) test-fast
+	$(MAKE) test-commands
+	$(MAKE) test-panels
+	@echo "✅ All command and panel tests completed"
+
 lint-strict: ## Run strict mypy with quality config
 	@echo "🔍 Running strict mypy checks..."
 	uv run mypy --config-file=quality/mypy.ini src
@@ -80,15 +118,23 @@ security: ## Run security checks
 	@echo "✅ Security checks completed"
 
 # Testing
-test: ## Run tests
-	@echo "🧪 Running tests..."
-	uv run pytest
-	@echo "✅ Tests completed"
+test: ## Run all tests (includes commands and panels)
+	@echo "🧪 Running all tests..."
+	$(MAKE) test-fast
+	$(MAKE) test-commands
+	$(MAKE) test-panels
+	uv run pytest tests/ --maxfail=10
+	@echo "✅ All tests completed"
 
 test-cov: ## Run tests with coverage
 	@echo "🧪 Running tests with coverage..."
-	uv run pytest --cov=src --cov-report=html --cov-report=term
-	@echo "✅ Tests with coverage completed"
+	uv run pytest --cov=src --cov-report=html:reports/coverage --cov-report=term-missing --cov-report=xml tests/
+	@echo "✅ Tests with coverage completed - see reports/coverage/index.html"
+
+test-ci: ## Run tests for CI/CD (strict mode)
+	@echo "🏗️ Running CI/CD tests..."
+	PYTHONWARNINGS=error TESTING=true ENV=test uv run pytest --strict-markers --strict-config --cov=src --cov-fail-under=70 --cov-report=xml --junit-xml=pytest-results.xml --maxfail=1 --tb=short -q tests/
+	@echo "✅ CI/CD tests completed"
 
 test-watch: ## Run tests in watch mode
 	@echo "👀 Running tests in watch mode..."

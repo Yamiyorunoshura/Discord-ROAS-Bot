@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from src.core.database.models import (
+from src.core.database_pkg.models import (
     Achievement,
     AchievementCategory,
     CurrencyBalance,
@@ -27,7 +27,7 @@ from src.core.database.models import (
     GuildConfig,
     UserAchievement,
 )
-from src.core.database.postgresql import BaseRepository
+from src.core.database_pkg.postgresql import BaseRepository
 
 
 class GuildConfigRepository(BaseRepository):

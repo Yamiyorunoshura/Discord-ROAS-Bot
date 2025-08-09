@@ -100,7 +100,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="設定",
                 style="secondary",
-                emoji="⚙️",
                 callback=self.show_settings_callback,
             )
         )
@@ -109,7 +108,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="模式",
                 style="secondary",
-                emoji="🔍",
                 callback=self.show_modes_callback,
             )
         )
@@ -118,7 +116,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="白名單",
                 style="secondary",
-                emoji="✅",
                 callback=self.show_whitelist_callback,
             )
         )
@@ -127,7 +124,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="記錄",
                 style="secondary",
-                emoji="📜",
                 callback=self.show_history_callback,
             )
         )
@@ -136,7 +132,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="頻率限制",
                 style="secondary",
-                emoji="⚡",
                 callback=self.frequency_category_callback,
             )
         )
@@ -145,7 +140,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="重複檢測",
                 style="secondary",
-                emoji="🔄",
                 callback=self.repeat_category_callback,
             )
         )
@@ -154,7 +148,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="貼圖限制",
                 style="secondary",
-                emoji="😀",
                 callback=self.sticker_category_callback,
             )
         )
@@ -163,7 +156,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="進階",
                 style="secondary",
-                emoji="🔧",
                 callback=self.show_advanced_callback,
             )
         )
@@ -172,7 +164,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="測試檢測",
                 style="primary",
-                emoji="🧪",
                 callback=self.test_detection_callback,
             )
         )
@@ -181,7 +172,6 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="重置設定",
                 style="danger",
-                emoji="🔄",
                 callback=self.reset_settings_callback,
             )
         )
@@ -190,14 +180,13 @@ class AntiSpamMainView(StandardPanelView):
             self.create_standard_button(
                 label="重新整理",
                 style="secondary",
-                emoji="🔄",
                 callback=self.refresh_callback,
             )
         )
 
         self.add_item(
             self.create_standard_button(
-                label="關閉", style="danger", emoji="❌", callback=self.close_callback
+                label="關閉", style="danger", callback=self.close_callback
             )
         )
 
@@ -248,7 +237,7 @@ class AntiSpamMainView(StandardPanelView):
             )
 
             # 白名單用戶
-            embed.add_field(name="👤 白名單用戶", value="暫無白名單用戶", inline=False)
+            embed.add_field(name="白名單用戶", value="暫無白名單用戶", inline=False)
 
             # 白名單角色
             embed.add_field(
@@ -432,7 +421,7 @@ class ConfirmResetView(discord.ui.View):
         super().__init__(timeout=30)
         self.parent_view = parent_view
 
-    @discord.ui.button(label="確認重置", style=discord.ButtonStyle.danger, emoji="⚠️")
+    @discord.ui.button(label="確認重置", style=discord.ButtonStyle.danger)
     async def confirm_reset(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -457,7 +446,7 @@ class ConfirmResetView(discord.ui.View):
             )
             await interaction.response.edit_message(embed=error_embed, view=self)
 
-    @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary, emoji="❌")
+    @discord.ui.button(label="取消", style=discord.ButtonStyle.secondary)
     async def cancel_reset(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -487,7 +476,7 @@ class ToggleButton(ui.Button):
 
     def __init__(self, row: int = 0):
         super().__init__(
-            style=discord.ButtonStyle.primary, label="切換啟用", emoji="🔄", row=row
+            style=discord.ButtonStyle.primary, label="切換啟用", row=row
         )
 
     async def callback(self, interaction: discord.Interaction):

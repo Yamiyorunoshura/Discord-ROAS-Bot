@@ -614,7 +614,7 @@ class AchievementNotifier:
         user_mention = user.mention if user else f"<@{notification_data.user_id}>"
 
         content = (
-            f"🎉 {user_mention} 獲得了成就 **{notification_data.achievement.name}**!"
+            f"{user_mention} 獲得了成就 **{notification_data.achievement.name}**!"
         )
 
         try:
@@ -653,7 +653,7 @@ class AchievementNotifier:
         achievement = notification_data.achievement
 
         embed = discord.Embed(
-            title="🎉 成就解鎖!",
+            title="成就解鎖!",
             description=f"恭喜獲得成就:**{achievement.name}**",
             color=0x00FF00,  # 綠色
             timestamp=notification_data.user_achievement.earned_at,

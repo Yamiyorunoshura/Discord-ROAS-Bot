@@ -34,13 +34,18 @@ dependencies = [
     "requests>=2.32.4",
     "tldextract>=5.3.0",
     "chardet>=5.2.0",
+    "aiohttp[speedups]>=3.9.0,<4.0.0",
+    "uvloop>=0.19.0; sys_platform != 'win32'",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "ruff>=0.1.0",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=0.26.0",
+    "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0",
+    "dpytest>=0.7.0",
+    "ruff>=0.12.5",
     "mypy>=1.7.0",
     "black>=24.0.0",
 ]
@@ -162,6 +167,111 @@ docstring-code-format = true
 preview = true
 
 # ================================
+# Testing Configuration
+# ================================
+
+[tool.pytest.ini_options]
+# 測試目錄
+testpaths = ["tests"]
+
+# Python 文件模式
+python_files = ["test_*.py", "*_test.py"]
+
+# Python 類別模式
+python_classes = ["Test*"]
+
+# Python 函數模式
+python_functions = ["test_*"]
+
+# 額外的命令列選項
+addopts = [
+    "-v",                           # 詳細輸出
+    "--strict-markers",             # 嚴格標記模式
+    "--tb=short",                   # 簡潔的錯誤追蹤
+    "--asyncio-mode=auto",          # 自動異步模式
+    "--disable-warnings",           # 禁用警告
+    "--cov=src",                    # 覆蓋率檢查源碼目錄
+    "--cov-report=term-missing",    # 終端報告顯示遺漏行
+    "--cov-report=xml:coverage.xml", # XML 報告
+    "--cov-report=html:htmlcov",    # HTML 報告到指定目錄
+    "--cov-fail-under=10",          # 初始覆蓋率門檻 10%（建立基礎設施階段）
+]
+
+# 異步測試配置
+asyncio_mode = "auto"
+
+# 測試標記
+markers = [
+    "unit: 單元測試標記",
+    "integration: 整合測試標記", 
+    "security: 安全測試標記",
+    "performance: 效能測試標記",
+    "database: 資料庫測試標記",
+    "slow: 緩慢測試標記",
+    "network: 需要網路的測試",
+    "mock: 使用Mock對象的測試",
+    "panel: 面板功能測試標記",
+    "embed: Discord 嵌入測試標記",
+    "component: Discord 組件測試標記", 
+    "dpytest: dpytest 框架測試標記",
+    "regression: 回歸測試標記"
+]
+
+# 最低Python版本
+minversion = "7.0"
+
+# 日誌配置
+log_auto_indent = true
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+# 過濾警告
+filterwarnings = [
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning"
+]
+
+# ================================
+# Coverage Configuration
+# ================================
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "tests/*",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/__pycache__/*",
+    "scripts/*",
+    "utils/*"
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:"
+]
+show_missing = true
+precision = 2
+fail_under = 10
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+# ================================
 # Type Checking Configuration
 # ================================
 
@@ -229,3 +339,5 @@ module = [
     "dpytest.*"
 ]
 ignore_missing_imports = true
+
+

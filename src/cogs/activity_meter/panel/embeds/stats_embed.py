@@ -132,7 +132,7 @@ async def create_stats_embed(
     )
 
     embed.add_field(
-        name="💡 統計功能",
+                        name="統計功能",
         value=(
             "• 點擊「查看月度排行榜」查看過去一個月平均活躍度最高的成員\n"
             "• 點擊「查看訊息量變化」比較本月與上個月的訊息總量變化\n"

@@ -55,7 +55,7 @@ class AdminHelpSystem:
         )
 
         embed.add_field(
-            name="🎯 主要功能",
+                            name="主要功能",
             value=(
                 "• **成就管理** - 創建、編輯、刪除成就\n"
                 "• **條件設置** - 設置成就達成條件\n"
@@ -90,7 +90,7 @@ class AdminHelpSystem:
             inline=False,
         )
 
-        embed.set_footer(text="💡 提示:點擊下方按鈕查看詳細說明")
+        embed.set_footer(text="提示:點擊下方按鈕查看詳細說明")
         return embed
 
 
@@ -102,7 +102,7 @@ class HelpOverviewView(ui.View):
         super().__init__(timeout=600)
         self.help_system = help_system
 
-    @ui.button(label="🚀 快速開始", style=discord.ButtonStyle.primary, emoji="🚀")
+    @ui.button(label="🚀 快速開始", style=discord.ButtonStyle.primary)
     async def quick_start_guide(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -111,14 +111,14 @@ class HelpOverviewView(ui.View):
         view = QuickStartView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @ui.button(label="📋 功能詳解", style=discord.ButtonStyle.primary, emoji="📋")
+    @ui.button(label="📋 功能詳解", style=discord.ButtonStyle.primary)
     async def feature_guide(self, interaction: discord.Interaction, _button: ui.Button):
         """顯示功能詳解."""
         embed = await self._create_feature_guide_embed()
         view = FeatureGuideView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @ui.button(label="💡 最佳實踐", style=discord.ButtonStyle.secondary, emoji="💡")
+    @ui.button(label="最佳實踐", style=discord.ButtonStyle.secondary)
     async def best_practices(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -127,14 +127,14 @@ class HelpOverviewView(ui.View):
         view = BestPracticesView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @ui.button(label="❓ 常見問題", style=discord.ButtonStyle.secondary, emoji="❓")
+    @ui.button(label="❓ 常見問題", style=discord.ButtonStyle.secondary)
     async def faq(self, interaction: discord.Interaction, _button: ui.Button):
         """顯示常見問題."""
         embed = await self._create_faq_embed()
         view = FAQView(self.help_system)
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @ui.button(label="🔒 安全須知", style=discord.ButtonStyle.danger, emoji="🔒")
+    @ui.button(label="🔒 安全須知", style=discord.ButtonStyle.danger)
     async def security_guide(
         self, interaction: discord.Interaction, _button: ui.Button
     ):
@@ -180,7 +180,7 @@ class HelpOverviewView(ui.View):
         )
 
         embed.add_field(
-            name="💡 小提示",
+                            name="小提示",
             value=(
                 "• 所有操作都會記錄在審計日誌中\n"
                 "• 重要操作需要二次確認\n"
@@ -220,7 +220,7 @@ class HelpOverviewView(ui.View):
         )
 
         embed.add_field(
-            name="🎯 條件設置",
+                            name="條件設置",
             value=(
                 "• **訊息條件** - 設定發送訊息數量\n"
                 "• **關鍵字條件** - 設定特定關鍵字\n"
@@ -235,11 +235,11 @@ class HelpOverviewView(ui.View):
     async def _create_best_practices_embed(self) -> discord.Embed:
         """創建最佳實踐 Embed."""
         embed = StandardEmbedBuilder.create_success_embed(
-            "💡 最佳實踐建議", "遵循這些建議可以更好地使用管理面板:"
+                            "最佳實踐建議", "遵循這些建議可以更好地使用管理面板:"
         )
 
         embed.add_field(
-            name="🎯 成就設計",
+            name="成就設計",
             value=(
                 "• 設定合理的達成條件\n"
                 "• 避免過於簡單或困難的成就\n"
@@ -394,7 +394,7 @@ class FeatureGuideView(ui.View):
                 label="👥 用戶管理", value="users", description="用戶成就和進度管理"
             ),
             discord.SelectOption(
-                label="🎯 條件設置", value="criteria", description="成就達成條件設置"
+                label="條件設置", value="criteria", description="成就達成條件設置"
             ),
             discord.SelectOption(
                 label="📦 批量操作", value="bulk", description="批量處理功能"
@@ -454,7 +454,7 @@ class FeatureGuideView(ui.View):
             )
         elif feature == "criteria":
             return StandardEmbedBuilder.create_info_embed(
-                "🎯 條件設置詳解",
+                "條件設置詳解",
                 "條件設置讓您靈活配置成就的達成條件:\n\n"
                 "**訊息數量條件**\n"
                 "• 設定目標訊息數量\n"

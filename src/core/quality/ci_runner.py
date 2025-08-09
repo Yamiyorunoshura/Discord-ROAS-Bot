@@ -10,7 +10,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from . import QualityAssuranceService
 
@@ -88,7 +88,7 @@ class CIQualityRunner:
             print(f"💥 品質檢查執行失敗: {e}")
             return False
 
-    async def _run_coverage_check(self) -> Dict[str, Any]:
+    async def _run_coverage_check(self) -> dict[str, Any]:
         """執行測試覆蓋率檢查
 
         Returns:
@@ -115,7 +115,7 @@ class CIQualityRunner:
             # 讀取覆蓋率 JSON 報告
             coverage_file = self.project_root / "quality-reports" / "coverage.json"
             if coverage_file.exists():
-                with open(coverage_file, 'r') as f:
+                with open(coverage_file) as f:
                     coverage_data = json.load(f)
 
                 summary = coverage_data.get("totals", {})
@@ -153,7 +153,7 @@ class CIQualityRunner:
     def _enforce_enhanced_quality_gates(
         self,
         results: Any,
-        coverage_data: Dict[str, Any],
+        coverage_data: dict[str, Any],
         strict: bool = True
     ) -> bool:
         """增強的品質門檻檢查（包含覆蓋率）
@@ -187,7 +187,7 @@ class CIQualityRunner:
 
     async def _save_reports(
         self,
-        report: Dict[str, Any],
+        report: dict[str, Any],
         results: Any
     ) -> None:
         """儲存品質檢查報告
@@ -224,7 +224,7 @@ class CIQualityRunner:
     def _print_summary(
         self,
         results: Any,
-        coverage_data: Dict[str, Any] = None
+        coverage_data: dict[str, Any] = None
     ) -> None:
         """顯示檢查結果摘要（包含覆蓋率）
 
@@ -264,7 +264,7 @@ class CIQualityRunner:
         self,
         results: Any,
         strict_mode: bool,
-        coverage_data: Dict[str, Any] = None
+        coverage_data: dict[str, Any] = None
     ) -> None:
         """顯示失敗詳情（包含覆蓋率）
 

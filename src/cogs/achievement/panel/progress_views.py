@@ -70,7 +70,7 @@ class AdjustProgressView(ui.View):
             if not self.user_progress:
                 embed.add_field(
                     name="📋 進度狀態",
-                    value="🎉 此用戶沒有進行中的成就!\n所有成就都已完成或尚未開始.",
+                    value="此用戶沒有進行中的成就!\n所有成就都已完成或尚未開始.",
                     inline=False,
                 )
                 embed.color = 0x00FF00
@@ -168,7 +168,7 @@ class AdjustProgressView(ui.View):
                     label=label[:100],  # 限制長度
                     value=str(progress.achievement_id),
                     description=description[:100],
-                    emoji="📈",
+                    ,
                 )
             )
 
@@ -452,7 +452,7 @@ class AdjustProgressResultView(ui.View):
         )
 
         embed.add_field(
-            name="👤 用戶資訊",
+                            name="用戶資訊",
             value=f"**用戶**: {member.display_name}\n**ID**: `{member.id}`",
             inline=True,
         )
@@ -468,7 +468,7 @@ class AdjustProgressResultView(ui.View):
         # 如果達成成就,顯示特別提示
         if self.new_value >= self.original_progress.target_value:
             embed.add_field(
-                name="🎉 成就完成!",
+                name="成就完成!",
                 value="進度已達到目標值,成就已自動授予給用戶!",
                 inline=False,
             )
@@ -499,7 +499,7 @@ class AdjustProgressResultView(ui.View):
                 "❌ 開啟進度選擇時發生錯誤", ephemeral=True
             )
 
-    @ui.button(label="👤 管理此用戶", style=discord.ButtonStyle.secondary)
+    @ui.button(label="管理此用戶", style=discord.ButtonStyle.secondary)
     async def manage_user_button(
         self, interaction: discord.Interaction, _button: ui.Button
     ):

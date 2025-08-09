@@ -252,7 +252,7 @@ class QuickPreviewModal(ui.Modal):
         self.quick_text = ui.TextInput(
             label="快速預覽",
             placeholder="輸入簡短文字進行快速預覽...",
-            default="Hello World! 🌍",
+                            default="Hello World!",
             min_length=1,
             max_length=100,
         )
@@ -277,7 +277,7 @@ class QuickPreviewModal(ui.Modal):
             )
 
             embed.add_field(
-                name="💡 提示",
+                name="提示",
                 value="這是簡化版預覽, 完整預覽請使用「渲染預覽」功能",
                 inline=False,
             )
@@ -397,7 +397,7 @@ class PreviewSettingsModal(ui.Modal):
             )
 
             embed.add_field(
-                name="💡 提示", value="設定將在下次預覽時生效", inline=False
+                name="提示", value="設定將在下次預覽時生效", inline=False
             )
 
             await interaction.response.send_message(embed=embed, ephemeral=True)

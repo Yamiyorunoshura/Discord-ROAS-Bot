@@ -159,7 +159,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="搜尋用戶",
                     style="secondary",
-                    emoji="🔍",
+                    ,
                     custom_id="roas_currency_admin_search",
                     callback=self.search_user_callback,
                 )
@@ -168,7 +168,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="上一頁",
                     style="secondary",
-                    emoji="⬅️",
+                    ,
                     disabled=self.current_users_page <= 0,
                     custom_id="roas_currency_admin_users_prev",
                     callback=self.users_prev_page_callback,
@@ -178,7 +178,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="下一頁",
                     style="secondary",
-                    emoji="➡️",
+                    ,
                     custom_id="roas_currency_admin_users_next",
                     callback=self.users_next_page_callback,
                 )
@@ -187,7 +187,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="返回主控台",
                     style="secondary",
-                    emoji="🏠",
+                    ,
                     custom_id="roas_currency_admin_back_main",
                     callback=self.back_to_main_callback,
                 )
@@ -199,7 +199,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="刷新統計",
                     style="primary",
-                    emoji="📊",
+                    ,
                     custom_id="roas_currency_admin_refresh_stats",
                     callback=self.refresh_stats_callback,
                 )
@@ -208,7 +208,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="導出報告",
                     style="secondary",
-                    emoji="📄",
+                    ,
                     custom_id="roas_currency_admin_export_stats",
                     callback=self.export_stats_callback,
                 )
@@ -217,7 +217,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="返回主控台",
                     style="secondary",
-                    emoji="🏠",
+                    ,
                     custom_id="roas_currency_admin_back_main_stats",
                     callback=self.back_to_main_callback,
                 )
@@ -229,7 +229,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="篩選記錄",
                     style="primary",
-                    emoji="🔍",
+                    ,
                     custom_id="roas_currency_admin_filter_audit",
                     callback=self.filter_audit_callback,
                 )
@@ -238,7 +238,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="上一頁",
                     style="secondary",
-                    emoji="⬅️",
+                    ,
                     disabled=self.current_audit_page <= 0,
                     custom_id="roas_currency_admin_audit_prev",
                     callback=self.audit_prev_page_callback,
@@ -248,7 +248,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="下一頁",
                     style="secondary",
-                    emoji="➡️",
+                    ,
                     custom_id="roas_currency_admin_audit_next",
                     callback=self.audit_next_page_callback,
                 )
@@ -257,7 +257,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="導出記錄",
                     style="danger",
-                    emoji="📥",
+                    ,
                     custom_id="roas_currency_admin_export_audit",
                     callback=self.export_audit_callback,
                 )
@@ -266,7 +266,7 @@ class CurrencyAdminPanelView(StandardPanelView):
                 self.create_standard_button(
                     label="返回主控台",
                     style="secondary",
-                    emoji="🏠",
+                    ,
                     custom_id="roas_currency_admin_back_main_audit",
                     callback=self.back_to_main_callback,
                 )

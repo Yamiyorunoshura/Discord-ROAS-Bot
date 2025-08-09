@@ -289,7 +289,7 @@ class ErrorHandler:
         message = f"{icon} {user_msg}\n\n📋 追蹤碼:`{tracking_id}`"
 
         if suggestions:
-            message += "\n\n💡 **建議解決方案:**"
+            message += "\n\n**建議解決方案:**"
             for i, suggestion in enumerate(suggestions, 1):
                 message += f"\n{i}. {suggestion}"
 

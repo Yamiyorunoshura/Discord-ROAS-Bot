@@ -89,7 +89,7 @@ class GlobalNotificationSettingsView(discord.ui.View):
         label="設定公告頻道",
         style=discord.ButtonStyle.primary,
         custom_id="set_channel",
-        emoji="📢",
+        ,
     )
     async def set_announcement_channel(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -137,7 +137,7 @@ class GlobalNotificationSettingsView(discord.ui.View):
         label="伺服器公告: 關閉",
         style=discord.ButtonStyle.secondary,
         custom_id="announcement_toggle",
-        emoji="🔔",
+        ,
     )
     async def toggle_announcements(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -168,7 +168,7 @@ class GlobalNotificationSettingsView(discord.ui.View):
         label="頻率限制設定",
         style=discord.ButtonStyle.primary,
         custom_id="rate_limit",
-        emoji="⏱️",
+        ,
     )
     async def configure_rate_limit(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -189,7 +189,6 @@ class GlobalNotificationSettingsView(discord.ui.View):
         label="重要成就篩選: 關閉",
         style=discord.ButtonStyle.secondary,
         custom_id="filter_toggle",
-        emoji="🎯",
     )
     async def toggle_important_filter(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -222,7 +221,7 @@ class GlobalNotificationSettingsView(discord.ui.View):
         label="重置設定",
         style=discord.ButtonStyle.danger,
         custom_id="reset_settings",
-        emoji="🔄",
+        ,
     )
     async def reset_settings(
         self, interaction: discord.Interaction, _button: discord.ui.Button
@@ -314,7 +313,7 @@ class GlobalNotificationSettingsView(discord.ui.View):
         filter_status = (
             "✅ 開啟" if self.settings.important_achievements_only else "❌ 關閉"
         )
-        embed.add_field(name="🎯 重要成就篩選", value=filter_status, inline=True)
+        embed.add_field(name="重要成就篩選", value=filter_status, inline=True)
 
         embed.set_footer(text="僅管理員可以修改這些設定")
 
@@ -534,7 +533,7 @@ async def create_global_notification_settings_panel(
             filter_status = (
                 "✅ 開啟" if current_settings.important_achievements_only else "❌ 關閉"
             )
-            embed.add_field(name="🎯 重要成就篩選", value=filter_status, inline=True)
+            embed.add_field(name="重要成就篩選", value=filter_status, inline=True)
         else:
             embed.add_field(name="📋 狀態", value="尚未設定,將使用預設值", inline=False)
 

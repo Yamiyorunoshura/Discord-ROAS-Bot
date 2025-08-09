@@ -156,11 +156,9 @@ pip install -e ".[dev]"
 ##### 4. 設定環境變數
 建立 `.env` 檔案：
 ```env
-DISCORD_TOKEN=your_discord_bot_token
-DISCORD_GUILD_ID=your_guild_id
+TOKEN=your_discord_bot_token
 ENVIRONMENT=development
 LOG_LEVEL=INFO
-DATABASE_URL=sqlite:///data/bot.db
 ```
 
 ##### 5. 初始化資料庫
@@ -185,12 +183,35 @@ make validate-config
 ```
 
 ##### 7. 啟動機器人
+
+- Docker（推薦）
 ```bash
-# 開發模式啟動
+# 生產模式
+docker compose up -d --build discord-bot
+docker compose logs -f --tail=100 discord-bot
+
+# 開發模式（熱重載）
+docker compose --profile dev up -d discord-bot-dev
+docker compose logs -f --tail=100 discord-bot-dev
+```
+
+- 啟動腳本
+```bash
+# Windows
+start_bot.bat
+
+# macOS/Linux
+chmod +x ./start_bot.sh
+./start_bot.sh
+```
+
+- 本地開發
+```bash
+# 使用 Make
 make run-dev
 
-# 或使用傳統方式
-python -m src.main
+# 或使用 Python 直接啟動
+python -m src.main run --env development --debug
 ```
 
 ### 🎯 完整依賴安裝清單

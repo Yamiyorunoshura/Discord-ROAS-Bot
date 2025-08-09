@@ -1,8 +1,8 @@
 """
-資料同步歷史記錄嵌入組件
-- 顯示同步歷史記錄
-- 顯示詳細的同步結果
-- 提供分頁功能
+
+- 
+- 
+- 
 """
 
 import datetime as dt
@@ -18,19 +18,19 @@ async def create_history_embed(
     cog: "SyncDataCog", guild: discord.Guild, page: int = 0
 ) -> discord.Embed:
     """
-    創建同步歷史記錄嵌入
+    
 
     Args:
-        cog: SyncDataCog 實例
-        guild: Discord 伺服器物件
-        page: 頁碼
+        cog: SyncDataCog 
+        guild: Discord 
+        page: 
 
     Returns:
-        discord.Embed: 歷史記錄嵌入物件
+        discord.Embed: 
     """
     embed = discord.Embed(
-        title="📋 同步歷史記錄",
-        description=f"伺服器:**{guild.name}**",
+        title=" ",
+        description=f":**{guild.name}**",
         color=discord.Color.green(),
     )
 
@@ -38,14 +38,12 @@ async def create_history_embed(
         history_records = await _get_sync_history(cog, guild.id, page)
 
         if not history_records:
-            embed.add_field(name="📝 記錄", value="暫無同步歷史記錄", inline=False)
+            embed.add_field(name=" ", value="", inline=False)
         else:
-            # 顯示記錄
             for i, record in enumerate(history_records[:5], 1):
-                status_icon = "✅" if record.get("status") == "success" else "❌"
+                status_icon = "" if record.get("status") == "success" else ""
                 sync_type = _get_sync_type_name(record.get("sync_type", "unknown"))
 
-                # 格式化時間
                 sync_time = record.get("sync_start_time", dt.datetime.utcnow())
                 if isinstance(sync_time, str):
                     try:
@@ -57,52 +55,49 @@ async def create_history_embed(
 
                 time_str = sync_time.strftime("%m/%d %H:%M")
 
-                # 結果統計
                 roles_count = record.get("roles_processed", 0)
                 channels_count = record.get("channels_processed", 0)
                 duration = record.get("duration", 0)
 
                 value = (
                     f"{status_icon} **{sync_type}** - {time_str}\n"
-                    f"角色:{roles_count} | 頻道:{channels_count}\n"
-                    f"耗時:{duration:.2f}秒"
+                    f":{roles_count} | :{channels_count}\n"
+                    f":{duration:.2f}"
                 )
 
                 if record.get("error_message"):
-                    value += f"\n❌ {record['error_message'][:50]}..."
+                    value += f"\n {record['error_message'][:50]}..."
 
                 embed.add_field(name=f"#{i + page * 5}", value=value, inline=True)
 
-        # 統計資訊
         total_syncs = await _get_total_sync_count(cog, guild.id)
         success_syncs = await _get_success_sync_count(cog, guild.id)
         success_rate = (success_syncs / total_syncs * 100) if total_syncs > 0 else 0
 
         embed.add_field(
-            name="📊 統計資訊",
+            name=" ",
             value=(
-                f"總同步次數:{total_syncs}\n"
-                f"成功次數:{success_syncs}\n"
-                f"成功率:{success_rate:.1f}%"
+                f":{total_syncs}\n"
+                f":{success_syncs}\n"
+                f":{success_rate:.1f}%"
             ),
             inline=False,
         )
 
-        # 分頁資訊
-        total_pages = (total_syncs + 4) // 5  # 每頁5條記錄
+        total_pages = (total_syncs + 4) // 5  # 5
         if total_pages > 1:
             embed.set_footer(
-                text=f"第 {page + 1}/{total_pages} 頁 | 點擊「刷新」更新資料"
+                text=f" {page + 1}/{total_pages}  | "
             )
         else:
-            embed.set_footer(text="點擊「刷新」更新資料")
+            embed.set_footer(text="")
 
         embed.timestamp = dt.datetime.utcnow()
 
     except Exception as e:
         embed.add_field(
-            name="❌ 錯誤",
-            value=f"載入歷史記錄時發生錯誤:{str(e)[:100]}",
+            name=" ",
+            value=f":{str(e)[:100]}",
             inline=False,
         )
 
@@ -113,19 +108,17 @@ async def _get_sync_history(
     cog: "SyncDataCog", guild_id: int, page: int = 0
 ) -> list[dict[str, Any]]:
     """
-    獲取同步歷史記錄
+    
 
     Args:
-        cog: SyncDataCog 實例
-        guild_id: 伺服器 ID
-        page: 頁碼
+        cog: SyncDataCog 
+        guild_id:  ID
+        page: 
 
     Returns:
-        List[Dict[str, Any]]: 歷史記錄列表
+        List[Dict[str, Any]]: 
     """
     try:
-        # 這裡應該調用資料庫方法獲取歷史記錄
-        # 暫時返回模擬資料
         mock_records = [
             {
                 "sync_type": "full",
@@ -152,7 +145,7 @@ async def _get_sync_history(
                 "roles_processed": 0,
                 "channels_processed": 0,
                 "duration": 0.56,
-                "error_message": "網絡連接超時",
+                "error_message": "",
             },
         ]
 
@@ -165,24 +158,22 @@ async def _get_sync_history(
 
 
 async def _get_total_sync_count(cog: "SyncDataCog", guild_id: int) -> int:
-    """獲取總同步次數"""
+    """"""
     try:
-        # 這裡應該調用資料庫方法
-        return 3  # 模擬資料
+        return 3
     except Exception:
         return 0
 
 
 async def _get_success_sync_count(cog: "SyncDataCog", guild_id: int) -> int:
-    """獲取成功同步次數"""
+    """"""
     try:
-        # 這裡應該調用資料庫方法
-        return 2  # 模擬資料
+        return 2
     except Exception:
         return 0
 
 
 def _get_sync_type_name(sync_type: str) -> str:
-    """獲取同步類型名稱"""
-    type_names = {"full": "完整同步", "roles": "角色同步", "channels": "頻道同步"}
-    return type_names.get(sync_type, "未知")
+    """"""
+    type_names = {"full": "", "roles": "", "channels": ""}
+    return type_names.get(sync_type, "")

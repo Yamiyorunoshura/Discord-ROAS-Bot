@@ -22,31 +22,26 @@ class PanelSelector(ui.Select):
             discord.SelectOption(
                 label="預覽面板",
                 description="查看模組狀態和基本資訊",
-                emoji="👁️",
                 value="preview",
             ),
             discord.SelectOption(
                 label="設定面板",
                 description="管理保護設定和參數",
-                emoji="⚙️",
                 value="config",
             ),
             discord.SelectOption(
                 label="白名單管理",
                 description="管理信任的網域列表",
-                emoji="📝",
                 value="whitelist",
             ),
             discord.SelectOption(
                 label="黑名單管理",
                 description="管理危險網域列表",
-                emoji="🚫",
                 value="blacklist",
             ),
             discord.SelectOption(
                 label="統計資訊",
                 description="查看攔截統計和分析",
-                emoji="📊",
                 value="stats",
             ),
         ]
