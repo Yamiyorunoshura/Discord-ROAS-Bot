@@ -48,7 +48,6 @@ cryptography>=41.0.0
 
 # 網路工具
 requests>=2.31.0
-tldextract>=3.7.0
 
 # 進度條（開發用）
 tqdm>=4.66.0
@@ -81,4 +80,4 @@ jupyter>=1.0.0
 
 # 安全性檢查（可選）
 bandit>=1.7.5
-safety>=2.3.0
+safety>=2.3.0tldextract

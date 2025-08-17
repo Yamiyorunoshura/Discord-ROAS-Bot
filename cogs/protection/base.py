@@ -44,7 +44,7 @@ def friendly_trace(exc: BaseException, depth: int = 3) -> str:
     return "".join(traceback.TracebackException.from_exception(exc, limit=depth).format())
 
 
-def friendly_log(msg: str, exc: Optional[BaseException] = None, level=logging.ERROR):
+def friendly_log(msg: str, exc: BaseException | None = None, level=logging.ERROR):
     """記錄友善的錯誤訊息，包含追蹤碼和詳細資訊
     
     Args:
@@ -61,7 +61,7 @@ def friendly_log(msg: str, exc: Optional[BaseException] = None, level=logging.ER
 # 統一錯誤處理
 # ────────────────────────────
 @contextlib.contextmanager
-def handle_error(ctx_or_itx: Optional[object], user_msg: str = "發生未知錯誤"):
+def handle_error(ctx_or_itx: object | None, user_msg: str = "發生未知錯誤"):
     """統一的錯誤處理上下文管理器
     
     Args:
@@ -127,7 +127,7 @@ class ProtectionCog(commands.Cog):
         if database:
             await database.execute(sql)
 
-    async def get_cfg(self, gid: int, key: str, default: Optional[str] = None) -> Optional[str]:
+    async def get_cfg(self, gid: int, key: str, default: str | None = None) -> str | None:
         """取得伺服器配置值
         
         Args:
