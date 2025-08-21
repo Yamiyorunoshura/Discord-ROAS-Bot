@@ -123,8 +123,8 @@ class EconomyService(BaseService):
                     if line and not line.startswith('--'):
                         sql_lines.append(line)
                 
-                # 重新組合，但保持可執行性
-                cleaned_sql = ' '.join(sql_lines)
+                # 重新組合，保持語句換行以利分割
+                cleaned_sql = '\n'.join(sql_lines)
                 
                 self.db_manager.migration_manager.add_migration(
                     version="002_economy_system",

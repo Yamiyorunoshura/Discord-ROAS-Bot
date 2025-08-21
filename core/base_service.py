@@ -156,6 +156,10 @@ class ServiceRegistry:
         """獲取所有已註冊的服務名稱"""
         return list(self._services.keys())
     
+    def is_registered(self, name: str) -> bool:
+        """檢查服務是否已註冊"""
+        return name in self._services
+    
     def add_dependency(self, service_name: str, dependency_name: str):
         """
         添加服務依賴關係

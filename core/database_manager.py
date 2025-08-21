@@ -245,7 +245,7 @@ class DatabaseMigration:
     
     def _split_sql_statements(self, sql: str) -> List[str]:
         """智能分割SQL語句，正確處理TRIGGER、VIEW等複雜語句"""
-        statements = []
+        statements: List[str] = []
         current_statement = ""
         lines = sql.split('\n')
         
@@ -286,6 +286,11 @@ class DatabaseMigration:
         if current_statement.strip():
             statements.append(current_statement.strip())
             
+        # 後備方案：若未正確分割（例如所有語句被合併為一行），用分號再次分割
+        if len(statements) <= 1 and (';' in sql):
+            naive_parts = [part.strip() for part in sql.split(';') if part.strip()]
+            return naive_parts
+        
         return statements
 
 

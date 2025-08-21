@@ -80,6 +80,9 @@ WELCOME_LOG_PATH = os.path.join(LOGS_DIR, "welcome.log")
 # 活躍度系統日誌
 ACTIVITY_LOG_PATH = os.path.join(LOGS_DIR, "activity_meter.log")
 
+# 同步資料模組日誌
+SYNC_DATA_LOG_PATH = os.path.join(LOGS_DIR, "sync_data.log")
+
 # =============================================================================
 # 5️⃣ 資源檔案路徑
 # =============================================================================

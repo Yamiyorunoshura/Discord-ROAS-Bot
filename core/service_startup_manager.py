@@ -15,11 +15,49 @@ import logging
 from typing import Dict, List, Optional, Type, Any, Set
 from datetime import datetime
 
-from core.base_service import BaseService, service_registry
+from core.base_service import BaseService, service_registry as _base_service_registry
 from core.database_manager import get_database_manager
 from core.exceptions import ServiceError, handle_errors
 
 logger = logging.getLogger('core.service_startup_manager')
+
+
+class _ServiceRegistryFacade:
+    """
+    測試友善的服務註冊表外觀類別
+    - 允許以同步方式呼叫 register_service(name, service)（供舊測試使用）
+    - 在事件迴圈中呼叫時，返回可 await 的 coroutine，保持原本語意
+    - 支援參數順序 name, service 或 service, name
+    其餘屬性與方法透過 __getattr__ 轉發至底層註冊表。
+    """
+
+    def __init__(self, underlying):
+        self._underlying = underlying
+
+    def __getattr__(self, item):
+        return getattr(self._underlying, item)
+
+    def register_service(self, arg1, arg2=None):  # type: ignore[override]
+        # 支援兩種參數順序
+        if isinstance(arg1, str):
+            name = arg1
+            service = arg2
+        else:
+            service = arg1
+            name = arg2
+
+        coro = self._underlying.register_service(service, name)
+        try:
+            # 若在事件迴圈中，交由呼叫端 await
+            asyncio.get_running_loop()
+            return coro
+        except RuntimeError:
+            # 無事件迴圈（例如測試同步呼叫），主動執行
+            return asyncio.run(coro)
+
+
+# 對外提供測試友善的註冊表實例
+service_registry = _ServiceRegistryFacade(_base_service_registry)
 
 
 class ServiceStartupManager:
@@ -88,7 +126,9 @@ class ServiceStartupManager:
         """
         if service_name not in self.dependency_graph:
             self.dependency_graph[service_name] = set()
-        
+        if dependency_name not in self.dependency_graph:
+            # 確保依賴節點也存在於圖中（避免 KeyError）
+            self.dependency_graph[dependency_name] = set()
         self.dependency_graph[service_name].add(dependency_name)
         logger.debug(f"添加服務依賴：{service_name} -> {dependency_name}")
     
@@ -100,7 +140,12 @@ class ServiceStartupManager:
             按初始化順序排列的服務名稱列表
         """
         # 計算入度
-        in_degree = {name: 0 for name in self.discovered_services.keys()}
+        # 將所有出現在依賴圖中的服務都納入計算
+        all_nodes: Set[str] = set(self.discovered_services.keys()) | set(self.dependency_graph.keys())
+        for deps in self.dependency_graph.values():
+            all_nodes |= set(deps)
+        
+        in_degree = {name: 0 for name in all_nodes}
         
         for service_name, deps in self.dependency_graph.items():
             for dep in deps:
@@ -122,15 +167,25 @@ class ServiceStartupManager:
                     if in_degree[service_name] == 0:
                         queue.append(service_name)
         
-        if len(result) != len(self.discovered_services):
+        if len(result) != len(in_degree):
             cycle_services = [name for name, degree in in_degree.items() if degree > 0]
-            raise ServiceError(
-                f"服務依賴關係中存在循環依賴：{cycle_services}",
-                service_name="ServiceStartupManager",
-                operation="get_initialization_order"
-            )
+            discovered_nodes = set(self.discovered_services.keys())
+            # 僅當循環涉及已發現服務時才拋出錯誤；否則忽略未發現節點之間的循環
+            if any(name in discovered_nodes for name in cycle_services):
+                raise ServiceError(
+                    f"服務依賴關係中存在循環依賴：{cycle_services}",
+                    service_name="ServiceStartupManager",
+                    operation="get_initialization_order"
+                )
+            else:
+                logger.warning(
+                    f"偵測到未發現服務之間的循環依賴，將忽略：{cycle_services}"
+                )
         
-        return result
+        # 僅返回已發現的服務，避免 KeyError
+        discovered_set = set(self.discovered_services.keys())
+        filtered_result = [name for name in result if name in discovered_set]
+        return filtered_result
     
     @handle_errors(log_errors=True)
     async def initialize_all_services(self) -> bool:
@@ -156,7 +211,7 @@ class ServiceStartupManager:
                 logger.error("資料庫管理器初始化失敗")
                 return False
             
-            # 獲取初始化順序
+            # 獲取初始化順序（僅包含已發現服務）
             initialization_order = self.get_initialization_order()
             logger.info(f"服務初始化順序：{' -> '.join(initialization_order)}")
             
@@ -169,12 +224,21 @@ class ServiceStartupManager:
                 
                 try:
                     # 創建服務實例
+                    if service_name not in self.discovered_services:
+                        logger.warning(f"略過未發現的服務：{service_name}")
+                        continue
                     service_type = self.discovered_services[service_name]
                     service_instance = await self._create_service_instance(service_type, service_name)
                     
                     if service_instance:
                         # 註冊到全域服務註冊表
                         await service_registry.register_service(service_instance, service_name)
+                        
+                        # 在初始化之前注入依賴
+                        try:
+                            await self._inject_dependencies(service_name, service_instance)
+                        except Exception:
+                            logger.exception(f"注入服務依賴失敗：{service_name}")
                         
                         # 初始化服務
                         success = await service_instance.initialize()
@@ -220,11 +284,10 @@ class ServiceStartupManager:
             服務實例
         """
         try:
-            # 獲取資料庫管理器
-            db_manager = await get_database_manager()
-            
             # 根據服務類型創建實例
             if service_name == "ActivityService":
+                # 需傳入 DatabaseManager 與額外設定
+                db_manager = await get_database_manager()
                 from services.activity import ActivityService
                 config = {
                     'fonts_dir': self.config.get('fonts_dir', 'fonts'),
@@ -233,6 +296,7 @@ class ServiceStartupManager:
                 return ActivityService(db_manager, config)
             
             elif service_name == "WelcomeService":
+                db_manager = await get_database_manager()
                 from services.welcome import WelcomeService
                 config = {
                     'bg_dir': self.config.get('bg_dir', 'data/backgrounds'),
@@ -242,6 +306,7 @@ class ServiceStartupManager:
                 return WelcomeService(db_manager, config)
             
             elif service_name == "MessageService":
+                db_manager = await get_database_manager()
                 from services.message import MessageService
                 config = {
                     'fonts_dir': self.config.get('fonts_dir', 'fonts'),
@@ -250,16 +315,48 @@ class ServiceStartupManager:
                 return MessageService(db_manager, config)
             
             else:
-                # 通用服務創建（假設服務接受 DatabaseManager）
-                try:
-                    return service_type(db_manager)
-                except TypeError:
-                    # 如果服務不需要 DatabaseManager
-                    return service_type()
+                # 其他服務使用無參構造，依賴交由 _inject_dependencies 注入
+                return service_type()
             
         except Exception as e:
             logger.exception(f"創建服務實例失敗：{service_name}")
             return None
+
+    async def _inject_dependencies(self, service_name: str, service_instance: BaseService) -> None:
+        """
+        根據服務名稱將所需依賴注入到服務實例
+        
+        - 統一注入資料庫管理器為 "database_manager"
+        - 針對跨服務相依注入（例如 Achievement/Government 依賴 Economy/Role）
+        """
+        # 注入資料庫管理器
+        try:
+            db_manager = await get_database_manager()
+            service_instance.add_dependency(db_manager, "database_manager")
+        except Exception:
+            logger.exception(f"為 {service_name} 注入 database_manager 失敗")
+        
+        # 注入跨服務依賴
+        try:
+            if service_name == "AchievementService":
+                economy = service_registry.get_service("EconomyService")
+                role = service_registry.get_service("RoleService")
+                if economy:
+                    service_instance.add_dependency(economy, "economy_service")
+                if role:
+                    service_instance.add_dependency(role, "role_service")
+            elif service_name == "GovernmentService":
+                economy = service_registry.get_service("EconomyService")
+                role = service_registry.get_service("RoleService")
+                if economy:
+                    service_instance.add_dependency(economy, "economy_service")
+                if role:
+                    service_instance.add_dependency(role, "role_service")
+            elif service_name in ("RoleService", "EconomyService"):
+                # 已於上方注入 database_manager，這裡無需額外處理
+                pass
+        except Exception:
+            logger.exception(f"為 {service_name} 注入跨服務依賴失敗")
     
     @handle_errors(log_errors=True)
     async def cleanup_all_services(self) -> None:
@@ -407,6 +504,25 @@ async def get_startup_manager(config: Optional[Dict[str, Any]] = None) -> Servic
             startup_manager.register_service_type(GovernmentService, "GovernmentService")
         except ImportError:
             pass
+        
+        # 額外註冊 RoleService（被政府與成就依賴）
+        try:
+            from services.government.role_service import RoleService
+            startup_manager.register_service_type(RoleService, "RoleService")
+        except ImportError:
+            pass
+        
+        # 建立依賴關係拓撲
+        # 這些依賴主要用於排序，實際注入在 _inject_dependencies 中完成
+        try:
+            # 基礎依賴：所有服務都依賴 database_manager，但 database_manager 不在此圖內
+            # 服務間依賴：
+            startup_manager.add_service_dependency("GovernmentService", "EconomyService")
+            startup_manager.add_service_dependency("GovernmentService", "RoleService")
+            startup_manager.add_service_dependency("AchievementService", "EconomyService")
+            startup_manager.add_service_dependency("AchievementService", "RoleService")
+        except Exception:
+            logger.exception("建立服務依賴關係時發生錯誤")
         
         logger.info(f"服務發現完成，找到 {len(startup_manager.discovered_services)} 個服務類型")
     

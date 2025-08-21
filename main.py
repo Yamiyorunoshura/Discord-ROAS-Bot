@@ -175,11 +175,12 @@ def _load_environment() -> str:
     else:
         env_files = [".env.development", ".env"]
     
-    # 尋找存在的 .env 檔案
+    # 尋找存在的 .env 檔案（相對於專案根目錄）
     dotenv_path = None
     for env_file in env_files:
-        if os.path.exists(env_file):
-            dotenv_path = env_file
+        candidate = os.path.join(PROJECT_ROOT, env_file)
+        if os.path.exists(candidate):
+            dotenv_path = candidate
             break
     
     if dotenv_path:
@@ -753,20 +754,26 @@ async def _run():
     - 啟動 Bot
     - 處理啟動錯誤
     """
-    # 檢查 Token
-    token = os.getenv("TOKEN")
+    # 檢查 Token（支援多種環境變數名稱，優先使用 DISCORD_TOKEN）
+    token = (
+        os.getenv("DISCORD_TOKEN")
+        or os.getenv("TOKEN")
+        or os.getenv("BOT_TOKEN")
+    )
     if not token:
         print("❌ 找不到 Discord Bot Token")
         print("🔧 解決方法：")
-        print("   1. 在 .env 檔案中設定 TOKEN=your_token_here")
-        print("   2. 或在系統環境變數中設定 TOKEN")
+        print("   1. 在 .env 檔案中設定 DISCORD_TOKEN=your_token_here")
+        print("      （也相容 TOKEN / BOT_TOKEN）")
+        print("   2. 或在系統環境變數中設定 DISCORD_TOKEN")
         print("   3. 確保 Token 格式正確")
         sys.exit(1)
     
     # 驗證 Token 格式（基本檢查）
-    if not token.startswith(("MTI", "OTk", "MTA")):
+    if not token.startswith(("MTI", "OTk", "MTA", "MTM", "MTQ", "MTE", "MTY", "MTg", "MTk")):
         print("⚠️  Token 格式可能不正確")
-        print("   💡 Discord Bot Token 通常以 MTI、OTk 或 MTA 開頭")
+        print("   💡 Discord Bot Token 通常以 MT 開頭，後接數字")
+    
     
     print("🚀 正在啟動 Bot...")
     

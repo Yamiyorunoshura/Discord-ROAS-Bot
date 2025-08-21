@@ -42,7 +42,14 @@ class GovernmentService(BaseService):
         self.economy_service: Optional[EconomyService] = None
         
         # JSON註冊表管理器
-        self._registry_file = registry_file or "data/government_registry.json"
+        # 防禦：避免外部錯誤傳入非路徑物件（例如 DatabaseManager）
+        if registry_file is not None and not isinstance(registry_file, (str, Path)):
+            self.logger.warning(
+                f"收到無效的 registry_file 參數（{type(registry_file).__name__}），改用預設路徑"
+            )
+            self._registry_file = "data/government_registry.json"
+        else:
+            self._registry_file = registry_file or "data/government_registry.json"
         self._registry_manager: Optional[JSONRegistryManager] = None
         
         # 併發控制
@@ -71,8 +78,16 @@ class GovernmentService(BaseService):
                 self.logger.error("經濟服務依賴不可用")
                 return False
             
-            # 初始化JSON註冊表管理器
-            self._registry_manager = JSONRegistryManager(self._registry_file)
+            # 初始化JSON註冊表管理器（再度防禦型檢查，避免屬性被意外覆蓋）
+            registry_path: Union[str, Path]
+            if isinstance(self._registry_file, (str, Path)):
+                registry_path = self._registry_file
+            else:
+                self.logger.warning(
+                    f"_registry_file 非字串/路徑型別（{type(self._registry_file).__name__}），改用預設路徑"
+                )
+                registry_path = "data/government_registry.json"
+            self._registry_manager = JSONRegistryManager(registry_path)
             
             # 註冊資料庫遷移
             await self._register_migrations()
