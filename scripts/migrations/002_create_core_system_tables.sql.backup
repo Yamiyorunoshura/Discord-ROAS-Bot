@@ -1,0 +1,243 @@
+-- 核心系統資料庫遷移腳本
+-- Task ID: 8 - 建立資料庫遷移腳本  
+-- 版本: 002
+-- 描述: 建立核心系統基礎表格和遷移管理系統
+-- 創建日期: 2025-08-20
+-- 依賴: 001_create_economy_tables.sql
+
+-- =============================================================================
+-- 1. 遷移管理系統表格 (schema_migrations)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version TEXT PRIMARY KEY,                  -- 遷移版本號
+    description TEXT NOT NULL,                 -- 遷移描述
+    filename TEXT NOT NULL,                    -- 遷移腳本檔名
+    checksum TEXT NOT NULL,                    -- 腳本檔案校驗和
+    applied_at TIMESTAMP NOT NULL,             -- 執行時間 (ISO 8601格式)
+    execution_time_ms INTEGER NOT NULL,        -- 執行時間（毫秒）
+    success INTEGER NOT NULL DEFAULT 1,        -- 執行是否成功 (0=失敗, 1=成功)
+    error_message TEXT,                        -- 錯誤訊息（如果失敗）
+    
+    -- 約束條件
+    CHECK (success IN (0, 1)),
+    CHECK (execution_time_ms >= 0)
+);
+
+-- 遷移管理表格索引
+CREATE INDEX IF NOT EXISTS idx_schema_migrations_version ON schema_migrations(version);
+CREATE INDEX IF NOT EXISTS idx_schema_migrations_applied_at ON schema_migrations(applied_at);
+CREATE INDEX IF NOT EXISTS idx_schema_migrations_success ON schema_migrations(success);
+
+-- =============================================================================
+-- 2. 系統配置表格 (system_config)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS system_config (
+    guild_id INTEGER NOT NULL,                 -- Discord伺服器ID
+    config_key TEXT NOT NULL,                  -- 配置鍵名
+    config_value TEXT,                         -- 配置值 (JSON格式)
+    config_type TEXT NOT NULL DEFAULT 'string', -- 配置類型: string, number, boolean, json
+    description TEXT,                          -- 配置描述
+    is_encrypted INTEGER NOT NULL DEFAULT 0,   -- 是否加密存儲 (0=否, 1=是)
+    created_at TIMESTAMP NOT NULL,             -- 創建時間
+    updated_at TIMESTAMP NOT NULL,             -- 最後更新時間
+    updated_by INTEGER,                        -- 更新者使用者ID
+    
+    PRIMARY KEY (guild_id, config_key),
+    -- 約束條件
+    CHECK (config_type IN ('string', 'number', 'boolean', 'json')),
+    CHECK (is_encrypted IN (0, 1))
+);
+
+-- 系統配置表格索引
+CREATE INDEX IF NOT EXISTS idx_system_config_guild_id ON system_config(guild_id);
+CREATE INDEX IF NOT EXISTS idx_system_config_key ON system_config(config_key);
+CREATE INDEX IF NOT EXISTS idx_system_config_type ON system_config(config_type);
+CREATE INDEX IF NOT EXISTS idx_system_config_updated_at ON system_config(updated_at);
+
+-- =============================================================================
+-- 3. 系統日誌表格 (system_logs)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS system_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,     -- 日誌ID
+    level TEXT NOT NULL,                       -- 日誌級別: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    category TEXT NOT NULL,                    -- 日誌分類: database, economy, government, achievement, auth
+    message TEXT NOT NULL,                     -- 日誌訊息
+    guild_id INTEGER,                          -- 相關伺服器ID
+    user_id INTEGER,                           -- 相關使用者ID
+    correlation_id TEXT,                       -- 關聯ID（用於追踪請求）
+    metadata TEXT,                             -- 額外資料 (JSON格式)
+    created_at TIMESTAMP NOT NULL,             -- 記錄時間
+    ip_address TEXT,                           -- IP地址
+    user_agent TEXT,                           -- 使用者代理
+    
+    -- 約束條件
+    CHECK (level IN ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'))
+);
+
+-- 系統日誌表格索引
+CREATE INDEX IF NOT EXISTS idx_system_logs_level ON system_logs(level);
+CREATE INDEX IF NOT EXISTS idx_system_logs_category ON system_logs(category);
+CREATE INDEX IF NOT EXISTS idx_system_logs_guild_id ON system_logs(guild_id);
+CREATE INDEX IF NOT EXISTS idx_system_logs_user_id ON system_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_system_logs_correlation_id ON system_logs(correlation_id);
+
+-- =============================================================================
+-- 4. 使用者會話表格 (user_sessions)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS user_sessions (
+    session_id TEXT PRIMARY KEY,              -- 會話ID
+    user_id INTEGER NOT NULL,                  -- 使用者ID
+    guild_id INTEGER NOT NULL,                 -- 伺服器ID
+    session_data TEXT,                         -- 會話資料 (JSON格式)
+    created_at TIMESTAMP NOT NULL,             -- 創建時間
+    last_accessed_at TIMESTAMP NOT NULL,       -- 最後訪問時間
+    expires_at TIMESTAMP NOT NULL,             -- 過期時間
+    is_active INTEGER NOT NULL DEFAULT 1,      -- 是否活躍 (0=否, 1=是)
+    ip_address TEXT,                           -- 創建時的IP地址
+    user_agent TEXT,                           -- 使用者代理
+    
+    -- 約束條件
+    CHECK (is_active IN (0, 1))
+);
+
+-- 使用者會話表格索引
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_guild_id ON user_sessions(guild_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_is_active ON user_sessions(is_active);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_last_accessed ON user_sessions(last_accessed_at);
+
+-- =============================================================================
+-- 5. 權限管理表格 (permissions)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS permissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,     -- 權限ID
+    permission_name TEXT NOT NULL,             -- 權限名稱
+    description TEXT NOT NULL,                 -- 權限描述
+    category TEXT NOT NULL,                    -- 權限分類: system, economy, government, achievement
+    is_system_permission INTEGER NOT NULL DEFAULT 0, -- 是否為系統權限 (0=否, 1=是)
+    created_at TIMESTAMP NOT NULL,             -- 創建時間
+    
+    -- 約束條件
+    CHECK (is_system_permission IN (0, 1)),
+    UNIQUE(permission_name)
+);
+
+-- 權限表格索引
+CREATE INDEX IF NOT EXISTS idx_permissions_name ON permissions(permission_name);
+CREATE INDEX IF NOT EXISTS idx_permissions_category ON permissions(category);
+CREATE INDEX IF NOT EXISTS idx_permissions_system ON permissions(is_system_permission);
+
+-- =============================================================================
+-- 6. 角色權限映射表格 (role_permissions)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS role_permissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,     -- 映射ID
+    guild_id INTEGER NOT NULL,                 -- 伺服器ID
+    role_id INTEGER NOT NULL,                  -- Discord角色ID
+    permission_id INTEGER NOT NULL,            -- 權限ID
+    granted_by INTEGER,                        -- 授權者使用者ID
+    granted_at TIMESTAMP NOT NULL,             -- 授權時間
+    expires_at TIMESTAMP,                      -- 過期時間（NULL表示永不過期）
+    is_active INTEGER NOT NULL DEFAULT 1,      -- 是否啟用 (0=否, 1=是)
+    
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
+    -- 約束條件
+    CHECK (is_active IN (0, 1)),
+    UNIQUE(guild_id, role_id, permission_id)
+);
+
+-- 角色權限映射表格索引
+CREATE INDEX IF NOT EXISTS idx_role_permissions_guild_role ON role_permissions(guild_id, role_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_permission ON role_permissions(permission_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_active ON role_permissions(is_active);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_expires ON role_permissions(expires_at);
+
+-- =============================================================================
+-- 7. 系統統計表格 (system_statistics)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS system_statistics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,     -- 統計ID
+    guild_id INTEGER NOT NULL,                 -- 伺服器ID
+    metric_name TEXT NOT NULL,                 -- 指標名稱
+    metric_value REAL NOT NULL,                -- 指標值
+    metric_type TEXT NOT NULL,                 -- 指標類型: counter, gauge, histogram, summary
+    tags TEXT,                                 -- 標籤 (JSON格式)
+    recorded_at TIMESTAMP NOT NULL,            -- 記錄時間
+    
+    -- 約束條件
+    CHECK (metric_type IN ('counter', 'gauge', 'histogram', 'summary'))
+);
+
+-- 系統統計表格索引
+CREATE INDEX IF NOT EXISTS idx_system_statistics_guild_id ON system_statistics(guild_id);
+CREATE INDEX IF NOT EXISTS idx_system_statistics_metric ON system_statistics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_system_statistics_recorded_at ON system_statistics(recorded_at);
+CREATE INDEX IF NOT EXISTS idx_system_statistics_guild_metric ON system_statistics(guild_id, metric_name);
+
+-- =============================================================================
+-- 8. 基礎權限資料插入
+-- =============================================================================
+INSERT OR IGNORE INTO permissions (permission_name, description, category, is_system_permission, created_at) VALUES
+('system.admin', '系統管理員權限', 'system', 1, datetime('now')),
+('system.config', '系統配置管理權限', 'system', 1, datetime('now')),
+('economy.admin', '經濟系統管理權限', 'economy', 0, datetime('now')),
+('economy.transfer', '經濟轉帳權限', 'economy', 0, datetime('now')),
+('government.admin', '政府系統管理權限', 'government', 0, datetime('now')),
+('government.member', '政府系統成員權限', 'government', 0, datetime('now')),
+('achievement.admin', '成就系統管理權限', 'achievement', 0, datetime('now')),
+('achievement.view', '成就系統查看權限', 'achievement', 0, datetime('now'));
+
+-- =============================================================================
+-- 9. 系統配置預設值
+-- =============================================================================
+-- 這些預設配置將在服務層初始化時插入
+-- INSERT OR IGNORE INTO system_config (guild_id, config_key, config_value, config_type, description, created_at, updated_at) VALUES
+-- (?, 'system.version', '"2.4.0"', 'string', '系統版本號', datetime('now'), datetime('now')),
+-- (?, 'system.maintenance_mode', 'false', 'boolean', '維護模式開關', datetime('now'), datetime('now')),
+-- (?, 'database.auto_vacuum', 'true', 'boolean', '資料庫自動清理', datetime('now'), datetime('now'));
+
+-- =============================================================================
+-- 10. 資料驗證檢查
+-- =============================================================================
+
+-- 檢查核心系統表格是否正確建立
+SELECT name FROM sqlite_master 
+WHERE type='table' AND name IN (
+    'schema_migrations',
+    'system_config',
+    'system_logs',
+    'user_sessions',
+    'permissions',
+    'role_permissions',
+    'system_statistics'
+);
+
+-- 檢查核心索引是否正確建立
+SELECT name FROM sqlite_master 
+WHERE type='index' AND name LIKE 'idx_system%' 
+   OR name LIKE 'idx_schema%'
+   OR name LIKE 'idx_permissions%'
+   OR name LIKE 'idx_role_permissions%'
+   OR name LIKE 'idx_user_sessions%';
+
+-- 檢查基礎權限是否正確插入
+SELECT count(*) as permission_count FROM permissions WHERE is_system_permission = 1;
+
+-- =============================================================================
+-- 11. 相容性檢查
+-- =============================================================================
+
+-- 檢查是否與經濟系統表格相容
+SELECT 'economy_compatibility' as check_name, 
+       CASE WHEN EXISTS (SELECT 1 FROM sqlite_master WHERE name = 'economy_accounts') 
+            THEN 'PASS' 
+            ELSE 'FAIL' 
+       END as result;
+
+-- =============================================================================
+-- 遷移完成標記
+-- =============================================================================
+-- 此腳本將由 DatabaseManager 的遷移系統執行
+-- 遷移系統會自動記錄執行狀態到 schema_migrations 表格

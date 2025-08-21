@@ -1,0 +1,43 @@
+{
+  "backups": [
+    {
+      "backup_name": "test_backup",
+      "filename": "test_backup.db.gz",
+      "created_at": "2025-08-20T22:09:10.095192",
+      "source_database": "/Users/tszkinlai/Coding/roas-bot/dbs/main.db",
+      "backup_path": "/Users/tszkinlai/Coding/roas-bot/backups/test_backup.db.gz",
+      "compressed": true,
+      "source_size": 638976,
+      "backup_size": 19207,
+      "compression_ratio": 0.030059031951121796,
+      "backup_time_seconds": 0.005764007568359375,
+      "source_stats": {
+        "table_count": 22,
+        "database_size": 638976,
+        "table_stats": {
+          "schema_migrations": 4,
+          "economy_accounts": 0,
+          "economy_transactions": 0,
+          "currency_settings": 0,
+          "economy_audit_log": 0,
+          "system_config": 0,
+          "system_logs": 0,
+          "user_sessions": 0,
+          "permissions": 8,
+          "role_permissions": 0,
+          "system_statistics": 0,
+          "government_departments": 0,
+          "government_members": 0,
+          "government_resolutions": 0,
+          "government_votes": 0,
+          "government_audit_log": 0,
+          "achievements": 0,
+          "user_achievement_progress": 0,
+          "achievement_rewards_log": 0,
+          "user_badges": 0,
+          "achievement_audit_log": 0
+        }
+      }
+    }
+  ]
+}

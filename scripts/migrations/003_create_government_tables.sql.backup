@@ -1,0 +1,335 @@
+-- 政府系統資料庫遷移腳本
+-- Task ID: 8 - 建立資料庫遷移腳本
+-- 版本: 003
+-- 描述: 建立政府系統相關表格和索引
+-- 創建日期: 2025-08-20
+-- 依賴: 001_create_economy_tables.sql, 002_create_core_system_tables.sql
+
+-- =============================================================================
+-- 1. 政府部門表格 (government_departments)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS government_departments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 部門ID
+    guild_id INTEGER NOT NULL,              -- Discord伺服器ID
+    name TEXT NOT NULL,                     -- 部門名稱
+    description TEXT,                       -- 部門描述
+    head_role_id INTEGER,                   -- 部門負責人身分組ID
+    head_user_id INTEGER,                   -- 目前部門負責人使用者ID
+    level_role_id INTEGER,                  -- 級別身分組ID
+    level_name TEXT,                        -- 級別名稱
+    account_id TEXT,                        -- 關聯的經濟帳戶ID
+    status TEXT NOT NULL DEFAULT 'active', -- 部門狀態: active, inactive, dissolved
+    budget_limit REAL DEFAULT 0.0,         -- 預算限額
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 建立時間
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 最後更新時間
+    created_by INTEGER,                     -- 建立者使用者ID
+    metadata TEXT,                          -- 額外資料 (JSON格式)
+    
+    -- 約束條件
+    CHECK (status IN ('active', 'inactive', 'dissolved')),
+    CHECK (budget_limit >= 0.0),
+    
+    -- 外鍵約束
+    FOREIGN KEY (account_id) REFERENCES economy_accounts(id) ON DELETE SET NULL,
+    
+    -- 唯一約束
+    UNIQUE(guild_id, name)
+);
+
+-- 部門表格索引
+CREATE INDEX IF NOT EXISTS idx_gov_dept_guild_id ON government_departments(guild_id);
+CREATE INDEX IF NOT EXISTS idx_gov_dept_name ON government_departments(guild_id, name);
+CREATE INDEX IF NOT EXISTS idx_gov_dept_head_role ON government_departments(head_role_id);
+CREATE INDEX IF NOT EXISTS idx_gov_dept_head_user ON government_departments(head_user_id);
+CREATE INDEX IF NOT EXISTS idx_gov_dept_account ON government_departments(account_id);
+CREATE INDEX IF NOT EXISTS idx_gov_dept_status ON government_departments(status);
+CREATE INDEX IF NOT EXISTS idx_gov_dept_created_by ON government_departments(created_by);
+CREATE INDEX IF NOT EXISTS idx_gov_dept_updated_at ON government_departments(updated_at);
+
+-- =============================================================================
+-- 2. 政府成員表格 (government_members)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS government_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 成員記錄ID
+    guild_id INTEGER NOT NULL,              -- Discord伺服器ID
+    user_id INTEGER NOT NULL,               -- 使用者ID
+    department_id INTEGER,                  -- 所屬部門ID（NULL表示常任理事）
+    position_name TEXT NOT NULL,            -- 職位名稱
+    position_level INTEGER NOT NULL DEFAULT 1, -- 職位等級（數字越高權限越大）
+    role_id INTEGER,                        -- 對應的Discord身分組ID
+    appointed_at TIMESTAMP NOT NULL,        -- 任命時間
+    appointed_by INTEGER NOT NULL,          -- 任命者使用者ID
+    term_start_date DATE,                   -- 任期開始日期
+    term_end_date DATE,                     -- 任期結束日期（NULL表示無限期）
+    status TEXT NOT NULL DEFAULT 'active', -- 狀態: active, suspended, resigned, dismissed
+    resignation_reason TEXT,                -- 離職原因
+    dismissed_reason TEXT,                  -- 免職原因
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    -- 約束條件
+    CHECK (status IN ('active', 'suspended', 'resigned', 'dismissed')),
+    CHECK (position_level > 0),
+    CHECK (term_end_date IS NULL OR term_end_date > term_start_date),
+    
+    -- 外鍵約束
+    FOREIGN KEY (department_id) REFERENCES government_departments(id) ON DELETE CASCADE,
+    
+    -- 唯一約束（一個人在一個部門只能有一個職位）
+    UNIQUE(guild_id, user_id, department_id)
+);
+
+-- 政府成員表格索引
+CREATE INDEX IF NOT EXISTS idx_gov_members_guild_id ON government_members(guild_id);
+CREATE INDEX IF NOT EXISTS idx_gov_members_user_id ON government_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_gov_members_department_id ON government_members(department_id);
+CREATE INDEX IF NOT EXISTS idx_gov_members_position_level ON government_members(position_level);
+CREATE INDEX IF NOT EXISTS idx_gov_members_status ON government_members(status);
+CREATE INDEX IF NOT EXISTS idx_gov_members_appointed_by ON government_members(appointed_by);
+CREATE INDEX IF NOT EXISTS idx_gov_members_term ON government_members(term_start_date, term_end_date);
+CREATE INDEX IF NOT EXISTS idx_gov_members_guild_user ON government_members(guild_id, user_id);
+
+-- =============================================================================
+-- 3. 政府決議表格 (government_resolutions)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS government_resolutions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 決議ID
+    guild_id INTEGER NOT NULL,              -- Discord伺服器ID
+    title TEXT NOT NULL,                    -- 決議標題
+    description TEXT NOT NULL,              -- 決議內容
+    resolution_type TEXT NOT NULL,          -- 決議類型: policy, budget, appointment, disciplinary
+    department_id INTEGER,                  -- 相關部門ID（NULL表示全政府決議）
+    proposed_by INTEGER NOT NULL,           -- 提議者使用者ID
+    proposed_at TIMESTAMP NOT NULL,         -- 提議時間
+    voting_start_time TIMESTAMP,            -- 投票開始時間
+    voting_end_time TIMESTAMP,              -- 投票結束時間
+    status TEXT NOT NULL DEFAULT 'draft',   -- 狀態: draft, voting, approved, rejected, implemented
+    approval_threshold REAL NOT NULL DEFAULT 0.5, -- 通過門檻（0.5=50%）
+    votes_for INTEGER NOT NULL DEFAULT 0,   -- 贊成票數
+    votes_against INTEGER NOT NULL DEFAULT 0, -- 反對票數
+    votes_abstain INTEGER NOT NULL DEFAULT 0, -- 棄權票數
+    implemented_at TIMESTAMP,                -- 實施時間
+    implemented_by INTEGER,                  -- 實施者使用者ID
+    metadata TEXT,                          -- 額外資料 (JSON格式)
+    
+    -- 約束條件
+    CHECK (resolution_type IN ('policy', 'budget', 'appointment', 'disciplinary')),
+    CHECK (status IN ('draft', 'voting', 'approved', 'rejected', 'implemented')),
+    CHECK (approval_threshold > 0 AND approval_threshold <= 1),
+    CHECK (votes_for >= 0 AND votes_against >= 0 AND votes_abstain >= 0),
+    CHECK (voting_end_time IS NULL OR voting_end_time > voting_start_time),
+    
+    -- 外鍵約束
+    FOREIGN KEY (department_id) REFERENCES government_departments(id) ON DELETE SET NULL
+);
+
+-- 政府決議表格索引
+CREATE INDEX IF NOT EXISTS idx_gov_resolutions_guild_id ON government_resolutions(guild_id);
+CREATE INDEX IF NOT EXISTS idx_gov_resolutions_type ON government_resolutions(resolution_type);
+CREATE INDEX IF NOT EXISTS idx_gov_resolutions_department_id ON government_resolutions(department_id);
+CREATE INDEX IF NOT EXISTS idx_gov_resolutions_proposed_by ON government_resolutions(proposed_by);
+CREATE INDEX IF NOT EXISTS idx_gov_resolutions_status ON government_resolutions(status);
+CREATE INDEX IF NOT EXISTS idx_gov_resolutions_voting_period ON government_resolutions(voting_start_time, voting_end_time);
+CREATE INDEX IF NOT EXISTS idx_gov_resolutions_proposed_at ON government_resolutions(proposed_at);
+
+-- =============================================================================
+-- 4. 政府投票記錄表格 (government_votes)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS government_votes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 投票記錄ID
+    resolution_id INTEGER NOT NULL,         -- 決議ID
+    user_id INTEGER NOT NULL,               -- 投票者使用者ID
+    vote_choice TEXT NOT NULL,              -- 投票選擇: for, against, abstain
+    vote_weight REAL NOT NULL DEFAULT 1.0, -- 投票權重（根據職位等級）
+    voted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 投票時間
+    comment TEXT,                           -- 投票說明
+    is_anonymous INTEGER NOT NULL DEFAULT 0, -- 是否匿名投票
+    
+    -- 約束條件
+    CHECK (vote_choice IN ('for', 'against', 'abstain')),
+    CHECK (vote_weight > 0),
+    CHECK (is_anonymous IN (0, 1)),
+    
+    -- 外鍵約束
+    FOREIGN KEY (resolution_id) REFERENCES government_resolutions(id) ON DELETE CASCADE,
+    
+    -- 唯一約束（一個決議一人只能投一票）
+    UNIQUE(resolution_id, user_id)
+);
+
+-- 政府投票記錄表格索引
+CREATE INDEX IF NOT EXISTS idx_gov_votes_resolution_id ON government_votes(resolution_id);
+CREATE INDEX IF NOT EXISTS idx_gov_votes_user_id ON government_votes(user_id);
+CREATE INDEX IF NOT EXISTS idx_gov_votes_choice ON government_votes(vote_choice);
+CREATE INDEX IF NOT EXISTS idx_gov_votes_voted_at ON government_votes(voted_at);
+CREATE INDEX IF NOT EXISTS idx_gov_votes_anonymous ON government_votes(is_anonymous);
+
+-- =============================================================================
+-- 5. 政府審計日誌表格 (government_audit_log)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS government_audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 審計記錄ID
+    guild_id INTEGER NOT NULL,              -- Discord伺服器ID
+    operation TEXT NOT NULL,                -- 操作類型
+    target_type TEXT NOT NULL,              -- 目標類型: department, member, resolution, vote
+    target_id TEXT NOT NULL,                -- 目標ID
+    user_id INTEGER,                        -- 執行操作的使用者ID
+    old_values TEXT,                        -- 操作前的值 (JSON格式)
+    new_values TEXT,                        -- 操作後的值 (JSON格式)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 記錄時間
+    success INTEGER NOT NULL DEFAULT 1,     -- 操作是否成功
+    error_message TEXT,                     -- 錯誤訊息（如果失敗）
+    ip_address TEXT,                        -- IP地址
+    user_agent TEXT,                        -- 使用者代理
+    
+    -- 約束條件
+    CHECK (success IN (0, 1)),
+    CHECK (target_type IN ('department', 'member', 'resolution', 'vote', 'config'))
+);
+
+-- 政府審計日誌表格索引
+CREATE INDEX IF NOT EXISTS idx_gov_audit_log_guild_id ON government_audit_log(guild_id);
+CREATE INDEX IF NOT EXISTS idx_gov_audit_log_operation ON government_audit_log(operation);
+CREATE INDEX IF NOT EXISTS idx_gov_audit_log_target ON government_audit_log(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_gov_audit_log_user_id ON government_audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_gov_audit_log_created_at ON government_audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_gov_audit_log_success ON government_audit_log(success);
+
+-- =============================================================================
+-- 6. 觸發器設定（自動維護）
+-- =============================================================================
+
+-- 自動更新部門的 updated_at 時間戳
+CREATE TRIGGER IF NOT EXISTS update_government_departments_timestamp 
+    AFTER UPDATE ON government_departments
+    FOR EACH ROW
+BEGIN
+    UPDATE government_departments 
+    SET updated_at = CURRENT_TIMESTAMP 
+    WHERE id = NEW.id;
+END;
+
+-- 自動更新政府成員的 updated_at 時間戳
+CREATE TRIGGER IF NOT EXISTS update_government_members_timestamp 
+    AFTER UPDATE ON government_members
+    FOR EACH ROW
+BEGIN
+    UPDATE government_members 
+    SET updated_at = CURRENT_TIMESTAMP 
+    WHERE id = NEW.id;
+END;
+
+-- 自動計算決議投票結果
+CREATE TRIGGER IF NOT EXISTS update_resolution_vote_counts
+    AFTER INSERT ON government_votes
+    FOR EACH ROW
+BEGIN
+    UPDATE government_resolutions 
+    SET 
+        votes_for = (SELECT SUM(CASE WHEN vote_choice = 'for' THEN vote_weight ELSE 0 END) FROM government_votes WHERE resolution_id = NEW.resolution_id),
+        votes_against = (SELECT SUM(CASE WHEN vote_choice = 'against' THEN vote_weight ELSE 0 END) FROM government_votes WHERE resolution_id = NEW.resolution_id),
+        votes_abstain = (SELECT SUM(CASE WHEN vote_choice = 'abstain' THEN vote_weight ELSE 0 END) FROM government_votes WHERE resolution_id = NEW.resolution_id)
+    WHERE id = NEW.resolution_id;
+END;
+
+-- 投票更新時重新計算決議投票結果
+CREATE TRIGGER IF NOT EXISTS update_resolution_vote_counts_on_update
+    AFTER UPDATE ON government_votes
+    FOR EACH ROW
+BEGIN
+    UPDATE government_resolutions 
+    SET 
+        votes_for = (SELECT SUM(CASE WHEN vote_choice = 'for' THEN vote_weight ELSE 0 END) FROM government_votes WHERE resolution_id = NEW.resolution_id),
+        votes_against = (SELECT SUM(CASE WHEN vote_choice = 'against' THEN vote_weight ELSE 0 END) FROM government_votes WHERE resolution_id = NEW.resolution_id),
+        votes_abstain = (SELECT SUM(CASE WHEN vote_choice = 'abstain' THEN vote_weight ELSE 0 END) FROM government_votes WHERE resolution_id = NEW.resolution_id)
+    WHERE id = NEW.resolution_id;
+END;
+
+-- =============================================================================
+-- 7. 效能最佳化視圖
+-- =============================================================================
+
+-- 活躍政府成員視圖
+CREATE VIEW IF NOT EXISTS active_government_members AS
+SELECT 
+    gm.*,
+    gd.name as department_name,
+    gd.status as department_status
+FROM government_members gm
+LEFT JOIN government_departments gd ON gm.department_id = gd.id
+WHERE gm.status = 'active' 
+  AND (gd.status = 'active' OR gd.status IS NULL);
+
+-- 部門統計視圖
+CREATE VIEW IF NOT EXISTS department_statistics AS
+SELECT 
+    gd.id,
+    gd.guild_id,
+    gd.name,
+    gd.status,
+    gd.budget_limit,
+    COUNT(gm.id) as member_count,
+    COUNT(CASE WHEN gm.status = 'active' THEN 1 END) as active_member_count,
+    MAX(gm.position_level) as highest_position_level,
+    gd.created_at,
+    gd.updated_at
+FROM government_departments gd
+LEFT JOIN government_members gm ON gd.id = gm.department_id
+GROUP BY gd.id, gd.guild_id, gd.name, gd.status, gd.budget_limit, gd.created_at, gd.updated_at;
+
+-- 決議統計視圖
+CREATE VIEW IF NOT EXISTS resolution_statistics AS
+SELECT 
+    guild_id,
+    COUNT(*) as total_resolutions,
+    COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_resolutions,
+    COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_resolutions,
+    COUNT(CASE WHEN status = 'voting' THEN 1 END) as voting_resolutions,
+    COUNT(CASE WHEN status = 'implemented' THEN 1 END) as implemented_resolutions,
+    AVG(CASE WHEN status IN ('approved', 'rejected') THEN votes_for * 1.0 / (votes_for + votes_against) END) as avg_approval_rate
+FROM government_resolutions
+GROUP BY guild_id;
+
+-- =============================================================================
+-- 8. 資料驗證檢查
+-- =============================================================================
+
+-- 檢查政府系統表格是否正確建立
+SELECT name FROM sqlite_master 
+WHERE type='table' AND name LIKE 'government_%';
+
+-- 檢查政府系統索引是否正確建立
+SELECT name FROM sqlite_master 
+WHERE type='index' AND name LIKE 'idx_gov_%';
+
+-- 檢查觸發器是否正確建立
+SELECT name FROM sqlite_master 
+WHERE type='trigger' AND (name LIKE '%government%' OR name LIKE '%resolution%');
+
+-- 檢查視圖是否正確建立
+SELECT name FROM sqlite_master 
+WHERE type='view' AND (name LIKE '%government%' OR name LIKE '%department%' OR name LIKE '%resolution%');
+
+-- =============================================================================
+-- 9. 相容性檢查
+-- =============================================================================
+
+-- 檢查與經濟系統的相容性
+SELECT 'economy_compatibility' as check_name,
+       CASE WHEN EXISTS (SELECT 1 FROM sqlite_master WHERE name = 'economy_accounts') 
+            THEN 'PASS' 
+            ELSE 'FAIL' 
+       END as result;
+
+-- 檢查與核心系統的相容性
+SELECT 'core_system_compatibility' as check_name,
+       CASE WHEN EXISTS (SELECT 1 FROM sqlite_master WHERE name = 'system_config') 
+            THEN 'PASS' 
+            ELSE 'FAIL' 
+       END as result;
+
+-- =============================================================================
+-- 遷移完成標記
+-- =============================================================================
+-- 此腳本將由 DatabaseManager 的遷移系統執行
+-- 遷移系統會自動記錄執行狀態到 schema_migrations 表格

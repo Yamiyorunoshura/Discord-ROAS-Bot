@@ -1,0 +1,130 @@
+# Discord機器人系統配置
+# Task ID: 11 - 建立文件和部署準備
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "discord-bot"
+version = "2.4.0"
+description = "Discord機器人 - 成就、經濟、政府系統"
+authors = [
+    {name = "Discord Bot Team", email = "team@discordbot.local"}
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "discord.py>=2.0.0",
+    "aiohttp>=3.8.0",
+    "asyncio-throttle>=1.0.0",
+    "psutil>=5.9.0",
+    "aiofiles>=23.0.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0"
+]
+monitoring = [
+    "prometheus-client>=0.16.0",
+    "grafana-api>=1.0.3"
+]
+
+[project.scripts]
+discord-bot = "main:main"
+monitor = "scripts.monitor:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--durations=10"
+]
+
+# 測試標記
+markers = [
+    "unit: 單元測試",
+    "integration: 整合測試", 
+    "ui: UI組件測試",
+    "slow: 慢速測試",
+    "async: 異步測試",
+    "performance: 效能測試",
+    "load: 負載測試",
+    "e2e: 端到端測試",
+    "cross_system: 跨系統測試",
+    "coverage: 覆蓋率測試",
+    "achievement: 成就系統測試"
+]
+
+# 異步測試設定
+asyncio_mode = "auto"
+
+# 覆蓋率設定
+[tool.coverage.run]
+source = ["services", "panels", "cogs", "core"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/backup*",
+    "main.py",
+    "config.py"
+]
+branch = true
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+sort = "cover"
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+    "except ImportError:",
+    "except ModuleNotFoundError:"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "Discord機器人系統整合測試覆蓋率報告"
+
+[tool.coverage.xml]
+output = "coverage.xml"

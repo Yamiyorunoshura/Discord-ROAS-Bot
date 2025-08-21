@@ -1,319 +1,302 @@
-# /cogs/activity_meter/activity_meter.py
+# activity_meter.py - 重構版本 (符合新架構)
 # ============================================================
-# 活躍度系統模組
-#  - 提供 0~100 分活躍度計算、每日/月排行榜、進度條圖片
-#  - 支援自動播報、排行榜頻道設定、資料庫持久化
-#  - 具備詳細錯誤處理與日誌記錄
+# 主要功能：
+#  - 整合 ActivityService 和 ActivityPanel
+#  - 提供斜線指令介面
+#  - 處理訊息事件以更新活躍度
+#  - 自動播報機制
+#  - 向後相容性支援
+# 
+# 架構變更：
+#  - 前後端分離設計
+#  - 服務層和面板層分離
+#  - 依賴注入和服務註冊
+#  - 統一的錯誤處理
 # ============================================================
 
-import asyncio, time, io, traceback, contextlib, logging
-import aiosqlite, discord, config
-from discord import app_commands
+import discord
 from discord.ext import commands, tasks
-from datetime import datetime as dt, timezone
-from PIL import Image, ImageDraw, ImageFont
+from discord import app_commands
+import logging
+import time
+from datetime import datetime, timezone
 
-DAY_FMT, MONTH_FMT = "%Y%m%d", "%Y%m"
+from services.activity import ActivityService
+from panels.activity import ActivityPanel
+from core.database_manager import get_database_manager
+from core.exceptions import handle_errors
 
-# ───────── Logger ─────────
+from config import (
+    ACTIVITY_DB_PATH,
+    TW_TZ,
+    ACT_REPORT_HOUR,
+    is_allowed,
+)
+
+# 設定日誌記錄器
 logger = logging.getLogger("activity_meter")
-if not logger.hasHandlers():
-    fh = logging.FileHandler(f"{config.LOGS_DIR}/activity_meter.log", encoding="utf-8")
-    fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
-    logger.setLevel(logging.INFO)
-    logger.addHandler(fh)
+logger.setLevel(logging.INFO)
 
-# ───────── 友善錯誤工具 ─────────
-def _trace(exc, depth=3):
-    """生成簡潔的錯誤追蹤資訊"""
-    return "".join(traceback.TracebackException.from_exception(exc, limit=depth).format())
-
-def _log(log, msg, exc=None, level=40):
-    """統一錯誤日誌格式，附加追蹤碼與詳細資訊"""
-    if exc:
-        msg = f"{msg}\n原因：{type(exc).__name__}: {exc}\n{_trace(exc)}"
-    log.log(level, msg, exc_info=bool(exc))
-
-@contextlib.contextmanager
-def handle_error(log, inter: discord.Interaction, user_msg="發生未知錯誤"):
-    """Discord 互動指令專用錯誤處理，回報追蹤碼給用戶"""
-    if log is None:
-        log = logger
-    code = dt.utcnow().strftime("%Y%m%d%H%M%S%f")
-    try:
-        yield
-    except Exception as exc:
-        _log(log, f"{user_msg} (追蹤碼: {code})", exc)
-        reply = f"❌ {user_msg}\n追蹤碼：`{code}`，請聯絡管理員。"
-        try:
-            if inter.response.is_done():
-                asyncio.create_task(inter.followup.send(reply))
-            else:
-                asyncio.create_task(inter.response.send_message(reply))
-        except Exception:
-            pass
-
-# ───────── Cog ─────────
-class ActivityMeter(commands.Cog):
+class ActivityMeterCog(commands.Cog):
     """
-    活躍度系統 Cog
-    - 計算用戶活躍度（0~100 分，隨時間衰減）
-    - 提供每日/月排行榜查詢
-    - 支援自動播報與排行榜頻道設定
-    - 具備詳細錯誤處理與日誌
+    活躍度系統 Cog - 重構版本
+    
+    使用前後端分離架構，整合 ActivityService 和 ActivityPanel
     """
-
+    
     def __init__(self, bot: commands.Bot):
+        """
+        初始化活躍度 Cog
+        
+        參數：
+            bot: Discord 機器人實例
+        """
         self.bot = bot
-        self.lock = asyncio.Lock()  # 全域鎖，避免資料競爭
-        bot.loop.create_task(self._init_db())
-        self.auto_report.start()
+        
+        # 服務和面板將在 cog_load 中初始化
+        self.activity_service: ActivityService = None
+        self.activity_panel: ActivityPanel = None
+        
+        # 配置參數
+        self.config = {
+            'db_path': ACTIVITY_DB_PATH,
+            'timezone': TW_TZ,
+            'report_hour': ACT_REPORT_HOUR,
+        }
+        
+        logger.info("ActivityMeterCog 初始化完成")
 
-    # ---------- DB ----------
-    def _db(self):
-        """取得資料庫連線 coroutine"""
-        return aiosqlite.connect(config.ACTIVITY_DB_PATH, isolation_level=None, timeout=20)
-
-    async def _init_db(self):
-        """初始化資料庫表結構"""
-        async with self._db() as db:
-            await db.executescript("""
-            CREATE TABLE IF NOT EXISTS meter(
-              guild_id INTEGER, user_id INTEGER,
-              score REAL DEFAULT 0, last_msg INTEGER DEFAULT 0,
-              PRIMARY KEY(guild_id, user_id)
-            );
-            CREATE TABLE IF NOT EXISTS daily(
-              ymd TEXT, guild_id INTEGER, user_id INTEGER,
-              msg_cnt INTEGER DEFAULT 0,
-              PRIMARY KEY(ymd, guild_id, user_id)
-            );
-            CREATE TABLE IF NOT EXISTS report_channel(
-              guild_id INTEGER PRIMARY KEY,
-              channel_id INTEGER
-            );
-            """)
-        logger.info("【活躍度】DB 初始化完成")
-
-    # ---------- 工具 ----------
-    @staticmethod
-    def _decay(score: float, delta: int) -> float:
-        """活躍度隨時間衰減計算"""
-        if delta <= config.ACTIVITY_DECAY_AFTER:
-            return score
-        decay = (config.ACTIVITY_DECAY_PER_H / 3600) * (delta - config.ACTIVITY_DECAY_AFTER)
-        return max(0, score - decay)
-
-    def _render_bar(self, member: discord.Member, score: float) -> discord.File:
-        """
-        產生活躍度進度條圖片
-        Args:
-            member: Discord 成員物件
-            score: 活躍度分數
-        Returns:
-            Discord File 物件（PNG 圖片）
-        """
-        w, h = config.ACT_BAR_WIDTH, config.ACT_BAR_HEIGHT
-        img = Image.new("RGBA", (w, h), config.ACT_BAR_BG)
-        draw = ImageDraw.Draw(img, "RGBA")
-        draw.rectangle([(0, 0), (w - 1, h - 1)], outline=config.ACT_BAR_BORDER)
-
-        fill_w = int((w - 2) * score / config.ACTIVITY_MAX_SCORE)
-        if fill_w:
-            draw.rectangle([(1, 1), (fill_w, h - 2)], fill=config.ACT_BAR_FILL)
-
-        txt = f"{getattr(member, 'display_name', '未知用戶')} ‧ {score:.1f}/100"
+    async def cog_load(self) -> None:
+        """Cog 載入時的設定"""
         try:
-            font = ImageFont.truetype(config.WELCOME_DEFAULT_FONT, 18)
-        except Exception:
-            font = ImageFont.load_default()
-
-        try:  # Pillow ≥10
-            tw = font.getlength(txt)
-            tb = draw.textbbox((0, 0), txt, font=font)
-            th = tb[3] - tb[1]
-        except AttributeError:  # Pillow <10
-            if hasattr(font, 'getsize'):
-                tw, th = font.getsize(txt)  # type: ignore
+            # 嘗試從服務註冊表獲取已初始化的服務
+            from core.base_service import service_registry
+            
+            # 首先嘗試從統一的服務啟動管理器獲取服務
+            startup_manager = getattr(self.bot, 'startup_manager', None)
+            if startup_manager and 'ActivityService' in startup_manager.service_instances:
+                self.activity_service = startup_manager.service_instances['ActivityService']
+                logger.info("從服務啟動管理器獲取 ActivityService")
+            
+            # 備用方案：從服務註冊表獲取
+            elif service_registry.is_registered('ActivityService'):
+                self.activity_service = service_registry.get_service('ActivityService')
+                logger.info("從服務註冊表獲取 ActivityService")
+            
+            # 最後備用方案：自己初始化（向後相容）
             else:
-                tw, th = 100, 20  # fallback
-
-        draw.text(((w - tw) // 2, (h - th) // 2), txt, fill=(255, 255, 255, 255), font=font)
-
-        buf = io.BytesIO()
-        img.save(buf, "PNG")
-        buf.seek(0)
-        return discord.File(buf, filename="activity.png")
-
-    async def _send_reply(self, inter, reply: str):
-        """發送回覆訊息"""
-        try:
-            if inter.response.is_done():
-                asyncio.create_task(inter.followup.send(reply))
-            else:
-                asyncio.create_task(inter.response.send_message(reply))
+                logger.info("未找到已註冊的 ActivityService，自行初始化")
+                db_manager = await get_database_manager()
+                self.activity_service = ActivityService(db_manager, self.config)
+                await service_registry.register_service(self.activity_service, 'ActivityService')
+                await self.activity_service.initialize()
+            
+            # 確保服務已初始化
+            if not self.activity_service.is_initialized:
+                await self.activity_service.initialize()
+            
+            # 初始化面板
+            self.activity_panel = ActivityPanel(self.activity_service, self.config)
+            
+            # 啟動自動播報任務
+            self.auto_report.start()
+            
+            logger.info("ActivityMeterCog 服務和面板已初始化")
+            
         except Exception as e:
-            _log(logger, "發送回覆失敗", e)
+            logger.error(f"ActivityMeterCog 載入失敗：{e}")
+            raise
+    
+    async def cog_unload(self) -> None:
+        """Cog 卸載時的清理"""
+        try:
+            # 停止自動播報任務
+            self.auto_report.cancel()
+            
+            if self.activity_service:
+                await self.activity_service.cleanup()
+                
+            logger.info("ActivityMeterCog 已清理")
+        except Exception as e:
+            logger.error(f"ActivityMeterCog 清理失敗：{e}")
 
-    # ---------- 指令 ----------
+    # ===== 斜線指令 =====
+
     @app_commands.command(name="活躍度", description="查看活躍度（進度條）")
-    async def 活躍度(self, inter: discord.Interaction, 成員: discord.Member | None = None):
-        await inter.response.defer()
-        member = 成員 or inter.user
-        if not isinstance(member, discord.Member):
-            await inter.followup.send("❌ 只能查詢伺服器成員的活躍度。")
+    async def 活躍度(self, interaction: discord.Interaction, 成員: discord.Member = None):
+        """查看活躍度指令"""
+        if not is_allowed(interaction, "活躍度"):
+            await interaction.response.send_message("❌ 你沒有權限執行本指令。", ephemeral=True)
             return
-        with handle_error(logger, inter, "查詢活躍度失敗"):
-            async with self._db() as db:
-                cur = await db.execute(
-                    "SELECT score, last_msg FROM meter WHERE guild_id=? AND user_id=?",
-                    (getattr(inter.guild, 'id', 0), getattr(member, 'id', 0))
-                )
-                row = await cur.fetchone()
-            score = 0 if not row else self._decay(row[0], int(time.time()) - row[1])
-            await inter.followup.send(file=self._render_bar(member, score))
+        
+        if not interaction.guild:
+            await interaction.response.send_message("❌ 此指令只能在伺服器中使用。", ephemeral=True)
+            return
+        
+        # 委託給面板處理
+        await self.activity_panel.show_activity_bar(interaction, 成員)
 
     @app_commands.command(name="今日排行榜", description="查看今日訊息數排行榜")
-    async def 今日排行榜(self, inter: discord.Interaction, 名次: int = 10):
-        await inter.response.defer()
-        with handle_error(logger, inter, "查詢排行榜失敗"):
-            ymd = dt.now(timezone.utc).astimezone(config.TW_TZ).strftime(DAY_FMT)
-            async with self._db() as db:
-                cur = await db.execute(
-                    "SELECT user_id, msg_cnt FROM daily "
-                    "WHERE ymd=? AND guild_id=? ORDER BY msg_cnt DESC LIMIT ?",
-                    (ymd, getattr(inter.guild, 'id', 0), 名次)
-                )
-                rows = await cur.fetchall()
-            if not rows:
-                await inter.followup.send("今天還沒有人說話！")
-                return
-
-            ym = dt.now(config.TW_TZ).strftime(MONTH_FMT)
-            async with self._db() as db:
-                cur_m = await db.execute(
-                    "SELECT user_id, SUM(msg_cnt) FROM daily "
-                    "WHERE ymd LIKE ? || '%' AND guild_id=? GROUP BY user_id",
-                    (ym, getattr(inter.guild, 'id', 0))
-                )
-                month_rows = {uid: total for uid, total in await cur_m.fetchall()}
-            days = int(dt.now(config.TW_TZ).strftime("%d"))
-
-            lines = []
-            for rank, (uid, cnt) in enumerate(rows, 1):
-                mavg = month_rows.get(uid, 0) / days if days else 0
-                member = inter.guild.get_member(uid) if inter.guild else None
-                name = member.display_name if member else f"<@{uid}>"
-                lines.append(f"`#{rank:2}` {name:<20} ‧ 今日 {cnt} 則 ‧ 月均 {mavg:.1f}")
-
-            embed = discord.Embed(
-                title=f"📈 今日活躍排行榜 - {getattr(inter.guild, 'name', '未知伺服器')}",
-                description="\n".join(lines),
-                colour=discord.Colour.green()
-            )
-            await inter.followup.send(embed=embed)
+    async def 今日排行榜(self, interaction: discord.Interaction, 名次: int = 10):
+        """今日排行榜指令"""
+        if not is_allowed(interaction, "今日排行榜"):
+            await interaction.response.send_message("❌ 你沒有權限執行本指令。", ephemeral=True)
+            return
+        
+        if not interaction.guild:
+            await interaction.response.send_message("❌ 此指令只能在伺服器中使用。", ephemeral=True)
+            return
+        
+        # 委託給面板處理
+        await self.activity_panel.display_leaderboard(interaction, 名次)
 
     @app_commands.command(name="設定排行榜頻道", description="設定每日自動播報排行榜的頻道")
     @app_commands.describe(頻道="要播報到哪個文字頻道")
-    async def 設定排行榜頻道(self, inter: discord.Interaction, 頻道: discord.TextChannel):
-        if not config.is_allowed(inter, "設定排行榜頻道"):
-            await inter.response.send_message("❌ 你沒有權限執行本指令。")
+    async def 設定排行榜頻道(self, interaction: discord.Interaction, 頻道: discord.TextChannel):
+        """設定排行榜頻道指令"""
+        if not is_allowed(interaction, "設定排行榜頻道"):
+            await interaction.response.send_message("❌ 你沒有權限執行本指令。", ephemeral=True)
             return
-        async with self._db() as db:
-            await db.execute(
-                "INSERT OR REPLACE INTO report_channel VALUES(?,?)",
-                (getattr(inter.guild, 'id', 0), 頻道.id)
-            )
-        await inter.response.send_message(f"✅ 已設定為 {頻道.mention}")
+        
+        if not interaction.guild:
+            await interaction.response.send_message("❌ 此指令只能在伺服器中使用。", ephemeral=True)
+            return
+        
+        # 委託給面板處理
+        await self.activity_panel.set_report_channel(interaction, 頻道)
+    
+    @app_commands.command(name="活躍度設定", description="查看或修改活躍度系統設定")
+    async def 活躍度設定(self, interaction: discord.Interaction):
+        """活躍度設定指令"""
+        if not is_allowed(interaction, "活躍度設定"):
+            await interaction.response.send_message("❌ 你沒有權限執行本指令。", ephemeral=True)
+            return
+        
+        if not interaction.guild:
+            await interaction.response.send_message("❌ 此指令只能在伺服器中使用。", ephemeral=True)
+            return
+        
+        # 委託給面板處理
+        await self.activity_panel.show_settings_panel(interaction)
 
-    # ---------- 自動播報 ----------
+    # ===== 自動播報 =====
+    
     @tasks.loop(minutes=1)
     async def auto_report(self):
-        now = dt.now(config.TW_TZ)
-        if now.hour != config.ACT_REPORT_HOUR or now.minute != 0:
-            return
-        ymd, ym = now.strftime(DAY_FMT), now.strftime(MONTH_FMT)
-        async with self._db() as db:
-            cur = await db.execute("SELECT guild_id, channel_id FROM report_channel")
-            for gid, ch_id in await cur.fetchall():
-                guild = self.bot.get_guild(gid)
-                channel = guild.get_channel(ch_id) if guild else None
-                if not (channel and isinstance(channel, discord.TextChannel)):
-                    continue
-                cur_t = await db.execute(
-                    "SELECT user_id, msg_cnt FROM daily "
-                    "WHERE ymd=? AND guild_id=? ORDER BY msg_cnt DESC LIMIT 5",
-                    (ymd, gid)
-                )
-                today_rows = await cur_t.fetchall()
-                if not today_rows:
-                    continue
-                cur_m = await db.execute(
-                    "SELECT user_id, SUM(msg_cnt) FROM daily "
-                    "WHERE ymd LIKE ? || '%' AND guild_id=? GROUP BY user_id",
-                    (ym, gid)
-                )
-                month_rows = {uid: total for uid, total in await cur_m.fetchall()}
-                days = int(now.strftime("%d"))
-                lines = []
-                for rank, (uid, cnt) in enumerate(today_rows, 1):
-                    mavg = month_rows.get(uid, 0) / days if days else 0
-                    member = guild.get_member(uid) if guild else None
-                    name = member.display_name if member else f"<@{uid}>"
-                    lines.append(f"`#{rank:2}` {name:<20} ‧ 今日 {cnt} 則 ‧ 月均 {mavg:.1f}")
-                embed = discord.Embed(
-                    title=f"📈 今日活躍排行榜 - {getattr(guild, 'name', '未知伺服器')}",
-                    description="\n".join(lines),
-                    colour=discord.Colour.green()
-                )
+        """自動播報任務"""
+        try:
+            now = datetime.now(TW_TZ)
+            
+            # 只在指定時間的整點播報
+            if now.hour != ACT_REPORT_HOUR or now.minute != 0:
+                return
+            
+            # 獲取所有需要播報的伺服器
+            if not self.activity_service:
+                return
+            
+            # 查詢所有設定了播報頻道的伺服器
+            report_channels = await self.activity_service.db_manager.fetchall(
+                "SELECT guild_id, report_channel_id FROM activity_settings WHERE report_channel_id IS NOT NULL AND auto_report_enabled = 1"
+            )
+            
+            # 也檢查舊的播報頻道表（向後相容）
+            old_report_channels = await self.activity_service.db_manager.fetchall(
+                "SELECT guild_id, channel_id FROM activity_report_channel"
+            )
+            
+            # 合併頻道列表
+            all_channels = set()
+            for row in report_channels:
+                all_channels.add((row['guild_id'], row['report_channel_id']))
+            for row in old_report_channels:
+                all_channels.add((row['guild_id'], row['channel_id']))
+            
+            # 為每個伺服器發送報告
+            for guild_id, channel_id in all_channels:
                 try:
-                    await channel.send(embed=embed)
-                except Exception as exc:
-                    _log(logger, f"自動播報排行榜失敗 (guild_id={gid}, channel_id={ch_id})", exc)
+                    guild = self.bot.get_guild(guild_id)
+                    if not guild:
+                        continue
+                    
+                    channel = guild.get_channel(channel_id)
+                    if not channel or not isinstance(channel, discord.TextChannel):
+                        continue
+                    
+                    # 發送活躍度報告
+                    success = await self.activity_panel.send_activity_report(channel, guild_id)
+                    
+                    if success:
+                        logger.info(f"成功發送自動播報到 {guild_id}:{channel_id}")
+                    else:
+                        logger.warning(f"發送自動播報失敗到 {guild_id}:{channel_id}")
+                        
+                except Exception as e:
+                    logger.error(f"自動播報處理失敗 {guild_id}:{channel_id} - {e}")
+                    
+        except Exception as e:
+            logger.error(f"自動播報任務執行失敗：{e}")
 
     @auto_report.before_loop
     async def _wait_ready(self):
+        """等待機器人就緒"""
         await self.bot.wait_until_ready()
+        
+        # 等待服務初始化完成
+        while not self.activity_service or not self.activity_service.is_initialized:
+            await asyncio.sleep(1)
+            
+        logger.info("活躍度自動播報任務已啟動")
 
-    # ---------- 事件 ----------
+    # ===== 事件處理 =====
+    
     @commands.Cog.listener("on_message")
-    async def on_message(self, msg: discord.Message):
-        if msg.author.bot or not msg.guild:
-            return
-        now = int(time.time())
-        ymd = dt.now(timezone.utc).astimezone(config.TW_TZ).strftime(DAY_FMT)
+    async def on_message(self, message: discord.Message):
+        """處理訊息事件，更新活躍度"""
+        try:
+            # 忽略機器人訊息和私人訊息
+            if message.author.bot or not message.guild:
+                return
+            
+            # 確保服務已初始化
+            if not self.activity_service or not self.activity_service.is_initialized:
+                return
+            
+            # 更新用戶活躍度
+            new_score = await self.activity_service.update_activity(
+                message.author.id,
+                message.guild.id,
+                message
+            )
+            
+            logger.debug(f"更新活躍度：用戶 {message.author.id} 在 {message.guild.id}，新分數 {new_score:.1f}")
+            
+        except Exception as e:
+            logger.error(f"處理訊息事件時發生錯誤：{e}")
+    
+    # ===== 向後相容性方法 =====
+    # 保留一些舊的方法名稱以確保向後相容性
+    
+    @handle_errors(log_errors=True)
+    async def get_activity_score(self, user_id: int, guild_id: int) -> float:
+        """向後相容：獲取活躍度分數"""
+        if self.activity_service:
+            return await self.activity_service.get_activity_score(user_id, guild_id)
+        return 0.0
+    
+    @handle_errors(log_errors=True)
+    async def get_leaderboard(self, guild_id: int, limit: int = 10) -> list:
+        """向後相容：獲取排行榜"""
+        if self.activity_service:
+            leaderboard = await self.activity_service.get_daily_leaderboard(guild_id, limit)
+            # 轉換為舊格式
+            return [(entry.user_id, entry.daily_messages) for entry in leaderboard]
+        return []
 
-        async with self.lock:
-            async with self._db() as db:
-                cur = await db.execute(
-                    "SELECT score, last_msg FROM meter WHERE guild_id=? AND user_id=?",
-                    (getattr(msg.guild, 'id', 0), getattr(msg.author, 'id', 0))
-                )
-                row = await cur.fetchone()
-                score, last_msg = (row if row else (0.0, 0))
-
-                if now - last_msg < config.ACTIVITY_COOLDOWN:
-                    await db.execute(
-                        "INSERT INTO daily VALUES(?,?,?,1) "
-                        "ON CONFLICT DO UPDATE SET msg_cnt = msg_cnt + 1",
-                        (ymd, getattr(msg.guild, 'id', 0), getattr(msg.author, 'id', 0))
-                    )
-                    return
-
-                score = min(self._decay(score, now - last_msg) + config.ACTIVITY_GAIN,
-                            config.ACTIVITY_MAX_SCORE)
-
-                await db.execute(
-                    "INSERT INTO meter VALUES(?,?,?,?) "
-                    "ON CONFLICT DO UPDATE SET score=?, last_msg=?",
-                    (getattr(msg.guild, 'id', 0), getattr(msg.author, 'id', 0), score, now, score, now)
-                )
-                await db.execute(
-                    "INSERT INTO daily VALUES(?,?,?,1) "
-                    "ON CONFLICT DO UPDATE SET msg_cnt = msg_cnt + 1",
-                    (ymd, getattr(msg.guild, 'id', 0), getattr(msg.author, 'id', 0))
-                )
-
-# ---------- setup ----------
+# ────────────────────────────
+# setup
+# ────────────────────────────
 async def setup(bot: commands.Bot):
-    await bot.add_cog(ActivityMeter(bot))
+    """設定 ActivityMeterCog"""
+    logger.info("執行 activity_meter setup()")
+    await bot.add_cog(ActivityMeterCog(bot))

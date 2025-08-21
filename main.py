@@ -1,5 +1,5 @@
 # =============================================================================
-# Discord ADR Bot v1.5 - 主程式檔案
+# Discord ADR Bot v2.4 - 主程式檔案 (重構版本)
 # =============================================================================
 # 功能說明：
 # - 自動載入所有 Cogs（功能模組）
@@ -7,6 +7,8 @@
 # - 完整的錯誤處理與日誌記錄
 # - 事件迴圈最佳化（uvloop）
 # - 人性化的錯誤訊息顯示
+# - 服務註冊和依賴注入機制
+# - 統一的服務生命週期管理
 # =============================================================================
 
 from __future__ import annotations
@@ -18,6 +20,11 @@ from discord.ext import commands
 from discord.ext.commands import errors as command_errors
 from discord.app_commands import AppCommandError
 from datetime import datetime
+
+# 導入新架構的核心模組
+from core.database_manager import get_database_manager
+from core.base_service import service_registry
+from core.service_startup_manager import get_startup_manager
 
 # =============================================================================
 # 1️⃣ 事件迴圈最佳化：uvloop（僅在非Windows平台啟用）
@@ -367,27 +374,43 @@ COGS: List[str] = discover_cogs()
 # =============================================================================
 class ADRBot(commands.Bot):
     """
-    Discord ADR Bot 主類別
+    Discord ADR Bot 主類別 - 重構版本
     
     特性：
     - 自動載入所有 Cog 模組
     - 分批並行載入以提升啟動速度
     - 完整的錯誤處理
     - 開發/生產環境自動切換
+    - 服務註冊和依賴注入機制
+    - 統一的服務生命週期管理
     """
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.database_manager = None
+        self.startup_manager = None
+        self.services_initialized = False
     
     async def setup_hook(self):
         """
         Bot 啟動時的初始化程序
         
         流程：
-        1. 分批載入所有 Cog 模組
-        2. 根據環境決定是否同步斜線指令
-        3. 註冊管理員同步指令
+        1. 初始化核心服務（資料庫管理器）
+        2. 註冊所有業務服務
+        3. 分批載入所有 Cog 模組
+        4. 根據環境決定是否同步斜線指令
+        5. 註冊管理員同步指令
         """
         print("🚀 [Bot] 開始初始化...")
         
-        # 分批載入 Cog 模組（每批 6 個）
+        # 步驟 1: 初始化核心服務
+        await self._initialize_core_services()
+        
+        # 步驟 2: 註冊業務服務
+        await self._register_business_services()
+        
+        # 步驟 3: 分批載入 Cog 模組（每批 6 個）
         BATCH_SIZE = 6
         
         if not COGS:
@@ -407,7 +430,7 @@ class ADRBot(commands.Bot):
             print(f"📦 [Bot] 載入批次 {i//BATCH_SIZE + 1}：{batch}")
             await self._load_batch(batch)
         
-        # 根據環境決定是否同步斜線指令
+        # 步驟 4: 根據環境決定是否同步斜線指令
         if ENV != "production":
             print("🔄 [Bot] 開發模式：同步斜線指令")
             try:
@@ -422,10 +445,130 @@ class ADRBot(commands.Bot):
             print("   💡 使用 /sync 指令手動同步")
             logger.info("生產模式：跳過指令同步")
         
-        # 註冊管理員同步指令
+        # 步驟 5: 註冊管理員同步指令
         self._register_sync_command()
         
         print("✅ [Bot] 初始化完成")
+    
+    async def _initialize_core_services(self):
+        """
+        初始化核心服務
+        
+        核心服務包括：
+        - 資料庫管理器
+        - 服務啟動管理器
+        """
+        print("🔧 [服務] 初始化核心服務...")
+        
+        try:
+            # 初始化資料庫管理器
+            self.database_manager = await get_database_manager()
+            if self.database_manager.is_initialized:
+                print("   ✅ 資料庫管理器已初始化")
+                logger.info("資料庫管理器初始化成功")
+            else:
+                raise Exception("資料庫管理器初始化失敗")
+            
+            # 初始化服務啟動管理器
+            from config import (
+                SERVICE_INIT_TIMEOUT, SERVICE_CLEANUP_TIMEOUT, 
+                SERVICE_BATCH_SIZE, SERVICE_HEALTH_CHECK_INTERVAL,
+                FONTS_DIR, WELCOME_DEFAULT_FONT, BG_DIR
+            )
+            
+            startup_config = {
+                'service_init_timeout': SERVICE_INIT_TIMEOUT,
+                'service_cleanup_timeout': SERVICE_CLEANUP_TIMEOUT,
+                'service_batch_size': SERVICE_BATCH_SIZE,
+                'service_health_check_interval': SERVICE_HEALTH_CHECK_INTERVAL,
+                'fonts_dir': FONTS_DIR,
+                'default_font': WELCOME_DEFAULT_FONT,
+                'bg_dir': BG_DIR
+            }
+            
+            self.startup_manager = await get_startup_manager(startup_config)
+            print("   ✅ 服務啟動管理器已初始化")
+            logger.info("服務啟動管理器初始化成功")
+        
+        except Exception as e:
+            print(f"❌ [服務] 核心服務初始化失敗：{e}")
+            error_logger.exception("核心服務初始化失敗")
+            sys.exit(1)
+    
+    async def _register_business_services(self):
+        """
+        註冊業務服務
+        
+        使用服務啟動管理器來統一管理所有業務服務的初始化
+        """
+        print("🔧 [服務] 註冊業務服務...")
+        
+        try:
+            # 使用服務啟動管理器初始化所有已發現的服務
+            success = await self.startup_manager.initialize_all_services()
+            
+            if success:
+                initialized_services = list(self.startup_manager.service_instances.keys())
+                print(f"   ✅ 業務服務初始化完成，共 {len(initialized_services)} 個服務")
+                for service_name in initialized_services:
+                    print(f"      - {service_name}")
+                logger.info(f"業務服務初始化完成：{initialized_services}")
+                self.services_initialized = True
+                
+                # 顯示啟動摘要
+                startup_summary = self.startup_manager.get_startup_summary()
+                if startup_summary['elapsed_seconds']:
+                    print(f"   ⏱️  服務啟動耗時：{startup_summary['elapsed_seconds']:.2f} 秒")
+                
+            else:
+                print("⚠️  [服務] 部分業務服務初始化失敗")
+                logger.warning("部分業務服務初始化失敗")
+                # 獲取健康狀況報告以了解失敗詳情
+                health_report = await self.startup_manager.get_service_health_status()
+                failed_services = [
+                    name for name, status in health_report.get('services', {}).items()
+                    if status.get('status') != 'healthy'
+                ]
+                if failed_services:
+                    print(f"   ❌ 失敗的服務：{', '.join(failed_services)}")
+        
+        except Exception as e:
+            print(f"❌ [服務] 業務服務註冊失敗：{e}")
+            error_logger.exception("業務服務註冊失敗")
+            # 不終止程序，讓 Cogs 在載入時自行處理服務依賴
+            print("   ⚠️  將使用備用服務註冊機制")
+    
+    async def close(self):
+        """
+        Bot 關閉時的清理程序
+        """
+        print("🛑 [Bot] 開始關閉程序...")
+        
+        try:
+            # 清理所有服務
+            if self.services_initialized and self.startup_manager:
+                print("🧹 [服務] 清理所有服務...")
+                await self.startup_manager.cleanup_all_services()
+                print("   ✅ 服務清理完成")
+            elif service_registry:
+                # 備用清理機制
+                print("🧹 [服務] 使用備用清理機制...")
+                await service_registry.cleanup_all_services()
+                print("   ✅ 備用服務清理完成")
+            
+            # 關閉資料庫連接
+            if self.database_manager:
+                await self.database_manager.cleanup()
+                print("   ✅ 資料庫連接已關閉")
+        
+        except Exception as e:
+            print(f"⚠️  [Bot] 清理過程中發生錯誤：{e}")
+            error_logger.exception("Bot 清理過程錯誤")
+        
+        # 調用父類的清理方法
+        await super().close()
+        
+        print("✅ [Bot] 關閉完成")
     
     def _register_sync_command(self):
         """註冊管理員專用的同步指令"""
@@ -661,7 +804,7 @@ if __name__ == "__main__":
         print("   💡 請升級 Python 版本")
         sys.exit(1)
     
-    print("🎯 Discord ADR Bot v1.5 啟動中...")
+    print("🎯 Discord ADR Bot v2.4 啟動中...")
     print(f"🐍 Python 版本：{sys.version.split()[0]}")
     print(f"📁 專案路徑：{PROJECT_ROOT}")
     

@@ -1,5 +1,5 @@
 # =============================================================================
-# Discord ADR Bot v1.5 - 配置檔案
+# Discord ADR Bot v2.4 - 配置檔案 (重構版本)
 # =============================================================================
 # 功能說明：
 # - 集中管理所有 Bot 的配置設定
@@ -7,6 +7,7 @@
 # - 設定活躍度系統參數
 # - 提供權限檢查工具函數
 # - 時區和時間相關常數
+# - 新架構服務配置
 # =============================================================================
 
 import os
@@ -76,8 +77,8 @@ MESSAGE_LOG_PATH = os.path.join(LOGS_DIR, "message_listener.log")
 # 歡迎系統日誌
 WELCOME_LOG_PATH = os.path.join(LOGS_DIR, "welcome.log")
 
-# 資料同步日誌
-SYNC_DATA_LOG_PATH = os.path.join(LOGS_DIR, "sync_data.log")
+# 活躍度系統日誌
+ACTIVITY_LOG_PATH = os.path.join(LOGS_DIR, "activity_meter.log")
 
 # =============================================================================
 # 5️⃣ 資源檔案路徑
@@ -104,22 +105,39 @@ WELCOME_DEFAULT_FONT = os.path.join(FONTS_DIR, "NotoSansCJKtc-Regular.otf")
 ACTIVITY_DB_PATH = os.path.join(DBS_DIR, "activity.db")  # 活躍度資料庫
 
 # 分數計算參數
-ACTIVITY_GAIN = 0.5              # 每則訊息獲得的活躍度分數
+ACTIVITY_GAIN = 1.0              # 每則訊息獲得的活躍度分數 (增加至1.0)
 ACTIVITY_COOLDOWN = 60           # 同一使用者的冷卻時間（秒）
                                  # 在此時間內重複發送訊息不會重複計分
 
 # 分數限制
 ACTIVITY_MAX_SCORE = 100         # 活躍度分數上限
 
-# 分數衰減設定
-ACTIVITY_DECAY_AFTER = 24 * 3600 # 分數開始衰減的時間（秒）
-                                 # 24小時後開始衰減
+# 分數衰減設定  
+ACTIVITY_DECAY_AFTER = 300       # 分數開始衰減的時間（秒）- 縮短至5分鐘
+                                 # 讓衰減更有意義
 
-ACTIVITY_DECAY_PER_H = ACTIVITY_MAX_SCORE / 24   # 每小時衰減的分數
-                                                 # 100分 / 24小時 = 4.17分/小時
+ACTIVITY_DECAY_PER_H = 6.0       # 每小時衰減的分數 
+                                 # 調整為更合理的衰減速度
 
 # =============================================================================
-# 7️⃣ 活躍度進度條視覺設定
+# 7️⃣ 新架構服務配置
+# =============================================================================
+# 服務註冊和依賴注入相關配置
+
+# 服務初始化超時時間（秒）
+SERVICE_INIT_TIMEOUT = 30
+
+# 服務清理超時時間（秒）
+SERVICE_CLEANUP_TIMEOUT = 15
+
+# 並發服務初始化批次大小
+SERVICE_BATCH_SIZE = 5
+
+# 服務健康檢查間隔（秒）
+SERVICE_HEALTH_CHECK_INTERVAL = 300  # 5分鐘
+
+# =============================================================================
+# 8️⃣ 活躍度進度條視覺設定
 # =============================================================================
 # 用於生成活躍度排行榜的圖片設定
 
@@ -136,7 +154,7 @@ ACT_BAR_BORDER = (255, 255, 255, 255)  # 邊框色：白色
 ACT_REPORT_HOUR = 12             # 每日自動發布排行榜的時間（24小時制）
 
 # =============================================================================
-# 8️⃣ 權限檢查工具函數
+# 9️⃣ 權限檢查工具函數
 # =============================================================================
 def is_allowed(interaction: discord.Interaction, action: str = "") -> bool:
     """
@@ -174,7 +192,7 @@ def is_allowed(interaction: discord.Interaction, action: str = "") -> bool:
     return member.guild_permissions.manage_guild
 
 # =============================================================================
-# 9️⃣ 配置驗證函數
+# 🔟 配置驗證函數
 # =============================================================================
 def validate_config() -> bool:
     """
@@ -214,6 +232,15 @@ def validate_config() -> bool:
             print("❌ 最大分數必須大於 0")
             return False
         
+        # 檢查新架構服務配置參數
+        if SERVICE_INIT_TIMEOUT <= 0:
+            print("❌ 服務初始化超時時間必須大於 0")
+            return False
+        
+        if SERVICE_CLEANUP_TIMEOUT <= 0:
+            print("❌ 服務清理超時時間必須大於 0")
+            return False
+        
         print("✅ 配置驗證通過")
         return True
         
@@ -222,7 +249,7 @@ def validate_config() -> bool:
         return False
 
 # =============================================================================
-# 🔟 配置資訊顯示函數
+# 1️⃣1️⃣ 配置資訊顯示函數
 # =============================================================================
 def print_config_info():
     """
@@ -230,7 +257,7 @@ def print_config_info():
     用於除錯和確認設定
     """
     print("=" * 60)
-    print("🔧 Discord ADR Bot v1.5 - 配置資訊")
+    print("🔧 Discord ADR Bot v2.4 - 配置資訊 (重構版本)")
     print("=" * 60)
     
     print(f"📁 專案根目錄：{PROJECT_ROOT}")
@@ -240,11 +267,17 @@ def print_config_info():
     print(f"🎨 背景圖片：{BG_DIR}")
     print(f"🔤 字體目錄：{FONTS_DIR}")
     
+    print("\n🔧 新架構服務設定：")
+    print(f"   • 服務初始化超時：{SERVICE_INIT_TIMEOUT} 秒")
+    print(f"   • 服務清理超時：{SERVICE_CLEANUP_TIMEOUT} 秒")
+    print(f"   • 服務批次大小：{SERVICE_BATCH_SIZE}")
+    print(f"   • 健康檢查間隔：{SERVICE_HEALTH_CHECK_INTERVAL} 秒")
+    
     print("\n📊 活躍度系統設定：")
     print(f"   • 每則訊息分數：{ACTIVITY_GAIN}")
     print(f"   • 冷卻時間：{ACTIVITY_COOLDOWN} 秒")
     print(f"   • 最大分數：{ACTIVITY_MAX_SCORE}")
-    print(f"   • 衰減開始時間：{ACTIVITY_DECAY_AFTER} 秒")
+    print(f"   • 衰減開始時間：{ACTIVITY_DECAY_AFTER} 秒 (5分鐘)")
     print(f"   • 每小時衰減：{ACTIVITY_DECAY_PER_H:.2f} 分")
     
     print("\n🎨 進度條設定：")

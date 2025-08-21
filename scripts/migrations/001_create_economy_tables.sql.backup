@@ -1,0 +1,160 @@
+-- 經濟系統資料庫遷移腳本
+-- Task ID: 2 - 實作經濟系統核心功能
+-- 版本: 001
+-- 描述: 建立經濟系統核心表格（economy_accounts, economy_transactions, currency_settings）
+-- 創建日期: 2025-08-17
+
+-- =============================================================================
+-- 1. 經濟帳戶表格 (economy_accounts)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS economy_accounts (
+    id TEXT PRIMARY KEY,                    -- 帳戶ID，格式：user_{user_id}_{guild_id} 或 gov_{type}_{guild_id}
+    account_type TEXT NOT NULL,             -- 帳戶類型：user, government_council, government_department
+    guild_id INTEGER NOT NULL,              -- Discord伺服器ID
+    user_id INTEGER,                        -- 使用者ID（僅用於user類型帳戶）
+    balance REAL NOT NULL DEFAULT 0.0,      -- 帳戶餘額
+    created_at TEXT NOT NULL,               -- 建立時間 (ISO 8601格式)
+    updated_at TEXT NOT NULL,               -- 最後更新時間 (ISO 8601格式)
+    is_active INTEGER NOT NULL DEFAULT 1,   -- 帳戶是否啟用 (0=停用, 1=啟用)
+    metadata TEXT,                          -- 額外資料 (JSON格式)
+    
+    -- 約束條件
+    CHECK (account_type IN ('user', 'government_council', 'government_department')),
+    CHECK (balance >= 0.0),
+    CHECK (is_active IN (0, 1)),
+    CHECK (
+        (account_type = 'user' AND user_id IS NOT NULL) OR
+        (account_type IN ('government_council', 'government_department') AND user_id IS NULL)
+    )
+);
+
+-- 帳戶表格索引
+CREATE INDEX IF NOT EXISTS idx_economy_accounts_guild_id ON economy_accounts(guild_id);
+CREATE INDEX IF NOT EXISTS idx_economy_accounts_user_id ON economy_accounts(user_id);
+CREATE INDEX IF NOT EXISTS idx_economy_accounts_type_guild ON economy_accounts(account_type, guild_id);
+CREATE INDEX IF NOT EXISTS idx_economy_accounts_active ON economy_accounts(is_active);
+
+-- =============================================================================
+-- 2. 交易記錄表格 (economy_transactions)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS economy_transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 交易ID
+    from_account TEXT,                      -- 來源帳戶ID (NULL表示系統存款)
+    to_account TEXT,                        -- 目標帳戶ID (NULL表示系統提款)
+    amount REAL NOT NULL,                   -- 交易金額
+    transaction_type TEXT NOT NULL,         -- 交易類型：transfer, deposit, withdraw, reward, penalty
+    reason TEXT,                            -- 交易原因/描述
+    guild_id INTEGER NOT NULL,              -- Discord伺服器ID
+    created_by INTEGER,                     -- 執行交易的使用者ID
+    created_at TEXT NOT NULL,               -- 交易時間 (ISO 8601格式)
+    status TEXT NOT NULL DEFAULT 'completed', -- 交易狀態：pending, completed, failed, cancelled
+    reference_id TEXT,                      -- 參考ID (用於關聯其他系統)
+    metadata TEXT,                          -- 額外資料 (JSON格式)
+    
+    -- 約束條件
+    CHECK (amount > 0.0),
+    CHECK (transaction_type IN ('transfer', 'deposit', 'withdraw', 'reward', 'penalty')),
+    CHECK (status IN ('pending', 'completed', 'failed', 'cancelled')),
+    CHECK (
+        (transaction_type = 'transfer' AND from_account IS NOT NULL AND to_account IS NOT NULL) OR
+        (transaction_type = 'deposit' AND from_account IS NULL AND to_account IS NOT NULL) OR
+        (transaction_type = 'withdraw' AND from_account IS NOT NULL AND to_account IS NULL) OR
+        (transaction_type IN ('reward', 'penalty'))
+    ),
+    
+    -- 外鍵約束
+    FOREIGN KEY (from_account) REFERENCES economy_accounts(id) ON DELETE SET NULL,
+    FOREIGN KEY (to_account) REFERENCES economy_accounts(id) ON DELETE SET NULL
+);
+
+-- 交易表格索引
+CREATE INDEX IF NOT EXISTS idx_economy_transactions_from_account ON economy_transactions(from_account);
+CREATE INDEX IF NOT EXISTS idx_economy_transactions_to_account ON economy_transactions(to_account);
+CREATE INDEX IF NOT EXISTS idx_economy_transactions_guild_id ON economy_transactions(guild_id);
+CREATE INDEX IF NOT EXISTS idx_economy_transactions_type ON economy_transactions(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_economy_transactions_created_at ON economy_transactions(created_at);
+CREATE INDEX IF NOT EXISTS idx_economy_transactions_status ON economy_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_economy_transactions_created_by ON economy_transactions(created_by);
+
+-- =============================================================================
+-- 3. 貨幣設定表格 (currency_settings)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS currency_settings (
+    guild_id INTEGER PRIMARY KEY,           -- Discord伺服器ID
+    currency_name TEXT NOT NULL DEFAULT '金幣', -- 貨幣名稱
+    currency_symbol TEXT NOT NULL DEFAULT '💰', -- 貨幣符號
+    decimal_places INTEGER NOT NULL DEFAULT 2, -- 小數位數
+    min_transfer_amount REAL NOT NULL DEFAULT 1.0, -- 最小轉帳金額
+    max_transfer_amount REAL,               -- 最大轉帳金額 (NULL表示無限制)
+    daily_transfer_limit REAL,             -- 每日轉帳限額 (NULL表示無限制)
+    enable_negative_balance INTEGER NOT NULL DEFAULT 0, -- 是否允許負餘額
+    created_at TEXT NOT NULL,               -- 建立時間
+    updated_at TEXT NOT NULL,               -- 最後更新時間
+    
+    -- 約束條件
+    CHECK (decimal_places >= 0 AND decimal_places <= 8),
+    CHECK (min_transfer_amount >= 0.0),
+    CHECK (max_transfer_amount IS NULL OR max_transfer_amount >= min_transfer_amount),
+    CHECK (daily_transfer_limit IS NULL OR daily_transfer_limit >= 0.0),
+    CHECK (enable_negative_balance IN (0, 1))
+);
+
+-- 貨幣設定表格索引
+CREATE INDEX IF NOT EXISTS idx_currency_settings_guild_id ON currency_settings(guild_id);
+
+-- =============================================================================
+-- 4. 審計記錄表格 (economy_audit_log)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS economy_audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 審計記錄ID
+    operation TEXT NOT NULL,                -- 操作類型：create_account, transfer, config_change 等
+    target_type TEXT NOT NULL,              -- 目標類型：account, transaction, config
+    target_id TEXT NOT NULL,                -- 目標ID
+    guild_id INTEGER NOT NULL,              -- Discord伺服器ID
+    user_id INTEGER,                        -- 執行操作的使用者ID
+    old_values TEXT,                        -- 操作前的值 (JSON格式)
+    new_values TEXT,                        -- 操作後的值 (JSON格式)
+    ip_address TEXT,                        -- IP地址
+    user_agent TEXT,                        -- 使用者代理
+    created_at TEXT NOT NULL,               -- 記錄時間
+    success INTEGER NOT NULL,               -- 操作是否成功 (0=失敗, 1=成功)
+    error_message TEXT,                     -- 錯誤訊息 (如果操作失敗)
+    
+    -- 約束條件
+    CHECK (success IN (0, 1))
+);
+
+-- 審計記錄表格索引
+CREATE INDEX IF NOT EXISTS idx_economy_audit_log_operation ON economy_audit_log(operation);
+CREATE INDEX IF NOT EXISTS idx_economy_audit_log_target ON economy_audit_log(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_economy_audit_log_guild_id ON economy_audit_log(guild_id);
+CREATE INDEX IF NOT EXISTS idx_economy_audit_log_user_id ON economy_audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_economy_audit_log_created_at ON economy_audit_log(created_at);
+
+-- =============================================================================
+-- 5. 初始資料插入
+-- =============================================================================
+
+-- 為每個可能的伺服器建立預設貨幣設定（這部分在服務層處理）
+-- INSERT INTO currency_settings (guild_id, currency_name, currency_symbol, created_at, updated_at)
+-- VALUES (?, '金幣', '💰', datetime('now'), datetime('now'))
+-- ON CONFLICT(guild_id) DO NOTHING;
+
+-- =============================================================================
+-- 6. 資料驗證檢查
+-- =============================================================================
+
+-- 檢查表格是否正確建立
+SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'economy_%' OR name = 'currency_settings';
+
+-- 檢查索引是否正確建立
+SELECT name FROM sqlite_master WHERE type='index' AND (name LIKE 'idx_economy_%' OR name LIKE 'idx_currency_%');
+
+-- 測試基本約束
+-- 這些測試會在單元測試中進行，此處僅作為參考
+
+-- =============================================================================
+-- 遷移完成標記
+-- =============================================================================
+-- 此腳本將由 DatabaseManager 的遷移系統執行
+-- 遷移系統會自動記錄執行狀態到 schema_migrations 表格

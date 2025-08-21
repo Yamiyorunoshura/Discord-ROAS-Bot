@@ -1,0 +1,139 @@
+# Docker Compose配置 - 生產環境
+# Task ID: 11 - 建立文件和部署準備
+
+version: '3.8'
+
+services:
+  discord-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: discord-bot-prod
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=sqlite:///data/discord_data.db
+      - MESSAGE_DATABASE_URL=sqlite:///data/message.db
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - discord_data:/app/data
+      - discord_logs:/app/logs
+      - discord_backups:/app/backups
+    restart: always
+    networks:
+      - discord-bot-network
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio; from core.database_manager import DatabaseManager; asyncio.run(DatabaseManager().health_check())"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: discord-bot-redis-prod
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - discord-bot-network
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  nginx:
+    image: nginx:alpine
+    container_name: discord-bot-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deployment/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deployment/ssl:/etc/nginx/ssl:ro
+      - discord_docs:/usr/share/nginx/html/docs:ro
+    restart: always
+    networks:
+      - discord-bot-network
+    depends_on:
+      - discord-bot
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  backup:
+    image: alpine:latest
+    container_name: discord-bot-backup
+    volumes:
+      - discord_data:/data:ro
+      - discord_backups:/backups
+      - ./deployment/backup.sh:/backup.sh:ro
+    environment:
+      - BACKUP_SCHEDULE=0 2 * * *  # 每日凌晨2點
+    command: |
+      sh -c "
+        apk add --no-cache dcron sqlite &&
+        echo '0 2 * * * /backup.sh' > /var/spool/cron/crontabs/root &&
+        crond -f
+      "
+    restart: always
+    networks:
+      - discord-bot-network
+
+volumes:
+  discord_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/discord-bot/data
+  discord_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/discord-bot/logs
+  discord_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/discord-bot/backups
+  discord_docs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/discord-bot/docs
+  redis_data:
+    driver: local
+
+networks:
+  discord-bot-network:
+    driver: bridge

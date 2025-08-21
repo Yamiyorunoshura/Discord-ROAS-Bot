@@ -1,0 +1,230 @@
+-- 成就系統資料庫遷移腳本
+-- Task ID: 6 - 成就系統核心功能
+-- 
+-- 建立成就系統的所有必要資料表：
+-- 1. achievements - 成就定義表
+-- 2. user_achievement_progress - 使用者成就進度表  
+-- 3. achievement_rewards_log - 獎勵發放記錄表
+-- 4. user_badges - 使用者徽章表
+-- 5. achievement_audit_log - 成就系統審計日誌
+
+-- =============================================================================
+-- 成就定義表
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS achievements (
+    id TEXT PRIMARY KEY,                    -- 成就唯一ID
+    name TEXT NOT NULL,                     -- 成就名稱
+    description TEXT NOT NULL,              -- 成就描述  
+    achievement_type TEXT NOT NULL,         -- 成就類型 (milestone, recurring, hidden, progressive)
+    guild_id INTEGER NOT NULL,              -- 所屬伺服器ID
+    trigger_conditions TEXT NOT NULL,       -- 觸發條件JSON
+    rewards TEXT NOT NULL,                  -- 獎勵配置JSON
+    status TEXT NOT NULL DEFAULT 'active',  -- 成就狀態 (active, disabled, archived)
+    metadata TEXT,                          -- 額外配置資料JSON
+    created_at TIMESTAMP NOT NULL,          -- 建立時間
+    updated_at TIMESTAMP NOT NULL,          -- 更新時間
+    
+    CONSTRAINT achievements_type_check 
+        CHECK (achievement_type IN ('milestone', 'recurring', 'hidden', 'progressive')),
+    CONSTRAINT achievements_status_check 
+        CHECK (status IN ('active', 'disabled', 'archived'))
+);
+
+-- 成就表索引
+CREATE INDEX IF NOT EXISTS idx_achievements_guild_id ON achievements(guild_id);
+CREATE INDEX IF NOT EXISTS idx_achievements_type ON achievements(achievement_type);
+CREATE INDEX IF NOT EXISTS idx_achievements_status ON achievements(status);
+CREATE INDEX IF NOT EXISTS idx_achievements_guild_status ON achievements(guild_id, status);
+
+-- =============================================================================
+-- 使用者成就進度表
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS user_achievement_progress (
+    id TEXT PRIMARY KEY,                    -- 進度記錄ID
+    achievement_id TEXT NOT NULL,           -- 成就ID
+    user_id INTEGER NOT NULL,               -- 使用者ID
+    guild_id INTEGER NOT NULL,              -- 伺服器ID
+    current_progress TEXT NOT NULL,         -- 目前進度JSON
+    completed BOOLEAN NOT NULL DEFAULT 0,   -- 是否已完成
+    completed_at TIMESTAMP,                 -- 完成時間
+    last_updated TIMESTAMP NOT NULL,        -- 最後更新時間
+    
+    FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE
+);
+
+-- 進度表索引
+CREATE INDEX IF NOT EXISTS idx_progress_user_id ON user_achievement_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_progress_achievement_id ON user_achievement_progress(achievement_id);
+CREATE INDEX IF NOT EXISTS idx_progress_guild_id ON user_achievement_progress(guild_id);
+CREATE INDEX IF NOT EXISTS idx_progress_completed ON user_achievement_progress(completed);
+CREATE INDEX IF NOT EXISTS idx_progress_user_guild ON user_achievement_progress(user_id, guild_id);
+CREATE INDEX IF NOT EXISTS idx_progress_user_achievement ON user_achievement_progress(user_id, achievement_id);
+
+-- =============================================================================
+-- 獎勵發放記錄表
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS achievement_rewards_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,   -- 記錄ID
+    achievement_id TEXT NOT NULL,           -- 成就ID
+    user_id INTEGER NOT NULL,               -- 使用者ID
+    guild_id INTEGER NOT NULL,              -- 伺服器ID
+    reward_type TEXT NOT NULL,              -- 獎勵類型 (currency, role, badge, custom)
+    reward_value TEXT NOT NULL,             -- 獎勵值
+    reward_metadata TEXT,                   -- 獎勵元資料JSON
+    status TEXT NOT NULL DEFAULT 'pending', -- 發放狀態 (pending, completed, failed)
+    error_message TEXT,                     -- 錯誤訊息（發放失敗時）
+    created_at TIMESTAMP NOT NULL,          -- 建立時間
+    processed_at TIMESTAMP,                 -- 處理時間
+    
+    FOREIGN KEY (achievement_id) REFERENCES achievements(id),
+    CONSTRAINT rewards_type_check 
+        CHECK (reward_type IN ('currency', 'role', 'badge', 'custom')),
+    CONSTRAINT rewards_status_check 
+        CHECK (status IN ('pending', 'completed', 'failed'))
+);
+
+-- 獎勵記錄表索引
+CREATE INDEX IF NOT EXISTS idx_rewards_log_user_id ON achievement_rewards_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_rewards_log_achievement_id ON achievement_rewards_log(achievement_id);
+CREATE INDEX IF NOT EXISTS idx_rewards_log_guild_id ON achievement_rewards_log(guild_id);
+CREATE INDEX IF NOT EXISTS idx_rewards_log_status ON achievement_rewards_log(status);
+CREATE INDEX IF NOT EXISTS idx_rewards_log_type ON achievement_rewards_log(reward_type);
+CREATE INDEX IF NOT EXISTS idx_rewards_log_created_at ON achievement_rewards_log(created_at);
+
+-- =============================================================================
+-- 使用者徽章表
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS user_badges (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,   -- 徽章記錄ID
+    user_id INTEGER NOT NULL,               -- 使用者ID
+    guild_id INTEGER NOT NULL,              -- 伺服器ID
+    achievement_id TEXT NOT NULL,           -- 對應的成就ID
+    badge_name TEXT NOT NULL,               -- 徽章名稱
+    badge_metadata TEXT,                    -- 徽章元資料JSON (圖示、稀有度等)
+    earned_at TIMESTAMP NOT NULL,           -- 獲得時間
+    
+    FOREIGN KEY (achievement_id) REFERENCES achievements(id),
+    UNIQUE(user_id, guild_id, achievement_id)  -- 防止重複獲得同一成就的徽章
+);
+
+-- 徽章表索引
+CREATE INDEX IF NOT EXISTS idx_badges_user_id ON user_badges(user_id);
+CREATE INDEX IF NOT EXISTS idx_badges_guild_id ON user_badges(guild_id);
+CREATE INDEX IF NOT EXISTS idx_badges_achievement_id ON user_badges(achievement_id);
+CREATE INDEX IF NOT EXISTS idx_badges_user_guild ON user_badges(user_id, guild_id);
+CREATE INDEX IF NOT EXISTS idx_badges_earned_at ON user_badges(earned_at);
+
+-- =============================================================================
+-- 成就系統審計日誌表
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS achievement_audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,   -- 日誌ID
+    operation TEXT NOT NULL,                -- 操作類型 (create_achievement, update_progress, award_reward等)
+    target_type TEXT NOT NULL,              -- 目標類型 (achievement, progress, reward)
+    target_id TEXT NOT NULL,                -- 目標ID
+    guild_id INTEGER NOT NULL,              -- 伺服器ID
+    user_id INTEGER,                        -- 執行操作的使用者ID
+    old_values TEXT,                        -- 操作前的值JSON
+    new_values TEXT,                        -- 操作後的值JSON
+    created_at TIMESTAMP NOT NULL,          -- 操作時間
+    success BOOLEAN NOT NULL DEFAULT 1,     -- 操作是否成功
+    error_message TEXT,                     -- 錯誤訊息（操作失敗時）
+    
+    CONSTRAINT audit_target_type_check 
+        CHECK (target_type IN ('achievement', 'progress', 'reward', 'badge'))
+);
+
+-- 審計日誌索引
+CREATE INDEX IF NOT EXISTS idx_audit_log_operation ON achievement_audit_log(operation);
+CREATE INDEX IF NOT EXISTS idx_audit_log_target_type ON achievement_audit_log(target_type);
+CREATE INDEX IF NOT EXISTS idx_audit_log_target_id ON achievement_audit_log(target_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_guild_id ON achievement_audit_log(guild_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON achievement_audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON achievement_audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_log_success ON achievement_audit_log(success);
+
+-- =============================================================================
+-- 效能最佳化視圖
+-- =============================================================================
+
+-- 活躍成就視圖（經常查詢）
+CREATE VIEW IF NOT EXISTS active_achievements AS
+SELECT 
+    id,
+    name,
+    description,
+    achievement_type,
+    guild_id,
+    trigger_conditions,
+    rewards,
+    metadata,
+    created_at,
+    updated_at
+FROM achievements 
+WHERE status = 'active';
+
+-- 使用者成就統計視圖
+CREATE VIEW IF NOT EXISTS user_achievement_stats AS
+SELECT 
+    user_id,
+    guild_id,
+    COUNT(*) as total_achievements,
+    COUNT(CASE WHEN completed = 1 THEN 1 END) as completed_achievements,
+    COUNT(CASE WHEN completed = 0 THEN 1 END) as in_progress_achievements,
+    MAX(completed_at) as last_completion_date
+FROM user_achievement_progress
+GROUP BY user_id, guild_id;
+
+-- 伺服器成就統計視圖
+CREATE VIEW IF NOT EXISTS guild_achievement_stats AS
+SELECT 
+    guild_id,
+    COUNT(DISTINCT id) as total_achievements,
+    COUNT(CASE WHEN status = 'active' THEN 1 END) as active_achievements,
+    COUNT(CASE WHEN achievement_type = 'milestone' THEN 1 END) as milestone_achievements,
+    COUNT(CASE WHEN achievement_type = 'recurring' THEN 1 END) as recurring_achievements,
+    COUNT(CASE WHEN achievement_type = 'progressive' THEN 1 END) as progressive_achievements,
+    COUNT(CASE WHEN achievement_type = 'hidden' THEN 1 END) as hidden_achievements
+FROM achievements
+GROUP BY guild_id;
+
+-- =============================================================================
+-- 觸發器設定（自動維護）
+-- =============================================================================
+
+-- 自動更新成就的 updated_at 時間戳
+CREATE TRIGGER IF NOT EXISTS update_achievements_timestamp 
+    AFTER UPDATE ON achievements
+    FOR EACH ROW
+BEGIN
+    UPDATE achievements 
+    SET updated_at = datetime('now') 
+    WHERE id = NEW.id;
+END;
+
+-- 自動更新進度的 last_updated 時間戳  
+CREATE TRIGGER IF NOT EXISTS update_progress_timestamp
+    AFTER UPDATE ON user_achievement_progress
+    FOR EACH ROW
+    WHEN OLD.current_progress != NEW.current_progress OR OLD.completed != NEW.completed
+BEGIN
+    UPDATE user_achievement_progress 
+    SET last_updated = datetime('now') 
+    WHERE id = NEW.id;
+END;
+
+-- 成就完成時自動設定完成時間
+CREATE TRIGGER IF NOT EXISTS set_completion_timestamp
+    AFTER UPDATE ON user_achievement_progress
+    FOR EACH ROW
+    WHEN OLD.completed = 0 AND NEW.completed = 1 AND NEW.completed_at IS NULL
+BEGIN
+    UPDATE user_achievement_progress 
+    SET completed_at = datetime('now') 
+    WHERE id = NEW.id;
+END;
