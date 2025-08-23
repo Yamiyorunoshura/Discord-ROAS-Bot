@@ -48,7 +48,8 @@ class ServiceRegistry:
     async def register_service(
         self, 
         service: 'BaseService', 
-        name: Optional[str] = None
+        name: Optional[str] = None,
+        force_reregister: bool = False
     ) -> str:
         """
         註冊服務
@@ -56,6 +57,7 @@ class ServiceRegistry:
         參數：
             service: 要註冊的服務實例
             name: 服務名稱，如果不提供則使用類別名稱
+            force_reregister: 是否強制重新註冊（測試環境用）
             
         返回：
             服務名稱
@@ -64,11 +66,30 @@ class ServiceRegistry:
             service_name = name or service.__class__.__name__
             
             if service_name in self._services:
-                raise ServiceError(
-                    f"服務 {service_name} 已經註冊",
-                    service_name=service_name,
-                    operation="register"
-                )
+                if force_reregister:
+                    logger.warning(f"強制重新註冊服務 {service_name}")
+                    # 先清理舊服務
+                    old_service = self._services[service_name]
+                    if old_service.is_initialized:
+                        try:
+                            await old_service.cleanup()
+                        except Exception as e:
+                            logger.error(f"清理舊服務 {service_name} 時發生錯誤：{e}")
+                    
+                    # 移除舊註冊
+                    del self._services[service_name]
+                    if service.__class__ in self._service_types:
+                        del self._service_types[service.__class__]
+                    if service_name in self._dependencies:
+                        del self._dependencies[service_name]
+                    if service_name in self._initialization_order:
+                        self._initialization_order.remove(service_name)
+                else:
+                    raise ServiceError(
+                        f"服務 {service_name} 已經註冊",
+                        service_name=service_name,
+                        operation="register"
+                    )
             
             self._services[service_name] = service
             self._service_types[service.__class__] = service_name
@@ -240,17 +261,48 @@ class ServiceRegistry:
     
     async def cleanup_all_services(self):
         """清理所有服務（按初始化順序的反向）"""
-        if not self._initialization_order:
-            return
-        
-        # 反向清理
-        for service_name in reversed(self._initialization_order):
-            if service_name in self._services:
-                try:
-                    await self._services[service_name].cleanup()
-                    logger.info(f"服務 {service_name} 已清理")
-                except Exception as e:
-                    logger.error(f"清理服務 {service_name} 時發生錯誤：{e}")
+        async with self._lock:
+            # 記錄清理前的狀態
+            service_count = len(self._services)
+            logger.info(f"開始清理 {service_count} 個服務")
+            
+            # 如果有初始化順序，按反向清理
+            if self._initialization_order:
+                for service_name in reversed(self._initialization_order.copy()):
+                    if service_name in self._services:
+                        try:
+                            service = self._services[service_name]
+                            if service.is_initialized:
+                                await service.cleanup()
+                            logger.debug(f"服務 {service_name} 已清理")
+                        except Exception as e:
+                            logger.error(f"清理服務 {service_name} 時發生錯誤：{e}")
+            else:
+                # 如果沒有初始化順序記錄，直接清理所有服務
+                for service_name, service in list(self._services.items()):
+                    try:
+                        if service.is_initialized:
+                            await service.cleanup()
+                        logger.debug(f"服務 {service_name} 已清理")
+                    except Exception as e:
+                        logger.error(f"清理服務 {service_name} 時發生錯誤：{e}")
+            
+            # 強制清除所有註冊表資料
+            self._services.clear()
+            self._service_types.clear()
+            self._dependencies.clear()
+            self._initialization_order.clear()
+            
+            logger.info(f"全域服務註冊表已完全清除（清理了 {service_count} 個服務）")
+    
+    def reset_for_testing(self):
+        """重置註冊表狀態，專用於測試環境"""
+        # 同步版本的清理，用於測試環境快速重置
+        self._services.clear()
+        self._service_types.clear() 
+        self._dependencies.clear()
+        self._initialization_order.clear()
+        logger.info("服務註冊表已重置（測試模式）")
 
 
 # 全域服務註冊表實例

@@ -1,0 +1,16 @@
+{
+  "test_summary": {
+    "timestamp": "20250823_061418",
+    "total_tests": 1,
+    "passed_tests": 0,
+    "failed_tests": 1,
+    "success_rate": 0,
+    "duration_seconds": 0,
+    "parameters": {
+      "seed": 12345,
+      "max_steps": 3,
+      "runs": 1,
+      "timeout": 60
+    }
+  }
+}

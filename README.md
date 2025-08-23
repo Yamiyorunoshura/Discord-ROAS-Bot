@@ -1,4 +1,4 @@
- # Discord ADR Bot v1.5
+ # Discord ADR Bot v2.4.1
 
 一個功能完整的 Discord 機器人，提供活躍度追蹤、歡迎系統、群組保護、資料同步、訊息監控等多項功能。
 
@@ -42,18 +42,61 @@
 
 ## 📋 系統需求
 
-- Python 3.8+
-- Discord.py 2.5.2+
+- Python 3.13+
+- uv 包管理器 (推薦) 或 pip
+- Discord.py 2.6.0+
 - SQLite 3
-- 其他依賴見 `requirement.txt`
+- 其他依賴見 `pyproject.toml`
 
 ## 🛠️ 安裝指南
 
-### 1. 環境準備
+### 方法 1: 使用 uv (推薦)
+
+uv 是現代化的 Python 包管理器，提供更快的安裝速度和更好的依賴管理。
+
+#### 1. 安裝 uv
+```bash
+# macOS/Linux (Homebrew)
+brew install uv
+
+# 或使用官方安裝腳本
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+#### 2. 專案設置
 ```bash
 # 克隆專案
 git clone <repository-url>
-cd "Discord ADR bot v1.5"
+cd discord-bot
+
+# 一鍵安裝所有依賴（包含開發依賴）
+uv sync --extra dev
+
+# 僅安裝生產依賴
+uv sync
+```
+
+#### 3. 運行機器人
+```bash
+# 使用 uv 運行
+uv run python main.py
+
+# 或啟動虛擬環境後運行
+source .venv/bin/activate  # Linux/Mac
+# 或 .venv\Scripts\activate  # Windows
+python main.py
+```
+
+### 方法 2: 傳統 pip 方式
+
+#### 1. 環境準備
+```bash
+# 克隆專案
+git clone <repository-url>
+cd discord-bot
 
 # 建立虛擬環境
 python -m venv venv
@@ -62,8 +105,12 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 ```
 
-### 2. 安裝依賴
+#### 2. 安裝依賴
 ```bash
+# 從 pyproject.toml 安裝
+pip install -e ".[dev]"
+
+# 或如果有 requirements.txt (舊版相容)
 pip install -r requirement.txt
 ```
 
@@ -83,8 +130,50 @@ DISCORD_GUILD_ID=your_guild_id
 
 ### 5. 啟動機器人
 ```bash
+# 使用 uv (推薦)
+uv run python main.py
+
+# 或傳統方式
 python main.py
 ```
+
+## ⚡ 開發者工作流程
+
+### 快速開始
+```bash
+# 複製專案並設置開發環境
+git clone <repository-url>
+cd discord-bot
+uv sync --extra dev
+
+# 運行測試
+uv run python -m pytest
+
+# 程式碼格式化
+uv run black .
+uv run isort .
+
+# 靜態檢查
+uv run flake8 .
+uv run mypy services/ panels/ core/
+```
+
+### 依賴管理
+```bash
+# 添加新依賴
+uv add package-name
+
+# 添加開發依賴
+uv add --dev package-name
+
+# 更新依賴
+uv lock --upgrade
+
+# 同步環境
+uv sync
+```
+
+詳細的依賴管理策略請參考 [docs/dependency-policy.md](docs/dependency-policy.md)。
 
 ## 🎮 使用方式
 
@@ -141,11 +230,27 @@ LOG_LEVEL = logging.INFO           # 日誌等級
 
 ## 🐛 故障排除
 
+### uv 相關問題
+
+1. **"uv command not found"**
+   - 檢查 uv 是否已安裝：`uv --version`
+   - 重新安裝：`brew install uv` (macOS) 或參考官方文檔
+   - 檢查 PATH 環境變數
+
+2. **依賴安裝失敗**
+   - 清除快取：`uv cache clean`
+   - 重新鎖定：`uv lock --refresh`
+   - 重新安裝：`uv sync --reinstall`
+
+3. **虛擬環境衝突**
+   - 刪除現有環境：`rm -rf .venv`
+   - 重新建立：`uv sync --extra dev`
+
 ### 常見問題
 
 1. **機器人無法啟動**
    - 檢查 Discord Token 是否正確
-   - 確認所有依賴已安裝
+   - 確認所有依賴已安裝：`uv sync --extra dev`
    - 檢查 `.env` 檔案格式
 
 2. **權限錯誤**
@@ -156,6 +261,11 @@ LOG_LEVEL = logging.INFO           # 日誌等級
    - 檢查資料庫檔案權限
    - 確認資料庫目錄存在
    - 查看錯誤日誌
+
+4. **測試失敗**
+   - 運行特定測試：`uv run python -m pytest tests/test_specific.py -v`
+   - 檢查依賴：`uv run python -c "import discord; print('Discord.py可用')"`
+   - 檢查環境：`uv info`
 
 ### 日誌檔案
 - `logs/main_error.log` - 主要錯誤日誌
@@ -202,6 +312,18 @@ LOG_LEVEL = logging.INFO           # 日誌等級
 
 ---
 
-**版本**: v1.5  
-**最後更新**: 2025-06-29  
-**維護者**: 愛琴海民主共和國科技部
+**版本**: v2.4.1  
+**最後更新**: 2025-08-23  
+**維護者**: Discord Bot Team  
+**技術升級**: T1-T10 - 完整模組化系統升級 (Python 3.13 + uv + 成就經濟政府系統)
+
+### 🆕 版本 2.4.1 新功能
+- 🎯 **成就系統重建**：全新的成就追蹤與獎勵機制
+- 💰 **經濟系統**：完整的虛擬貨幣交易與管理
+- 🏛️ **政府系統**：身份組管理與權限控制
+- ⚡ **Python 3.13升級**：最新Python版本，效能大幅提升
+- 📦 **uv包管理器**：現代化依賴管理，安裝速度提升50%+
+- 🐳 **Docker容器化**：跨平台一鍵部署支援
+- 🔍 **統一錯誤處理**：標準化錯誤代碼與追蹤系統
+- 🧪 **完整測試覆蓋**：單元測試、整合測試與E2E測試
+- 📚 **現代化文檔**：完整的開發與部署指南

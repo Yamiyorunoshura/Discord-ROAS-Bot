@@ -55,6 +55,71 @@ class RoleService(BaseService):
         self.db_manager = None
         self.logger.info("身分組管理服務已清理")
     
+    async def has_permission(
+        self,
+        user_id: int,
+        guild_id: int,
+        permission: str
+    ) -> bool:
+        """
+        檢查使用者是否具有指定權限
+        
+        參數：
+            user_id: 使用者ID
+            guild_id: 伺服器ID
+            permission: 權限名稱
+            
+        返回：
+            是否具有權限
+        """
+        try:
+            # 獲取Discord客戶端
+            discord_client = self.get_dependency("discord_client")
+            if not discord_client:
+                self.logger.error("無法獲取Discord客戶端進行權限檢查")
+                return False
+            
+            guild = discord_client.get_guild(guild_id)
+            if not guild:
+                self.logger.warning(f"找不到伺服器 {guild_id}")
+                return False
+            
+            member = guild.get_member(user_id)
+            if not member:
+                self.logger.warning(f"在伺服器 {guild_id} 中找不到用戶 {user_id}")
+                return False
+            
+            # 檢查權限
+            if permission == "administrator":
+                return member.guild_permissions.administrator or member.id == guild.owner_id
+            
+            elif permission == "manage_achievements":
+                # 成就管理權限：管理員、伺服器擁有者、或有管理身分組權限的使用者
+                if member.guild_permissions.administrator or member.id == guild.owner_id:
+                    return True
+                if member.guild_permissions.manage_roles:
+                    return True
+                # 檢查是否有常任理事身分組
+                council_role = discord.utils.get(guild.roles, name="常任理事")
+                if council_role and council_role in member.roles:
+                    return True
+                return False
+            
+            elif permission == "manage_roles":
+                return member.guild_permissions.manage_roles or member.guild_permissions.administrator or member.id == guild.owner_id
+            
+            elif permission == "manage_guild":
+                return member.guild_permissions.manage_guild or member.guild_permissions.administrator or member.id == guild.owner_id
+            
+            else:
+                # 未知權限，預設拒絕
+                self.logger.warning(f"未知權限：{permission}")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"權限檢查時發生錯誤：{e}")
+            return False
+    
     async def _validate_permissions(
         self,
         user_id: int,

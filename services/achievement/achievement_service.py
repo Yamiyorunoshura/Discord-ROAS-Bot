@@ -107,6 +107,12 @@ class AchievementService(BaseService):
         self._custom_reward_handlers.clear()
         self._progress_locks.clear()
         
+        # 清理新增的快取
+        if hasattr(self, '_event_type_cache'):
+            self._event_type_cache.clear()
+        if hasattr(self, '_rate_limit_cache'):
+            self._rate_limit_cache.clear()
+        
         self.db_manager = None
         self.economy_service = None
         self.role_service = None
@@ -120,7 +126,7 @@ class AchievementService(BaseService):
         action: str
     ) -> bool:
         """
-        驗證使用者權限
+        驗證使用者權限 - 深度防禦安全機制
         
         參數：
             user_id: 使用者ID
@@ -129,13 +135,60 @@ class AchievementService(BaseService):
             
         返回：
             是否有權限
+            
+        安全原則：
+        - 預設拒絕：未明確定義的操作一律拒絕
+        - 多層驗證：ID驗證、角色檢查、操作授權
+        - 審計追蹤：所有權限檢查都被記錄
         """
-        # 成就管理操作需要管理員權限
-        admin_actions = [
-            "create_achievement", "update_achievement", "delete_achievement",
-            "reset_progress", "award_manual", "manage_system"
-        ]
+        try:
+            # 輸入驗證 - 防止注入攻擊
+            user_id = validate_user_id(user_id)
+            if guild_id is not None:
+                guild_id = validate_guild_id(guild_id)
+            
+            if not isinstance(action, str) or not action.strip():
+                self.logger.error(f"無效的操作參數：{action} (user_id: {user_id})")
+                return False
+            
+            action = action.strip().lower()  # 標準化操作名稱
+            
+        except (ValidationError, ValueError) as e:
+            self.logger.error(f"輸入驗證失敗：{e} (user_id: {user_id}, action: {action})")
+            return False
         
+        # 定義操作權限矩陣
+        admin_actions = {
+            "create_achievement", "update_achievement", "delete_achievement",
+            "reset_progress", "award_manual", "manage_system",
+            "batch_update_progress", "register_custom_trigger_type",
+            "register_custom_reward_type"
+        }
+        
+        # 需要伺服器成員身份的操作
+        member_actions = {
+            "get_user_progress", "list_user_achievements", "process_event_triggers"
+        }
+        
+        # 公開只讀操作（仍需基本驗證）
+        public_readonly_actions = {
+            "get_achievement", "list_guild_achievements"
+        }
+        
+        # 檢查操作是否在允許列表中（白名單機制）
+        all_allowed_actions = admin_actions | member_actions | public_readonly_actions
+        if action not in all_allowed_actions:
+            self.logger.warning(f"未授權的操作被拒絕：{action} (user_id: {user_id}, guild_id: {guild_id})")
+            await self._log_security_event(
+                event_type="unauthorized_operation_attempted",
+                user_id=user_id,
+                guild_id=guild_id,
+                action=action,
+                details={"reason": "operation_not_in_whitelist"}
+            )
+            return False
+        
+        # 管理員操作權限檢查
         if action in admin_actions:
             # 實際權限檢查 - 與政府系統整合
             if not guild_id:
@@ -193,7 +246,108 @@ class AchievementService(BaseService):
                 # 安全原則：發生錯誤時拒絕操作
                 return False
         
-        # 一般查詢操作允許所有使用者
+        # 伺服器成員操作權限檢查
+        if action in member_actions:
+            if not guild_id:
+                self.logger.warning(f"成員操作 {action} 被拒絕：缺少伺服器ID (user_id: {user_id})")
+                return False
+            
+            # 檢查使用者是否為伺服器成員
+            if not self.role_service:
+                self.logger.warning(f"成員操作 {action} 被拒絕：RoleService 未初始化 (user_id: {user_id}, guild_id: {guild_id})")
+                return False
+            
+            try:
+                is_member = await self.role_service.has_permission(
+                    user_id=user_id,
+                    guild_id=guild_id,
+                    permission="view_channel"  # 基本成員權限
+                )
+                
+                if not is_member:
+                    self.logger.warning(f"成員操作 {action} 被拒絕：非伺服器成員 (user_id: {user_id}, guild_id: {guild_id})")
+                    await self._log_security_event(
+                        event_type="non_member_access_denied",
+                        user_id=user_id,
+                        guild_id=guild_id,
+                        action=action,
+                        details={"reason": "not_guild_member"}
+                    )
+                    return False
+                
+                return True
+                
+            except Exception as e:
+                self.logger.error(f"成員權限檢查失敗：{e} (user_id: {user_id}, guild_id: {guild_id}, action: {action})")
+                return False
+        
+        # 公開只讀操作（仍需基本驗證）
+        if action in public_readonly_actions:
+            # 基本速率限制檢查（防止濫用）
+            if not await self._check_rate_limit(user_id, action):
+                self.logger.warning(f"公開操作 {action} 被速率限制拒絕 (user_id: {user_id})")
+                await self._log_security_event(
+                    event_type="rate_limit_exceeded",
+                    user_id=user_id,
+                    guild_id=guild_id,
+                    action=action,
+                    details={"reason": "rate_limit_exceeded"}
+                )
+                return False
+            
+            return True
+        
+        # 預設拒絕 - 任何未明確允許的操作都被拒絕
+        self.logger.error(f"未定義的操作被拒絕：{action} (user_id: {user_id}, guild_id: {guild_id})")
+        return False
+    
+    async def _check_rate_limit(self, user_id: int, action: str) -> bool:
+        """
+        檢查使用者操作速率限制
+        
+        參數：
+            user_id: 使用者ID  
+            action: 操作類型
+            
+        返回：
+            是否在速率限制範圍內
+        """
+        from datetime import datetime, timedelta
+        
+        # 速率限制配置（每分鐘操作次數）
+        rate_limits = {
+            "get_achievement": 60,  # 每分鐘最多60次查詢
+            "list_guild_achievements": 30,  # 每分鐘最多30次列表查詢
+            "get_user_progress": 100,  # 每分鐘最多100次進度查詢
+            "list_user_achievements": 20   # 每分鐘最多20次使用者成就列表查詢
+        }
+        
+        limit = rate_limits.get(action, 10)  # 預設限制每分鐘10次
+        
+        # 使用記憶體快取實現簡單的速率限制
+        # 在生產環境中應該使用Redis等外部快取
+        if not hasattr(self, '_rate_limit_cache'):
+            self._rate_limit_cache = {}
+        
+        now = datetime.now()
+        key = f"{user_id}_{action}"
+        
+        if key not in self._rate_limit_cache:
+            self._rate_limit_cache[key] = []
+        
+        # 清理舊的請求記錄（超過1分鐘）
+        cutoff_time = now - timedelta(minutes=1)
+        self._rate_limit_cache[key] = [
+            req_time for req_time in self._rate_limit_cache[key]
+            if req_time > cutoff_time
+        ]
+        
+        # 檢查是否超過限制
+        if len(self._rate_limit_cache[key]) >= limit:
+            return False
+        
+        # 記錄此次請求
+        self._rate_limit_cache[key].append(now)
         return True
     
     async def _log_security_event(
@@ -218,31 +372,42 @@ class AchievementService(BaseService):
             if details is None:
                 details = {}
             
+            # 為了相容性，將 event_type 包含在 details 中
+            extended_details = {
+                "event_type": event_type,
+                **details,
+                "service": "achievement_service"
+            }
+            
             audit_log_entry = {
                 "timestamp": datetime.now().isoformat(),
                 "event_type": event_type,
                 "user_id": user_id,
                 "guild_id": guild_id,
                 "action": action,
-                "details": details,
+                "details": extended_details,
                 "service": "achievement_service"
             }
             
             # 如果有資料庫管理器，將審計日誌存入資料庫
+            # 使用實際的資料庫schema，避免使用不存在的欄位
             if self.db_manager:
                 await self.db_manager.execute(
                     """
                     INSERT INTO achievement_audit_log 
-                    (event_type, user_id, guild_id, action, details, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    (operation, target_type, target_id, guild_id, user_id, 
+                     new_values, created_at, success)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
-                        event_type,
-                        user_id,
-                        guild_id,
-                        action,
-                        json.dumps(details, ensure_ascii=False),
-                        datetime.now()
+                        action,  # operation
+                        "achievement",  # target_type
+                        f"security_event_{event_type}",  # target_id
+                        guild_id or 0,  # guild_id (不能為 NULL)
+                        user_id,  # user_id
+                        json.dumps(extended_details, ensure_ascii=False),  # new_values
+                        datetime.now(),  # created_at
+                        1  # success
                     )
                 )
             
@@ -690,7 +855,8 @@ class AchievementService(BaseService):
         self,
         user_id: int,
         achievement_id: str,
-        new_progress: Dict[str, Any]
+        new_progress: Dict[str, Any],
+        in_transaction: bool = False
     ) -> bool:
         """
         更新使用者成就進度
@@ -699,6 +865,7 @@ class AchievementService(BaseService):
             user_id: 使用者ID
             achievement_id: 成就ID
             new_progress: 新的進度資料
+            in_transaction: 是否已經在事務中（避免嵌套事務）
             
         返回：
             是否更新成功
@@ -734,8 +901,8 @@ class AchievementService(BaseService):
                     is_now_completed = await self._check_achievement_completion(achievement, progress)
                     if is_now_completed:
                         progress.mark_completed()
-                        # 發放獎勵
-                        await self._award_achievement_rewards(user_id, achievement.guild_id, achievement.rewards, achievement_id)
+                        # 發放獎勵（根據是否在事務中決定策略）
+                        await self._award_achievement_rewards(user_id, achievement.guild_id, achievement.rewards, achievement_id, use_transaction=not in_transaction)
                 
                 # 保存進度到資料庫
                 await self._save_progress_to_db(progress)
@@ -978,7 +1145,13 @@ class AchievementService(BaseService):
     @handle_errors(log_errors=True)
     async def process_event_triggers(self, event_data: Dict[str, Any]) -> List[str]:
         """
-        處理事件觸發，更新相關使用者的成就進度
+        處理事件觸發，更新相關使用者的成就進度 - 高效能版本
+        
+        效能最佳化：
+        - 事件類型索引：只處理相關的成就
+        - 批量查詢：一次獲取所有相關進度
+        - 快取最佳化：減少重複資料庫查詢
+        - 早期退出：跳過不相關的處理
         
         參數：
             event_data: 事件資料
@@ -998,15 +1171,25 @@ class AchievementService(BaseService):
             user_id = validate_user_id(user_id)
             guild_id = validate_guild_id(guild_id)
             
-            # 獲取該伺服器的活躍成就
-            active_achievements = await self._get_active_achievements(guild_id)
+            # 效能最佳化 1：事件類型索引 - 只獲取與此事件類型相關的成就
+            relevant_achievements = await self._get_achievements_by_event_type(guild_id, event_type)
+            
+            if not relevant_achievements:
+                return []  # 早期退出：沒有相關成就
+            
+            # 效能最佳化 2：批量查詢所有相關的使用者進度
+            achievement_ids = [achievement.id for achievement in relevant_achievements]
+            user_progresses = await self._batch_get_user_progress(user_id, achievement_ids)
             
             triggered_achievements = []
             
-            for achievement in active_achievements:
+            # 效能最佳化 3：使用批量處理減少資料庫往返
+            batch_updates = []
+            
+            for achievement in relevant_achievements:
                 try:
-                    # 獲取使用者進度
-                    progress = await self.get_user_progress(user_id, achievement.id)
+                    # 獲取或創建進度記錄
+                    progress = user_progresses.get(achievement.id)
                     if not progress:
                         progress = create_default_progress(achievement.id, user_id, guild_id)
                     
@@ -1018,14 +1201,21 @@ class AchievementService(BaseService):
                     progress_update = self._process_event_for_progress(event_data, progress.current_progress)
                     
                     if progress_update:
-                        # 更新進度
-                        success = await self.update_user_progress(user_id, achievement.id, progress_update)
-                        if success:
-                            triggered_achievements.append(achievement.id)
+                        # 將更新加入批次處理隊列
+                        batch_updates.append({
+                            "user_id": user_id,
+                            "achievement_id": achievement.id,
+                            "progress": progress_update
+                        })
+                        triggered_achievements.append(achievement.id)
                 
                 except Exception as e:
                     self.logger.error(f"處理成就 {achievement.id} 的事件觸發失敗：{e}")
                     continue
+            
+            # 效能最佳化 4：批量執行所有進度更新
+            if batch_updates:
+                await self._batch_update_progress_optimized(batch_updates)
             
             return triggered_achievements
             
@@ -1074,6 +1264,162 @@ class AchievementService(BaseService):
                 progress_update["total_command_count"] = current_progress.get("total_command_count", 0) + 1
         
         return progress_update
+    
+    async def _get_achievements_by_event_type(self, guild_id: int, event_type: str) -> List[Achievement]:
+        """
+        根據事件類型獲取相關成就（帶索引快取）
+        
+        參數：
+            guild_id: 伺服器ID
+            event_type: 事件類型
+            
+        返回：
+            相關成就列表
+        """
+        # 事件類型到觸發類型的映射
+        event_to_trigger_mapping = {
+            "message_sent": ["message_count"],
+            "voice_activity": ["voice_time"], 
+            "reaction_added": ["reaction_count"],
+            "command_used": ["command_usage"],
+            "custom_event": ["custom_event"]
+        }
+        
+        trigger_types = event_to_trigger_mapping.get(event_type, [])
+        if not trigger_types:
+            return []
+        
+        # 檢查快取
+        cache_key = f"achievements_by_event_{guild_id}_{event_type}"
+        if hasattr(self, '_event_type_cache') and cache_key in self._event_type_cache:
+            cache_entry = self._event_type_cache[cache_key]
+            if (datetime.now() - cache_entry['timestamp']).total_seconds() < 300:  # 5分鐘快取
+                return cache_entry['achievements']
+        
+        # 從資料庫查詢
+        try:
+            # 使用 JSON 查詢來篩選包含特定觸發類型的成就
+            query = """
+                SELECT * FROM achievements 
+                WHERE guild_id = ? AND status = 'active'
+                AND (
+                    trigger_conditions LIKE '%"trigger_type": "message_count"%' OR
+                    trigger_conditions LIKE '%"trigger_type": "voice_time"%' OR
+                    trigger_conditions LIKE '%"trigger_type": "reaction_count"%' OR
+                    trigger_conditions LIKE '%"trigger_type": "command_usage"%' OR
+                    trigger_conditions LIKE '%"trigger_type": "custom_event"%'
+                )
+            """
+            
+            rows = await self.db_manager.fetchall(query, [guild_id])
+            
+            achievements = []
+            for row in rows:
+                achievement = Achievement.from_db_row(dict(row))
+                
+                # 精確檢查觸發條件是否匹配事件類型
+                has_matching_trigger = any(
+                    (condition.trigger_type.value if isinstance(condition.trigger_type, TriggerType) 
+                     else condition.trigger_type) in trigger_types
+                    for condition in achievement.trigger_conditions
+                )
+                
+                if has_matching_trigger:
+                    achievements.append(achievement)
+            
+            # 更新快取
+            if not hasattr(self, '_event_type_cache'):
+                self._event_type_cache = {}
+            
+            self._event_type_cache[cache_key] = {
+                'achievements': achievements,
+                'timestamp': datetime.now()
+            }
+            
+            return achievements
+            
+        except Exception as e:
+            self.logger.error(f"根據事件類型獲取成就失敗：{e}")
+            # 降級處理：返回所有活躍成就
+            return await self._get_active_achievements(guild_id)
+    
+    async def _batch_get_user_progress(self, user_id: int, achievement_ids: List[str]) -> Dict[str, AchievementProgress]:
+        """
+        批量獲取使用者成就進度
+        
+        參數：
+            user_id: 使用者ID
+            achievement_ids: 成就ID列表
+            
+        返回：
+            成就ID到進度記錄的映射
+        """
+        if not achievement_ids:
+            return {}
+        
+        try:
+            # 構建批量查詢
+            placeholders = ','.join('?' * len(achievement_ids))
+            query = f"""
+                SELECT * FROM user_achievement_progress 
+                WHERE user_id = ? AND achievement_id IN ({placeholders})
+            """
+            params = [user_id] + achievement_ids
+            
+            rows = await self.db_manager.fetchall(query, params)
+            
+            progress_map = {}
+            for row in rows:
+                progress = AchievementProgress.from_db_row(dict(row))
+                progress_map[progress.achievement_id] = progress
+            
+            return progress_map
+            
+        except Exception as e:
+            self.logger.error(f"批量獲取使用者進度失敗：{e}")
+            return {}
+    
+    async def _batch_update_progress_optimized(self, batch_updates: List[Dict[str, Any]]) -> bool:
+        """
+        批量最佳化進度更新
+        
+        參數：
+            batch_updates: 更新資料列表
+            
+        返回：
+            是否全部更新成功
+        """
+        if not batch_updates:
+            return True
+        
+        try:
+            # 使用資料庫事務進行批量操作
+            async with self.db_manager.transaction():
+                success_count = 0
+                
+                for update in batch_updates:
+                    try:
+                        success = await self.update_user_progress(
+                            update["user_id"],
+                            update["achievement_id"],
+                            update["progress"],
+                            in_transaction=True  # 告知已經在事務中
+                        )
+                        if success:
+                            success_count += 1
+                    except Exception as e:
+                        self.logger.error(f"批量更新進度項失敗：{e}")
+                        continue
+                
+                # 如果部分失敗，記錄但不回滾整個事務
+                if success_count < len(batch_updates):
+                    self.logger.warning(f"批量更新部分失敗：{success_count}/{len(batch_updates)} 成功")
+                
+                return success_count > 0
+                
+        except Exception as e:
+            self.logger.error(f"批量最佳化進度更新失敗：{e}")
+            return False
     
     async def _get_active_achievements(self, guild_id: int) -> List[Achievement]:
         """
@@ -1227,15 +1573,109 @@ class AchievementService(BaseService):
         user_id: int,
         guild_id: int,
         rewards: List[AchievementReward],
-        achievement_id: str
+        achievement_id: str,
+        use_transaction: bool = True
     ):
-        """發放成就的所有獎勵"""
-        for reward in rewards:
-            try:
-                await self.award_reward(user_id, guild_id, reward, achievement_id)
-            except Exception as e:
-                self.logger.error(f"發放獎勵失敗 - 成就:{achievement_id}, 獎勵:{reward.reward_type}, 錯誤:{e}")
-                continue  # 繼續發放其他獎勵
+        """
+        發放成就的所有獎勵 - 具備錯誤處理和回滾機制
+        
+        參數：
+            user_id: 使用者ID
+            guild_id: 伺服器ID  
+            rewards: 獎勵列表
+            achievement_id: 成就ID
+            use_transaction: 是否使用事務（避免嵌套事務）
+        """
+        if not rewards:
+            return
+        
+        successful_rewards = []
+        failed_rewards = []
+        
+        async def _award_rewards_inner():
+            """內部獎勵發放邏輯"""
+            for reward in rewards:
+                try:
+                    result = await self.award_reward(user_id, guild_id, reward, achievement_id)
+                    if result.get("success", False):
+                        successful_rewards.append((reward, result))
+                        self.logger.info(f"獎勵發放成功 - 成就:{achievement_id}, 獎勵:{reward.reward_type}")
+                    else:
+                        failed_rewards.append((reward, result.get("error", "未知錯誤")))
+                        self.logger.error(f"獎勵發放失敗 - 成就:{achievement_id}, 獎勵:{reward.reward_type}, 錯誤:{result.get('error')}")
+                except Exception as e:
+                    failed_rewards.append((reward, str(e)))
+                    self.logger.error(f"獎勵發放異常 - 成就:{achievement_id}, 獎勵:{reward.reward_type}, 錯誤:{e}")
+            
+            # 檢查是否有關鍵獎勵失敗
+            critical_reward_types = {RewardType.CURRENCY, "currency"}
+            has_critical_failure = any(
+                reward.reward_type in critical_reward_types 
+                for reward, _ in failed_rewards
+            )
+            
+            if has_critical_failure and use_transaction:
+                # 關鍵獎勵失敗，回滾整個事務
+                self.logger.error(f"關鍵獎勵發放失敗，回滾成就 {achievement_id} 的所有獎勵")
+                raise ServiceError(
+                    f"關鍵獎勵發放失敗：{[str(reward.reward_type) for reward, _ in failed_rewards]}",
+                    service_name=self.name,
+                    operation="_award_achievement_rewards"
+                )
+            
+            # 記錄獎勵發放結果的審計日誌
+            await self._log_reward_distribution_audit(
+                achievement_id, user_id, guild_id, 
+                successful_rewards, failed_rewards
+            )
+        
+        # 根據是否需要事務決定執行方式
+        try:
+            if use_transaction:
+                async with self.db_manager.transaction():
+                    await _award_rewards_inner()
+            else:
+                await _award_rewards_inner()
+                
+        except ServiceError:
+            # 重新拋出服務錯誤（包含回滾）
+            raise
+        except Exception as e:
+            self.logger.error(f"獎勵發放事務失敗：{e}")
+            raise ServiceError(
+                f"獎勵發放事務失敗：{str(e)}",
+                service_name=self.name,
+                operation="_award_achievement_rewards"
+            )
+    
+    async def _log_reward_distribution_audit(
+        self,
+        achievement_id: str,
+        user_id: int,
+        guild_id: int,
+        successful_rewards: List,
+        failed_rewards: List
+    ):
+        """記錄獎勵分配的審計日誌"""
+        try:
+            audit_data = {
+                "total_rewards": len(successful_rewards) + len(failed_rewards),
+                "successful_count": len(successful_rewards),
+                "failed_count": len(failed_rewards),
+                "successful_types": [str(reward.reward_type) for reward, _ in successful_rewards],
+                "failed_types": [str(reward.reward_type) for reward, _ in failed_rewards]
+            }
+            
+            await self._log_security_event(
+                event_type="reward_distribution_completed",
+                user_id=user_id,
+                guild_id=guild_id,
+                action="award_achievement_rewards",
+                details=audit_data
+            )
+            
+        except Exception as e:
+            self.logger.error(f"記錄獎勵分配審計日誌失敗：{e}")
     
     async def _award_badge(
         self,
@@ -1272,23 +1712,27 @@ class AchievementService(BaseService):
             else reward.reward_type
         )
         
-        cursor = await self.db_manager.execute(
-            """INSERT INTO achievement_rewards_log 
-               (achievement_id, user_id, guild_id, reward_type, reward_value, 
-                reward_metadata, status, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                achievement_id or "manual",
-                user_id,
-                guild_id,
-                reward_type_value,
-                str(reward.value),
-                json.dumps(reward.metadata),
-                "pending",
-                datetime.now().isoformat()
+        # 使用直接的連線來獲取lastrowid
+        conn = self.db_manager.conn
+        async with conn.cursor() as cursor:
+            await cursor.execute(
+                """INSERT INTO achievement_rewards_log 
+                   (achievement_id, user_id, guild_id, reward_type, reward_value, 
+                    reward_metadata, status, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    achievement_id or "manual",
+                    user_id,
+                    guild_id,
+                    reward_type_value,
+                    str(reward.value),
+                    json.dumps(reward.metadata),
+                    "pending",
+                    datetime.now().isoformat()
+                )
             )
-        )
-        return cursor.lastrowid
+            await conn.commit()
+            return cursor.lastrowid if cursor.lastrowid else 0
     
     async def _update_reward_log(self, log_id: int, status: str, error_message: Optional[str]):
         """更新獎勵發放記錄"""

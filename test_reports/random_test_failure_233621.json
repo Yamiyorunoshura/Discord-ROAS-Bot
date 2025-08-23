@@ -1,0 +1,22 @@
+{
+  "failure_info": {
+    "test_name": "test_concurrent_interactions",
+    "seed": 351526,
+    "error": "TestSequence.__init__() got an unexpected keyword argument 'test_id'",
+    "sequences": []
+  },
+  "reproduction_instructions": {
+    "command": "python -m pytest tests/random/test_random_interactions.py::test_concurrent_interactions --seed=351526",
+    "seed": 351526,
+    "environment": {
+      "python_version": "3.10.18",
+      "dpytest_available": true
+    }
+  },
+  "generated_at": 233621,
+  "debug_info": {
+    "test_directory": "/Users/tszkinlai/Coding/roas-bot",
+    "guild_id": 1408732829956833303,
+    "channel_id": 1408732829956833304
+  }
+}

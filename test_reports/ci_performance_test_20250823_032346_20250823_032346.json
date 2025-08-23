@@ -1,0 +1,105 @@
+{
+  "config": {
+    "db_path": "/Users/tszkinlai/Coding/roas-bot/dbs/load_test.db",
+    "total_operations": 200,
+    "concurrent_workers": 10,
+    "guilds_count": 5,
+    "users_per_guild": 1000,
+    "duration_seconds": null,
+    "worker_type": "thread",
+    "report_interval": 1000,
+    "enable_batch_operations": false,
+    "batch_size": 50
+  },
+  "start_time": "2025-08-23T03:23:46.311939",
+  "end_time": "2025-08-23T03:23:46.422316",
+  "duration_seconds": 0.11037707328796387,
+  "total_operations": 200,
+  "successful_operations": 194,
+  "failed_operations": 6,
+  "success_rate": 0.97,
+  "operations_per_second": 1811.970493892495,
+  "latency_p50": 0.041961669921875,
+  "latency_p95": 20.902693271636963,
+  "latency_p99": 24.874701499938965,
+  "latency_min": 0.027894973754882812,
+  "latency_max": 43.65801811218262,
+  "latency_mean": 3.2670962810516357,
+  "error_distribution": {
+    "Cannot operate on a closed database.": 6
+  },
+  "worker_performance": {
+    "0": {
+      "total_operations": 20,
+      "successful_operations": 20,
+      "success_rate": 1.0,
+      "average_latency": 4.606819152832031,
+      "p95_latency": 42.278170585632324
+    },
+    "1": {
+      "total_operations": 20,
+      "successful_operations": 20,
+      "success_rate": 1.0,
+      "average_latency": 5.076277256011963,
+      "p95_latency": 24.335789680480957
+    },
+    "2": {
+      "total_operations": 20,
+      "successful_operations": 20,
+      "success_rate": 1.0,
+      "average_latency": 0.21911859512329102,
+      "p95_latency": 1.0483264923095703
+    },
+    "3": {
+      "total_operations": 20,
+      "successful_operations": 17,
+      "success_rate": 0.85,
+      "average_latency": 5.2433013916015625,
+      "p95_latency": 23.75890016555786
+    },
+    "4": {
+      "total_operations": 20,
+      "successful_operations": 19,
+      "success_rate": 0.95,
+      "average_latency": 4.387843608856201,
+      "p95_latency": 22.630178928375244
+    },
+    "5": {
+      "total_operations": 20,
+      "successful_operations": 20,
+      "success_rate": 1.0,
+      "average_latency": 2.0795226097106934,
+      "p95_latency": 20.2642560005188
+    },
+    "6": {
+      "total_operations": 20,
+      "successful_operations": 20,
+      "success_rate": 1.0,
+      "average_latency": 1.2581586837768555,
+      "p95_latency": 20.15509605407715
+    },
+    "7": {
+      "total_operations": 20,
+      "successful_operations": 18,
+      "success_rate": 0.9,
+      "average_latency": 4.815495014190674,
+      "p95_latency": 24.549782276153564
+    },
+    "8": {
+      "total_operations": 20,
+      "successful_operations": 20,
+      "success_rate": 1.0,
+      "average_latency": 3.173398971557617,
+      "p95_latency": 20.728600025177002
+    },
+    "9": {
+      "total_operations": 20,
+      "successful_operations": 20,
+      "success_rate": 1.0,
+      "average_latency": 1.8110275268554688,
+      "p95_latency": 21.326935291290283
+    }
+  },
+  "final_record_count": 1682,
+  "database_file_size": 114688
+}

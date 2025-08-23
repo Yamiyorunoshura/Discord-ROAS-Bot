@@ -1,6 +1,6 @@
 """
 經濟系統服務
-Task ID: 2 - 實作經濟系統核心功能
+Task ID: T8 - 錯誤代碼系統統一化 (更新自 Task ID: 2)
 
 這個模組提供Discord機器人經濟系統的核心業務邏輯，包括：
 - 帳戶管理：建立、查詢、更新帳戶
@@ -8,6 +8,11 @@ Task ID: 2 - 實作經濟系統核心功能
 - 貨幣配置：伺服器級別的貨幣設定管理
 - 權限驗證：操作權限檢查
 - 審計記錄：所有操作的完整記錄
+
+更新內容：
+- 採用統一錯誤代碼系統
+- 使用標準化錯誤處理中介器
+- 整合錯誤指標收集
 """
 
 import asyncio
@@ -18,7 +23,10 @@ from decimal import Decimal
 
 from core.base_service import BaseService
 from core.database_manager import DatabaseManager
-from core.exceptions import ServiceError, ValidationError, DatabaseError, handle_errors
+# 更新為新的錯誤處理系統
+from src.core.errors import ServiceError, ValidationError, DatabaseError
+from src.core.error_codes import ErrorCode
+from src.core.error_middleware import standardized_error_handling, track_error
 from .models import (
     AccountType, TransactionType, Account, Transaction, CurrencyConfig,
     generate_account_id, validate_amount, validate_guild_id, validate_user_id,
@@ -144,7 +152,7 @@ class EconomyService(BaseService):
     # 帳戶管理功能
     # ==========================================================================
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling(ErrorCode.ACCOUNT_CREATE_FAILED)
     async def create_account(
         self,
         guild_id: int,
@@ -168,81 +176,74 @@ class EconomyService(BaseService):
             ValidationError: 當參數無效時
             ServiceError: 當帳戶已存在或建立失敗時
         """
-        try:
-            # 驗證參數
-            guild_id = validate_guild_id(guild_id)
-            if user_id is not None:
-                user_id = validate_user_id(user_id)
-            initial_balance = validate_amount(initial_balance, min_amount=0.0)
-            
-            # 生成帳戶ID
-            account_id = generate_account_id(account_type, guild_id, user_id)
-            
-            # 檢查帳戶是否已存在
-            existing_account = await self.get_account(account_id)
-            if existing_account is not None:
-                raise ServiceError(
-                    f"帳戶已存在：{account_id}",
-                    service_name=self.name,
-                    operation="create_account"
-                )
-            
-            # 建立帳戶物件
-            now = datetime.now()
-            account = Account(
-                id=account_id,
-                account_type=account_type,
-                guild_id=guild_id,
-                user_id=user_id,
-                balance=initial_balance,
-                created_at=now,
-                updated_at=now
-            )
-            
-            # 插入資料庫
-            await self.db_manager.execute(
-                """INSERT INTO economy_accounts 
-                   (id, account_type, guild_id, user_id, balance, created_at, updated_at, is_active, metadata)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    account.id,
-                    account.account_type.value,
-                    account.guild_id,
-                    account.user_id,
-                    account.balance,
-                    account.created_at.isoformat(),
-                    account.updated_at.isoformat(),
-                    1,  # is_active
-                    None  # metadata
-                )
-            )
-            
-            # 記錄審計日誌
-            await self._audit_log(
-                operation="create_account",
-                target_type="account",
-                target_id=account_id,
-                guild_id=guild_id,
-                user_id=user_id,
-                new_values={
-                    "account_type": account_type.value,
-                    "initial_balance": initial_balance
-                }
-            )
-            
-            self.logger.info(f"帳戶建立成功：{account_id}")
-            return account
-            
-        except (ValidationError, ServiceError):
-            raise
-        except Exception as e:
+        # 驗證參數
+        guild_id = validate_guild_id(guild_id)
+        if user_id is not None:
+            user_id = validate_user_id(user_id)
+        initial_balance = validate_amount(initial_balance, min_amount=0.0)
+        
+        # 生成帳戶ID
+        account_id = generate_account_id(account_type, guild_id, user_id)
+        
+        # 檢查帳戶是否已存在
+        existing_account = await self.get_account(account_id)
+        if existing_account is not None:
+            track_error(ErrorCode.ACCOUNT_CREATE_FAILED, self.name, "create_account")
             raise ServiceError(
-                f"建立帳戶失敗：{str(e)}",
+                "帳戶已存在",
                 service_name=self.name,
-                operation="create_account"
+                operation="create_account",
+                error_code=ErrorCode.ACCOUNT_CREATE_FAILED.value,
+                details={"account_id": account_id}
             )
+        
+        # 建立帳戶物件
+        now = datetime.now()
+        account = Account(
+            id=account_id,
+            account_type=account_type,
+            guild_id=guild_id,
+            user_id=user_id,
+            balance=initial_balance,
+            created_at=now,
+            updated_at=now
+        )
+        
+        # 插入資料庫
+        await self.db_manager.execute(
+            """INSERT INTO economy_accounts 
+               (id, account_type, guild_id, user_id, balance, created_at, updated_at, is_active, metadata)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                account.id,
+                account.account_type.value,
+                account.guild_id,
+                account.user_id,
+                account.balance,
+                account.created_at.isoformat(),
+                account.updated_at.isoformat(),
+                1,  # is_active
+                None  # metadata
+            )
+        )
+        
+        # 記錄審計日誌
+        await self._audit_log(
+            operation="create_account",
+            target_type="account",
+            target_id=account_id,
+            guild_id=guild_id,
+            user_id=user_id,
+            new_values={
+                "account_type": account_type.value,
+                "initial_balance": initial_balance
+            }
+        )
+        
+        self.logger.info(f"帳戶建立成功：{account_id}")
+        return account
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def get_account(self, account_id: str) -> Optional[Account]:
         """
         獲取帳戶資訊
@@ -280,7 +281,7 @@ class EconomyService(BaseService):
                 operation="get_account"
             )
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def get_balance(self, account_id: str) -> float:
         """
         獲取帳戶餘額
@@ -329,7 +330,7 @@ class EconomyService(BaseService):
     # 交易管理功能
     # ==========================================================================
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def transfer(
         self,
         from_account_id: str,
@@ -489,7 +490,7 @@ class EconomyService(BaseService):
                     operation="transfer"
                 )
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def deposit(
         self,
         account_id: str,
@@ -599,7 +600,7 @@ class EconomyService(BaseService):
                 operation="deposit"
             )
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def withdraw(
         self,
         account_id: str,
@@ -713,7 +714,7 @@ class EconomyService(BaseService):
                     operation="withdraw"
                 )
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def get_transaction_history(
         self,
         account_id: str,
@@ -775,7 +776,7 @@ class EconomyService(BaseService):
     # 貨幣配置管理功能
     # ==========================================================================
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def get_currency_config(self, guild_id: int) -> CurrencyConfig:
         """
         獲取伺服器的貨幣配置
@@ -818,7 +819,7 @@ class EconomyService(BaseService):
                 operation="get_currency_config"
             )
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def set_currency_config(
         self,
         guild_id: int,
@@ -977,7 +978,7 @@ class EconomyService(BaseService):
     # 查詢和統計功能
     # ==========================================================================
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def get_guild_accounts(
         self,
         guild_id: int,
@@ -1028,7 +1029,7 @@ class EconomyService(BaseService):
                 operation="get_guild_accounts"
             )
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def get_economy_statistics(self, guild_id: int) -> Dict[str, Any]:
         """
         獲取經濟系統統計資料
@@ -1172,7 +1173,7 @@ class EconomyService(BaseService):
             # 審計日誌失敗不應影響主要操作
             self.logger.error(f"審計日誌記錄失敗：{e}")
     
-    @handle_errors(log_errors=True)
+    @standardized_error_handling()
     async def get_audit_log(
         self,
         guild_id: int,

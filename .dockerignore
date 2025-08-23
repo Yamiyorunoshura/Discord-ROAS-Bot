@@ -1,0 +1,123 @@
+# T6 - Docker優化構建上下文排除清單
+
+# Git相關
+.git
+.gitignore
+.gitattributes
+
+# 開發環境
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python相關
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虛擬環境
+venv/
+env/
+ENV/
+
+# 測試相關
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# 日誌和資料庫
+logs/
+*.log
+dbs/
+data/
+backups/
+*.db
+*.db-shm
+*.db-wal
+
+# 測試報告
+test_reports/
+
+# 文檔（非必需）
+docs/
+*.md
+*.rst
+
+# 臨時檔案
+tmp/
+temp/
+*.tmp
+*.temp
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# IDE
+*.sublime-project
+*.sublime-workspace
+
+# Docker相關（避免遞歸）
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 部署腳本
+deployment/
+scripts/deploy*.sh
+scripts/backup*.sh
+
+# 開發工具配置
+.flake8
+.mypy_cache/
+.bandit
+pytest.ini
+tox.ini
+
+# 字體檔案（如果不需要在容器中）
+fonts/
+
+# 開發筆記
+docs/dev-notes/
+
+# 遷移工具
+migrations/
+scripts/migration*.py
+scripts/enhanced_migration_manager.py
+
+# 監控配置檔案（將通過volume掛載）
+monitoring/

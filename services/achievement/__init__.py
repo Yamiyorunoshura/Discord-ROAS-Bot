@@ -4,3 +4,8 @@ Task ID: 6 - 成就系統核心功能
 
 提供成就系統的核心功能實作
 """
+
+from .achievement_service import AchievementService
+from .models import *
+
+__all__ = ['AchievementService']

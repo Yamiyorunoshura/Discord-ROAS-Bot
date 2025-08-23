@@ -7,7 +7,7 @@ services:
   discord-bot:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.simple
     container_name: discord-bot-dev
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}

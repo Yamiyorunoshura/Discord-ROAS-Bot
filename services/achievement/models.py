@@ -19,9 +19,21 @@ Task ID: 6 - 成就系統核心功能
 import json
 import re
 from datetime import datetime
-from typing import Optional, Dict, Any, List, Union
 from enum import Enum
 from dataclasses import dataclass, field
+import sys
+
+# Python 版本兼容性處理
+if sys.version_info >= (3, 11):
+    from typing import Optional, Dict, Any, List, Union, Self
+else:
+    from typing import Optional, Dict, Any, List, Union
+    try:
+        from typing_extensions import Self
+    except ImportError:
+        # 如果沒有typing_extensions，使用TypeVar作為後備方案
+        from typing import TypeVar
+        Self = TypeVar('Self', bound='TriggerCondition')
 
 from core.exceptions import ValidationError
 
@@ -69,7 +81,7 @@ class AchievementStatus(Enum):
 
 def validate_achievement_id(achievement_id: Union[str, int]) -> str:
     """
-    驗證成就ID
+    驗證成就ID - 加強安全防護
     
     參數：
         achievement_id: 成就ID
@@ -88,13 +100,32 @@ def validate_achievement_id(achievement_id: Union[str, int]) -> str:
             expected="非空字串"
         )
     
+    # 轉換並清理輸入
     achievement_id = str(achievement_id).strip()
+    
+    # 檢測並拒絕潛在的惡意輸入
+    malicious_patterns = [
+        r'[<>"\']',           # HTML/XML注入字符
+        r'(union|select|drop|delete|insert|update|exec|script)',  # SQL注入關鍵詞
+        r'(\.\./|\.\.\|/etc/|/proc/)',  # 路徑遍歷攻擊
+        r'(\$\{|\#\{)',       # 模板注入
+        r'(javascript:|data:|vbscript:)',  # 協議注入
+    ]
+    
+    for pattern in malicious_patterns:
+        if re.search(pattern, achievement_id, re.IGNORECASE):
+            raise ValidationError(
+                "成就ID包含不安全字符",
+                field="achievement_id", 
+                value="[已清理]",  # 不在錯誤中暴露潛在惡意輸入
+                expected="安全的ID格式"
+            )
     
     if len(achievement_id) < 3:
         raise ValidationError(
             "成就ID長度至少為3個字符",
             field="achievement_id",
-            value=achievement_id,
+            value=f"長度:{len(achievement_id)}",
             expected="長度 >= 3"
         )
     
@@ -102,7 +133,7 @@ def validate_achievement_id(achievement_id: Union[str, int]) -> str:
         raise ValidationError(
             "成就ID長度不能超過100個字符",
             field="achievement_id",
-            value=achievement_id,
+            value=f"長度:{len(achievement_id)}",
             expected="長度 <= 100"
         )
     
@@ -120,7 +151,7 @@ def validate_achievement_id(achievement_id: Union[str, int]) -> str:
 
 def validate_user_id(user_id: Union[str, int]) -> int:
     """
-    驗證使用者ID
+    驗證使用者ID - 加強安全防護
     
     參數：
         user_id: 使用者ID
@@ -131,16 +162,38 @@ def validate_user_id(user_id: Union[str, int]) -> int:
     異常：
         ValidationError: 當ID無效時
     """
+    # 防止注入攻擊 - 檢查輸入類型和內容
+    if user_id is None:
+        raise ValidationError(
+            "使用者ID不能為空",
+            field="user_id",
+            value=user_id,
+            expected="非空值"
+        )
+    
+    # 如果是字串，進行額外的安全檢查
+    if isinstance(user_id, str):
+        user_id = user_id.strip()
+        # 檢測惡意輸入
+        if not re.match(r'^\d+$', user_id):
+            raise ValidationError(
+                "使用者ID只能包含數字",
+                field="user_id",
+                value="[已清理]",  # 不暴露潛在惡意輸入
+                expected="純數字字串"
+            )
+    
     try:
         user_id = int(user_id)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         raise ValidationError(
             "使用者ID必須是有效的整數",
             field="user_id",
-            value=user_id,
+            value="[無效]",
             expected="整數"
         )
     
+    # Discord ID 的合理範圍檢查
     if user_id <= 0:
         raise ValidationError(
             "使用者ID必須大於0",
@@ -149,13 +202,13 @@ def validate_user_id(user_id: Union[str, int]) -> int:
             expected="> 0"
         )
     
-    # Discord ID 的基本範圍檢查（雖然Discord ID可能更大）
+    # Discord 雪花ID不會超過64位整數的最大值
     if user_id > 2**63 - 1:
         raise ValidationError(
             "使用者ID超出有效範圍",
-            field="user_id",
-            value=user_id,
-            expected="<= 2^63 - 1"
+            field="user_id", 
+            value="[過大]",
+            expected="<= 2^63-1"
         )
     
     return user_id
@@ -163,7 +216,7 @@ def validate_user_id(user_id: Union[str, int]) -> int:
 
 def validate_guild_id(guild_id: Union[str, int]) -> int:
     """
-    驗證伺服器ID
+    驗證伺服器ID - 加強安全防護
     
     參數：
         guild_id: 伺服器ID
@@ -174,16 +227,38 @@ def validate_guild_id(guild_id: Union[str, int]) -> int:
     異常：
         ValidationError: 當ID無效時
     """
+    # 防止注入攻擊 - 檢查輸入類型和內容
+    if guild_id is None:
+        raise ValidationError(
+            "伺服器ID不能為空",
+            field="guild_id",
+            value=guild_id,
+            expected="非空值"
+        )
+    
+    # 如果是字串，進行額外的安全檢查
+    if isinstance(guild_id, str):
+        guild_id = guild_id.strip()
+        # 檢測惡意輸入
+        if not re.match(r'^\d+$', guild_id):
+            raise ValidationError(
+                "伺服器ID只能包含數字",
+                field="guild_id",
+                value="[已清理]",  # 不暴露潛在惡意輸入
+                expected="純數字字串"
+            )
+    
     try:
         guild_id = int(guild_id)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         raise ValidationError(
             "伺服器ID必須是有效的整數",
             field="guild_id",
-            value=guild_id,
+            value="[無效]",
             expected="整數"
         )
     
+    # Discord ID 的合理範圍檢查
     if guild_id <= 0:
         raise ValidationError(
             "伺服器ID必須大於0",
@@ -192,12 +267,13 @@ def validate_guild_id(guild_id: Union[str, int]) -> int:
             expected="> 0"
         )
     
+    # Discord 雪花ID不會超過64位整數的最大值
     if guild_id > 2**63 - 1:
         raise ValidationError(
             "伺服器ID超出有效範圍",
-            field="guild_id",
-            value=guild_id,
-            expected="<= 2^63 - 1"
+            field="guild_id", 
+            value="[過大]",
+            expected="<= 2^63-1"
         )
     
     return guild_id
@@ -278,7 +354,7 @@ class TriggerCondition:
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TriggerCondition':
+    def from_dict(cls, data: Dict[str, Any]) -> Self:
         """從字典建立實例"""
         trigger_type = data["trigger_type"]
         
@@ -386,7 +462,7 @@ class AchievementReward:
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'AchievementReward':
+    def from_dict(cls, data: Dict[str, Any]) -> Self:
         """從字典建立實例"""
         reward_type = data["reward_type"]
         
@@ -525,7 +601,7 @@ class Achievement:
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Achievement':
+    def from_dict(cls, data: Dict[str, Any]) -> Self:
         """從字典建立實例"""
         # 轉換觸發條件
         trigger_conditions = [
@@ -563,7 +639,7 @@ class Achievement:
         )
     
     @classmethod
-    def from_db_row(cls, row: Dict[str, Any]) -> 'Achievement':
+    def from_db_row(cls, row: Dict[str, Any]) -> Self:
         """從資料庫行建立實例"""
         # 解析JSON欄位
         trigger_conditions_data = json.loads(row["trigger_conditions"])
@@ -665,7 +741,7 @@ class AchievementProgress:
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'AchievementProgress':
+    def from_dict(cls, data: Dict[str, Any]) -> Self:
         """從字典建立實例"""
         # 轉換時間
         completed_at = None
@@ -688,7 +764,7 @@ class AchievementProgress:
         )
     
     @classmethod
-    def from_db_row(cls, row: Dict[str, Any]) -> 'AchievementProgress':
+    def from_db_row(cls, row: Dict[str, Any]) -> Self:
         """從資料庫行建立實例"""
         # 解析JSON欄位
         current_progress = json.loads(row["current_progress"])

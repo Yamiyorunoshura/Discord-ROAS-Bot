@@ -1,8 +1,8 @@
 # 開發者指南
 
-**版本：** v2.4.0  
-**最後更新：** 2025-08-21  
-**任務ID：** 11 - 建立文件和部署準備  
+**版本：** v2.4.1  
+**最後更新：** 2025-08-23  
+**任務ID：** T10 - Release and documentation readiness  
 
 ## 歡迎
 
@@ -12,7 +12,8 @@
 
 ### 環境要求
 
-- **Python 3.10+**
+- **Python 3.13+**
+- **uv 包管理器** (推薦) 或 pip
 - **Git 2.30+**
 - **SQLite 3.30+**
 - **Discord.py 2.0+**
@@ -26,7 +27,32 @@ git clone <repository-url>
 cd roas-bot
 ```
 
-#### 2. 創建虛擬環境
+#### 2. 使用 uv 設置環境 (推薦)
+
+##### 安裝 uv
+```bash
+# macOS/Linux (Homebrew)
+brew install uv
+
+# 或使用官方安裝腳本
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+##### 項目設置
+```bash
+# 一鍵安裝所有依賴（包含開發依賴）
+uv sync --extra dev
+
+# 僅安裝生產依賴
+uv sync
+```
+
+#### 3. 傳統 Python 環境設置 (備用方案)
+
+##### 創建虛擬環境
 
 ```bash
 python -m venv venv
@@ -38,9 +64,13 @@ venv\\Scripts\\activate
 source venv/bin/activate
 ```
 
-#### 3. 安裝依賴
+##### 安裝依賴
 
 ```bash
+# 從 pyproject.toml 安裝（推薦）
+pip install -e ".[dev]"
+
+# 或使用舊版相容方式（如果有 requirements.txt）
 pip install -r requirements.txt
 ```
 
@@ -703,10 +733,9 @@ git tag v2.5.0
 
 ### 內部文檔
 
-- [系統架構設計](./architecture.md)
 - [API參考文檔](../api/api_reference.md)
-- [故障排除指南](./troubleshooting.md)
 - [測試指南](../TESTING.md)
+- [疑難排解指南](../troubleshooting/troubleshooting.md)
 
 ### 外部資源
 

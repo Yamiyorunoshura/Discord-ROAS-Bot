@@ -1,0 +1,287 @@
+# Discord機器人Docker Compose配置 - 統一版本
+# Task ID: T6 - Docker跨平台一鍵啟動腳本開發
+# 支援開發和生產環境的統一配置
+
+services:
+  discord-bot:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME:-discord-bot}-app
+    environment:
+      # Discord設定
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - DISCORD_APPLICATION_ID=${DISCORD_APPLICATION_ID}
+      
+      # 環境設定
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      
+      # 資料庫設定
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///data/discord_data.db}
+      - MESSAGE_DATABASE_URL=${MESSAGE_DATABASE_URL:-sqlite:///data/message.db}
+      
+      # Redis設定
+      - REDIS_URL=redis://redis:6379/${REDIS_DB:-0}
+      
+      # 安全設定
+      - SECRET_KEY=${SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      
+      # API設定
+      - API_HOST=${API_HOST:-0.0.0.0}
+      - API_PORT=${API_PORT:-8000}
+      - API_WORKERS=${API_WORKERS:-1}
+      
+      # 監控設定
+      - ENABLE_METRICS=${ENABLE_METRICS:-true}
+      - METRICS_PORT=${METRICS_PORT:-9090}
+      
+      # 功能開關
+      - ENABLE_ACHIEVEMENT_SYSTEM=${ENABLE_ACHIEVEMENT_SYSTEM:-true}
+      - ENABLE_ECONOMY_SYSTEM=${ENABLE_ECONOMY_SYSTEM:-true}
+      - ENABLE_GOVERNMENT_SYSTEM=${ENABLE_GOVERNMENT_SYSTEM:-true}
+      - ENABLE_WELCOME_SYSTEM=${ENABLE_WELCOME_SYSTEM:-true}
+      - ENABLE_ACTIVITY_TRACKING=${ENABLE_ACTIVITY_TRACKING:-true}
+      
+      # 備份設定
+      - BACKUP_ENABLED=${BACKUP_ENABLED:-true}
+      - BACKUP_INTERVAL=${BACKUP_INTERVAL:-24}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
+      
+    volumes:
+      # 資料持久化
+      - type: ${DATA_VOLUME_TYPE:-bind}
+        source: ${DATA_VOLUME_SOURCE:-../data}
+        target: /app/data
+      
+      # 日誌持久化
+      - type: ${LOGS_VOLUME_TYPE:-bind}
+        source: ${LOGS_VOLUME_SOURCE:-../logs}
+        target: /app/logs
+      
+      # 備份持久化
+      - type: ${BACKUPS_VOLUME_TYPE:-bind}
+        source: ${BACKUPS_VOLUME_SOURCE:-../backups}
+        target: /app/backups
+      
+      # 字體檔案（如需要）
+      - type: bind
+        source: ../fonts
+        target: /app/fonts
+        read_only: true
+      
+      # 開發模式下的程式碼熱重載（僅開發環境）
+      - type: bind
+        source: ../
+        target: /app/src
+        read_only: true
+        bind:
+          create_host_path: false
+        # 通過profiles控制是否載入
+    
+    ports:
+      - "${API_PORT:-8000}:8000"
+    
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    networks:
+      - discord-bot-network
+    
+    depends_on:
+      redis:
+        condition: service_healthy
+      
+    healthcheck:
+      test: 
+        - CMD-SHELL
+        - |
+          python -c "
+          import asyncio
+          from core.database_manager import DatabaseManager
+          async def check():
+              try:
+                  db = DatabaseManager()
+                  await db.initialize()
+                  await db.execute('SELECT 1')
+                  await db.close()
+                  print('healthy')
+              except Exception as e:
+                  print(f'unhealthy: {e}')
+                  exit(1)
+          asyncio.run(check())
+          " || exit 1
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      start_period: ${HEALTHCHECK_START_PERIOD:-30s}
+      retries: ${HEALTHCHECK_RETRIES:-3}
+    
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT:-1G}
+          cpus: '${CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${MEMORY_RESERVATION:-512M}
+          cpus: '${CPU_RESERVATION:-0.25}'
+    
+    logging:
+      driver: ${LOG_DRIVER:-json-file}
+      options:
+        max-size: ${LOG_MAX_SIZE:-10m}
+        max-file: "${LOG_MAX_FILE:-3}"
+    
+    profiles:
+      - default
+      - dev
+      - prod
+
+  redis:
+    image: redis:${REDIS_VERSION:-7}-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-discord-bot}-redis
+    
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory ${REDIS_MAXMEMORY:-512mb} 
+      --maxmemory-policy allkeys-lru
+      --save 900 1 60 100 30 10000
+    
+    volumes:
+      - redis_data:/data
+    
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    networks:
+      - discord-bot-network
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    deploy:
+      resources:
+        limits:
+          memory: ${REDIS_MEMORY_LIMIT:-512M}
+          cpus: '${REDIS_CPU_LIMIT:-0.25}'
+    
+    logging:
+      driver: ${LOG_DRIVER:-json-file}
+      options:
+        max-size: ${LOG_MAX_SIZE:-5m}
+        max-file: "${LOG_MAX_FILE:-3}"
+    
+    profiles:
+      - default
+      - dev
+      - prod
+
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_VERSION:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-discord-bot}-prometheus
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-200h}'
+      - '--web.enable-lifecycle'
+    
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    networks:
+      - discord-bot-network
+    
+    profiles:
+      - monitoring
+      - prod
+
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-discord-bot}-grafana
+    
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=${GRAFANA_PLUGINS:-}
+    
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    networks:
+      - discord-bot-network
+    
+    depends_on:
+      - prometheus
+    
+    profiles:
+      - monitoring
+      - prod
+
+  # 開發工具容器
+  dev-tools:
+    build:
+      context: ..
+      dockerfile: ../Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME:-discord-bot}-dev-tools
+    
+    command: tail -f /dev/null  # 保持容器運行
+    
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+    
+    volumes:
+      - ../:/workspace
+      - dev_tools_cache:/root/.cache
+    
+    working_dir: /workspace
+    
+    networks:
+      - discord-bot-network
+    
+    profiles:
+      - dev-tools
+
+volumes:
+  redis_data:
+    driver: local
+    name: ${COMPOSE_PROJECT_NAME:-discord-bot}_redis_data
+  
+  prometheus_data:
+    driver: local
+    name: ${COMPOSE_PROJECT_NAME:-discord-bot}_prometheus_data
+  
+  grafana_data:
+    driver: local
+    name: ${COMPOSE_PROJECT_NAME:-discord-bot}_grafana_data
+  
+  dev_tools_cache:
+    driver: local
+    name: ${COMPOSE_PROJECT_NAME:-discord-bot}_dev_tools_cache
+
+networks:
+  discord-bot-network:
+    driver: bridge
+    name: ${COMPOSE_PROJECT_NAME:-discord-bot}_network

@@ -1,0 +1,54 @@
+{
+  "config": {
+    "db_path": "/Users/tszkinlai/Coding/roas-bot/dbs/load_test.db",
+    "total_operations": 100,
+    "concurrent_workers": 3,
+    "guilds_count": 5,
+    "users_per_guild": 1000,
+    "duration_seconds": null,
+    "worker_type": "thread",
+    "report_interval": 1000,
+    "enable_batch_operations": false,
+    "batch_size": 50
+  },
+  "start_time": "2025-08-23T03:20:49.342990",
+  "end_time": "2025-08-23T03:20:49.353296",
+  "duration_seconds": 0.010304927825927734,
+  "total_operations": 100,
+  "successful_operations": 100,
+  "failed_operations": 0,
+  "success_rate": 1.0,
+  "operations_per_second": 9704.095136735921,
+  "latency_p50": 0.025033950805664062,
+  "latency_p95": 0.7130622863769531,
+  "latency_p99": 4.740488529205322,
+  "latency_min": 0.019788742065429688,
+  "latency_max": 4.749059677124023,
+  "latency_mean": 0.1449275016784668,
+  "error_distribution": {},
+  "worker_performance": {
+    "0": {
+      "total_operations": 34,
+      "successful_operations": 34,
+      "success_rate": 1.0,
+      "average_latency": 0.1624752493465648,
+      "p95_latency": 1.6360282897949219
+    },
+    "1": {
+      "total_operations": 33,
+      "successful_operations": 33,
+      "success_rate": 1.0,
+      "average_latency": 0.22938034751198508,
+      "p95_latency": 2.3514747619628906
+    },
+    "2": {
+      "total_operations": 33,
+      "successful_operations": 33,
+      "success_rate": 1.0,
+      "average_latency": 0.042395158247514206,
+      "p95_latency": 0.10535717010498047
+    }
+  },
+  "final_record_count": 98,
+  "database_file_size": 16384
+}

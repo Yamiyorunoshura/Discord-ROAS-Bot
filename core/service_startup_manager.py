@@ -37,7 +37,7 @@ class _ServiceRegistryFacade:
     def __getattr__(self, item):
         return getattr(self._underlying, item)
 
-    def register_service(self, arg1, arg2=None):  # type: ignore[override]
+    def register_service(self, arg1, arg2=None, force_reregister=False):  # type: ignore[override]
         # 支援兩種參數順序
         if isinstance(arg1, str):
             name = arg1
@@ -46,7 +46,7 @@ class _ServiceRegistryFacade:
             service = arg1
             name = arg2
 
-        coro = self._underlying.register_service(service, name)
+        coro = self._underlying.register_service(service, name, force_reregister=force_reregister)
         try:
             # 若在事件迴圈中，交由呼叫端 await
             asyncio.get_running_loop()
@@ -231,8 +231,10 @@ class ServiceStartupManager:
                     service_instance = await self._create_service_instance(service_type, service_name)
                     
                     if service_instance:
-                        # 註冊到全域服務註冊表
+                        # 首先註冊到全域服務註冊表（讓其他服務能發現）
                         await service_registry.register_service(service_instance, service_name)
+                        # 也加入本地實例集合（用於後續依賴注入）
+                        self.service_instances[service_name] = service_instance
                         
                         # 在初始化之前注入依賴
                         try:
@@ -244,12 +246,21 @@ class ServiceStartupManager:
                         success = await service_instance.initialize()
                         
                         if success:
-                            self.service_instances[service_name] = service_instance
                             success_count += 1
                             logger.info(f"服務 {service_name} 初始化成功")
                         else:
                             logger.error(f"服務 {service_name} 初始化失敗")
-                            return False
+                            # 從註冊表移除失敗的服務
+                            await service_registry.unregister_service(service_name)
+                            del self.service_instances[service_name]
+                            
+                            # 檢查是否為關鍵服務
+                            critical_services = {"EconomyService", "RoleService", "GovernmentService"}
+                            if service_name in critical_services:
+                                logger.critical(f"關鍵服務 {service_name} 初始化失敗，中止啟動程序")
+                                return False
+                            else:
+                                logger.warning(f"非關鍵服務 {service_name} 初始化失敗，繼續啟動其他服務")
                     else:
                         logger.error(f"創建服務實例失敗：{service_name}")
                         return False
@@ -336,27 +347,42 @@ class ServiceStartupManager:
         except Exception:
             logger.exception(f"為 {service_name} 注入 database_manager 失敗")
         
-        # 注入跨服務依賴
+        # 注入跨服務依賴 - 使用本地實例集合而非全域註冊表，因為全域註冊表可能還未完成初始化
         try:
             if service_name == "AchievementService":
-                economy = service_registry.get_service("EconomyService")
-                role = service_registry.get_service("RoleService")
+                # 成就服務依賴經濟服務和身分組服務
+                economy = self.service_instances.get("EconomyService")
+                role = self.service_instances.get("RoleService")
                 if economy:
                     service_instance.add_dependency(economy, "economy_service")
+                    logger.debug(f"為 {service_name} 注入 economy_service 依賴成功")
+                else:
+                    logger.warning(f"EconomyService 尚未可用，{service_name} 將無法使用貨幣獎勵功能")
+                
                 if role:
                     service_instance.add_dependency(role, "role_service")
+                    logger.debug(f"為 {service_name} 注入 role_service 依賴成功")
+                else:
+                    logger.warning(f"RoleService 尚未可用，{service_name} 將無法使用身分組獎勵功能")
+                    
             elif service_name == "GovernmentService":
-                economy = service_registry.get_service("EconomyService")
-                role = service_registry.get_service("RoleService")
+                # 政府服務依賴經濟服務和身分組服務
+                economy = self.service_instances.get("EconomyService")
+                role = self.service_instances.get("RoleService")
                 if economy:
                     service_instance.add_dependency(economy, "economy_service")
+                    logger.debug(f"為 {service_name} 注入 economy_service 依賴成功")
                 if role:
                     service_instance.add_dependency(role, "role_service")
+                    logger.debug(f"為 {service_name} 注入 role_service 依賴成功")
+                    
             elif service_name in ("RoleService", "EconomyService"):
-                # 已於上方注入 database_manager，這裡無需額外處理
-                pass
-        except Exception:
-            logger.exception(f"為 {service_name} 注入跨服務依賴失敗")
+                # 這些是基礎服務，只需要 database_manager，已在上方注入
+                logger.debug(f"基礎服務 {service_name} 依賴注入完成")
+                
+        except Exception as e:
+            logger.exception(f"為 {service_name} 注入跨服務依賴失敗：{e}")
+            # 注意：依賴注入失敗不應該阻止服務啟動，只會影響特定功能
     
     @handle_errors(log_errors=True)
     async def cleanup_all_services(self) -> None:
@@ -398,6 +424,30 @@ class ServiceStartupManager:
             
         except Exception as e:
             logger.exception("服務清理過程中發生錯誤")
+    
+    async def reset_for_testing(self) -> None:
+        """
+        重置服務管理器狀態，供測試使用
+        """
+        logger.info("開始重置服務管理器狀態...")
+        
+        # 先清理所有服務實例
+        if self.initialization_completed and self.service_instances:
+            logger.info(f"清理 {len(self.service_instances)} 個服務實例")
+            try:
+                await self.cleanup_all_services()
+            except Exception as e:
+                logger.warning(f"清理服務實例時發生錯誤：{e}")
+        
+        # 強制重置所有狀態
+        self.discovered_services.clear()
+        self.service_instances.clear() 
+        self.dependency_graph.clear()
+        self.initialization_started = False
+        self.initialization_completed = False
+        self.startup_time = None
+        
+        logger.info("服務管理器已重置，可用於新的測試")
     
     async def get_service_health_status(self) -> Dict[str, Any]:
         """
@@ -527,3 +577,32 @@ async def get_startup_manager(config: Optional[Dict[str, Any]] = None) -> Servic
         logger.info(f"服務發現完成，找到 {len(startup_manager.discovered_services)} 個服務類型")
     
     return startup_manager
+
+
+async def reset_global_startup_manager() -> None:
+    """
+    重置全局啟動管理器，主要供測試使用
+    
+    這會完全清除全局狀態並重新建立新的管理器實例
+    """
+    global startup_manager
+    
+    # 先清理現有的 startup_manager
+    if startup_manager:
+        try:
+            await startup_manager.reset_for_testing()
+        except Exception as e:
+            logger.warning(f"重置現有startup_manager時發生錯誤：{e}")
+    
+    # 清理全域服務註冊表 - 這是關鍵步驟！
+    try:
+        await service_registry.cleanup_all_services()
+        # 再次確保完全清理（使用同步方法）
+        if hasattr(service_registry, 'reset_for_testing'):
+            service_registry.reset_for_testing()
+    except Exception as e:
+        logger.warning(f"清理全域服務註冊表時發生錯誤：{e}")
+    
+    # 重置全局變數
+    startup_manager = None
+    logger.info("全局startup_manager和服務註冊表已完全重置")
