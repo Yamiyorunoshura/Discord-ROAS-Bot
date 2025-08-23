@@ -1,6 +1,0 @@
-2025-08-23 14:12:45,916 INFO 執行 anti_executable setup()
-2025-08-23 14:12:45,916 INFO AntiExecutable 模組已載入 (v1.5.5 - 增強管理功能)
-2025-08-23 14:12:45,918 INFO 執行 anti_link setup()
-2025-08-23 14:12:46,229 INFO AntiLink 已更新遠端黑名單，共 7486 筆
-2025-08-23 14:12:49,339 INFO AntiLink 已更新遠端黑名單，共 7486 筆
-2025-08-23 14:12:49,341 INFO AntiLink 已更新遠端黑名單
