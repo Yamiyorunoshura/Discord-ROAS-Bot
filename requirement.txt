@@ -80,4 +80,5 @@ jupyter>=1.0.0
 
 # 安全性檢查（可選）
 bandit>=1.7.5
-safety>=2.3.0tldextract
+safety>=2.3.0
+tldextract>=5.1.0
