@@ -1,0 +1,70 @@
+2025-08-18 20:02:24,520 INFO 執行 anti_executable setup()
+2025-08-18 20:02:24,520 INFO AntiExecutable 模組已載入 (v1.5.5 - 增強管理功能)
+2025-08-18 20:02:24,520 INFO 執行 anti_link setup()
+2025-08-18 20:02:25,715 INFO AntiLink 已更新遠端黑名單，共 7154 筆
+2025-08-18 20:02:59,551 ERROR 取得威脅情資失敗（URLHaus-CSV）
+原因：TimeoutError: 
+Traceback (most recent call last):
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/streams.py", line 347, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/cogs/protection/anti_link.py", line 1756, in _fetch_feed
+    content = await resp.text()
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/client_reqrep.py", line 728, in text
+    await self.read()
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/client_reqrep.py", line 686, in read
+    self._body = await self.content.read()
+asyncio.exceptions.TimeoutError
+Traceback (most recent call last):
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/streams.py", line 347, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/cogs/protection/anti_link.py", line 1756, in _fetch_feed
+    content = await resp.text()
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/client_reqrep.py", line 728, in text
+    await self.read()
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/client_reqrep.py", line 686, in read
+    self._body = await self.content.read()
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/streams.py", line 418, in read
+    block = await self.readany()
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/streams.py", line 440, in readany
+    await self._wait("readany")
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/streams.py", line 346, in _wait
+    with self._timer:
+  File "/Users/tszkinlai/Deploy/Discord ADR bot latest.ver/venv/lib/python3.10/site-packages/aiohttp/helpers.py", line 685, in __exit__
+    raise asyncio.TimeoutError from exc_val
+asyncio.exceptions.TimeoutError
+2025-08-18 20:02:59,553 INFO AntiLink 已更新遠端黑名單，共 717 筆
+2025-08-18 20:02:59,554 INFO AntiLink 已更新遠端黑名單
+2025-08-19 00:02:31,706 INFO AntiLink 已更新遠端黑名單，共 7198 筆
+2025-08-19 00:02:31,707 INFO AntiLink 已更新遠端黑名單
+2025-08-19 04:02:30,707 INFO AntiLink 已更新遠端黑名單，共 7279 筆
+2025-08-19 04:02:30,711 INFO AntiLink 已更新遠端黑名單
+2025-08-19 08:02:30,065 INFO AntiLink 已更新遠端黑名單，共 7349 筆
+2025-08-19 08:02:30,068 INFO AntiLink 已更新遠端黑名單
+2025-08-19 12:02:31,132 INFO AntiLink 已更新遠端黑名單，共 7251 筆
+2025-08-19 12:02:31,134 INFO AntiLink 已更新遠端黑名單
+2025-08-19 16:02:32,952 INFO AntiLink 已更新遠端黑名單，共 7304 筆
+2025-08-19 16:02:32,955 INFO AntiLink 已更新遠端黑名單
+2025-08-19 20:02:32,448 INFO AntiLink 已更新遠端黑名單，共 7351 筆
+2025-08-19 20:02:32,450 INFO AntiLink 已更新遠端黑名單
+2025-08-20 00:02:31,853 INFO AntiLink 已更新遠端黑名單，共 7388 筆
+2025-08-20 00:02:31,857 INFO AntiLink 已更新遠端黑名單
+2025-08-20 04:02:30,696 INFO AntiLink 已更新遠端黑名單，共 7408 筆
+2025-08-20 04:02:30,698 INFO AntiLink 已更新遠端黑名單
+2025-08-20 08:02:30,518 INFO AntiLink 已更新遠端黑名單，共 7216 筆
+2025-08-20 08:02:30,519 INFO AntiLink 已更新遠端黑名單
+2025-08-20 12:02:31,082 INFO AntiLink 已更新遠端黑名單，共 7240 筆
+2025-08-20 12:02:31,084 INFO AntiLink 已更新遠端黑名單
+2025-08-20 16:02:31,741 INFO AntiLink 已更新遠端黑名單，共 7268 筆
+2025-08-20 16:02:31,742 INFO AntiLink 已更新遠端黑名單
+2025-08-20 20:02:30,986 INFO AntiLink 已更新遠端黑名單，共 7312 筆
+2025-08-20 20:02:30,987 INFO AntiLink 已更新遠端黑名單
