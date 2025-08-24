@@ -1,0 +1,94 @@
+# 連結檢查忽略文件
+# Task ID: T3 - 文檔連結有效性修復
+# 此文件定義了在連結檢查過程中應忽略的URL和文件模式
+
+# === URL忽略模式 ===
+
+# 本地開發URL
+http://localhost*
+https://localhost*
+http://127.0.0.1*
+https://127.0.0.1*
+
+# 佔位符和示例URL
+http://example.com*
+https://example.org*
+http://your-domain*
+https://your-domain*
+https://placeholder.example*
+
+# 模板變量
+*{{*}}*
+*${*}*
+*<%*%>*
+
+# Discord相關的動態URL（可能會變化的）
+https://discord.com/api/webhooks/*
+https://discord.com/channels/*/*/
+
+# 動態API端點
+*/api/v*/
+*/rest/api/*
+
+# 需要認證的URL
+**/auth/**
+**/login/**
+**/admin/**
+
+# === 文件路徑忽略模式 ===
+
+# 測試和開發文件
+test_*.md
+*_test.md
+*.test.md
+dev_*.md
+development_*.md
+
+# 模板和草稿文件
+*.template.md
+template_*.md
+*.draft.md
+draft_*.md
+*.wip.md
+
+# 備份文件
+docs/backup/**
+*.backup.md
+*~
+
+# 自動生成的文件
+**/generated/**
+auto_*.md
+
+# 暫時文件
+*.tmp.md
+temp_*.md
+
+# === 特定路徑忽略 ===
+
+# 舊版本備份
+docs/backup/v*/**
+
+# 私有文檔
+docs/private/**
+docs/internal/**
+
+# === 外部連結例外（如果啟用外部連結檢查時）===
+
+# 可能會臨時不可用的服務
+https://api.example-service.com*
+https://legacy-system.example.com*
+
+# 需要註冊或登入的服務
+https://premium-service.com*
+https://members.example.org*
+
+# === 註解 ===
+# 此文件支援shell風格的萬用字元匹配：
+# * - 匹配任何字元序列
+# ? - 匹配單個字元
+# [abc] - 匹配括號中的任一字元
+# [a-z] - 匹配範圍內的字元
+
+# 使用 # 開頭的行為註釋
+# 空行會被忽略

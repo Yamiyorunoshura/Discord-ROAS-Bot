@@ -1,0 +1,179 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-24T23:35:02.980291",
+    "test_duration_seconds": 0.7925748825073242,
+    "test_configuration": {
+      "test_type": "automated_concurrency_suite",
+      "total_tests": 3,
+      "configuration": {
+        "tests": [
+          {
+            "name": "basic_concurrency",
+            "workers": 10,
+            "operations_per_worker": 20,
+            "timeout_seconds": 60
+          },
+          {
+            "name": "stress_test",
+            "workers": 20,
+            "operations_per_worker": 15,
+            "timeout_seconds": 120
+          },
+          {
+            "name": "burst_load",
+            "workers": 25,
+            "operations_per_worker": 10,
+            "timeout_seconds": 90
+          }
+        ],
+        "connection_pool": {
+          "min_connections": 3,
+          "max_connections": 30,
+          "connection_timeout": 15.0,
+          "acquire_timeout": 10.0
+        },
+        "thresholds": {
+          "max_error_rate": 1.0,
+          "max_p95_response_time_ms": 50.0,
+          "min_success_rate": 99.0,
+          "max_concurrent_failures": 3
+        },
+        "results_dir": "test_reports/concurrency",
+        "database_path": null
+      }
+    },
+    "metrics_count": 3,
+    "thresholds": {
+      "max_error_rate": 1.0,
+      "max_p95_response_time_ms": 50.0,
+      "min_success_rate": 99.0,
+      "max_concurrent_failures": 3,
+      "alert_error_rate": 0.5
+    }
+  },
+  "executive_summary": {
+    "total_operations": 750,
+    "successful_operations": 750,
+    "failed_operations": 0,
+    "overall_success_rate_percent": 100.0,
+    "overall_error_rate_percent": 0.0,
+    "average_throughput_ops_per_sec": 946.2828264597058,
+    "test_phases": [
+      "burst_load",
+      "basic_concurrency",
+      "stress_test"
+    ]
+  },
+  "time_series_analysis": {
+    "total_duration_minutes": 0.008485949999999999,
+    "phases_analyzed": 3,
+    "phase_details": {
+      "basic_concurrency": {
+        "metrics_count": 1,
+        "duration_minutes": 0.0,
+        "error_rate_trend": {
+          "start": 0.0,
+          "end": 0.0,
+          "max": 0.0,
+          "average": 0.0
+        },
+        "response_time_trend": {
+          "start_ms": 1.5049278736114502,
+          "end_ms": 1.5049278736114502,
+          "max_ms": 1.5049278736114502,
+          "average_ms": 1.5049278736114502
+        }
+      },
+      "stress_test": {
+        "metrics_count": 1,
+        "duration_minutes": 0.0,
+        "error_rate_trend": {
+          "start": 0.0,
+          "end": 0.0,
+          "max": 0.0,
+          "average": 0.0
+        },
+        "response_time_trend": {
+          "start_ms": 2.567864259084066,
+          "end_ms": 2.567864259084066,
+          "max_ms": 2.567864259084066,
+          "average_ms": 2.567864259084066
+        }
+      },
+      "burst_load": {
+        "metrics_count": 1,
+        "duration_minutes": 0.0,
+        "error_rate_trend": {
+          "start": 0.0,
+          "end": 0.0,
+          "max": 0.0,
+          "average": 0.0
+        },
+        "response_time_trend": {
+          "start_ms": 6.315406799316406,
+          "end_ms": 6.315406799316406,
+          "max_ms": 6.315406799316406,
+          "average_ms": 6.315406799316406
+        }
+      }
+    }
+  },
+  "performance_analysis": {
+    "response_time_analysis": {
+      "min_ms": 1.5049278736114502,
+      "max_ms": 6.315406799316406,
+      "average_ms": 3.4627329773373074,
+      "median_ms": 2.567864259084066,
+      "std_dev_ms": 2.527007991844115
+    },
+    "concurrency_analysis": {
+      "max_concurrent_workers": 25,
+      "average_concurrent_workers": 18.333333333333332
+    },
+    "throughput_analysis": {
+      "max_ops_per_batch": 300.0,
+      "average_ops_per_batch": 250.0,
+      "total_ops_all_batches": 750.0
+    }
+  },
+  "error_analysis": {
+    "total_errors": 0,
+    "error_types_distribution": {},
+    "most_common_error": {
+      "type": null,
+      "count": 0,
+      "percentage": 0
+    },
+    "error_patterns": [],
+    "high_error_rate_phases": []
+  },
+  "t2_compliance": {
+    "t2_standards": {
+      "max_error_rate_percent": 1.0,
+      "min_success_rate_percent": 99.0,
+      "max_p95_response_time_ms": 50.0
+    },
+    "measured_performance": {
+      "actual_error_rate_percent": 0.0,
+      "actual_success_rate_percent": 100.0,
+      "average_response_time_ms": 3.4627329773373074
+    },
+    "compliance_status": {
+      "error_rate_ok": true,
+      "success_rate_ok": true,
+      "response_time_ok": true,
+      "no_consecutive_failures": true,
+      "overall": true
+    },
+    "overall_t2_compliant": true,
+    "compliance_score": 100.0
+  },
+  "alerts_summary": {
+    "total_alerts": 0,
+    "critical_alerts": 0,
+    "recent_alerts": []
+  },
+  "recommendations": [
+    "最大併發工作者 25 較高，確保連線池配置足以支持此負載"
+  ]
+}

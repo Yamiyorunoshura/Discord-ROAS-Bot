@@ -14,21 +14,26 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libffi-dev \
     curl \
-    && curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && rm -rf /var/lib/apt/lists/* \
-    && echo 'export PATH="/root/.cargo/bin:$PATH"' >> /root/.bashrc
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# 將uv添加到PATH
-ENV PATH="/root/.cargo/bin:$PATH"
+# 安裝uv並確保在PATH中可用
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && ln -sf /root/.cargo/bin/uv /usr/local/bin/uv \
+    && ln -sf /root/.cargo/bin/uvx /usr/local/bin/uvx
+
+# 將uv添加到PATH並驗證安裝
+ENV PATH="/root/.cargo/bin:/usr/local/bin:$PATH"
+RUN which uv && uv --version
 
 # 複製專案配置文件
 COPY pyproject.toml ./
+COPY . ./
 
-# 建立虛擬環境並安裝依賴
-RUN export PATH="/root/.cargo/bin:$PATH" \
-    && /root/.cargo/bin/uv venv venv \
+# 建立虛擬環境並安裝依賴 - 使用更穩健的方式
+RUN uv venv venv --seed \
     && . venv/bin/activate \
-    && /root/.cargo/bin/uv pip install -e .
+    && uv pip install --editable .
 
 # 生產階段
 FROM python:3.13-slim

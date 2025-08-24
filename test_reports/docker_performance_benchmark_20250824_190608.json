@@ -1,0 +1,631 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-24T19:06:08.806392",
+    "total_execution_time_seconds": 6.0567710399627686,
+    "meets_10min_target": true,
+    "benchmark_suite_version": "docker_performance_benchmark_v1",
+    "task_id": "T1"
+  },
+  "overall_performance": {
+    "total_benchmarks": 4,
+    "passed_benchmarks": 0,
+    "pass_rate_percent": 0.0,
+    "overall_performance_score": 54.0,
+    "performance_grade": "D"
+  },
+  "benchmark_results": {
+    "container_lifecycle_benchmark": {
+      "optimization_metadata": {
+        "generated_at": "2025-08-24T19:06:02.751749",
+        "optimizer_version": "execution_time_optimizer_v2",
+        "task_id": "T1",
+        "strategy_used": "adaptive"
+      },
+      "execution_summary": {
+        "total_tests": 5,
+        "successful_tests": 0,
+        "success_rate_percent": 0.0,
+        "total_execution_time_seconds": 0.0016629695892333984,
+        "average_test_time_seconds": 0.0003325939178466797,
+        "meets_10min_target": true
+      },
+      "performance_breakdown": {
+        "container_startup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "test_execution": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "container_cleanup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        }
+      },
+      "resource_efficiency": {},
+      "optimization_effectiveness": {
+        "container_pool_stats": {
+          "created": 0,
+          "reused": 0,
+          "cleaned": 0
+        },
+        "execution_strategy_optimal": true,
+        "startup_time_optimized": true,
+        "cleanup_time_optimized": true
+      },
+      "recommendations": [
+        "總執行時間 0.0s 表現優秀，可考慮增加更多測試案例或提高測試複雜度",
+        "測試成功率 0.0% 低於 95% 目標，需要調查失敗原因並提高測試穩定性"
+      ],
+      "detailed_results": [
+        {
+          "total_time": 6.723403930664062e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 0.0014262199401855469,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.9802322387695312e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.288818359375e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 0.00011682510375976562,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        }
+      ],
+      "benchmark_evaluation": {
+        "meets_time_target": true,
+        "time_efficiency_percent": 7896.314880857876,
+        "passes_all_targets": false,
+        "failed_targets": [
+          "success_rate"
+        ],
+        "performance_score": 54.0
+      },
+      "execution_time": 1.5196962356567383,
+      "benchmark_config": {
+        "name": "container_lifecycle_benchmark",
+        "description": "容器生命週期效能基準測試",
+        "targets": {
+          "execution_time_seconds": 120.0,
+          "memory_limit_mb": 2048.0,
+          "cpu_limit_percent": 80.0,
+          "success_rate_percent": 100.0
+        }
+      }
+    },
+    "parallel_execution_benchmark": {
+      "optimization_metadata": {
+        "generated_at": "2025-08-24T19:06:04.270061",
+        "optimizer_version": "execution_time_optimizer_v2",
+        "task_id": "T1",
+        "strategy_used": "parallel_aggressive"
+      },
+      "execution_summary": {
+        "total_tests": 8,
+        "successful_tests": 0,
+        "success_rate_percent": 0.0,
+        "total_execution_time_seconds": 0.0002872943878173828,
+        "average_test_time_seconds": 3.591179847717285e-05,
+        "meets_10min_target": true
+      },
+      "performance_breakdown": {
+        "container_startup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "test_execution": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "container_cleanup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        }
+      },
+      "resource_efficiency": {},
+      "optimization_effectiveness": {
+        "container_pool_stats": {
+          "created": 0,
+          "reused": 0,
+          "cleaned": 0
+        },
+        "execution_strategy_optimal": true,
+        "startup_time_optimized": true,
+        "cleanup_time_optimized": true
+      },
+      "recommendations": [
+        "總執行時間 0.0s 表現優秀，可考慮增加更多測試案例或提高測試複雜度",
+        "測試成功率 0.0% 低於 95% 目標，需要調查失敗原因並提高測試穩定性"
+      ],
+      "detailed_results": [
+        {
+          "total_time": 3.886222839355469e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 9.274482727050781e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.5272369384765625e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.3126602172851562e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 1.6927719116210938e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 1.71661376953125e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 1.621246337890625e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 5.698204040527344e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        }
+      ],
+      "benchmark_evaluation": {
+        "meets_time_target": true,
+        "time_efficiency_percent": 19738.179833127055,
+        "passes_all_targets": false,
+        "failed_targets": [
+          "success_rate"
+        ],
+        "performance_score": 54.0
+      },
+      "execution_time": 1.5198969841003418,
+      "benchmark_config": {
+        "name": "parallel_execution_benchmark",
+        "description": "並行執行效能基準測試",
+        "targets": {
+          "execution_time_seconds": 300.0,
+          "memory_limit_mb": 2048.0,
+          "cpu_limit_percent": 80.0,
+          "success_rate_percent": 98.0
+        }
+      }
+    },
+    "resource_efficiency_benchmark": {
+      "optimization_metadata": {
+        "generated_at": "2025-08-24T19:06:05.789854",
+        "optimizer_version": "execution_time_optimizer_v2",
+        "task_id": "T1",
+        "strategy_used": "parallel_balanced"
+      },
+      "execution_summary": {
+        "total_tests": 6,
+        "successful_tests": 0,
+        "success_rate_percent": 0.0,
+        "total_execution_time_seconds": 0.00028014183044433594,
+        "average_test_time_seconds": 4.669030507405599e-05,
+        "meets_10min_target": true
+      },
+      "performance_breakdown": {
+        "container_startup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "test_execution": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "container_cleanup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        }
+      },
+      "resource_efficiency": {},
+      "optimization_effectiveness": {
+        "container_pool_stats": {
+          "created": 0,
+          "reused": 0,
+          "cleaned": 0
+        },
+        "execution_strategy_optimal": true,
+        "startup_time_optimized": true,
+        "cleanup_time_optimized": true
+      },
+      "recommendations": [
+        "總執行時間 0.0s 表現優秀，可考慮增加更多測試案例或提高測試複雜度",
+        "測試成功率 0.0% 低於 95% 目標，需要調查失敗原因並提高測試穩定性"
+      ],
+      "detailed_results": [
+        {
+          "total_time": 3.910064697265625e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 7.200241088867188e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.574920654296875e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.002716064453125e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 7.414817810058594e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 4.9114227294921875e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        }
+      ],
+      "benchmark_evaluation": {
+        "meets_time_target": true,
+        "time_efficiency_percent": 11962.550101788072,
+        "passes_all_targets": false,
+        "failed_targets": [
+          "success_rate"
+        ],
+        "performance_score": 54.0
+      },
+      "execution_time": 1.5046958923339844,
+      "benchmark_config": {
+        "name": "resource_efficiency_benchmark",
+        "description": "資源使用效率基準測試",
+        "targets": {
+          "execution_time_seconds": 180.0,
+          "memory_limit_mb": 1024.0,
+          "cpu_limit_percent": 60.0,
+          "success_rate_percent": 98.0
+        }
+      }
+    },
+    "full_test_suite_benchmark": {
+      "optimization_metadata": {
+        "generated_at": "2025-08-24T19:06:07.294781",
+        "optimizer_version": "execution_time_optimizer_v2",
+        "task_id": "T1",
+        "strategy_used": "adaptive"
+      },
+      "execution_summary": {
+        "total_tests": 10,
+        "successful_tests": 0,
+        "success_rate_percent": 0.0,
+        "total_execution_time_seconds": 0.00032329559326171875,
+        "average_test_time_seconds": 3.2329559326171874e-05,
+        "meets_10min_target": true
+      },
+      "performance_breakdown": {
+        "container_startup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "test_execution": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        },
+        "container_cleanup": {
+          "total_seconds": 0.0,
+          "average_seconds": 0.0,
+          "max_seconds": 0.0
+        }
+      },
+      "resource_efficiency": {},
+      "optimization_effectiveness": {
+        "container_pool_stats": {
+          "created": 0,
+          "reused": 0,
+          "cleaned": 0
+        },
+        "execution_strategy_optimal": true,
+        "startup_time_optimized": true,
+        "cleanup_time_optimized": true
+      },
+      "recommendations": [
+        "總執行時間 0.0s 表現優秀，可考慮增加更多測試案例或提高測試複雜度",
+        "測試成功率 0.0% 低於 95% 目標，需要調查失敗原因並提高測試穩定性"
+      ],
+      "detailed_results": [
+        {
+          "total_time": 5.3882598876953125e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 6.198883056640625e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 3.0994415283203125e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.5987625122070312e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 3.314018249511719e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.9087066650390625e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 2.193450927734375e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 1.9073486328125e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 1.621246337890625e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        },
+        {
+          "total_time": 3.0994415283203125e-05,
+          "container_startup_time": 0.0,
+          "test_execution_time": 0.0,
+          "container_cleanup_time": 0.0,
+          "memory_peak_mb": 0.0,
+          "cpu_peak_percent": 0.0,
+          "success": false,
+          "error_message": "run() got an unexpected keyword argument 'test_type'"
+        }
+      ],
+      "benchmark_evaluation": {
+        "meets_time_target": true,
+        "time_efficiency_percent": 39673.53525264034,
+        "passes_all_targets": false,
+        "failed_targets": [
+          "success_rate"
+        ],
+        "performance_score": 54.0
+      },
+      "execution_time": 1.512343168258667,
+      "benchmark_config": {
+        "name": "full_test_suite_benchmark",
+        "description": "完整測試套件效能基準測試",
+        "targets": {
+          "execution_time_seconds": 600.0,
+          "memory_limit_mb": 2048.0,
+          "cpu_limit_percent": 80.0,
+          "success_rate_percent": 98.0
+        }
+      }
+    }
+  },
+  "performance_analysis": {
+    "execution_time_analysis": {
+      "total_time": 6.0566322803497314,
+      "average_time": 1.5141580700874329,
+      "max_time": 1.5198969841003418,
+      "min_time": 1.5046958923339844,
+      "time_distribution": "balanced"
+    },
+    "resource_efficiency_analysis": {
+      "memory_efficiency": {
+        "max_usage_mb": 0,
+        "average_usage_mb": 0,
+        "within_2gb_limit": true
+      },
+      "cpu_efficiency": {
+        "max_usage_percent": 0,
+        "average_usage_percent": 0,
+        "within_80_percent_limit": true
+      }
+    },
+    "parallel_execution_analysis": {
+      "parallel_analysis_available": true,
+      "parallel_execution_effective": false,
+      "execution_strategy_optimal": true
+    }
+  },
+  "trend_analysis": {
+    "trend_analysis_available": true,
+    "recent_performance_trend": "stable",
+    "recommendations": []
+  },
+  "optimization_recommendations": [
+    "container_lifecycle_benchmark: 成功率低於目標，需要調查失敗原因",
+    "parallel_execution_benchmark: 成功率低於目標，需要調查失敗原因",
+    "resource_efficiency_benchmark: 成功率低於目標，需要調查失敗原因",
+    "full_test_suite_benchmark: 成功率低於目標，需要調查失敗原因"
+  ],
+  "compliance_status": {
+    "meets_10min_target": true,
+    "meets_2gb_memory_limit": true,
+    "meets_80_percent_cpu_limit": true,
+    "meets_98_percent_success_rate": false
+  }
+}

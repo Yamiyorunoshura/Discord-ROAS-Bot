@@ -21,6 +21,11 @@ from core.base_service import BaseService
 from core.database_manager import DatabaseManager
 from core.exceptions import ServiceError, ValidationError
 
+# 匯入新的連結檢查功能
+from .link_checker_service import LinkCheckerService
+from .api_endpoints import LinkCheckAPI, get_link_check_api
+from .link_checker_models import LinkCheckConfig
+
 from .models import (
     DocumentConfig, DocumentVersion, DocumentCategory, 
     DocumentFormat, DocumentStatus, DocumentGenerationRequest,
@@ -64,6 +69,10 @@ class DocumentationService(BaseService):
         self._document_configs: Dict[str, DocumentConfig] = {}
         self._last_cache_update: Optional[datetime] = None
         self._cache_ttl = timedelta(minutes=30)
+        
+        # 新增：連結檢查服務
+        self._link_checker_service: Optional[LinkCheckerService] = None
+        self._link_check_api: Optional[LinkCheckAPI] = None
     
     async def _initialize(self) -> bool:
         """初始化文檔服務"""
@@ -77,6 +86,9 @@ class DocumentationService(BaseService):
             # 載入文檔配置
             await self._load_document_configs()
             
+            # 初始化連結檢查服務
+            await self._initialize_link_checker()
+            
             self.logger.info("文檔服務初始化完成")
             return True
             
@@ -86,6 +98,15 @@ class DocumentationService(BaseService):
     
     async def _cleanup(self) -> None:
         """清理文檔服務資源"""
+        # 清理連結檢查服務
+        if self._link_checker_service:
+            await self._link_checker_service.shutdown()
+            self._link_checker_service = None
+            
+        if self._link_check_api:
+            await self._link_check_api.shutdown()
+            self._link_check_api = None
+            
         self._document_configs.clear()
         self.logger.info("文檔服務清理完成")
     
@@ -1169,3 +1190,195 @@ print(f"操作成功：{{result}}")'''
                 service_name=self.name,
                 operation="get_documentation_metrics"
             )
+    
+    # === 新增：連結檢查功能 ===
+    
+    async def _initialize_link_checker(self):
+        """初始化連結檢查服務"""
+        try:
+            # 創建連結檢查服務
+            project_root = str(Path.cwd())
+            self._link_checker_service = LinkCheckerService(project_root)
+            await self._link_checker_service.initialize()
+            
+            # 創建API服務
+            self._link_check_api = LinkCheckAPI(project_root)
+            await self._link_check_api.initialize()
+            
+            self.logger.info("連結檢查服務已初始化")
+            
+        except Exception as e:
+            self.logger.error(f"初始化連結檢查服務失敗: {e}")
+            # 不阻斷主服務初始化
+    
+    async def check_documentation_links(
+        self,
+        target_paths: Optional[List[str]] = None,
+        check_external: bool = False,
+        check_anchors: bool = True
+    ) -> Dict[str, Any]:
+        """
+        檢查文檔連結有效性
+        
+        參數:
+            target_paths: 目標路徑列表，預設檢查docs目錄
+            check_external: 是否檢查外部連結
+            check_anchors: 是否檢查錨點連結
+            
+        返回:
+            檢查結果字典
+        """
+        if not self._link_check_api:
+            raise ServiceError(
+                "連結檢查服務未初始化",
+                service_name=self.name,
+                operation="check_documentation_links"
+            )
+        
+        try:
+            if target_paths is None:
+                target_paths = [str(self.docs_root_path)]
+            
+            result = await self._link_check_api.check_links(
+                target_paths=target_paths,
+                check_external=check_external,
+                check_anchors=check_anchors,
+                output_format="json"
+            )
+            
+            self.logger.info(f"文檔連結檢查完成: {result}")
+            return result
+            
+        except Exception as e:
+            self.logger.exception(f"檢查文檔連結失敗: {e}")
+            raise ServiceError(
+                f"檢查文檔連結失敗: {e}",
+                service_name=self.name,
+                operation="check_documentation_links"
+            )
+    
+    async def schedule_periodic_link_check(
+        self,
+        interval_hours: int = 24,
+        name: str = "documentation_check"
+    ) -> str:
+        """
+        排程定期連結檢查
+        
+        參數:
+            interval_hours: 檢查間隔（小時）
+            name: 排程名稱
+            
+        返回:
+            排程ID
+        """
+        if not self._link_checker_service:
+            raise ServiceError(
+                "連結檢查服務未初始化",
+                service_name=self.name,
+                operation="schedule_periodic_link_check"
+            )
+        
+        try:
+            schedule_id = self._link_checker_service.schedule_periodic_check(
+                interval_hours=interval_hours,
+                name=name,
+                target_directories=[str(self.docs_root_path)]
+            )
+            
+            self.logger.info(f"已創建定期連結檢查排程: {schedule_id}")
+            return schedule_id
+            
+        except Exception as e:
+            self.logger.exception(f"創建定期連結檢查失敗: {e}")
+            raise ServiceError(
+                f"創建定期連結檢查失敗: {e}",
+                service_name=self.name,
+                operation="schedule_periodic_link_check"
+            )
+    
+    async def get_link_check_history(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        獲取連結檢查歷史
+        
+        參數:
+            limit: 返回記錄數量限制
+            
+        返回:
+            檢查歷史列表
+        """
+        if not self._link_check_api:
+            raise ServiceError(
+                "連結檢查服務未初始化", 
+                service_name=self.name,
+                operation="get_link_check_history"
+            )
+        
+        try:
+            result = await self._link_check_api.list_check_history(limit=limit)
+            
+            if result["success"]:
+                return result["data"]["history"]
+            else:
+                self.logger.error(f"獲取連結檢查歷史失敗: {result}")
+                return []
+                
+        except Exception as e:
+            self.logger.exception(f"獲取連結檢查歷史失敗: {e}")
+            raise ServiceError(
+                f"獲取連結檢查歷史失敗: {e}",
+                service_name=self.name,
+                operation="get_link_check_history"
+            )
+    
+    async def export_link_check_report(
+        self,
+        check_id: str,
+        format: str = "markdown"
+    ) -> str:
+        """
+        匯出連結檢查報告
+        
+        參數:
+            check_id: 檢查ID
+            format: 報告格式
+            
+        返回:
+            報告檔案路徑
+        """
+        if not self._link_check_api:
+            raise ServiceError(
+                "連結檢查服務未初始化",
+                service_name=self.name,
+                operation="export_link_check_report"
+            )
+        
+        try:
+            result = await self._link_check_api.export_report(check_id, format)
+            
+            if result["success"]:
+                return result["data"]["report_path"]
+            else:
+                raise ServiceError(
+                    f"匯出報告失敗: {result['error']}",
+                    service_name=self.name,
+                    operation="export_link_check_report"
+                )
+                
+        except Exception as e:
+            self.logger.exception(f"匯出連結檢查報告失敗: {e}")
+            raise ServiceError(
+                f"匯出連結檢查報告失敗: {e}",
+                service_name=self.name,
+                operation="export_link_check_report"
+            )
+    
+    @property
+    def link_checker_service(self) -> Optional[LinkCheckerService]:
+        """獲取連結檢查服務實例（供外部使用）"""
+        return self._link_checker_service
+    
+    @property  
+    def link_check_api(self) -> Optional[LinkCheckAPI]:
+        """獲取連結檢查API實例（供外部使用）"""
+        return self._link_check_api

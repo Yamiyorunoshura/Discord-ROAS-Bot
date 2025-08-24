@@ -1,0 +1,66 @@
+name: T2 Concurrency Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # 每天凌晨2點執行
+
+jobs:
+  concurrency-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run concurrency tests
+      run: |
+        python tests/concurrency/automated_test_runner.py --mode=ci --timeout=1800
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: concurrency-test-results
+        path: test_reports/concurrency/
+    
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const reportPath = 'test_reports/concurrency/ci_summary.json';
+          if (fs.existsSync(reportPath)) {
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            const comment = `## 🧪 T2 併發測試結果
+            
+            - **總測試數**: ${report.total_tests}
+            - **通過測試**: ${report.passing_tests}
+            - **失敗測試**: ${report.failing_tests}
+            - **整體狀態**: ${report.overall_success ? '✅ 通過' : '❌ 失敗'}
+            - **錯誤率**: ${report.average_error_rate_percent.toFixed(2)}%
+            - **平均響應時間**: ${report.average_response_time_ms.toFixed(2)}ms
+            
+            詳細報告請查看 Actions artifacts。
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }

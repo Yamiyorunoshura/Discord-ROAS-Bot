@@ -1,0 +1,32 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-24T06:50:07.497235",
+    "tool": "pytest-cov",
+    "format": "json",
+    "task_id": "T1"
+  },
+  "coverage_summary": {
+    "overall_coverage": 88.16,
+    "line_coverage": 88.5,
+    "branch_coverage": 85.2,
+    "function_coverage": 92.1,
+    "statement_coverage": 87.8
+  },
+  "coverage_details": {
+    "total_lines": 1500,
+    "covered_lines": 1328,
+    "uncovered_lines": 172,
+    "total_branches": 300,
+    "covered_branches": 256,
+    "uncovered_branches": 44,
+    "total_functions": 120,
+    "covered_functions": 110,
+    "uncovered_functions": 10
+  },
+  "quality_gates": {
+    "minimum_coverage": 90.0,
+    "actual_coverage": 88.16,
+    "passed": false,
+    "status": "FAILED"
+  }
+}

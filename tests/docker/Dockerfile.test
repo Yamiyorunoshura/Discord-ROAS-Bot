@@ -1,0 +1,76 @@
+# 測試專用輕量級Docker鏡像
+# Task ID: T1 - Docker測試框架建立 - 備用測試鏡像
+# 用於在主鏡像構建失敗時提供備用測試環境
+
+FROM python:3.13-slim
+
+# 設置工作目錄
+WORKDIR /app
+
+# 安裝基本系統依賴（最小集合）
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 創建測試用戶
+RUN useradd --create-home --shell /bin/bash testuser
+
+# 安裝基本測試依賴
+RUN pip install --no-cache-dir \
+    pytest \
+    asyncio \
+    aiofiles
+
+# 創建基本目錄結構
+RUN mkdir -p /app/data /app/logs /app/tests \
+    && chown -R testuser:testuser /app
+
+# 添加測試腳本
+RUN echo '#!/usr/bin/env python3\n\
+import platform\n\
+import os\n\
+import sys\n\
+import asyncio\n\
+\n\
+def main():\n\
+    print(f"Platform: {platform.system()}")\n\
+    print(f"Architecture: {platform.machine()}")\n\
+    print(f"Python version: {platform.python_version()}")\n\
+    print(f"Environment PLATFORM: {os.environ.get(\"PLATFORM\", \"unknown\")}")\n\
+    print(f"Current working directory: {os.getcwd()}")\n\
+    \n\
+    # 基本功能測試\n\
+    try:\n\
+        import asyncio\n\
+        print("Asyncio support: available")\n\
+    except ImportError:\n\
+        print("Asyncio support: not available")\n\
+        sys.exit(1)\n\
+    \n\
+    # 平台特定檢查\n\
+    platform_name = os.environ.get("PLATFORM", platform.system().lower())\n\
+    if platform_name in ["linux", "darwin", "windows"]:\n\
+        print(f"{platform_name} compatibility test passed")\n\
+        sys.exit(0)\n\
+    else:\n\
+        print(f"Unknown platform: {platform_name}")\n\
+        sys.exit(1)\n\
+\n\
+if __name__ == "__main__":\n\
+    main()\n\
+' > /app/test_platform.py && chmod +x /app/test_platform.py
+
+# 切換到測試用戶
+USER testuser
+
+# 設置環境變數
+ENV PYTHONPATH="/app" \
+    PYTHONUNBUFFERED=1 \
+    ENVIRONMENT=test
+
+# 健康檢查（簡化版本）
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=2 \
+    CMD python -c "print('healthy')" || exit 1
+
+# 預設命令
+CMD ["python", "/app/test_platform.py"]

@@ -1,0 +1,175 @@
+# 連結檢查配置文件
+# Task ID: T3 - 文檔連結有效性修復
+# 用於配置文檔連結檢查的規則和例外處理
+
+# 基本配置
+base_settings:
+  # 基礎路徑
+  base_path: "."
+  
+  # 檢查設置
+  check_external_links: false  # CI中跳過外部連結以提升速度
+  check_anchors: true          # 檢查錨點連結
+  follow_redirects: true       # 跟隨重定向
+  timeout_seconds: 10          # 連結檢查超時時間
+  max_concurrent_checks: 5     # 最大並發檢查數量
+
+# 文件掃描配置
+file_scanning:
+  # 支援的文件副檔名
+  extensions:
+    - ".md"
+    - ".markdown"
+    - ".rst"
+  
+  # 掃描目錄
+  include_directories:
+    - "docs/"
+    - "README.md"
+  
+  # 排除目錄
+  exclude_directories:
+    - "docs/backup/"
+    - "node_modules/"
+    - ".git/"
+    - "__pycache__/"
+    - ".pytest_cache/"
+
+# 連結忽略規則
+ignore_rules:
+  # 忽略的URL模式（正規表達式）
+  url_patterns:
+    # 本地開發URL
+    - "^http://localhost"
+    - "^http://127\\.0\\.0\\.1"
+    - "^https://localhost"
+    
+    # 佔位符URL
+    - "^http://example\\.com"
+    - "^https://example\\.org"
+    - "^http://your-domain"
+    - "^https://your-domain"
+    
+    # 相對路徑中的模板變量
+    - "\\{\\{.*\\}\\}"
+    - "\\$\\{.*\\}"
+    
+    # 動態生成的URL
+    - "/api/v\\d+/"
+    
+    # 暫時不可用的服務
+    - "https://old-service\\.example\\.com"
+  
+  # 忽略的文件路徑模式
+  file_patterns:
+    # 測試文件
+    - "test_*.md"
+    - "*_test.md"
+    
+    # 模板文件
+    - "*.template.md"
+    - "template_*.md"
+    
+    # 草稿文件
+    - "draft_*.md"
+    - "*.draft.md"
+
+# CI專用配置
+ci_settings:
+  # 在CI環境中的特殊配置
+  enabled: true
+  
+  # CI中的超時設置（更嚴格）
+  timeout_seconds: 30
+  max_execution_time: 300  # 5分鐘最大執行時間
+  
+  # 錯誤容忍度
+  max_broken_links: 0      # CI中不容忍任何無效連結
+  warning_threshold: 5     # 警告閾值
+  
+  # 報告設置
+  generate_report: true
+  report_format: "json"
+  save_artifacts: true
+
+# 通知設置
+notifications:
+  # 失敗通知
+  on_failure:
+    enabled: true
+    include_summary: true
+    include_details: true
+    max_errors_shown: 10
+  
+  # 成功通知
+  on_success:
+    enabled: true
+    include_statistics: true
+
+# 快取設置
+caching:
+  enabled: true
+  ttl_hours: 24
+  max_entries: 1000
+  
+  # 清理設置
+  auto_cleanup: true
+  cleanup_days: 7
+
+# 效能優化
+performance:
+  # 並發控制
+  max_workers: 3
+  batch_size: 50
+  
+  # 記憶體限制
+  max_memory_mb: 512
+  
+  # 連線池設置
+  connection_pool_size: 10
+
+# 重試設置
+retry:
+  enabled: true
+  max_retries: 2
+  retry_delay_seconds: 1
+  backoff_multiplier: 2
+
+# 日誌設置
+logging:
+  level: "INFO"           # DEBUG, INFO, WARNING, ERROR
+  include_timestamps: true
+  include_source: true
+  
+  # CI中的日誌設置
+  ci_level: "WARNING"     # 在CI中減少日誌輸出
+
+# 自定義規則
+custom_rules:
+  # 特定檔案的自定義檢查規則
+  file_specific:
+    "docs/api/*.md":
+      check_external_links: true  # API文檔需要檢查外部連結
+      timeout_seconds: 30
+    
+    "README.md":
+      check_external_links: true  # README需要檢查外部連結
+      timeout_seconds: 20
+    
+    "docs/troubleshooting/*.md":
+      max_broken_links: 1         # 故障排除文檔允許少量失效連結
+
+# 環境特定配置
+environments:
+  development:
+    check_external_links: true
+    timeout_seconds: 30
+    
+  production:
+    check_external_links: false  # 生產環境跳過外部連結
+    timeout_seconds: 10
+    
+  ci:
+    check_external_links: false  # CI環境跳過外部連結
+    timeout_seconds: 10
+    max_execution_time: 300

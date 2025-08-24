@@ -32,6 +32,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "aiosqlite>=0.21.0",
     "pillow>=11.3.0",
+    "pyyaml>=6.0.0",
 ]
 
 [project.optional-dependencies]
@@ -85,7 +86,16 @@ markers = [
     "dpytest: Discord 測試",
     "random_interaction: 隨機互動測試",
     "stability: 穩定性測試",
-    "flaky: 不穩定測試檢測"
+    "flaky: 不穩定測試檢測",
+    "docker: Docker 容器測試",
+    "cross_platform: 跨平台相容性測試",
+    "coverage_enhancement: 覆蓋率提升專用測試",
+    "security: 安全性測試",
+    "concurrency: 並發測試",
+    "error_recovery: 錯誤恢復測試",
+    "resource_management: 資源管理測試",
+    "edge_cases: 邊界情況測試",
+    "final_coverage: 最終覆蓋率達成測試"
 ]
 
 # 異步測試設定
@@ -138,5 +148,6 @@ packages = ["services", "panels", "cogs", "core"]
 
 [dependency-groups]
 dev = [
+    "docker>=7.1.0",
     "pyyaml>=6.0.2",
 ]

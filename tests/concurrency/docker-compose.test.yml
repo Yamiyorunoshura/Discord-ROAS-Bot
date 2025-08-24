@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  concurrency-test:
+    build: .
+    environment:
+      - TEST_MODE=concurrency
+      - RESULTS_DIR=/app/test_reports
+    volumes:
+      - ./test_reports:/app/test_reports
+      - ./tests:/app/tests
+    command: python tests/concurrency/automated_test_runner.py --mode=docker
+    
+  test-db:
+    image: sqlite:latest
+    volumes:
+      - test_data:/var/lib/sqlite
+    
+volumes:
+  test_data:

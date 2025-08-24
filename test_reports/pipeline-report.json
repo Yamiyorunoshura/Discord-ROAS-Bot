@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-08-24T19:01:40.757070",
+  "overall_success": true,
+  "test_analysis": {
+    "total_tests": 0,
+    "passed": 0,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "success_rate": 0,
+    "execution_time": 0.0,
+    "success": true,
+    "failed_tests": []
+  },
+  "coverage_analysis": {
+    "has_coverage_data": false,
+    "meets_threshold": true,
+    "overall_coverage": 0.0,
+    "threshold": 90.0
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "name": "CI Documentation Link Check Configuration",
+  "description": "T3任務 - CI環境專用的連結檢查配置，針對性能和可靠性優化",
+  "version": "1.0.0",
+  "environment": "ci",
+  
+  "check_settings": {
+    "check_external_links": false,
+    "check_anchors": true,
+    "follow_redirects": true,
+    "timeout_seconds": 10,
+    "max_concurrent_checks": 3,
+    "max_execution_time_seconds": 300
+  },
+  
+  "file_scanning": {
+    "base_directories": ["docs/"],
+    "file_extensions": [".md", ".markdown"],
+    "exclude_patterns": [
+      "docs/backup/**",
+      "test_*.md",
+      "*.template.md",
+      "*.draft.md"
+    ]
+  },
+  
+  "performance_optimization": {
+    "enable_caching": true,
+    "cache_ttl_hours": 1,
+    "max_memory_mb": 256,
+    "connection_pool_size": 5,
+    "batch_size": 25
+  },
+  
+  "error_handling": {
+    "max_broken_links_allowed": 0,
+    "retry_failed_links": true,
+    "max_retries": 2,
+    "retry_delay_seconds": 1
+  },
+  
+  "reporting": {
+    "format": "github_actions",
+    "include_summary": true,
+    "include_details": true,
+    "max_errors_displayed": 10,
+    "save_artifacts": true,
+    "artifact_path": "docs/reports/link_checks/"
+  },
+  
+  "ignore_rules": {
+    "url_patterns": [
+      "^http://localhost",
+      "^https://localhost", 
+      "^http://127\\.0\\.0\\.1",
+      "^http://example\\.com",
+      "^https://example\\.org",
+      "\\{\\{.*\\}\\}",
+      "\\$\\{.*\\}"
+    ],
+    "file_patterns": [
+      "test_*.md",
+      "*.test.md", 
+      "*.template.md",
+      "*.draft.md"
+    ]
+  },
+  
+  "github_actions_integration": {
+    "use_annotations": true,
+    "group_output": true,
+    "failure_exit_code": 1,
+    "warning_exit_code": 0,
+    "upload_artifacts": true
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "format": "github_actions",
+    "include_timestamps": true,
+    "include_context": true
+  }
+}
