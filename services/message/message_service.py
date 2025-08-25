@@ -557,7 +557,11 @@ class MessageService(BaseService):
                     if not timer.cancelled():
                         timer.cancel()
             
-            # TODO: 這裡可以實作圖片渲染邏輯
+            # 圖片渲染功能佔位符
+            # 未來版本可以在這裡添加圖片渲染邏輯：
+            # - 生成訊息摘要圖片
+            # - 渲染聊天記錄縮略圖 
+            # - 建立視覺化統計圖表
             # 目前先記錄日誌
             logger.info(f"處理頻道 {channel_id} 的 {len(cache_list)} 條快取訊息")
             

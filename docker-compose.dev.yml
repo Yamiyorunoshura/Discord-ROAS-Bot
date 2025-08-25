@@ -1,13 +1,22 @@
-# Docker Compose配置 - 開發環境
-# Task ID: 11 - 建立文件和部署準備
-
-version: '3.8'
+# Docker Compose配置 - 完整開發環境
+# Task ID: 1 - ROAS Bot v2.4.3 Docker啟動系統修復
+# 包含完整監控和可觀測性功能，適合完整開發測試
+# 
+# 使用方式：
+#   完整開發環境: docker-compose -f docker-compose.dev.yml up
+#   快速開發環境: docker-compose -f docker-compose.simple.yml up
+# 
+# 服務說明：
+#   - discord-bot: Discord機器人主服務
+#   - redis: 快取和會話存儲
+#   - prometheus: 監控指標收集
+#   - grafana: 監控資料視覺化
 
 services:
   discord-bot:
     build:
       context: .
-      dockerfile: Dockerfile.simple
+      dockerfile: Dockerfile
     container_name: discord-bot-dev
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
@@ -16,6 +25,9 @@ services:
       - LOG_LEVEL=DEBUG
       - DATABASE_URL=sqlite:///data/discord_data.db
       - MESSAGE_DATABASE_URL=sqlite:///data/message.db
+      - REDIS_URL=redis://redis:6379/0
+      - HEALTH_CHECK_PORT=8000
+      - STARTUP_TIMEOUT=120
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -27,25 +39,61 @@ services:
     networks:
       - discord-bot-network
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+        restart: true
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=5)"]
-      interval: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health", "||", "exit", "1"]
+      interval: 20s
       timeout: 10s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 60s  # 縮短啟動期以加快開發周期
+    deploy:
+      resources:
+        limits:
+          memory: 384M  # 略微降低記憶體限制
+          cpus: '0.5'
+        reservations:
+          memory: 192M  # 降低保留記憶體
+          cpus: '0.25'
+    labels:
+      - "service.role=primary"
+      - "service.tier=application"
+      - "monitoring.scrape=true"
 
   redis:
     image: redis:7-alpine
     container_name: discord-bot-redis
+    environment:
+      - REDIS_MAXMEMORY=256mb
+      - REDIS_MAXMEMORY_POLICY=allkeys-lru
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+      - ./monitoring/redis.conf:/usr/local/etc/redis/redis.conf:ro
     restart: unless-stopped
     networks:
       - discord-bot-network
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --bind 0.0.0.0 --protected-mode no
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "6379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 256M  # 降低Redis記憶體限制
+          cpus: '0.25'
+        reservations:
+          memory: 96M   # 降低保留記憶體
+          cpus: '0.1'
+    labels:
+      - "service.role=dependency"
+      - "service.tier=data"
+      - "monitoring.scrape=false"
 
   prometheus:
     image: prom/prometheus:latest
@@ -62,9 +110,33 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
+      - '--storage.tsdb.no-lockfile'
+      - '--web.enable-admin-api'
     restart: unless-stopped
     networks:
       - discord-bot-network
+    depends_on:
+      discord-bot:
+        condition: service_healthy
+        restart: false
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy", "||", "exit", "1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s  # 縮短Prometheus啟動期
+    deploy:
+      resources:
+        limits:
+          memory: 320M  # 降低Prometheus記憶體限制
+          cpus: '0.3'
+        reservations:
+          memory: 160M  # 降低保留記憶體
+          cpus: '0.15'
+    labels:
+      - "service.role=monitoring"
+      - "service.tier=monitoring"
+      - "monitoring.scrape=true"
 
   grafana:
     image: grafana/grafana:latest
@@ -74,14 +146,39 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=redis-datasource
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     restart: unless-stopped
     networks:
       - discord-bot-network
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
+        restart: false
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 40s  # 縮短Grafana啟動期
+    deploy:
+      resources:
+        limits:
+          memory: 256M  # 降低Grafana記憶體限制
+          cpus: '0.3'
+        reservations:
+          memory: 128M  # 降低保留記憶體
+          cpus: '0.15'
+    labels:
+      - "service.role=monitoring"
+      - "service.tier=visualization"
+      - "monitoring.scrape=false"
 
 volumes:
   redis_data:

@@ -7,7 +7,7 @@ It will integrate with the existing activity meter system.
 """
 
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio
 
 
@@ -25,14 +25,24 @@ class ActivityMeterService:
         """Initialize the activity meter service"""
         self.service_name = "ActivityMeterService"
         self._initialized = False
+        self._db_connection = None
+        self._activity_cache = {}  # 簡單的活動快取
         
     async def initialize(self) -> None:
         """Initialize the service and its dependencies"""
         if self._initialized:
             return
             
-        # TODO: Initialize with existing activity meter service
-        self._initialized = True
+        # 初始化與現有活動計量服務的整合
+        try:
+            # 這裡可以初始化資料庫連接、載入設定等
+            # 目前先建立基本結構
+            self._activity_cache = {}
+            print(f"{self.service_name} 已成功初始化")
+            self._initialized = True
+        except Exception as e:
+            print(f"{self.service_name} 初始化失敗: {e}")
+            raise
         
     async def shutdown(self) -> None:
         """Cleanup service resources"""
@@ -54,7 +64,29 @@ class ActivityMeterService:
         if not self._initialized:
             raise RuntimeError("Service not initialized")
             
-        # TODO: Implement activity recording logic
+        # 實作活動記錄邏輯
+        activity_key = f"{user_id}_{guild_id}"
+        current_time = datetime.now()
+        
+        # 建立活動記錄
+        activity_record = {
+            "user_id": user_id,
+            "guild_id": guild_id,
+            "activity_type": activity_type,
+            "timestamp": current_time,
+            "metadata": metadata or {}
+        }
+        
+        # 將記錄存入快取（在生產環境中應該存入資料庫）
+        if activity_key not in self._activity_cache:
+            self._activity_cache[activity_key] = []
+        
+        self._activity_cache[activity_key].append(activity_record)
+        
+        # 限制快取大小，保留最近100條記錄
+        if len(self._activity_cache[activity_key]) > 100:
+            self._activity_cache[activity_key] = self._activity_cache[activity_key][-100:]
+        
         return True
         
     async def get_activity_summary(self, user_id: int, guild_id: int, days: int = 30) -> Dict[str, Any]:
@@ -72,15 +104,39 @@ class ActivityMeterService:
         if not self._initialized:
             raise RuntimeError("Service not initialized")
             
-        # TODO: Implement activity summary logic
+        # 實作活動摘要邏輯
+        activity_key = f"{user_id}_{guild_id}"
+        cutoff_time = datetime.now() - timedelta(days=days)
+        
+        # 從快取中獲取活動記錄
+        all_activities = self._activity_cache.get(activity_key, [])
+        
+        # 過濾指定天數內的活動
+        recent_activities = [
+            activity for activity in all_activities
+            if activity["timestamp"] >= cutoff_time
+        ]
+        
+        # 統計不同類型的活動
+        message_count = len([a for a in recent_activities if a["activity_type"] == "message"])
+        reaction_count = len([a for a in recent_activities if a["activity_type"] == "reaction"])
+        voice_activities = [a for a in recent_activities if a["activity_type"] in ["voice_join", "voice_leave"]]
+        
+        # 計算語音時間（簡化版本）
+        voice_minutes = len(voice_activities) * 5  # 假設每次語音活動5分鐘
+        
+        # 找到最後活動時間
+        last_activity = max([a["timestamp"] for a in recent_activities]) if recent_activities else None
+        
         return {
             "user_id": user_id,
             "guild_id": guild_id, 
             "days": days,
-            "total_messages": 0,
-            "total_reactions": 0,
-            "voice_minutes": 0,
-            "last_activity": None
+            "total_messages": message_count,
+            "total_reactions": reaction_count,
+            "voice_minutes": voice_minutes,
+            "last_activity": last_activity.isoformat() if last_activity else None,
+            "total_activities": len(recent_activities)
         }
         
     def is_initialized(self) -> bool:

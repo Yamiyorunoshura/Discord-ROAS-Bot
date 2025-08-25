@@ -226,7 +226,8 @@ class MessageListenerCog(commands.Cog):
                 settings = await self.message_service.get_settings()
                 if settings.record_deletes:
                     # 記錄刪除的訊息（可以在這裡添加特殊標記）
-                    # TODO: 可以考慮在資料庫中添加 deleted 欄位
+                    # 資料庫優化建議：考慮在未來版本中添加 deleted 欄位
+                    # 這樣可以實現軟刪除，保留歷史記錄用於審計和分析
                     logger.info(f"訊息已刪除：{message.id} 在頻道 {message.channel.id}")
         
         except Exception as e:

@@ -1,0 +1,158 @@
+networks:
+  discord-bot-network:
+    driver: bridge
+services:
+  discord-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: discord-bot-dev
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    environment:
+    - DISCORD_TOKEN=${DISCORD_TOKEN}
+    - ENVIRONMENT=development
+    - DEBUG=true
+    - LOG_LEVEL=DEBUG
+    - DATABASE_URL=sqlite:///data/discord_data.db
+    - MESSAGE_DATABASE_URL=sqlite:///data/message.db
+    healthcheck:
+      interval: 15s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - python
+      - -c
+      - 'import sys; sys.path.append(''/app''); import asyncio; from core.database_manager
+        import DatabaseManager; exec(''async def check(): db = DatabaseManager();
+        await db.initialize(); result = await db.execute("SELECT 1"); await db.close();
+        return result''); asyncio.run(check())'
+      timeout: 5s
+    networks:
+    - discord-bot-network
+    ports:
+    - 8000:8000
+    restart: unless-stopped
+    volumes:
+    - ./data:/app/data
+    - ./logs:/app/logs
+    - ./backups:/app/backups
+    - ./docs:/app/docs:ro
+  grafana:
+    container_name: discord-bot-grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+        restart: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    environment:
+    - GF_SECURITY_ADMIN_USER=admin
+    - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    healthcheck:
+      interval: 15s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD-SHELL
+      - curl -f http://localhost:3000/api/health || exit 1
+      timeout: 5s
+    image: grafana/grafana:latest
+    networks:
+    - discord-bot-network
+    ports:
+    - 3000:3000
+    restart: unless-stopped
+    volumes:
+    - grafana_data:/var/lib/grafana
+    - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+  prometheus:
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --web.console.libraries=/etc/prometheus/console_libraries
+    - --web.console.templates=/etc/prometheus/consoles
+    - --storage.tsdb.retention.time=200h
+    - --web.enable-lifecycle
+    container_name: discord-bot-prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    healthcheck:
+      interval: 15s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://localhost:9090/-/healthy
+      timeout: 5s
+    image: prom/prometheus:latest
+    networks:
+    - discord-bot-network
+    ports:
+    - 9090:9090
+    restart: unless-stopped
+    volumes:
+    - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - prometheus_data:/prometheus
+  redis:
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    container_name: discord-bot-redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    healthcheck:
+      interval: 15s
+      retries: 3
+      start_period: 10s
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      timeout: 5s
+    image: redis:7-alpine
+    networks:
+    - discord-bot-network
+    ports:
+    - 6379:6379
+    restart: unless-stopped
+    volumes:
+    - redis_data:/data
+volumes:
+  grafana_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  redis_data:
+    driver: local

@@ -1,0 +1,196 @@
+{
+  "timestamp": 1756060735.88831,
+  "environment": "simple",
+  "project_root": "/Users/tszkinlai/Coding/roas-bot",
+  "stages": {
+    "environment_check": {
+      "success": false,
+      "passed": false,
+      "errors": [
+        "端口 6379 已被佔用"
+      ],
+      "issues": [
+        "端口 6379 已被佔用"
+      ],
+      "report": {
+        "timestamp": "2025-08-25T02:38:56.625484",
+        "system_info": {
+          "os": "Darwin",
+          "version": "24.6.0",
+          "python_version": "3.13.5",
+          "architecture": "arm64"
+        },
+        "validation_results": [
+          "ValidationResult(name='作業系統支援', passed=True, message='作業系統 Darwin 受支援', details={'os': 'Darwin', 'version': '24.6.0'}, suggestions=None)",
+          "ValidationResult(name='Python版本', passed=True, message='Python 3.13 符合需求', details={'version': '3.13.5'}, suggestions=None)",
+          "ValidationResult(name='系統記憶體', passed=True, message='可用記憶體: 16.0GB', details={'total_gb': 16.0, 'available_gb': 4.9}, suggestions=None)",
+          "ValidationResult(name='Docker版本', passed=True, message='Docker已安裝: Docker version 28.3.2, build 578ccf6', details={'version_output': 'Docker version 28.3.2, build 578ccf6'}, suggestions=None)",
+          "ValidationResult(name='Docker Compose V2', passed=True, message='Docker Compose V2可用: Docker Compose version v2.38.2-desktop.1', details={'version_output': 'Docker Compose version v2.38.2-desktop.1'}, suggestions=None)",
+          "ValidationResult(name='Docker服務', passed=True, message='Docker daemon正在運行', details={'docker_info_available': True}, suggestions=None)",
+          "ValidationResult(name='配置檔案: pyproject.toml', passed=True, message='pyproject.toml 存在', details={'path': '/Users/tszkinlai/Coding/roas-bot/pyproject.toml'}, suggestions=None)",
+          "ValidationResult(name='配置檔案: Dockerfile', passed=True, message='Dockerfile 存在', details={'path': '/Users/tszkinlai/Coding/roas-bot/Dockerfile'}, suggestions=None)",
+          "ValidationResult(name='配置檔案: docker-compose.dev.yml', passed=True, message='docker-compose.dev.yml 存在', details={'path': '/Users/tszkinlai/Coding/roas-bot/docker-compose.dev.yml'}, suggestions=None)",
+          "ValidationResult(name='配置檔案: docker-compose.prod.yml', passed=True, message='docker-compose.prod.yml 存在', details={'path': '/Users/tszkinlai/Coding/roas-bot/docker-compose.prod.yml'}, suggestions=None)",
+          "ValidationResult(name='Compose語法: docker-compose.dev.yml', passed=True, message='docker-compose.dev.yml 語法正確', details=None, suggestions=None)",
+          "ValidationResult(name='Compose語法: docker-compose.prod.yml', passed=True, message='docker-compose.prod.yml 語法正確', details=None, suggestions=None)",
+          "ValidationResult(name='環境變數: DISCORD_TOKEN', passed=True, message='DISCORD_TOKEN 已設定', details={'description': '必要的Discord機器人Token', 'has_value': True}, suggestions=None)",
+          "ValidationResult(name='可選變數: ENVIRONMENT', passed=True, message='ENVIRONMENT = development', details={'description': '執行環境 (development/production)'}, suggestions=None)",
+          "ValidationResult(name='端口檢查: 6379', passed=False, message='端口 6379 已被佔用', details=None, suggestions=['請關閉佔用端口 6379 的程序'])",
+          "ValidationResult(name='端口檢查: 8000', passed=True, message='端口 8000 可用', details=None, suggestions=None)",
+          "ValidationResult(name='端口檢查: 3000', passed=True, message='端口 3000 可用', details=None, suggestions=None)",
+          "ValidationResult(name='端口檢查: 9090', passed=True, message='端口 9090 可用', details=None, suggestions=None)",
+          "ValidationResult(name='磁盤空間', passed=True, message='可用空間: 63.3GB', details={'free_space_gb': 63.3}, suggestions=None)",
+          "ValidationResult(name='目錄權限: data', passed=True, message='data 目錄權限正常', details={'path': '/Users/tszkinlai/Coding/roas-bot/data'}, suggestions=None)",
+          "ValidationResult(name='目錄權限: logs', passed=True, message='logs 目錄權限正常', details={'path': '/Users/tszkinlai/Coding/roas-bot/logs'}, suggestions=None)",
+          "ValidationResult(name='目錄權限: backups', passed=True, message='backups 目錄權限正常', details={'path': '/Users/tszkinlai/Coding/roas-bot/backups'}, suggestions=None)"
+        ],
+        "overall_status": false,
+        "critical_issues": [
+          "端口 6379 已被佔用"
+        ],
+        "warnings": [],
+        "recommendations": [
+          "請關閉佔用端口 6379 的程序"
+        ]
+      },
+      "critical_count": 1,
+      "warning_count": 0
+    },
+    "docker_check": {
+      "success": true,
+      "health_check": {
+        "timestamp": 1756060736.625534,
+        "overall_healthy": false,
+        "services": {
+          "discord-bot-dev": {
+            "status": "starting",
+            "health_status": null,
+            "container_id": "32998a05f1b6",
+            "message": "Restarting (1) 18 seconds ago"
+          },
+          "discord-bot-prometheus": {
+            "status": "starting",
+            "health_status": null,
+            "container_id": "75eee84837f7",
+            "message": "Restarting (2) 30 seconds ago"
+          },
+          "discord-bot-redis": {
+            "status": "healthy",
+            "health_status": "healthy",
+            "container_id": "f99e0938cee5",
+            "message": "Up 3 minutes (healthy)"
+          }
+        },
+        "summary": {
+          "total": 3,
+          "healthy": 1,
+          "unhealthy": 0,
+          "unknown": 2
+        }
+      },
+      "zombie_containers": {
+        "count": 0,
+        "has_zombies": false,
+        "output": "CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES\n"
+      },
+      "resource_check": {
+        "cpu_usage_percent": 8.5,
+        "memory_total_gb": 16.0,
+        "memory_available_gb": 4.758087158203125,
+        "memory_usage_percent": 70.3,
+        "resources_sufficient": true
+      }
+    },
+    "deployment_preparation": {
+      "success": true,
+      "actions": [
+        {
+          "action": "cleanup_containers",
+          "success": true,
+          "message": "容器清理完成: 所有服務已成功停止"
+        },
+        {
+          "action": "disk_space_check",
+          "success": true,
+          "message": "可用空間: 63.3GB"
+        },
+        {
+          "action": "prepare_directories",
+          "success": true,
+          "message": "所有目錄已存在"
+        }
+      ]
+    },
+    "deployment": {
+      "success": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "message": "服務啟動失敗: 健康檢查失敗: discord-bot-simple: starting",
+          "timestamp": 1756060782.711662,
+          "diagnosis": {
+            "timestamp": 1756060782.711693,
+            "possible_causes": [
+              "端口 6379 可能被其他程序佔用"
+            ],
+            "recommendations": [
+              "檢查並關閉佔用端口 6379 的程序"
+            ]
+          }
+        }
+      ],
+      "message": "部署失敗，已嘗試 1 次"
+    }
+  },
+  "overall_success": false,
+  "deployment_successful": false,
+  "issues_found": [],
+  "fixes_applied": [],
+  "final_status": {
+    "timestamp": 1756060782.911741,
+    "compose_file": "docker-compose.simple.yml",
+    "project_root": "/Users/tszkinlai/Coding/roas-bot",
+    "services": [
+      {
+        "name": "discord-bot-redis-simple",
+        "container_id": "f855c333b0ee",
+        "status": "healthy",
+        "health_status": "healthy",
+        "ports": [
+          {
+            "URL": "0.0.0.0",
+            "TargetPort": 6379,
+            "PublishedPort": 6379,
+            "Protocol": "tcp"
+          },
+          {
+            "URL": "::",
+            "TargetPort": 6379,
+            "PublishedPort": 6379,
+            "Protocol": "tcp"
+          }
+        ],
+        "created_at": "2025-08-25 02:39:16 +0800 HKT",
+        "started_at": null,
+        "message": "Up 26 seconds (healthy)"
+      },
+      {
+        "name": "discord-bot-simple",
+        "container_id": "aaba48288557",
+        "status": "starting",
+        "health_status": null,
+        "ports": [],
+        "created_at": "2025-08-25 02:39:16 +0800 HKT",
+        "started_at": null,
+        "message": "Restarting (1) 2 seconds ago"
+      }
+    ],
+    "summary": {
+      "total_services": 2,
+      "running_services": 0,
+      "healthy_services": 1,
+      "failed_services": 0
+    }
+  }
+}

@@ -17,6 +17,7 @@ Task ID: T8 - 錯誤代碼系統統一化 (更新自 Task ID: 2)
 
 import asyncio
 import json
+import discord
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any, Union
 from decimal import Decimal
@@ -94,9 +95,6 @@ class EconomyService(BaseService):
         返回：
             是否有權限
         """
-        # 基本權限驗證邏輯
-        # TODO: 後續可以整合更複雜的權限系統
-        
         # 管理員操作需要特殊權限
         admin_actions = [
             "admin_transfer", "admin_deposit", "admin_withdraw",
@@ -104,9 +102,56 @@ class EconomyService(BaseService):
         ]
         
         if action in admin_actions:
-            # TODO: 檢查使用者是否為管理員
-            # 目前暫時允許所有操作
-            pass
+            # 實際權限檢查邏輯 - 基於政府服務的成功實作
+            if not guild_id:
+                self.logger.warning(f"權限驗證失敗：缺少伺服器ID，用戶：{user_id}，動作：{action}")
+                return False
+            
+            try:
+                # 從依賴服務獲取Discord bot客戶端
+                discord_client = self.get_dependency("discord_client")
+                if not discord_client:
+                    self.logger.error("無法獲取Discord客戶端進行權限驗證")
+                    return False
+                
+                guild = discord_client.get_guild(guild_id)
+                if not guild:
+                    self.logger.warning(f"找不到伺服器 {guild_id}")
+                    return False
+                
+                member = guild.get_member(user_id)
+                if not member:
+                    self.logger.warning(f"在伺服器 {guild_id} 中找不到用戶 {user_id}")
+                    return False
+                
+                # 檢查是否為伺服器管理員
+                if member.guild_permissions.administrator:
+                    self.logger.debug(f"用戶 {user_id} 具有管理員權限")
+                    return True
+                
+                # 檢查是否為伺服器所有者
+                if member.id == guild.owner_id:
+                    self.logger.debug(f"用戶 {user_id} 是伺服器所有者")
+                    return True
+                
+                # 檢查是否有經濟管理員身分組
+                econ_admin_role = discord.utils.get(guild.roles, name="經濟管理員")
+                if econ_admin_role and econ_admin_role in member.roles:
+                    self.logger.debug(f"用戶 {user_id} 具有經濟管理員身分組")
+                    return True
+                
+                # 檢查是否有常任理事身分組（作為備用權限）
+                council_role = discord.utils.get(guild.roles, name="常任理事")
+                if council_role and council_role in member.roles:
+                    self.logger.debug(f"用戶 {user_id} 具有常任理事身分組")
+                    return True
+                
+                self.logger.warning(f"用戶 {user_id} 沒有執行 {action} 的權限")
+                return False
+                
+            except Exception as e:
+                self.logger.error(f"經濟權限驗證時發生錯誤：{e}")
+                return False
         
         # 一般操作允許所有使用者
         return True

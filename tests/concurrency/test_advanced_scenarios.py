@@ -17,6 +17,7 @@ import tempfile
 import time
 import uuid
 import statistics
+import resource  # 用於記憶體監控
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from dataclasses import dataclass
@@ -318,8 +319,8 @@ class AdvancedConcurrencyTestSuite:
             operations_per_second=ops_per_second,
             concurrent_workers=num_workers,
             max_connections_used=max_connections_used,
-            memory_usage_mb=0.0,  # TODO: 實際記憶體監控
-            peak_memory_mb=0.0,
+            memory_usage_mb=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024,  # 實際記憶體使用量 (KB轉MB)
+            peak_memory_mb=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024,  # 峰值記憶體使用量
             errors=errors[:10],
             timestamp=datetime.now()
         )

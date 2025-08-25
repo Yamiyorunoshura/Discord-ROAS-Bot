@@ -1,0 +1,64 @@
+# Prometheus Configuration for ROAS Bot v2.4.3
+# Task ID: 1 - Docker啟動系統修復
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    service: 'roas-bot'
+    environment: 'development'
+
+# 規則檔案配置
+rule_files:
+  # - "alert_rules.yml"
+
+# 告警管理配置
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# 抓取配置
+scrape_configs:
+  # Prometheus 自身監控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+    metrics_path: /metrics
+
+  # Discord Bot 應用監控（如果有metrics端點）
+  - job_name: 'discord-bot'
+    static_configs:
+      - targets: ['discord-bot:8000']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    honor_labels: true
+    # 如果應用還沒有metrics端點，這個配置會暫時失敗，但不影響其他功能
+
+  # Redis 監控（使用redis_exporter）
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    # 注意：需要redis_exporter才能暴露Redis指標
+
+  # Node Exporter 系統監控（可選）
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+
+# 存儲配置
+storage:
+  tsdb:
+    path: /prometheus
+    retention.time: 7d
+    retention.size: 1GB
+
+# 網頁配置
+web:
+  console.libraries: /etc/prometheus/console_libraries
+  console.templates: /etc/prometheus/consoles
+  enable-lifecycle: true
+  enable-admin-api: true

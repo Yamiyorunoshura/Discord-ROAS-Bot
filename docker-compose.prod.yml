@@ -1,7 +1,6 @@
 # Docker Compose配置 - 生產環境
-# Task ID: 11 - 建立文件和部署準備
-
-version: '3.8'
+# Task ID: 1 - ROAS Bot v2.4.3 Docker啟動系統修復
+# 優化版本：改善服務依賴、健康檢查、資源管理和安全性
 
 services:
   discord-bot:
@@ -16,7 +15,9 @@ services:
       - LOG_LEVEL=INFO
       - DATABASE_URL=sqlite:///data/discord_data.db
       - MESSAGE_DATABASE_URL=sqlite:///data/message.db
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6379/0
+      - HEALTH_CHECK_PORT=8000
+      - STARTUP_TIMEOUT=180
     volumes:
       - discord_data:/app/data
       - discord_logs:/app/logs
@@ -25,13 +26,15 @@ services:
     networks:
       - discord-bot-network
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+        restart: true
     healthcheck:
-      test: ["CMD", "python", "-c", "import asyncio; from core.database_manager import DatabaseManager; asyncio.run(DatabaseManager().health_check())"]
-      interval: 60s
-      timeout: 30s
-      retries: 3
-      start_period: 60s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 180s
     deploy:
       resources:
         limits:
@@ -40,31 +43,64 @@ services:
         reservations:
           memory: 512M
           cpus: '0.25'
+      restart_policy:
+        condition: any
+        delay: 30s
+        max_attempts: 3
+        window: 120s
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    labels:
+      - "service.role=primary"
+      - "service.tier=application"
+      - "monitoring.scrape=true"
+      - "backup.include=true"
 
   redis:
     image: redis:7-alpine
     container_name: discord-bot-redis-prod
+    environment:
+      - REDIS_MAXMEMORY=512mb
+      - REDIS_MAXMEMORY_POLICY=allkeys-lru
     volumes:
       - redis_data:/data
+      - ./monitoring/redis-prod.conf:/usr/local/etc/redis/redis.conf:ro
     restart: always
     networks:
       - discord-bot-network
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --bind 0.0.0.0 --requirepass ${REDIS_PASSWORD:-defaultpass}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "6379", "-a", "${REDIS_PASSWORD:-defaultpass}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
           memory: 512M
           cpus: '0.25'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+        window: 60s
     logging:
       driver: "json-file"
       options:
         max-size: "5m"
         max-file: "3"
+    labels:
+      - "service.role=dependency"
+      - "service.tier=data"
+      - "monitoring.scrape=false"
+      - "backup.include=true"
 
   nginx:
     image: nginx:alpine

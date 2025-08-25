@@ -1,0 +1,114 @@
+# Docker Compose配置 - 簡化開發環境
+# Task ID: 1 - ROAS Bot v2.4.3 Docker配置優化
+# 用途：僅包含核心服務的快速開發配置，適合日常開發和測試
+# 
+# 使用方式：
+#   快速啟動: docker-compose -f docker-compose.simple.yml up
+#   後台運行: docker-compose -f docker-compose.simple.yml up -d
+#   停止服務: docker-compose -f docker-compose.simple.yml down
+
+services:
+  discord-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: discord-bot-simple
+    environment:
+      # Discord配置
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      
+      # 資料庫配置
+      - DATABASE_URL=sqlite:///data/discord_data.db
+      - MESSAGE_DATABASE_URL=sqlite:///data/message.db
+      
+      # Redis配置
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      
+      # 應用程式配置
+      - HEALTH_CHECK_PORT=8000
+      - STARTUP_TIMEOUT=60  # 簡化環境下縮短超時時間
+    volumes:
+      # 開發必需的掛載點
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./src:/app/src:rw  # 開發時允許代碼熱重載
+      - ./tests:/app/tests:ro  # 掛載測試文件
+    ports:
+      - "8000:8000"  # 健康檢查端口
+      - "5678:5678"  # debugpy端口（用於IDE調試）
+    restart: "no"  # 開發環境不自動重啟，便於調試
+    networks:
+      - simple-network
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health", "||", "exit", "1"]
+      interval: 30s  # 減少檢查頻率
+      timeout: 5s
+      retries: 3  # 減少重試次數
+      start_period: 45s  # 縮短啟動期
+    deploy:
+      resources:
+        limits:
+          memory: 256M  # 開發環境降低記憶體限制
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    labels:
+      - "service.role=primary"
+      - "service.tier=application"
+      - "environment=simple_dev"
+
+  redis:
+    image: redis:7-alpine
+    container_name: discord-bot-redis-simple
+    environment:
+      - REDIS_MAXMEMORY=128mb  # 降低記憶體使用
+      - REDIS_MAXMEMORY_POLICY=allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_simple_data:/data
+    restart: "no"  # 開發環境不自動重啟
+    networks:
+      - simple-network
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru --bind 0.0.0.0 --protected-mode no
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "6379", "ping"]
+      interval: 10s  # 減少檢查頻率
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 150M  # 降低記憶體限制
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    labels:
+      - "service.role=dependency"
+      - "service.tier=data"
+      - "environment=simple_dev"
+
+# 簡化的數據卷配置
+volumes:
+  redis_simple_data:
+    driver: local
+
+# 簡化的網路配置
+networks:
+  simple-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: simple-br0
