@@ -224,7 +224,7 @@ class TestDatabaseCompatibility:
         await token_manager.initialize()
         
         # 測試Token加密
-        original_token = "MTk4NjIyNDgzNDcxOTI1MjQ4.G5MjU1.5d5MKuSfKfB1w-6-fk-X5RlKHKKlCQm"
+        original_token = ""
         bot_id = "test_bot_token"
         
         encrypted_token, metadata_json = await token_manager.encrypt_discord_token(
@@ -458,7 +458,7 @@ class TestDatabaseCompatibility:
             # 2. 創建子機器人
             create_result = await db_service.create_subbot(
                 name="Full Integration Bot",
-                token="MTk4NjIyNDgzNDcxOTI1MjQ4.G5MjU1.5d5MKuSfKfB1w-6-fk-X5RlKHKKlCQm",
+                token="",
                 owner_id=12345,
                 channel_ids=[111111, 222222],
                 ai_enabled=True,
