@@ -74,6 +74,7 @@ class LoggingConfig:
 class SecurityConfig:
     """Security configuration settings"""
     secret_key: str = ""
+    encryption_key: str = ""  # Token加密專用密鑰
     encrypt_logs: bool = False
     sensitive_data_patterns: list = field(default_factory=lambda: [
         r'token',
@@ -83,6 +84,8 @@ class SecurityConfig:
         r'auth'
     ])
     max_request_size: int = 1024 * 1024  # 1MB
+    token_encryption_algorithm: str = "AES-GCM"  # 預設使用AES-GCM
+    key_rotation_enabled: bool = True  # 是否啟用密鑰輪換
 
 
 @dataclass
@@ -289,7 +292,10 @@ class ConfigManager:
             
             # Security configuration
             f"{self.env_prefix}SECRET_KEY": ("security", "secret_key"),
+            f"{self.env_prefix}ENCRYPTION_KEY": ("security", "encryption_key"),
             f"{self.env_prefix}ENCRYPT_LOGS": ("security", "encrypt_logs", bool),
+            f"{self.env_prefix}TOKEN_ENCRYPTION_ALGORITHM": ("security", "token_encryption_algorithm"),
+            f"{self.env_prefix}KEY_ROTATION_ENABLED": ("security", "key_rotation_enabled", bool),
             
             # Performance configuration
             f"{self.env_prefix}CACHE_ENABLED": ("performance", "cache_enabled", bool),
@@ -353,6 +359,13 @@ class ConfigManager:
                 config.environment == Environment.PRODUCTION and not config.security.secret_key,
                 "security.secret_key",
                 "Secret key is required for production environment"
+            ),
+            
+            # Encryption key is required for production
+            (
+                config.environment == Environment.PRODUCTION and not config.security.encryption_key,
+                "security.encryption_key", 
+                "Encryption key is required for production environment"
             ),
             
             # Log directory should be writable

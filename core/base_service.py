@@ -13,6 +13,7 @@ import asyncio
 import logging
 import functools
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Optional, Dict, Any, Type, TypeVar, List, Set
 from datetime import datetime
 import weakref
@@ -29,6 +30,17 @@ logger = logging.getLogger('core.base_service')
 
 # 泛型類型變數
 T = TypeVar('T', bound='BaseService')
+
+# 新增：服務類型枚舉，支援v2.4.4新功能
+class ServiceType(Enum):
+    """服務類型枚舉"""
+    BASE = "base"                    # 基礎服務
+    DATABASE = "database"            # 資料庫服務
+    DEPLOYMENT = "deployment"        # 部署服務 (新增)
+    SUB_BOT = "sub_bot"             # 子機器人服務 (新增)
+    AI_SERVICE = "ai_service"        # AI服務 (新增)
+    SECURITY = "security"            # 安全服務
+    MONITORING = "monitoring"        # 監控服務
 
 
 class ServiceRegistry:
@@ -63,7 +75,7 @@ class ServiceRegistry:
             服務名稱
         """
         async with self._lock:
-            service_name = name or service.__class__.__name__
+            service_name = name or service.name
             
             if service_name in self._services:
                 if force_reregister:
@@ -303,6 +315,191 @@ class ServiceRegistry:
         self._dependencies.clear()
         self._initialization_order.clear()
         logger.info("服務註冊表已重置（測試模式）")
+    
+    # ========== 新增：v2.4.4 特定服務註冊方法 ==========
+    
+    async def register_deployment_service(
+        self, 
+        service: 'BaseService',
+        deployment_mode: str,
+        name: Optional[str] = None
+    ) -> str:
+        """
+        註冊部署服務
+        
+        參數：
+            service: 部署服務實例
+            deployment_mode: 部署模式 ('docker', 'uv', 'fallback')
+            name: 服務名稱，如果不提供則使用類別名稱
+            
+        返回：
+            服務名稱
+        """
+        service_name = await self.register_service(service, name)
+        
+        # 在服務詳情中記錄部署相關信息
+        if hasattr(service, 'service_metadata'):
+            service.service_metadata.update({
+                'service_type': ServiceType.DEPLOYMENT,
+                'deployment_mode': deployment_mode
+            })
+        else:
+            service.service_metadata = {
+                'service_type': ServiceType.DEPLOYMENT,
+                'deployment_mode': deployment_mode
+            }
+        
+        logger.info(f"部署服務 {service_name} 已註冊 (模式: {deployment_mode})")
+        return service_name
+    
+    async def register_sub_bot_service(
+        self,
+        service: 'BaseService',
+        bot_id: str,
+        target_channels: List[str],
+        name: Optional[str] = None
+    ) -> str:
+        """
+        註冊子機器人服務
+        
+        參數：
+            service: 子機器人服務實例
+            bot_id: 子機器人ID
+            target_channels: 目標頻道列表
+            name: 服務名稱，如果不提供則使用類別名稱
+            
+        返回：
+            服務名稱
+        """
+        service_name = await self.register_service(service, name)
+        
+        # 在服務詳情中記錄子機器人相關信息
+        if hasattr(service, 'service_metadata'):
+            service.service_metadata.update({
+                'service_type': ServiceType.SUB_BOT,
+                'bot_id': bot_id,
+                'target_channels': target_channels
+            })
+        else:
+            service.service_metadata = {
+                'service_type': ServiceType.SUB_BOT,
+                'bot_id': bot_id,
+                'target_channels': target_channels
+            }
+        
+        logger.info(f"子機器人服務 {service_name} 已註冊 (Bot ID: {bot_id}, 頻道數: {len(target_channels)})")
+        return service_name
+    
+    async def register_ai_service(
+        self,
+        service: 'BaseService',
+        provider: str,
+        models: List[str],
+        name: Optional[str] = None
+    ) -> str:
+        """
+        註冊AI服務
+        
+        參數：
+            service: AI服務實例
+            provider: AI提供商 ('openai', 'anthropic', 'google')
+            models: 支援的模型列表
+            name: 服務名稱，如果不提供則使用類別名稱
+            
+        返回：
+            服務名稱
+        """
+        service_name = await self.register_service(service, name)
+        
+        # 在服務詳情中記錄AI相關信息
+        if hasattr(service, 'service_metadata'):
+            service.service_metadata.update({
+                'service_type': ServiceType.AI_SERVICE,
+                'provider': provider,
+                'models': models
+            })
+        else:
+            service.service_metadata = {
+                'service_type': ServiceType.AI_SERVICE,
+                'provider': provider,
+                'models': models
+            }
+        
+        logger.info(f"AI服務 {service_name} 已註冊 (提供商: {provider}, 模型數: {len(models)})")
+        return service_name
+    
+    async def get_service_health_status(self, service_name: Optional[str] = None) -> Dict[str, Any]:
+        """
+        獲取服務健康狀態
+        
+        參數：
+            service_name: 服務名稱，如果為 None 則返回所有服務的健康狀態
+            
+        返回：
+            健康狀態字典
+        """
+        if service_name:
+            # 獲取特定服務的健康狀態
+            service = self.get_service(service_name)
+            if not service:
+                return {
+                    "service_name": service_name,
+                    "status": "not_found",
+                    "message": f"服務 {service_name} 不存在"
+                }
+            
+            health_info = await service.health_check()
+            
+            # 添加服務類型信息
+            if hasattr(service, 'service_metadata'):
+                health_info.update(service.service_metadata)
+            
+            return health_info
+        else:
+            # 獲取所有服務的健康狀態
+            all_health = {
+                "timestamp": datetime.now().isoformat(),
+                "total_services": len(self._services),
+                "services": {}
+            }
+            
+            for name, service in self._services.items():
+                try:
+                    health_info = await service.health_check()
+                    
+                    # 添加服務類型信息
+                    if hasattr(service, 'service_metadata'):
+                        health_info.update(service.service_metadata)
+                    
+                    all_health["services"][name] = health_info
+                except Exception as e:
+                    all_health["services"][name] = {
+                        "service_name": name,
+                        "status": "error",
+                        "error": str(e)
+                    }
+            
+            return all_health
+    
+    def get_services_by_type(self, service_type: ServiceType) -> List[str]:
+        """
+        根據服務類型獲取服務名稱列表
+        
+        參數：
+            service_type: 服務類型
+            
+        返回：
+            符合類型的服務名稱列表
+        """
+        matching_services = []
+        
+        for name, service in self._services.items():
+            if hasattr(service, 'service_metadata'):
+                metadata_type = service.service_metadata.get('service_type')
+                if metadata_type == service_type:
+                    matching_services.append(name)
+        
+        return matching_services
 
 
 # 全域服務註冊表實例
@@ -320,12 +517,13 @@ class BaseService(ABC):
     - 日誌記錄
     """
     
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: Optional[str] = None, service_type: ServiceType = ServiceType.BASE):
         """
         初始化服務
         
         參數：
             name: 服務名稱，如果不提供則使用類別名稱
+            service_type: 服務類型，預設為 BASE
         """
         self.name = name or self.__class__.__name__
         self.logger = logging.getLogger(f'service.{self.name}')
@@ -335,6 +533,13 @@ class BaseService(ABC):
         
         # 弱引用避免循環引用
         self._dependent_services: weakref.WeakSet['BaseService'] = weakref.WeakSet()
+        
+        # 新增：服務元數據，支援v2.4.4新功能
+        self.service_metadata: Dict[str, Any] = {
+            'service_type': service_type,
+            'created_at': datetime.now().isoformat(),
+            'version': '2.4.4'
+        }
     
     @property
     def is_initialized(self) -> bool:
@@ -560,14 +765,21 @@ class BaseService(ABC):
         返回：
             服務健康狀態信息
         """
-        return {
+        health_info = {
             "service_name": self.name,
             "initialized": self._initialized,
             "initialization_time": self._initialization_time.isoformat() if self._initialization_time else None,
             "uptime_seconds": self.uptime,
             "dependencies": list(self._dependencies.keys()),
-            "dependent_services": len(self._dependent_services)
+            "dependent_services": len(self._dependent_services),
+            "status": "healthy" if self._initialized else "not_initialized"
         }
+        
+        # 添加服務元數據信息
+        if hasattr(self, 'service_metadata'):
+            health_info.update(self.service_metadata)
+        
+        return health_info
     
     def __repr__(self) -> str:
         status = "已初始化" if self._initialized else "未初始化"

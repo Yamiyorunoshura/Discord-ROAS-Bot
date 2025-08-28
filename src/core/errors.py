@@ -367,6 +367,235 @@ class ExternalServiceError(AppError):
         self.status_code = status_code
 
 
+# ========== ROAS Bot v2.4.4 Specific Error Classes ==========
+
+class ROASBotError(AppError):
+    """
+    ROAS Bot 基礎錯誤類別
+    
+    v2.4.4版本的基礎錯誤類別，所有ROAS Bot特定錯誤都繼承自此類別
+    包含error_code和timestamp屬性，與現有錯誤處理中間件完全整合
+    """
+    
+    def __init__(self, 
+                 message: str, 
+                 error_code: Optional[str] = None,
+                 details: Optional[Dict[str, Any]] = None,
+                 cause: Optional[Exception] = None):
+        """
+        Initialize the ROAS Bot error
+        
+        Args:
+            message: Human-readable error message
+            error_code: Machine-readable error code for API/logging
+            details: Additional error context and metadata
+            cause: The underlying exception that caused this error
+        """
+        super().__init__(message, error_code, details, cause)
+        # Ensure error_code and timestamp are always present
+        if not hasattr(self, 'error_code') or not self.error_code:
+            self.error_code = self.__class__.__name__.upper()
+        if not hasattr(self, 'timestamp'):
+            self.timestamp = datetime.utcnow()
+
+
+# ========== Deployment System Error Classes ==========
+
+class DeploymentError(ROASBotError):
+    """部署相關錯誤基礎類別"""
+    
+    def __init__(self, message: str, deployment_mode: Optional[str] = None, **kwargs):
+        super().__init__(message=message, **kwargs)
+        self.deployment_mode = deployment_mode
+        if deployment_mode:
+            self.details["deployment_mode"] = deployment_mode
+
+class EnvironmentError(DeploymentError):
+    """環境檢測錯誤"""
+    
+    def __init__(self, environment_type: str, check_failed: str, **kwargs):
+        message = f"環境檢測失敗 ({environment_type}): {check_failed}"
+        super().__init__(message=message, deployment_mode=environment_type, **kwargs)
+        self.environment_type = environment_type
+        self.check_failed = check_failed
+        self.details.update({
+            "environment_type": environment_type,
+            "check_failed": check_failed
+        })
+
+class DependencyInstallError(DeploymentError):
+    """依賴安裝錯誤"""
+    
+    def __init__(self, dependency_name: str, install_method: str, reason: str, **kwargs):
+        message = f"依賴安裝失敗 ({dependency_name} via {install_method}): {reason}"
+        super().__init__(message=message, deployment_mode=install_method, **kwargs)
+        self.dependency_name = dependency_name
+        self.install_method = install_method
+        self.reason = reason
+        self.details.update({
+            "dependency_name": dependency_name,
+            "install_method": install_method,
+            "reason": reason
+        })
+
+class ServiceStartupError(DeploymentError):
+    """服務啟動錯誤"""
+    
+    def __init__(self, service_name: str, startup_mode: str, reason: str, **kwargs):
+        message = f"服務啟動失敗 ({service_name} in {startup_mode} mode): {reason}"
+        super().__init__(message=message, deployment_mode=startup_mode, **kwargs)
+        self.service_name = service_name
+        self.startup_mode = startup_mode
+        self.reason = reason
+        self.details.update({
+            "service_name": service_name,
+            "startup_mode": startup_mode,
+            "reason": reason
+        })
+
+
+# ========== Sub-Bot System Error Classes ==========
+
+class SubBotError(ROASBotError):
+    """子機器人相關錯誤基礎類別"""
+    
+    def __init__(self, message: str, bot_id: Optional[str] = None, **kwargs):
+        super().__init__(message=message, **kwargs)
+        self.bot_id = bot_id
+        if bot_id:
+            self.details["bot_id"] = bot_id
+
+class SubBotCreationError(SubBotError):
+    """子機器人創建錯誤"""
+    
+    def __init__(self, bot_id: str, reason: str, **kwargs):
+        message = f"子機器人創建失敗 (ID: {bot_id}): {reason}"
+        super().__init__(message=message, bot_id=bot_id, **kwargs)
+        self.reason = reason
+        self.details["reason"] = reason
+
+class SubBotTokenError(SubBotError):
+    """子機器人 Token 錯誤"""
+    
+    def __init__(self, bot_id: str, token_issue: str, **kwargs):
+        message = f"子機器人 Token 錯誤 (ID: {bot_id}): {token_issue}"
+        super().__init__(message=message, bot_id=bot_id, **kwargs)
+        self.token_issue = token_issue
+        self.details["token_issue"] = token_issue
+
+class SubBotChannelError(SubBotError):
+    """子機器人頻道配置錯誤"""
+    
+    def __init__(self, bot_id: str, channel_id: Optional[str], operation: str, reason: str, **kwargs):
+        channel_info = f"Channel: {channel_id}" if channel_id else "No channel specified"
+        message = f"子機器人頻道操作失敗 (Bot: {bot_id}, {channel_info}, Op: {operation}): {reason}"
+        super().__init__(message=message, bot_id=bot_id, **kwargs)
+        self.channel_id = channel_id
+        self.operation = operation
+        self.reason = reason
+        self.details.update({
+            "channel_id": channel_id,
+            "operation": operation,
+            "reason": reason
+        })
+
+
+# ========== AI Service Error Classes ==========
+
+class AIServiceError(ROASBotError):
+    """AI 服務相關錯誤基礎類別"""
+    
+    def __init__(self, message: str, provider: Optional[str] = None, model: Optional[str] = None, **kwargs):
+        super().__init__(message=message, **kwargs)
+        self.provider = provider
+        self.model = model
+        if provider:
+            self.details["provider"] = provider
+        if model:
+            self.details["model"] = model
+
+class AIProviderError(AIServiceError):
+    """AI 提供商錯誤"""
+    
+    def __init__(self, provider: str, operation: str, api_error: str, **kwargs):
+        message = f"AI提供商錯誤 ({provider} - {operation}): {api_error}"
+        super().__init__(message=message, provider=provider, **kwargs)
+        self.operation = operation
+        self.api_error = api_error
+        self.details.update({
+            "operation": operation,
+            "api_error": api_error
+        })
+
+class AIQuotaExceededError(AIServiceError):
+    """AI 配額超限錯誤"""
+    
+    def __init__(self, user_id: str, quota_type: str, limit: int, current_usage: int, **kwargs):
+        message = f"AI配額超限 (User: {user_id}, Type: {quota_type}): {current_usage}/{limit}"
+        super().__init__(message=message, **kwargs)
+        self.user_id = user_id
+        self.quota_type = quota_type
+        self.limit = limit
+        self.current_usage = current_usage
+        self.details.update({
+            "user_id": user_id,
+            "quota_type": quota_type,
+            "limit": limit,
+            "current_usage": current_usage
+        })
+
+class AIResponseError(AIServiceError):
+    """AI 回應錯誤"""
+    
+    def __init__(self, provider: str, model: str, issue: str, **kwargs):
+        message = f"AI回應錯誤 ({provider}/{model}): {issue}"
+        super().__init__(message=message, provider=provider, model=model, **kwargs)
+        self.issue = issue
+        self.details["issue"] = issue
+
+
+# ========== Security Error Classes ==========
+
+class SecurityError(ROASBotError):
+    """安全相關錯誤基礎類別"""
+    
+    def __init__(self, message: str, security_context: Optional[str] = None, **kwargs):
+        super().__init__(message=message, **kwargs)
+        self.security_context = security_context
+        if security_context:
+            self.details["security_context"] = security_context
+
+class ContentFilterError(SecurityError):
+    """內容過濾錯誤"""
+    
+    def __init__(self, content_type: str, filter_rule: str, violation: str, **kwargs):
+        message = f"內容過濾失敗 ({content_type} - {filter_rule}): {violation}"
+        super().__init__(message=message, security_context="content_filter", **kwargs)
+        self.content_type = content_type
+        self.filter_rule = filter_rule
+        self.violation = violation
+        self.details.update({
+            "content_type": content_type,
+            "filter_rule": filter_rule,
+            "violation": violation
+        })
+
+class AuthenticationError(SecurityError):
+    """身份驗證錯誤"""
+    
+    def __init__(self, auth_type: str, user_info: str, reason: str, **kwargs):
+        message = f"身份驗證失敗 ({auth_type} - {user_info}): {reason}"
+        super().__init__(message=message, security_context="authentication", **kwargs)
+        self.auth_type = auth_type
+        self.user_info = user_info  # Should be sanitized before passing
+        self.reason = reason
+        self.details.update({
+            "auth_type": auth_type,
+            "user_info": user_info,
+            "reason": reason
+        })
+
+
 # Convenience function for error handling
 def create_error(error_type: str, **kwargs) -> AppError:
     """
@@ -380,6 +609,7 @@ def create_error(error_type: str, **kwargs) -> AppError:
         Instance of the specified error type
     """
     error_classes = {
+        # Original error classes
         'AppError': AppError,
         'ServiceError': ServiceError,
         'DatabaseError': DatabaseError,
@@ -388,6 +618,32 @@ def create_error(error_type: str, **kwargs) -> AppError:
         'NotFoundError': NotFoundError,
         'ConfigurationError': ConfigurationError,
         'ExternalServiceError': ExternalServiceError,
+        
+        # ROAS Bot v2.4.4 specific error classes
+        'ROASBotError': ROASBotError,
+        
+        # Deployment error classes
+        'DeploymentError': DeploymentError,
+        'EnvironmentError': EnvironmentError,
+        'DependencyInstallError': DependencyInstallError,
+        'ServiceStartupError': ServiceStartupError,
+        
+        # Sub-Bot error classes
+        'SubBotError': SubBotError,
+        'SubBotCreationError': SubBotCreationError,
+        'SubBotTokenError': SubBotTokenError,
+        'SubBotChannelError': SubBotChannelError,
+        
+        # AI Service error classes
+        'AIServiceError': AIServiceError,
+        'AIProviderError': AIProviderError,
+        'AIQuotaExceededError': AIQuotaExceededError,
+        'AIResponseError': AIResponseError,
+        
+        # Security error classes
+        'SecurityError': SecurityError,
+        'ContentFilterError': ContentFilterError,
+        'AuthenticationError': AuthenticationError,
     }
     
     error_class = error_classes.get(error_type, AppError)

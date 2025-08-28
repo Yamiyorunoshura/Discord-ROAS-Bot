@@ -325,6 +325,25 @@ class ServiceStartupManager:
                 }
                 return MessageService(db_manager, config)
             
+            # v2.4.4 新服務創建邏輯
+            elif service_name == "DeploymentService":
+                from src.services.deployment_service import DeploymentService
+                from pathlib import Path
+                project_root = Path(self.config.get('project_root', '.'))
+                return DeploymentService(project_root)
+            
+            elif service_name == "AIService":
+                from src.services.ai_service import AIService
+                default_provider = self.config.get('ai_default_provider', 'openai')
+                return AIService(default_provider)
+            
+            elif service_name == "SubBotService":
+                from src.services.subbot_service import SubBotService
+                encryption_key = self.config.get('subbot_encryption_key')
+                # SubBotService 在建構函數中已經自動處理 encryption_key 的取得和生成
+                # 不需要額外的參數，依賴會透過 _inject_dependencies 方法注入
+                return SubBotService(encryption_key)
+            
             else:
                 # 其他服務使用無參構造，依賴交由 _inject_dependencies 注入
                 return service_type()
@@ -379,6 +398,20 @@ class ServiceStartupManager:
             elif service_name in ("RoleService", "EconomyService"):
                 # 這些是基礎服務，只需要 database_manager，已在上方注入
                 logger.debug(f"基礎服務 {service_name} 依賴注入完成")
+            
+            # v2.4.4 新服務依賴注入邏輯
+            elif service_name == "SubBotService":
+                # 子機器人服務依賴AI服務（可選）
+                ai_service = self.service_instances.get("AIService")
+                if ai_service:
+                    service_instance.add_dependency(ai_service, "ai_service")
+                    logger.debug(f"為 {service_name} 注入 ai_service 依賴成功")
+                else:
+                    logger.warning(f"AIService 尚未可用，{service_name} 將無法使用AI功能")
+            
+            elif service_name in ("DeploymentService", "AIService"):
+                # 這些是基礎服務，只需要 database_manager，已在上方注入
+                logger.debug(f"v2.4.4 基礎服務 {service_name} 依賴注入完成")
                 
         except Exception as e:
             logger.exception(f"為 {service_name} 注入跨服務依賴失敗：{e}")
@@ -562,6 +595,25 @@ async def get_startup_manager(config: Optional[Dict[str, Any]] = None) -> Servic
         except ImportError:
             pass
         
+        # v2.4.4 新增服務類型
+        try:
+            from src.services.deployment_service import DeploymentService
+            startup_manager.register_service_type(DeploymentService, "DeploymentService")
+        except ImportError:
+            logger.warning("無法載入 DeploymentService")
+        
+        try:
+            from src.services.subbot_service import SubBotService
+            startup_manager.register_service_type(SubBotService, "SubBotService")
+        except ImportError:
+            logger.warning("無法載入 SubBotService")
+        
+        try:
+            from src.services.ai_service import AIService
+            startup_manager.register_service_type(AIService, "AIService")
+        except ImportError:
+            logger.warning("無法載入 AIService")
+        
         # 建立依賴關係拓撲
         # 這些依賴主要用於排序，實際注入在 _inject_dependencies 中完成
         try:
@@ -571,6 +623,14 @@ async def get_startup_manager(config: Optional[Dict[str, Any]] = None) -> Servic
             startup_manager.add_service_dependency("GovernmentService", "RoleService")
             startup_manager.add_service_dependency("AchievementService", "EconomyService")
             startup_manager.add_service_dependency("AchievementService", "RoleService")
+            
+            # v2.4.4 新服務依賴關係
+            # SubBotService 依賴 AIService（用於AI功能集成）
+            startup_manager.add_service_dependency("SubBotService", "AIService")
+            
+            # DeploymentService 是基礎服務，不依賴其他業務服務
+            # AIService 是基礎服務，不依賴其他業務服務
+            
         except Exception:
             logger.exception("建立服務依賴關係時發生錯誤")
         

@@ -607,7 +607,7 @@ class LinkChecker:
         self._cache_timestamp = time.time()
         logger.debug("連結檢查器快取已清理")
     
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict:
         """獲取快取統計"""
         return {
             "file_cache_size": len(self._file_cache),
